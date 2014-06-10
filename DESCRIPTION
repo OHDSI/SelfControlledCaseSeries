@@ -7,3 +7,6 @@ Author: Martijn J. Schuemie, Marc A. Suchard
 Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 License: Apache License 2.0
+Suggests:
+    testthat
+    
