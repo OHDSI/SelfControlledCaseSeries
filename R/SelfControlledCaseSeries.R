@@ -23,7 +23,7 @@
 #' Convert CSV to a CCD input file
 #' 
 #' @description
-#' \code{convertToCcDInputFile} converts era and observation period CSV file to a CCD input file.
+#' \code{convertToCcdInputFile} converts era and observation period CSV file to a CCD input file.
 #'
 #' @param eraFile                 The full path to the era file
 #' @param observationPeriodFile   The full path to the observation period file
@@ -40,7 +40,7 @@
 #' subject will be removed from the dataset.
 #' 
 #' @export
-convertToCcDInputFile <- function(eraFile, 
+convertToCcdInputFile <- function(eraFile, 
                                   observationPeriodFile, 
                                   targetFile, 
                                   naivePeriod = 180,
