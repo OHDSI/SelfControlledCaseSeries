@@ -1,0 +1,4 @@
+SelfControlledCaseSeries
+========================
+
+MSCCS R package
