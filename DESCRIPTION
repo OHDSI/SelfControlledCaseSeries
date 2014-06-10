@@ -1,12 +1,19 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: What the package does (short line)
-Version: 0.1
+Version: 1.0
 Date: 2014-06-10
-Author: Martijn J. Schuemie, Marc A. Suchard
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Author: Patrick Ryan, Marc Suchard, Trevor Shaddox, Martijn Schuemie
+Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
 Description: More about what it does (maybe more than one line)
-License: Apache License 2.0
+Depends:
+    rJava
+License: Apache License
 Suggests:
     testthat
+    
+    
+    
+    
+    
     
