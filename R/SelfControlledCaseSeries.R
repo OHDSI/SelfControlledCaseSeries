@@ -50,6 +50,7 @@ convertToCcdInputFile <- function(eraFile,
                                   minCovariateSubjects = 100){
   pathToJar <- system.file("java", "SCCSConverter.jar", package="SelfControlledCaseSeries")
   .jinit(pathToJar)
+  .jcall("java/lang/System",,"gc")
   jobject <- .jnew("DesignMatrixBuilder") 
   .jcall(jobject ,"V",method="setEra_file",eraFile)
   .jcall(jobject ,"V",method="setObservation_period_file",observationPeriodFile)
