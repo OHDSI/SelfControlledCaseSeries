@@ -47,11 +47,17 @@ convertToCcdInputFile <- function(eraFile,
                                   covariateWindowStart = 0,
                                   covariateWindowEnd = 180,
                                   firstOutcomeOnly = TRUE,
-                                  minCovariateSubjects = 100){
+                                  minCovariateSubjects = 100,
+                                  javaDebugFile){
   pathToJar <- system.file("java", "SCCSConverter.jar", package="SelfControlledCaseSeries")
   .jinit(pathToJar)
+  
   .jcall("java/lang/System",,"gc")
   jobject <- .jnew("DesignMatrixBuilder") 
+  
+  if (!missing(javaDebugFile))
+    .jcall(jobject ,"V",method="setDebugFile",as.character(javaDebugFile))
+  
   .jcall(jobject ,"V",method="setEra_file",eraFile)
   .jcall(jobject ,"V",method="setObservation_period_file",observationPeriodFile)
   .jcall(jobject ,"V",method="setCcd_in_file",targetFile)

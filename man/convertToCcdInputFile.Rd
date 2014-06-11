@@ -5,7 +5,7 @@
 \usage{
 convertToCcdInputFile(eraFile, observationPeriodFile, targetFile,
   naivePeriod = 180, covariateWindowStart = 0, covariateWindowEnd = 180,
-  firstOutcomeOnly = TRUE, minCovariateSubjects = 100)
+  firstOutcomeOnly = TRUE, minCovariateSubjects = 100, javaDebugFile)
 }
 \arguments{
 \item{eraFile}{The full path to the era file}
