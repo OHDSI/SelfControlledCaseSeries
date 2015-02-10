@@ -7,7 +7,17 @@ Author: Patrick Ryan, Marc Suchard, Trevor Shaddox, Martijn Schuemie
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
 Description: More about what it does (maybe more than one line)
 Depends:
-    rJava
+    R (>= 3.1.0),
+    bit,
+    Cyclops (>= 1.0.0),
+    DatabaseConnector
+Imports:
+    SqlRender (>= 1.0.0),
+    ff,
+    ffbase,
+    Rcpp (>= 0.11.2)
 License: Apache License
 Suggests:
     testthat
+LinkingTo: Rcpp
+NeedsCompilation: yes

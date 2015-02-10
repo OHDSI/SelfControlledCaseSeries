@@ -1,4 +1,4 @@
-# @file SelfControlledCaseSeries.R
+# @file DataLoadingSaving.R
 #
 # Copyright 2014 Observational Health Data Sciences and Informatics
 #
@@ -16,19 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' SelfControlledCaseSeries
-#' 
-#' @docType package
-#' @name SelfControlledCaseSeries
-#' @importFrom Rcpp evalCpp
-#' @importFrom SqlRender loadRenderTranslateSql translateSql
-#' @importFrom RJDBC dbDisconnect
-#' @import bit
-#' @import Cyclops
-#' @import DatabaseConnector
-#' @useDynLib SelfControlledCaseSeries
-NULL
-
-sccs <- function(){
-  #todo
+#' @export
+convertToSccs <- function(cases, eras, covariatePersistencePeriod = 0, naivePeriod = 0, firstOutcomeOnly = FALSE) {
+  .Call('SelfControlledCaseSeries_convertToSccs', PACKAGE = 'SelfControlledCaseSeries', cases, eras, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly)
 }
