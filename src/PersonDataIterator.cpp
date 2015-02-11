@@ -29,7 +29,8 @@ using namespace Rcpp;
 namespace ohdsi {
 	namespace sccs {
 
-		PersonDataIterator::PersonDataIterator(DataFrame &_cases, DataFrame &_eras) : casesCursor(1), erasCursor(1) {
+		PersonDataIterator::PersonDataIterator(const DataFrame& _cases, const DataFrame& _eras) :
+				casesCursor(0), erasCursor(0) {
 			casesPersonId = _cases["personId"];
 			casesObservationPeriodId = _cases["observationPeriodId"];
 			casesObservationDays = _cases["observationDays"];
@@ -41,18 +42,17 @@ namespace ohdsi {
 		}
 
 		bool PersonDataIterator::hasNext() {
-			return (casesCursor <= casesObservationPeriodId.length());
+			return (casesCursor < casesObservationPeriodId.length());
 		}
 
 		PersonData PersonDataIterator::next() {
 			int observationPeriodId = casesObservationPeriodId[casesCursor];
-			std::vector<Era> eras;
-			while (erasObservationPeriodId[erasCursor] == observationPeriodId){
+			PersonData nextPerson(casesPersonId[casesCursor], observationPeriodId, casesObservationDays[casesCursor]);
+			while (erasObservationPeriodId[erasCursor] == observationPeriodId) {
 				Era era(erasStartDay[erasCursor], erasEndDay[erasCursor], erasConceptId[erasCursor], erasEraType[erasCursor] == "hoi");
-				eras.push_back(era);
+				nextPerson.eras->push_back(era);
 				erasCursor++;
 			}
-			PersonData nextPerson(eras, casesPersonId[casesCursor], observationPeriodId, casesObservationDays[casesCursor]);
 			casesCursor++;
 			return nextPerson;
 		}

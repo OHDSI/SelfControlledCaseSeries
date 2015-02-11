@@ -159,9 +159,9 @@ saveSccsData <- function(sccsData, folder){
   metaData <- sccsData$metaData
   save(metaData, file = file.path(folder,"metaData.Rdata"))
   #Open all ffdfs to prevent annoying messages later:
-  open(result$cases)
-  open(result$eras)
-  open(result$covariateRef)
+  open(sccsData$cases)
+  open(sccsData$eras)
+  open(sccsData$covariateRef)
 }
 
 #' Load the SCCS data from a folder

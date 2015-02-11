@@ -6,14 +6,14 @@
 using namespace Rcpp;
 
 // convertToSccs
-List convertToSccs(DataFrame& cases, DataFrame& eras, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly);
+List convertToSccs(const DataFrame& cases, const DataFrame& eras, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly);
 RcppExport SEXP SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP erasSEXP, SEXP covariatePersistencePeriodSEXP, SEXP naivePeriodSEXP, SEXP firstOutcomeOnlySEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< DataFrame& >::type cases(casesSEXP );
-        Rcpp::traits::input_parameter< DataFrame& >::type eras(erasSEXP );
+        Rcpp::traits::input_parameter< const DataFrame& >::type cases(casesSEXP );
+        Rcpp::traits::input_parameter< const DataFrame& >::type eras(erasSEXP );
         Rcpp::traits::input_parameter< int >::type covariatePersistencePeriod(covariatePersistencePeriodSEXP );
         Rcpp::traits::input_parameter< int >::type naivePeriod(naivePeriodSEXP );
         Rcpp::traits::input_parameter< bool >::type firstOutcomeOnly(firstOutcomeOnlySEXP );

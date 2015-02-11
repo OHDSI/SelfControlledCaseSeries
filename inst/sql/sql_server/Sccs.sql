@@ -228,7 +228,7 @@ SELECT 'px',
 	cases.observation_period_id,
 	procedure_concept_id,
 	DATEDIFF(dd, observation_period_start_date, procedure_date),
-	NULL
+	DATEDIFF(dd, observation_period_start_date, procedure_date)
 FROM @cdm_database_schema.procedure_occurrence
 INNER JOIN #cases cases
 ON procedure_occurrence.person_id = cases.person_id
@@ -260,7 +260,7 @@ SELECT 'rx',
 	cases.observation_period_id,
 	observation_concept_id,
 	DATEDIFF(dd, observation_period_start_date, observation_date),
-	NULL
+	DATEDIFF(dd, observation_period_start_date, observation_date)
 FROM @cdm_database_schema.observation
 INNER JOIN #cases cases
 ON observation.person_id = cases.person_id

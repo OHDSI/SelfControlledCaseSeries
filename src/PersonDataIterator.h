@@ -43,11 +43,16 @@ namespace ohdsi {
 		};
 
 		struct PersonData {
-			PersonData(std::vector<Era> _eras, int _personId, int _observationPeriodId, int _daysOfObservation) :
-					eras(_eras), personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation) {
+			PersonData(int _personId, int _observationPeriodId, int _daysOfObservation) :
+					personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation) {
+				eras = new std::vector<Era>;
 			}
 
-			std::vector<Era> eras;
+			~PersonData() {
+				delete eras;
+			}
+
+			std::vector<Era> *eras;
 			int personId;
 			int observationPeriodId;
 			int daysOfObservation;
@@ -55,7 +60,7 @@ namespace ohdsi {
 
 		class PersonDataIterator {
 		public:
-			PersonDataIterator(DataFrame& _cases, DataFrame& _eras);
+			PersonDataIterator (const DataFrame& _cases, const DataFrame& _eras);
 			bool hasNext();
 			PersonData next();
 		private:
