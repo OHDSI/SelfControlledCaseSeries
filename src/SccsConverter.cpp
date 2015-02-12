@@ -198,7 +198,7 @@ namespace ohdsi {
 			}
 		}
 
-		void SccsConverter::processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariatePersistencePeriod, const int naivePeriod,
+		void SccsConverter::processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
 				const bool firstOutcomeOnly) {
 			std::vector<Era> *eras = personData.eras;
 			std::sort(eras->begin(), eras->end()); // Sort by start date
@@ -214,6 +214,7 @@ namespace ohdsi {
 				outcome->end = outcome->start;
 			}
 			for (std::vector<Era>::iterator era = eras->begin(); era != eras->end(); ++era) {
+				era->start += covariateStart;
 				era->end += covariatePersistencePeriod;
 			}
 
@@ -226,13 +227,13 @@ namespace ohdsi {
 			addToResult(concomitantEras, outcomes, personData.observationPeriodId, resultStruct);
 		}
 
-		List SccsConverter::convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariatePersistencePeriod, const int naivePeriod,
+		List SccsConverter::convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
 				const bool firstOutcomeOnly) {
 			PersonDataIterator iterator(cases, eras);
 			ResultStruct resultStruct;
 			while (iterator.hasNext()) {
 				PersonData personData = iterator.next();
-				processPerson(personData, resultStruct, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly);
+				processPerson(personData, resultStruct, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly);
 			}
 
 			return resultStruct.convertToRList();

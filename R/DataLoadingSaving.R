@@ -113,13 +113,12 @@ getDbSccsData <- function(connectionDetails,
   colnames(covariateRef) <- SqlRender::snakeCaseToCamelCase(colnames(covariateRef))
   metaData <- list(exposureConceptIds = exposureConceptIds,
                    outcomeConceptIds = outcomeConceptIds,
-                   call = match.call()
-  )
+                   call = match.call())
   result <- list(cases = cases,
                  eras = eras,
                  covariateRef = covariateRef,
-                 metaData = metaData
-  )
+                 metaData = metaData)
+  
   #Open all ffdfs to prevent annoying messages later:
   open(result$cases)
   open(result$eras)

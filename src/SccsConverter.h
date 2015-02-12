@@ -119,10 +119,10 @@ namespace ohdsi {
 
 		struct SccsConverter {
 		public:
-			static List convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariatePersistencePeriod, const int naivePeriod,
+			static List convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
 					bool firstOutcomeOnly);
 		private:
-			static void processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariatePersistencePeriod, const int naivePeriod,
+			static void processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
 					bool firstOutcomeOnly);
 			static void clipEras(std::vector<Era>& eras, const int startDay, const int endDay);
 			static void removeAllButFirstOutcome(std::vector<Era>& eras);

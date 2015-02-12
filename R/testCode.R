@@ -24,8 +24,23 @@ testcode <- function(){
   
   sccsData <- loadSccsData("sccsData", readOnly = TRUE)
   
+  sccsEras <- createSccsEras(sccsData)
   
-  library(ffbase)
+  
+  data <- convertToSccs.ffdf(sccsData$cases, sccsData$eras)
+  
+  library(ffbase)  
+  data2 <- convertToSccs.data.frame(as.ram(sccsData$cases), as.ram(sccsData$eras))
+  
+  tail(data$outcomes)
+  tail(data2$outcomes)
+  tail(data$covariates)
+  tail(data2$covariates)
+  min(data$outcomes$rowId)
+  min(data2$outcomes$rowId)
+  max(data$outcomes$rowId)
+  max(data2$outcomes$rowId)
+  
   cases <- as.ram(sccsData$cases)
   eras <- as.ram(sccsData$eras)
   eras <- subset(eras, observationPeriodId %in% cases$observationPeriodId)
