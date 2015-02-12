@@ -38,12 +38,12 @@ namespace ohdsi {
 
 			int start;
 			int end;
-			int conceptId;
+			int64_t conceptId;
 			bool isOutcome;
 		};
 
 		struct PersonData {
-			PersonData(int _personId, int _observationPeriodId, int _daysOfObservation) :
+			PersonData(int64_t _personId, int64_t _observationPeriodId, int _daysOfObservation) :
 					personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation) {
 				eras = new std::vector<Era>;
 			}
@@ -53,24 +53,24 @@ namespace ohdsi {
 			}
 
 			std::vector<Era> *eras;
-			int personId;
-			int observationPeriodId;
+			int64_t personId;
+			int64_t observationPeriodId;
 			int daysOfObservation;
 		};
 
 		class PersonDataIterator {
 		public:
-			PersonDataIterator (const DataFrame& _cases, const DataFrame& _eras);
+			PersonDataIterator(const DataFrame& _cases, const DataFrame& _eras);
 			bool hasNext();
 			PersonData next();
 		private:
-			IntegerVector casesObservationPeriodId;
-			IntegerVector casesPersonId;
-			IntegerVector casesObservationDays;
-			IntegerVector erasObservationPeriodId;
-			IntegerVector erasStartDay;
-			IntegerVector erasEndDay;
-			IntegerVector erasConceptId;
+			NumericVector casesPersonId;
+			NumericVector casesObservationPeriodId;
+			NumericVector casesObservationDays;
+			NumericVector erasObservationPeriodId;
+			NumericVector erasStartDay;
+			NumericVector erasEndDay;
+			NumericVector erasConceptId;
 			CharacterVector erasEraType;
 			int casesCursor;
 			int erasCursor;

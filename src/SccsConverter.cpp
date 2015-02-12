@@ -23,6 +23,7 @@
 
 #include <Rcpp.h>
 #include "SccsConverter.h"
+#include "PersonDataIterator.h"
 
 using namespace Rcpp;
 
@@ -45,9 +46,9 @@ namespace ohdsi {
 
 		std::vector<Era> SccsConverter::mergeOverlapping(std::vector<Era>& eras) {
 			std::vector<Era> mergedEras;
-			std::map<int, Era> conceptIdToRunningEra;
+			std::map<int64_t, Era> conceptIdToRunningEra;
 			for (std::vector<Era>::iterator era = eras.begin(); era != eras.end(); ++era) {
-				std::map<int, Era>::iterator found = conceptIdToRunningEra.find(era->conceptId);
+				std::map<int64_t, Era>::iterator found = conceptIdToRunningEra.find(era->conceptId);
 				if (found != conceptIdToRunningEra.end()) {
 					Era* runningEra = &(*found).second;
 					if (runningEra->end >= era->start) {
@@ -62,14 +63,14 @@ namespace ohdsi {
 					conceptIdToRunningEra.insert(std::pair<int, Era>(era->conceptId, *era));
 				}
 			}
-			for (std::map<int, Era>::iterator iterator = conceptIdToRunningEra.begin(); iterator != conceptIdToRunningEra.end(); ++iterator) {
+			for (std::map<int64_t, Era>::iterator iterator = conceptIdToRunningEra.begin(); iterator != conceptIdToRunningEra.end(); ++iterator) {
 				mergedEras.push_back(iterator->second);
 			}
 			return mergedEras;
 		}
 
 		void SccsConverter::removeAllButFirstOutcome(std::vector<Era>& outcomes) {
-			std::set<int> seenOutcomes;
+			std::set<int64_t> seenOutcomes;
 			std::vector<Era>::iterator iterator;
 			for (iterator = outcomes.begin(); iterator != outcomes.end();) {
 				if (!seenOutcomes.insert((*iterator).conceptId).second)
@@ -94,140 +95,58 @@ namespace ohdsi {
 			}
 		}
 
-		void SccsConverter::addFinishedEras(const int day, std::vector<ConcomitantEra>& runningEras, std::vector<ConcomitantEra>& concomittantEras) {
-			std::vector<ConcomitantEra>::iterator iterator;
-			for (iterator = runningEras.begin(); iterator != runningEras.end();) {
-				if (iterator->end < day) {
-					concomittantEras.push_back(*iterator);
-					iterator = runningEras.erase(iterator);
-				} else {
-					++iterator;
-				}
-			}
-		}
-
-		void SccsConverter::compareToRunningEras(ConcomitantEra& newEra, std::vector<ConcomitantEra>& runningEras) {
-			std::vector<ConcomitantEra> partialEras;
-			partialEras.push_back(newEra);
-			int end = runningEras.size();
-			for (int i = 0; i < end; i++) {
-				ConcomitantEra* runningEra = &runningEras.at(i);
-				std::vector<ConcomitantEra> newPartialEras;
-				std::vector<ConcomitantEra>::iterator partialEra;
-				for (partialEra = partialEras.begin(); partialEra != partialEras.end();) {
-					if (partialEra->start <= runningEra->end && partialEra->end >= runningEra->start) {
-						int startOld = runningEra->start;
-						int startNew = partialEra->start;
-						int endOld = runningEra->end;
-						int endNew = partialEra->end;
-						if (startNew < startOld) {
-							ConcomitantEra extraEra(*partialEra);
-							extraEra.end = startOld - 1;
-							newPartialEras.push_back(extraEra);
-						}
-						if (startNew > startOld) {
-							ConcomitantEra extraEra(*runningEra);
-							extraEra.end = startNew - 1;
-							newPartialEras.push_back(extraEra);
-						}
-						if (endNew > endOld) {
-							ConcomitantEra extraEra(*partialEra);
-							extraEra.end = endNew;
-							extraEra.start = endOld + 1;
-							newPartialEras.push_back(extraEra);
-						}
-						if (endNew < endOld) {
-							ConcomitantEra extraEra(*runningEra);
-							extraEra.end = endOld;
-							extraEra.start = endNew - 1;
-							newPartialEras.push_back(extraEra);
-						}
-						runningEra->start = std::max(startNew, startOld);
-						runningEra->end = std::min(endNew, endOld);
-						runningEra->conceptIds.insert(runningEra->conceptIds.end(), partialEra->conceptIds.begin(), partialEra->conceptIds.end());
-						partialEra = partialEras.erase(partialEra);
-					} else {
-						partialEra++;
-					}
-
-				}
-				partialEras.insert(partialEras.end(), newPartialEras.begin(), newPartialEras.end());
-			}
-			for (ConcomitantEra partialEra : partialEras) {
-				if (partialEra.end - partialEra.start >= 0) {
-					runningEras.push_back(partialEra);
-				}
-			}
-		}
-
-		std::vector<ConcomitantEra> SccsConverter::buildConcomitantEras(std::vector<Era>& eras) {
-			std::vector<ConcomitantEra> concomitantEras;
-			std::vector<ConcomitantEra> runningEras;
+		std::vector<ConcomitantEra> SccsConverter::buildConcomitantEras(std::vector<Era>& eras, const int startDay, const int endDay) {
+			// Find all unique cut points (where things change)
+			std::set<int> cutPoints;
+			cutPoints.insert(startDay);
+			cutPoints.insert(endDay + 1);
 			for (std::vector<Era>::iterator era = eras.begin(); era != eras.end(); ++era) {
-				ConcomitantEra concomitantEra(*era);
-				compareToRunningEras(concomitantEra, runningEras);
-				addFinishedEras(concomitantEra.start, runningEras, concomitantEras);
+				cutPoints.insert(era->start);
+				cutPoints.insert(era->end + 1);
 			}
-			addFinishedEras(std::numeric_limits<int>::max(), runningEras, concomitantEras);
+			std::vector<int> sortedCutPoints(cutPoints.begin(), cutPoints.end());
+			std::sort(sortedCutPoints.begin(), sortedCutPoints.end());
+
+			// Build eras for every pair of consecutive cut points
+			std::vector<ConcomitantEra> concomitantEras;
+			concomitantEras.reserve(sortedCutPoints.size());
+			for (unsigned int i = 1; i < sortedCutPoints.size(); i++) {
+				ConcomitantEra concomitantEra;
+				concomitantEra.start = sortedCutPoints[i - 1];
+				concomitantEra.end = sortedCutPoints[i] - 1;
+				concomitantEras.push_back(concomitantEra);
+			}
+
+			// Determine exposure status during each era
+			std::sort(eras.begin(), eras.end()); // Sort by start date
+			unsigned int startIndex = 0;
+			for (std::vector<Era>::iterator era = eras.begin(); era != eras.end(); ++era) {
+				int index = startIndex;
+				while (concomitantEras[index].start < era->start) {
+					index++;
+				}
+				startIndex = index;
+				while (concomitantEras[index].end <= era->end) {
+					concomitantEras[index].conceptIds.push_back(era->conceptId);
+					index++;
+				}
+			}
 			return concomitantEras;
 		}
 
-		void SccsConverter::addNonExposure(std::vector<ConcomitantEra>& concomitantEras, const int _start, const int end) {
-			int start = _start;
-			std::vector<ConcomitantEra> emptyEras;
-			std::sort(concomitantEras.begin(), concomitantEras.end()); // Sort by start date
-			for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
-				if (era->start <= end) {
-					if (era->start > start) {
-						ConcomitantEra emptyEra;
-						emptyEra.start = start;
-						emptyEra.end = era->start - 1;
-						emptyEras.push_back(emptyEra);
-					}
-					if (era->end >= start)
-						start = era->end + 1;
-				}
-			}
-			if (start <= end) {
-				ConcomitantEra emptyEra;
-				emptyEra.start = start;
-				emptyEra.end = end;
-				emptyEras.push_back(emptyEra);
-			}
-			concomitantEras.insert(concomitantEras.end(), emptyEras.begin(), emptyEras.end());
-		}
-
-		std::set<int> SccsConverter::extractOutcomeIds(const DataFrame& eras) {
-			std::set<int> outcomeIds;
-			IntegerVector conceptId = eras["conceptId"];
-			CharacterVector eraType = eras["eraType"];
-			for (int i = 0; i < conceptId.size(); i++) {
-				if (eraType[i] == "hoi")
-					outcomeIds.insert(conceptId[i]);
-			}
-			return outcomeIds;
-		}
-
-		void SccsConverter::addToResult(const std::vector<int>& conceptIds, std::map<int, int>& outcomeIdToCount, const int duration,
-				const int& observationPeriodId, ResultStruct& resultStruct, const std::set<int>& outcomeIds) {
+		void SccsConverter::addToResult(const std::vector<int64_t>& conceptIds, std::map<int64_t, int>& outcomeIdToCount, const int duration,
+				const int64_t& observationPeriodId, ResultStruct& resultStruct, const std::set<int64_t>& outcomeIds) {
 			// Add to outcome table:
-			for (int outcomeId : outcomeIds) {
-				int count = outcomeIdToCount[outcomeId];
-				//std::map<int, int>::iterator found = outcomeIdToCount.find(outcomeId);
-				//if (found->second)
-				//		count = found->first;
-				//	else
-				//	count = 0;
-
+			for (int64_t outcomeId : outcomeIds) {
 				resultStruct.outcomeOutcomeId->push_back(outcomeId);
-				resultStruct.outcomeY->push_back(count);
+				resultStruct.outcomeY->push_back(outcomeIdToCount[outcomeId]);
 				resultStruct.outcomeRowId->push_back(resultStruct.rowId);
 				resultStruct.outcomeTime->push_back(duration);
 				resultStruct.outcomeStratumId->push_back(observationPeriodId);
 			}
 
 			// Add to covariates table:
-			for (int conceptId : conceptIds) {
+			for (int64_t conceptId : conceptIds) {
 				resultStruct.eraRowId->push_back(resultStruct.rowId);
 				resultStruct.eraStratumId->push_back(observationPeriodId);
 				resultStruct.eraCovariateId->push_back(conceptId);
@@ -235,8 +154,12 @@ namespace ohdsi {
 			resultStruct.rowId++;
 		}
 
-		void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int& observationPeriodId,
-				ResultStruct& resultStruct, const std::set<int>& outcomeIds) {
+		void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId,
+				ResultStruct& resultStruct) {
+			std::set<int64_t> outcomeIds;
+			for (Era era : outcomes)
+				outcomeIds.insert(era.conceptId);
+
 			// Sort eras based on covariate pattern:
 			for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
 				std::sort(era->conceptIds.begin(), era->conceptIds.end());
@@ -244,9 +167,9 @@ namespace ohdsi {
 			std::sort(concomitantEras.begin(), concomitantEras.end(), ConcomitantEraCovariateComparator());
 
 			// Iterate over eras, merging those with similar patterns:
-			std::vector<int>* previousPattern = NULL;
+			std::vector<int64_t>* previousPattern = NULL;
 			int duration = 0;
-			std::map<int, int> outcomeIdToCount;
+			std::map<int64_t, int> outcomeIdToCount;
 			for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
 				if (previousPattern == NULL || era->conceptIds.size() != previousPattern->size()
 						|| !std::equal(era->conceptIds.begin(), era->conceptIds.end(), previousPattern->begin())) {
@@ -260,7 +183,7 @@ namespace ohdsi {
 				duration += era->end - era->start + 1;
 				for (Era outcome : outcomes) {
 					if (outcome.start >= era->start && outcome.start <= era->end) {
-						std::map<int, int>::iterator found = outcomeIdToCount.find(outcome.conceptId);
+						std::map<int64_t, int>::iterator found = outcomeIdToCount.find(outcome.conceptId);
 						if (found == outcomeIdToCount.end()) {
 							outcomeIdToCount[outcome.conceptId] = 1;
 						} else {
@@ -274,8 +197,9 @@ namespace ohdsi {
 			}
 		}
 
-		void SccsConverter::processPerson(PersonData& personData, ResultStruct& resultStruct, const std::set<int>& outcomeIds,
-				const int covariatePersistencePeriod, const int naivePeriod, const bool firstOutcomeOnly) {
+		void SccsConverter::processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariatePersistencePeriod, const int naivePeriod,
+				const bool firstOutcomeOnly) {
+			std::cout << "ObsId: " << personData.observationPeriodId << std::endl;
 			std::vector<Era> *eras = personData.eras;
 			std::sort(eras->begin(), eras->end()); // Sort by start date
 			std::vector<Era> outcomes = extractOutcomes(*eras);
@@ -297,26 +221,25 @@ namespace ohdsi {
 			if (outcomes.size() == 0) // We lost all outcomes in the clipping
 				return;
 			clipEras(*eras, startDay, endDay);
-			std::cout << "check 1";
+			std::cout << "Check 1" << std::endl;
 			std::vector<Era> mergedEras = mergeOverlapping(*eras);
-			std::cout << "check 2";
-			std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(mergedEras);
-			std::cout << "check 3";
-			addNonExposure(concomitantEras, startDay, endDay);
-			std::cout << "check 4";
-			addToResult(concomitantEras, outcomes, personData.observationPeriodId, resultStruct, outcomeIds);
-			std::cout << "check 5";
+			std::cout << "Check 2" << std::endl;
+			std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(mergedEras, startDay, endDay);
+			std::cout << "Check 3" << std::endl;
+			addToResult(concomitantEras, outcomes, personData.observationPeriodId, resultStruct);
+			std::cout << "Check 4" << std::endl;
 		}
 
 		List SccsConverter::convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariatePersistencePeriod, const int naivePeriod,
 				const bool firstOutcomeOnly) {
-
-			std::set<int> outcomeIds = extractOutcomeIds(eras);
+			std::cout << "Check -2" << std::endl;
 			PersonDataIterator iterator(cases, eras);
+			std::cout << "Check -1" << std::endl;
 			ResultStruct resultStruct;
+			std::cout << "Check 0" << std::endl;
 			while (iterator.hasNext()) {
 				PersonData personData = iterator.next();
-				processPerson(personData, resultStruct, outcomeIds, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly);
+				processPerson(personData, resultStruct, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly);
 			}
 
 			return resultStruct.convertToRList();

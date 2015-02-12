@@ -46,7 +46,7 @@ namespace ohdsi {
 		}
 
 		PersonData PersonDataIterator::next() {
-			int observationPeriodId = casesObservationPeriodId[casesCursor];
+			int64_t observationPeriodId = casesObservationPeriodId[casesCursor];
 			PersonData nextPerson(casesPersonId[casesCursor], observationPeriodId, casesObservationDays[casesCursor]);
 			while (erasObservationPeriodId[erasCursor] == observationPeriodId) {
 				Era era(erasStartDay[erasCursor], erasEndDay[erasCursor], erasConceptId[erasCursor], erasEraType[erasCursor] == "hoi");

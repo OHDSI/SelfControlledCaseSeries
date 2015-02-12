@@ -47,20 +47,36 @@ namespace ohdsi {
 				return (this == &era);
 			}
 
+			std::string toString() {
+				std::stringstream stream;
+				stream << "ConcomitantEra(";
+				stream << "start = " << start;
+				stream << ", end = " << end;
+				stream << ", conceptIds = (" << end;
+				for (unsigned int i = 0; i < conceptIds.size(); i++) {
+					if (i != 0) {
+						stream << ", ";
+					}
+					stream << conceptIds[i];
+				}
+				stream << ")";
+				return stream.str();
+			}
+
 			int start;
 			int end;
-			std::vector<int> conceptIds;
+			std::vector<int64_t> conceptIds;
 		};
 
 		struct ConcomitantEraCovariateComparator {
-			inline bool operator()(const ConcomitantEra& era1, const ConcomitantEra& era2) {
+			bool operator()(const ConcomitantEra& era1, const ConcomitantEra& era2) const {
 				if (era1.conceptIds.size() == era2.conceptIds.size()) {
 					for (unsigned int i = 0; i < era1.conceptIds.size(); i++) {
 						if (era1.conceptIds[i] != era2.conceptIds[i]) {
 							return (era1.conceptIds[i] < era2.conceptIds[i]);
 						}
 					}
-					return true;
+					return false;
 				} else
 					return (era1.conceptIds.size() < era2.conceptIds.size());
 			}
@@ -70,14 +86,14 @@ namespace ohdsi {
 
 			ResultStruct() :
 					rowId(0) {
-				outcomeRowId = new std::vector<int>;
-				outcomeStratumId = new std::vector<int>;
-				outcomeY = new std::vector<int>;
-				outcomeOutcomeId = new std::vector<int>;
-				outcomeTime = new std::vector<int>;
-				eraRowId = new std::vector<int>;
-				eraStratumId = new std::vector<int>;
-				eraCovariateId = new std::vector<int>;
+				outcomeRowId = new std::vector<int64_t>;
+				outcomeStratumId = new std::vector<int64_t>;
+				outcomeY = new std::vector<int64_t>;
+				outcomeOutcomeId = new std::vector<int64_t>;
+				outcomeTime = new std::vector<int64_t>;
+				eraRowId = new std::vector<int64_t>;
+				eraStratumId = new std::vector<int64_t>;
+				eraCovariateId = new std::vector<int64_t>;
 			}
 
 			~ResultStruct() {
@@ -94,19 +110,20 @@ namespace ohdsi {
 			List convertToRList() {
 				DataFrame outcomes = DataFrame::create(Named("rowId") = wrap(*outcomeRowId), Named("stratumId") = wrap(*outcomeStratumId),
 						Named("time") = wrap(*outcomeTime), Named("y") = wrap(*outcomeY), Named("outcomeId") = wrap(*outcomeOutcomeId));
-				DataFrame covariates = DataFrame::create(Named("rowId") = wrap(*eraRowId), Named("stratumId") = wrap(*eraStratumId),
-										Named("covariateId") = wrap(*eraCovariateId));
+				DataFrame covariates = DataFrame::create(Named("rowId") = wrap(*eraRowId), Named("stratumId") = wrap(*eraStratumId), Named("covariateId") =
+						wrap(*eraCovariateId));
 				return List::create(Named("outcomes") = outcomes, Named("covariates") = covariates);
 			}
-			std::vector<int> *outcomeRowId;
-			std::vector<int> *outcomeStratumId;
-			std::vector<int> *outcomeY;
-			std::vector<int> *outcomeOutcomeId;
-			std::vector<int> *outcomeTime;
-			std::vector<int> *eraRowId;
-			std::vector<int> *eraStratumId;
-			std::vector<int> *eraCovariateId;
-			int rowId;
+
+			std::vector<int64_t>* outcomeRowId;
+			std::vector<int64_t>* outcomeStratumId;
+			std::vector<int64_t>* outcomeY;
+			std::vector<int64_t>* outcomeOutcomeId;
+			std::vector<int64_t>* outcomeTime;
+			std::vector<int64_t>* eraRowId;
+			std::vector<int64_t>* eraStratumId;
+			std::vector<int64_t>* eraCovariateId;
+			int64_t rowId;
 		};
 
 		struct SccsConverter {
@@ -114,21 +131,20 @@ namespace ohdsi {
 			static List convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariatePersistencePeriod, const int naivePeriod,
 					bool firstOutcomeOnly);
 		private:
-			static std::set<int> extractOutcomeIds(const DataFrame& eras);
-			static void processPerson(PersonData& personData, ResultStruct& resultStruct, const std::set<int>& outcomeIds, const int covariatePersistencePeriod,
+			static void processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariatePersistencePeriod,
 					const int naivePeriod, bool firstOutcomeOnly);
 			static void clipEras(std::vector<Era>& eras, const int startDay, const int endDay);
 			static void removeAllButFirstOutcome(std::vector<Era>& eras);
 			static std::vector<Era> mergeOverlapping(std::vector<Era>& eras);
 			static std::vector<Era> extractOutcomes(std::vector<Era>& eras);
-			static std::vector<ConcomitantEra> buildConcomitantEras(std::vector<Era>& eras);
+			static std::vector<ConcomitantEra> buildConcomitantEras(std::vector<Era>& eras, const int startDay, const int endDay);
 			static void compareToRunningEras(ConcomitantEra& newEra, std::vector<ConcomitantEra>& runningEras);
 			static void addFinishedEras(const int day, std::vector<ConcomitantEra>& runningEras, std::vector<ConcomitantEra>& concomittantEras);
 			static void addNonExposure(std::vector<ConcomitantEra>& concomittantEras, const int _start, const int end);
-			static void addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int& observationPeriodId,
-					ResultStruct& resultStruct, const std::set<int>& outcomeIds);
-			static void addToResult(const std::vector<int>& conceptIds, std::map<int, int>& outcomeIdToCount, const int duration,
-					const int& observationPeriodId, ResultStruct& resultStruct, const std::set<int>& outcomeIds);
+			static void addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId,
+					ResultStruct& resultStruct);
+			static void addToResult(const std::vector<int64_t>& conceptIds, std::map<int64_t, int>& outcomeIdToCount, const int duration,
+					const int64_t& observationPeriodId, ResultStruct& resultStruct, const std::set<int64_t>& outcomeIds);
 		};
 	}
 }
