@@ -47,20 +47,11 @@ namespace ohdsi {
 				return (this == &era);
 			}
 
-			std::string toString() {
-				std::stringstream stream;
-				stream << "ConcomitantEra(";
-				stream << "start = " << start;
-				stream << ", end = " << end;
-				stream << ", conceptIds = (" << end;
+			void print() {
+				std::cout << "Start: " << start << ", end: " << end << ", size: " << conceptIds.size() << std::endl;
 				for (unsigned int i = 0; i < conceptIds.size(); i++) {
-					if (i != 0) {
-						stream << ", ";
-					}
-					stream << conceptIds[i];
+					std::cout << "CID: " << conceptIds[i] << std::endl;
 				}
-				stream << ")";
-				return stream.str();
 			}
 
 			int start;
@@ -131,8 +122,8 @@ namespace ohdsi {
 			static List convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariatePersistencePeriod, const int naivePeriod,
 					bool firstOutcomeOnly);
 		private:
-			static void processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariatePersistencePeriod,
-					const int naivePeriod, bool firstOutcomeOnly);
+			static void processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariatePersistencePeriod, const int naivePeriod,
+					bool firstOutcomeOnly);
 			static void clipEras(std::vector<Era>& eras, const int startDay, const int endDay);
 			static void removeAllButFirstOutcome(std::vector<Era>& eras);
 			static std::vector<Era> mergeOverlapping(std::vector<Era>& eras);

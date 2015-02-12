@@ -115,18 +115,19 @@ namespace ohdsi {
 				concomitantEra.start = sortedCutPoints[i - 1];
 				concomitantEra.end = sortedCutPoints[i] - 1;
 				concomitantEras.push_back(concomitantEra);
+
 			}
 
 			// Determine exposure status during each era
 			std::sort(eras.begin(), eras.end()); // Sort by start date
 			unsigned int startIndex = 0;
 			for (std::vector<Era>::iterator era = eras.begin(); era != eras.end(); ++era) {
-				int index = startIndex;
-				while (concomitantEras[index].start < era->start) {
+				unsigned int index = startIndex;
+				while (index < concomitantEras.size()  && concomitantEras[index].start < era->start) {
 					index++;
 				}
 				startIndex = index;
-				while (concomitantEras[index].end <= era->end) {
+				while (index < concomitantEras.size()  && concomitantEras[index].end <= era->end && index < concomitantEras.size()) {
 					concomitantEras[index].conceptIds.push_back(era->conceptId);
 					index++;
 				}
@@ -199,7 +200,6 @@ namespace ohdsi {
 
 		void SccsConverter::processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariatePersistencePeriod, const int naivePeriod,
 				const bool firstOutcomeOnly) {
-			std::cout << "ObsId: " << personData.observationPeriodId << std::endl;
 			std::vector<Era> *eras = personData.eras;
 			std::sort(eras->begin(), eras->end()); // Sort by start date
 			std::vector<Era> outcomes = extractOutcomes(*eras);
@@ -221,22 +221,15 @@ namespace ohdsi {
 			if (outcomes.size() == 0) // We lost all outcomes in the clipping
 				return;
 			clipEras(*eras, startDay, endDay);
-			std::cout << "Check 1" << std::endl;
 			std::vector<Era> mergedEras = mergeOverlapping(*eras);
-			std::cout << "Check 2" << std::endl;
 			std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(mergedEras, startDay, endDay);
-			std::cout << "Check 3" << std::endl;
 			addToResult(concomitantEras, outcomes, personData.observationPeriodId, resultStruct);
-			std::cout << "Check 4" << std::endl;
 		}
 
 		List SccsConverter::convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariatePersistencePeriod, const int naivePeriod,
 				const bool firstOutcomeOnly) {
-			std::cout << "Check -2" << std::endl;
 			PersonDataIterator iterator(cases, eras);
-			std::cout << "Check -1" << std::endl;
 			ResultStruct resultStruct;
-			std::cout << "Check 0" << std::endl;
 			while (iterator.hasNext()) {
 				PersonData personData = iterator.next();
 				processPerson(personData, resultStruct, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly);

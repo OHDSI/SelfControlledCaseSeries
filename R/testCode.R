@@ -3,16 +3,7 @@ testcode <- function(){
   library(SelfControlledCaseSeries)
   setwd("s:/temp")
   options("fftempdir" = "s:/temp")
-  sccsData <- loadSccsData("sccsData", readOnly = TRUE)
-  
-  library(ffbase)
-  cases <- as.ram(sccsData$cases[1:8,])
-  eras <- as.ram(sccsData$eras)
-  eras <- subset(eras, observationPeriodId %in% cases$observationPeriodId)
-  x <- convertToSccs(cases, eras)
-  x
-  x <- convertToSccs(cases, eras)
-  
+ 
   pw <- NULL
   dbms <- "sql server"
   user <- NULL
@@ -32,6 +23,7 @@ testcode <- function(){
   saveSccsData(sccsData, "sccsData")
   
   sccsData <- loadSccsData("sccsData", readOnly = TRUE)
+  
   
   library(ffbase)
   cases <- as.ram(sccsData$cases)
