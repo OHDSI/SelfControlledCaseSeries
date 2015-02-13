@@ -4,6 +4,7 @@ testcode <- function(){
   setwd("s:/temp")
   options("fftempdir" = "s:/temp")
  
+  #Settings for SQL Server (at JnJ)
   pw <- NULL
   dbms <- "sql server"
   user <- NULL
@@ -13,96 +14,48 @@ testcode <- function(){
   resultsDatabaseSchema <- "scratch.dbo"
   port <- NULL
   
+  #Settings for PostgreSQL
+  dbms="postgresql"
+  server="localhost/ohdsi"
+  user="postgres"
+  schema="cdm4_sim"  
+  cdmDatabaseSchema <- "cdm4_sim"
+  resultsDatabaseSchema <- "scratch"
+  port <- NULL
   
   connectionDetails <- DatabaseConnector::createConnectionDetails(dbms=dbms, server=server, user=user, password=pw, schema=cdmDatabaseSchema,port=port)
   
   sccsData <- getDbSccsData(connectionDetails,
-                            cdmDatabaseSchema=cdmDatabaseSchema,
-                            resultsDatabaseSchema=resultsDatabaseSchema,
-                            outcomeConceptIds = 194133)
+                            cdmDatabaseSchema = cdmDatabaseSchema,
+                            resultsDatabaseSchema = resultsDatabaseSchema,
+                            outcomeConceptIds = 194133, #low back pain
+                            exposureConceptIds = c(),
+                            excludeConceptIds = c(),
+                            drugEraCovariates = FALSE,
+                            conditionEraCovariates = FALSE,
+                            procedureCovariates = FALSE,
+                            visitCovariates = FALSE,
+                            observationCovariates = FALSE,
+                            deleteCovariatesSmallCount = 100)
   saveSccsData(sccsData, "sccsData")
   
+  #You can start here if you already saved sccsData:
   sccsData <- loadSccsData("sccsData", readOnly = TRUE)
   
-  sccsEras <- createSccsEras(sccsData)
+  sccsEraData <- createSccsEraData(sccsData,
+                                   covariateStart = 0,
+                                   covariatePersistencePeriod = 0, 
+                                   naivePeriod = 0, 
+                                   firstOutcomeOnly = FALSE,
+                                   excludeConceptIds = NULL)
   
+  saveSccsEraData(sccsEraData, "sccsEraData")
   
-  data <- convertToSccs.ffdf(sccsData$cases, sccsData$eras)
+  #You can start here if you already saved sccsEraData:
+  sccsEraData <- loadSccsEraData("sccsEraData")
+ 
+  fit <- fitModel(sccsEraData)
   
-  library(ffbase)  
-  data2 <- convertToSccs.data.frame(as.ram(sccsData$cases), as.ram(sccsData$eras))
-  
-  tail(data$outcomes)
-  tail(data2$outcomes)
-  tail(data$covariates)
-  tail(data2$covariates)
-  min(data$outcomes$rowId)
-  min(data2$outcomes$rowId)
-  max(data$outcomes$rowId)
-  max(data2$outcomes$rowId)
-  
-  cases <- as.ram(sccsData$cases)
-  eras <- as.ram(sccsData$eras)
-  eras <- subset(eras, observationPeriodId %in% cases$observationPeriodId)
-  x <- convertToSccs(cases, eras)
-  x
-  #simple
-  cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays = 100)
-  eras <- data.frame(eraType = c("hoi","hei"), 
-                     observationPeriodId = c(1,1), 
-                     conceptId = c(10,11),
-                     startDay = c(50,25),
-                     endDay = c(50,75))
-  x <- convertToSccs(cases, eras)
-  x
-  
-  #one-day era
-  cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays = 100)
-  eras <- data.frame(eraType = c("hoi","hei"), 
-                     observationPeriodId = c(1,1), 
-                     conceptId = c(10,11),
-                     startDay = c(50,25),
-                     endDay = c(50,25))
-  x <- convertToSccs(cases, eras)
-  x
-  
-  #merging
-  cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays = 100)
-  eras <- data.frame(eraType = c("hoi","hei","hei"), 
-                     observationPeriodId = c(1,1,1), 
-                     conceptId = c(10,11,11),
-                     startDay = c(50,25,70),
-                     endDay = c(50,75,80))
-  x <- convertToSccs(cases, eras)
-  x
-  
-  #concomitant
-  cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays = 100)
-  eras <- data.frame(eraType = c("hoi","hei","hei"), 
-                     observationPeriodId = c(1,1,1), 
-                     conceptId = c(10,11,12),
-                     startDay = c(50,25,70),
-                     endDay = c(50,75,70))
-  x <- convertToSccs(cases, eras)
-  x
-  
-  #concomitant 3
-  cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays = 100)
-  eras <- data.frame(eraType = c("hoi","hoi","hei","hei","hei"), 
-                     observationPeriodId = c(1,1,1,1,1), 
-                     conceptId = c(10,9,11,12,13),
-                     startDay = c(50,85,25,70,70),
-                     endDay = c(NA,NA,75,80,77))
-  x <- convertToSccs(cases, eras)
-  x
-  
-  #concomitant 3, with length of 1
-  cases <- data.frame(observationPeriodId = 119455083, personId = 999999, observationDays = 1500)
-  eras <- data.frame(eraType = c("hoi","hoi","hei","hei","hei"), 
-                     observationPeriodId = c(119455083,119455083,119455083,119455083,119455083), 
-                     conceptId = c(10,9,11,12,43013616),
-                     startDay = c(50,85,25,70,70),
-                     endDay = c(NA,NA,75,80,80))
-  x <- convertToSccs(cases, eras)
-  x
+  model <- getModel(fit, sccsEraData)
+  head(model)
 }

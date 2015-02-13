@@ -18,22 +18,56 @@
 
 # outcomeConceptId <- 194133
 #' @export
-fitModel <- function(sccsEras, 
+fitModel <- function(sccsEraData, 
                      exposureConceptId = NULL, 
-                     outcomeConceptId,
+                     outcomeConceptId = NULL,
                      prior = createPrior("laplace", useCrossValidation = TRUE),
-                     control = createControl(cvType = "auto",startingVariance = 0.1, selectorType = "byPid", noiseLevel = "quiet")){
-  #t <- in.ff(sccsEras$outcomes$outcomeId, ff::as.ff(outcomeConceptId))
-  #outcomesSubset <- sccsEras$outcomes[ffbase::ffwhich(t,t == TRUE),]
-  #TODO filter covariates based on selected outcomes
+                     control = createControl(cvType = "auto",startingVariance = 0.1, noiseLevel = "quiet")){
+  # TODO filter covariates based on selected outcomes:
+  # t <- in.ff(sccsEraData$outcomes$outcomeId, ff::as.ff(outcomeConceptId))
+  # outcomesSubset <- sccsEraData$outcomes[ffbase::ffwhich(t,t == TRUE),]
+
+  outcomesSubset <- sccsEraData$outcomes
+  covariatesSubset <- sccsEraData$covariates
   
-  outcomesSubset <- sccsEras$outcomes
-  covariatesSubset <- sccsEras$covariates
+  # Add a covariateValue row to covariates with value 1:
+  covariatesSubset$covariateValue <- ff::ff(vmode="double", length=nrow(covariatesSubset))
+  for (i in bit::chunk(covariatesSubset$covariateValue)){
+    covariatesSubset$covariateValue[i] <- 1
+  }
+  
+  # If we're fitting a model specifically for one exposure, exclude that one from regularization:
   if (!is.null(exposureConceptId))
     prior$exclude = exposureConceptId
-  cyclopsData <- Cyclops::convertToCyclopsData(outcomesSubset, covariatesSubset, modelType = "cpr", checkSorting = FALSE, checkRowIds = FALSE)
+  
+  cyclopsData <- Cyclops::convertToCyclopsData(outcomesSubset, 
+                                               covariatesSubset, 
+                                               modelType = "cpr", 
+                                               addIntercept = FALSE,
+                                               checkSorting = TRUE, 
+                                               checkRowIds = TRUE)
   fit <- Cyclops::fitCyclopsModel(cyclopsData, 
                                   prior = prior,
                                   control = control)  
   
+  fit <- Cyclops::fitCyclopsModel(cyclopsData, prior = createPrior("laplace",0.1))
+  
+  prior = createPrior("laplace", useCrossValidation = TRUE)
+  control <- createControl(cvType = "auto",startingVariance = 0.1, noiseLevel = "quiet")
+  fit <- Cyclops::fitCyclopsModel(cyclopsData, 
+                                  prior = prior,
+                                  control = control)  
+  
+  return(fit)
+}
+
+#' @export
+getModel <- function(fit, sccsEraData){
+  cfs <- coef(fit)
+  cfs <- data.frame(coefficient = cfs, id = as.numeric(names(cfs)))
+  cfs <- merge(ff::as.ffdf(cfs), sccsEraData$covariateRef, by.x = "id", by.y = "conceptId", all.x = TRUE)
+  cfs <- ff::as.ram(cfs[,c("coefficient","id","conceptName")])
+  cfs$conceptName <- as.character(cfs$conceptName)
+  cfs <- cfs[order(-abs(cfs$coefficient)),]
+  cfs
 }

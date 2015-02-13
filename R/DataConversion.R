@@ -24,12 +24,12 @@ in.ff <- function(a,b){
 }
 
 #' @export
-createSccsEras <- function(sccsData, 
-                           covariateStart = 0,
-                           covariatePersistencePeriod = 0, 
-                           naivePeriod = 0, 
-                           firstOutcomeOnly = FALSE,
-                           excludeConceptIds = NULL){
+createSccsEraData <- function(sccsData, 
+                              covariateStart = 0,
+                              covariatePersistencePeriod = 0, 
+                              naivePeriod = 0, 
+                              firstOutcomeOnly = FALSE,
+                              excludeConceptIds = NULL){
   if (is.null(excludeConceptIds)) {
     erasSubset <- sccsData$eras
   } else {
@@ -38,6 +38,7 @@ createSccsEras <- function(sccsData,
   }
   metaData <- sccsData$metaData
   metaData$call2 <- match.call() 
+  writeLines("Converting person data to SCCS eras. This might take a while.")
   data <- convertToSccs.ffdf(sccsData$cases, erasSubset, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly)
   result <- list(outcomes = data$outcomes,
                  covariates = data$covariates,
@@ -46,7 +47,7 @@ createSccsEras <- function(sccsData,
   open(result$outcomes)
   open(result$covariates)
   open(result$covariateRef)
-  class(result) <- "sccsEras"
+  class(result) <- "sccsEraData"
   return(result)
 }
 
@@ -97,10 +98,12 @@ convertToSccs.data.frame <- function(cases, eras, covariateStart = 0, covariateP
                                                getCasesBatch,
                                                getErasBatch,
                                                isDone,
+                                               fractionDone,
                                                covariateStart,
                                                covariatePersistencePeriod, 
                                                naivePeriod, 
                                                firstOutcomeOnly){
+  pb <- txtProgressBar(style=3)
   data <- list(outcomes = NULL, covariates = NULL)
   
   #Fetch data in batches:
@@ -109,7 +112,6 @@ convertToSccs.data.frame <- function(cases, eras, covariateStart = 0, covariateP
   lastUsedCase <- 0
   spillOverEras <- NULL
   while (!isDone(erasSource)){
-    #Get covars:
     batchEras <- getErasBatch(erasSource)
     lastObservationPeriodId <- batchEras$observationPeriodId[nrow(batchEras)]
     endCompleteRow <- .lastRowNotHavingThisValue(batchEras$observationPeriodId,lastObservationPeriodId)
@@ -159,6 +161,7 @@ convertToSccs.data.frame <- function(cases, eras, covariateStart = 0, covariateP
       data <- .appendToData(data, batch)
       lastUsedCase = endCompleteRowInCases
     }
+    setTxtProgressBar(pb, fractionDone(erasSource))
   }
   #End of covar batches, add spillover to Cyclops:
   erasToConvert <- spillOverEras
@@ -184,6 +187,7 @@ convertToSccs.data.frame <- function(cases, eras, covariateStart = 0, covariateP
                                     naivePeriod, 
                                     firstOutcomeOnly)
   data <- .appendToData(data, batch)
+  close(pb)
   return(data)
 }
 
@@ -210,7 +214,7 @@ convertToSccs.ffdf <- function(cases,
     cursor <- get("cursor",envir=casesSource)
     batchCases <- data[chunks[[cursor]],]
     assign("cursor",cursor+1,envir=casesSource)
-    batchCases
+    return(batchCases)
   }
   
   getErasBatch <- function(erasSource){
@@ -219,13 +223,19 @@ convertToSccs.ffdf <- function(cases,
     cursor <- get("cursor",envir=erasSource)
     batchEras <- data[chunks[[cursor]],]
     assign("cursor",cursor+1,envir=erasSource)
-    batchEras
+    return(batchEras)
   }
   
   isDone <- function(dataSource){
     chunks <- get("chunks",envir=dataSource)
     cursor <- get("cursor",envir=dataSource)
-    cursor > length(chunks)
+    return(cursor > length(chunks))
+  }
+  
+  fractionDone <- function(dataSource){
+    chunks <- get("chunks",envir=dataSource)
+    cursor <- get("cursor",envir=dataSource)
+    return((cursor-1) / length(chunks))
   }
   
   result <- .convertToSccsFromBatchableSources(casesSource,
@@ -233,10 +243,92 @@ convertToSccs.ffdf <- function(cases,
                                                getCasesBatch,
                                                getErasBatch,
                                                isDone,
+                                               fractionDone,
                                                covariateStart,
                                                covariatePersistencePeriod, 
                                                naivePeriod, 
                                                firstOutcomeOnly)
+  return(result)
+}
+
+#' Save the SCCS era data to folder
+#'
+#' @description
+#' \code{saveSccsEraData} saves an object of type sccsEraData to folder.
+#' 
+#' @param sccsEraData          An object of type \code{sccsEraData} as generated using \code{\link{createsccsEraData}}.
+#' @param folder                The name of the folder where the data will be written. The folder should
+#' not yet exist.
+#' 
+#' @details
+#' The data will be written to a set of files in the specified folder.
+#'  
+#' @examples 
+#' #todo
+#' 
+#' @export
+saveSccsEraData <- function(sccsEraData, folder){
+  if (missing(sccsEraData))
+    stop("Must specify sccsEraData")
+  if (missing(folder))
+    stop("Must specify folder")
+  if (class(sccsEraData) != "sccsEraData")
+    stop("Data not of class sccsEraData")
+  
+  outcomes <- sccsEraData$outcomes
+  covariates <- sccsEraData$covariates
+  covariateRef <- sccsEraData$covariateRef
+  ffbase::save.ffdf(outcomes, covariates, covariateRef, dir = folder)
+  metaData <- sccsEraData$metaData
+  save(metaData, file = file.path(folder,"metaData.Rdata"))
+  #Open all ffdfs to prevent annoying messages later:
+  dummay <- open(sccsEraData$outcomes)
+  dummay <- open(sccsEraData$covariates)
+  dummay <- open(sccsEraData$covariateRef)
+}
+
+#' Load the SCCS era data from a folder
+#'
+#' @description
+#' \code{loadSccsEraData} loads an object of type sccsEraData from a folder in the file system.
+#' 
+#' @param file                The name of the folder containing the data.
+#' @param readOnly            If true, the data is opened read only.
+#' 
+#' @details
+#' The data will be written to a set of files in the folder specified by the user.
+#' 
+#' @return
+#' An object of class cohortEraData.
+#'  
+#' @examples 
+#' #todo
+#' 
+#' @export
+loadSccsEraData <- function(folder, readOnly = FALSE){
+  if (!file.exists(folder))
+    stop(paste("Cannot find folder",folder))
+  if (!file.info(folder)$isdir)
+    stop(paste("Not a folder:",folder))
+  
+  temp <- setwd(folder)
+  absolutePath <- setwd(temp)
+  
+  e <- new.env()  
+  ffbase::load.ffdf(absolutePath,e)
+  load(file.path(absolutePath,"metaData.Rdata"),e)
+  result <- list(outcomes = get("outcomes", envir = e),
+                 covariates = get("covariates", envir = e),
+                 covariateRef = get("covariateRef", envir = e),
+                 metaData = get("metaData", envir = e)
+  )
+  #Open all ffdfs to prevent annoying messages later:
+  open(result$outcomes,readonly = readOnly)
+  open(result$covariates,readonly = readOnly)
+  open(result$covariateRef,readonly = readOnly)
+  
+  class(result) <- "sccsEraData"
+  rm(e)
   return(result)
 }
 

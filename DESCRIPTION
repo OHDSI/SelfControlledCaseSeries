@@ -1,7 +1,7 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: What the package does (short line)
-Version: 1.0
+Version: 0.0.1
 Date: 2014-06-10
 Author: Patrick Ryan, Marc Suchard, Trevor Shaddox, Martijn Schuemie
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
@@ -10,7 +10,8 @@ Depends:
     R (>= 3.1.0),
     bit,
     Cyclops (>= 1.0.0),
-    DatabaseConnector
+    DatabaseConnector,
+    RJDBC
 Imports:
     SqlRender (>= 1.0.0),
     ff,

@@ -34,6 +34,7 @@
 #' @param exposureDatabaseSchema 		
 #' @param exposureTable 		
 #' @param exposureConceptIds 		
+#' @param excludeConceptIds   	
 #' @param drugEraCovariates 		
 #' @param conditionEraCovariates 		
 #' @param procedureCovariates 		
@@ -42,15 +43,16 @@
 #'
 #' @export
 getDbSccsData <- function(connectionDetails,
-                         cdmDatabaseSchema = "cdm4_sim.dbo",
-                         resultsDatabaseSchema = "scratch.dbo",
+                         cdmDatabaseSchema,
+                         resultsDatabaseSchema,
                          outcomeDatabaseSchema = cdmDatabaseSchema,
                          outcomeTable = "condition_occurrence",
-                         outcomeConceptIds = "",
-                         outcomeConditionTypeConceptIds = "",
+                         outcomeConceptIds,
+                         outcomeConditionTypeConceptIds = c(),
                          exposureDatabaseSchema = cdmDatabaseSchema,
                          exposureTable = "drug_era",
-                         exposureConceptIds = "",
+                         exposureConceptIds = c(),
+                         excludeConceptIds = c(),
                          drugEraCovariates = FALSE,
                          conditionEraCovariates = FALSE,
                          procedureCovariates = FALSE,
@@ -71,6 +73,7 @@ getDbSccsData <- function(connectionDetails,
                                         exposure_database_schema = exposureDatabaseSchema,
                                         exposure_table = exposureTable,
                                         exposure_concept_ids = exposureConceptIds,
+                                        exclude_concept_ids = excludeConceptIds,
                                         drug_era_covariates = drugEraCovariates,
                                         condition_era_covariates = conditionEraCovariates,
                                         procedure_covariates = procedureCovariates,
@@ -87,15 +90,15 @@ getDbSccsData <- function(connectionDetails,
   renderedSql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
                                         packageName = "SelfControlledCaseSeries",
                                         dbms = connectionDetails$dbms)
-  cases <- dbGetQuery.ffdf(conn, renderedSql) 
+  cases <- querySql.ffdf(conn, renderedSql) 
   
   renderedSql <-"SELECT era_type, observation_period_id, concept_id, start_day, end_day FROM #eras ORDER BY observation_period_id"
   renderedSql <- SqlRender::translateSql(renderedSql, "sql server", connectionDetails$dbms)$sql
-  eras <- dbGetQuery.ffdf(conn, renderedSql) 
+  eras <- querySql.ffdf(conn, renderedSql) 
   
   renderedSql <-"SELECT concept_id, concept_name  FROM #covariate_ref"
   renderedSql <- SqlRender::translateSql(renderedSql, "sql server", connectionDetails$dbms)$sql
-  covariateRef <- dbGetQuery.ffdf(conn, renderedSql) 
+  covariateRef <- querySql.ffdf(conn, renderedSql) 
   
   delta <- Sys.time() - start
   writeLines(paste("Loading took", signif(delta,3), attr(delta,"units")))

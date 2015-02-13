@@ -25,9 +25,7 @@ SELECT
 	YEAR(observation_period_start_date) AS observation_start_year,
 	MONTH(observation_period_start_date) AS observation_start_month,
 	DAY(observation_period_start_date) AS observation_start_day,
-	year_of_birth,
-	month_of_birth,
-	day_of_birth	
+	age_in_days
 FROM
 	#cases
 ORDER BY

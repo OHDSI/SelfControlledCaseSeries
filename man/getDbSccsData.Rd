@@ -4,16 +4,15 @@
 \alias{getDbSccsData}
 \title{Todo: add title}
 \usage{
-getDbSccsData(connectionDetails, cdmDatabaseSchema = "cdm4_sim.dbo",
-  resultsDatabaseSchema = "scratch.dbo",
+getDbSccsData(connectionDetails, cdmDatabaseSchema, resultsDatabaseSchema,
   outcomeDatabaseSchema = cdmDatabaseSchema,
-  outcomeTable = "condition_occurrence", outcomeConceptIds = "",
-  outcomeConditionTypeConceptIds = "",
+  outcomeTable = "condition_occurrence", outcomeConceptIds,
+  outcomeConditionTypeConceptIds = c(),
   exposureDatabaseSchema = cdmDatabaseSchema, exposureTable = "drug_era",
-  exposureConceptIds = "", drugEraCovariates = FALSE,
-  conditionEraCovariates = FALSE, procedureCovariates = FALSE,
-  visitCovariates = FALSE, observationCovariates = FALSE,
-  deleteCovariatesSmallCount = 100)
+  exposureConceptIds = c(), excludeConceptIds = c(),
+  drugEraCovariates = FALSE, conditionEraCovariates = FALSE,
+  procedureCovariates = FALSE, visitCovariates = FALSE,
+  observationCovariates = FALSE, deleteCovariatesSmallCount = 100)
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
@@ -35,6 +34,8 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema = "cdm4_sim.dbo",
 \item{exposureTable}{}
 
 \item{exposureConceptIds}{}
+
+\item{excludeConceptIds}{}
 
 \item{drugEraCovariates}{}
 

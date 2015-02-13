@@ -28,6 +28,7 @@ limitations under the License.
 {DEFAULT @exposure_database_schema = 'cdm4_sim.dbo'} 
 {DEFAULT @exposure_table = 'drug_era'} 
 {DEFAULT @exposure_concept_ids = ''}
+{DEFAULT @exclude_concept_ids = ''}
 {DEFAULT @drug_era_covariates = FALSE}
 {DEFAULT @condition_era_covariates = FALSE}
 {DEFAULT @procedure_covariates = FALSE}
@@ -50,9 +51,7 @@ SELECT observation_period_id,
 	person.person_id,
 	observation_period_start_date,
 	observation_period_end_date,
-	year_of_birth,
-	month_of_birth,
-	day_of_birth
+	DATEDIFF(dd, DATEFROMPARTS(year_of_birth, ISNULL(month_of_birth, 1), ISNULL(day_of_birth, 1)), observation_period_start_date) AS age_in_days
 INTO #cases
 FROM @cdm_database_schema.observation_period
 INNER JOIN @cdm_database_schema.person
@@ -97,7 +96,7 @@ CREATE TABLE #eras (
 	concept_id INT,
 	start_day INT,
 	end_day INT
-)
+);
 
 /* Create exposure eras */
 {@exposure_table == 'drug_era'} ? {
@@ -115,7 +114,15 @@ ON drug_era.person_id = cases.person_id
 	{@exposure_concept_ids != ''} ? {
 WHERE
 	drug_concept_id IN (@exposure_concept_ids)
-	}
+		{@exclude_concept_ids != ''} ? {
+	AND drug_concept_id NOT IN (@exclude_concept_ids)	
+		}
+	} : {
+		{@exclude_concept_ids != ''} ? {
+WHERE
+	drug_concept_id NOT IN (@exclude_concept_ids)	
+		}
+	}	
 ;  	
 } : { /* exposure table has same structure as cohort table */
 INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
@@ -131,8 +138,16 @@ ON exposure.subject_id = cases.person_id
 	AND cohort_end_date >= observation_period_start_date
 	{@exposure_concept_ids != ''} ? {
 WHERE
-	cohort_concept_id IN (@exposure_concept_ids)
-	}
+	drug_concept_id IN (@exposure_concept_ids)
+		{@exclude_concept_ids != ''} ? {
+	AND drug_concept_id NOT IN (@exclude_concept_ids)	
+		}
+	} : {
+		{@exclude_concept_ids != ''} ? {
+WHERE
+	drug_concept_id NOT IN (@exclude_concept_ids)	
+		}
+	}	
 ;  		
 }
 
@@ -202,6 +217,10 @@ INNER JOIN #cases cases
 ON drug_era.person_id = cases.person_id
 	AND drug_era_start_date <= observation_period_end_date
 	AND drug_era_end_date >= observation_period_start_date
+	{@exclude_concept_ids != ''} ? {
+WHERE
+	drug_concept_id NOT IN (@exclude_concept_ids)	
+	}	
 ;  		
 }
 
@@ -218,6 +237,11 @@ INNER JOIN #cases cases
 ON condition_era.person_id = cases.person_id
 	AND condition_era_start_date <= observation_period_end_date
 	AND condition_era_end_date >= observation_period_start_date
+	{@exclude_concept_ids != ''} ? {
+WHERE
+	condition_concept_id NOT IN (@exclude_concept_ids)	
+	}	
+	
 ;  		
 }
 
@@ -234,6 +258,10 @@ INNER JOIN #cases cases
 ON procedure_occurrence.person_id = cases.person_id
 	AND procedure_date <= observation_period_end_date
 	AND procedure_date >= observation_period_start_date
+	{@exclude_concept_ids != ''} ? {
+WHERE
+	procedure_concept_id NOT IN (@exclude_concept_ids)	
+	}		
 ;  		
 }
 
@@ -250,6 +278,10 @@ INNER JOIN #cases cases
 ON visit_occurrence.person_id = cases.person_id
 	AND visit_start_date <= observation_period_end_date
 	AND visit_end_date >= observation_period_start_date
+	{@exclude_concept_ids != ''} ? {
+WHERE
+	visit_concept_id NOT IN (@exclude_concept_ids)	
+	}		
 ;  		
 }
 
@@ -266,6 +298,10 @@ INNER JOIN #cases cases
 ON observation.person_id = cases.person_id
 	AND observation_date <= observation_period_end_date
 	AND observation_date >= observation_period_start_date
+	{@exclude_concept_ids != ''} ? {
+WHERE
+	observation_concept_id NOT IN (@exclude_concept_ids)	
+	}		
 ;  		
 }
 
