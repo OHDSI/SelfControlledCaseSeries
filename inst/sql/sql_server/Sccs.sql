@@ -18,9 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ***********************************************************************/
 
-{DEFAULT @cdm_database_schema = 'cdm4_sim.dbo'}
-{DEFAULT @results_database_schema = 'scratch.dbo'} 
-{DEFAULT @results_database = 'scratch'}
+{DEFAULT @cdm_database = 'cdm4_sim.dbo'}
 {DEFAULT @outcome_database_schema = 'cdm4_sim'} 
 {DEFAULT @outcome_table = 'condition_occurrence'} 
 {DEFAULT @outcome_concept_ids = ''}
@@ -36,13 +34,16 @@ limitations under the License.
 {DEFAULT @observation_covariates = FALSE}
 {DEFAULT @delete_covariates_small_count = 100}
 
-USE @results_database;
+USE @cdm_database;
 
-IF OBJECT_ID('#cases', 'U') IS NOT NULL 
+IF OBJECT_ID('tempdb..#cases', 'U') IS NOT NULL
 	DROP TABLE #cases;
-  
-IF OBJECT_ID('#eras', 'U') IS NOT NULL 
+	
+IF OBJECT_ID('tempdb..#eras', 'U') IS NOT NULL
 	DROP TABLE #eras;
+	
+IF OBJECT_ID('tempdb..#covariate_ref', 'U') IS NOT NULL
+	DROP TABLE #covariate_ref;
 	
 /**********************************************************************
 							Select cases
@@ -53,8 +54,8 @@ SELECT observation_period_id,
 	observation_period_end_date,
 	DATEDIFF(dd, DATEFROMPARTS(year_of_birth, ISNULL(month_of_birth, 1), ISNULL(day_of_birth, 1)), observation_period_start_date) AS age_in_days
 INTO #cases
-FROM @cdm_database_schema.observation_period
-INNER JOIN @cdm_database_schema.person
+FROM observation_period
+INNER JOIN person
 ON observation_period.person_id = person.person_id
 WHERE EXISTS (
 {@outcome_table == 'condition_occurrence'} ? {	
@@ -79,8 +80,8 @@ WHERE EXISTS (
 		SELECT *
 		FROM @outcome_database_schema.@outcome_table outcome
 		WHERE outcome.subject_id = observation_period.person_id
-			AND condition_start_date <= observation_period_end_date
-			AND	condition_start_date >= observation_period_start_date	
+			AND cohort_start_date <= observation_period_end_date
+			AND	cohort_start_date >= observation_period_start_date	
 			AND	cohort_concept_id IN (@outcome_concept_ids)
 	}
 }
@@ -197,7 +198,7 @@ FROM @outcome_database_schema.@outcome_table outcomes
 INNER JOIN #cases cases
 ON outcomes.subject_id = cases.person_id
 	AND cohort_start_date >= observation_period_start_date
-	AND cohort_era_start_date <= observation_period_end_date
+	AND cohort_start_date <= observation_period_end_date
 WHERE
 	cohort_concept_id IN (@outcome_concept_ids)
 ;  	
@@ -212,7 +213,7 @@ SELECT 'rx',
 	drug_concept_id,
 	DATEDIFF(dd, observation_period_start_date, drug_era_start_date),
 	DATEDIFF(dd, observation_period_start_date, drug_era_end_date)
-FROM @cdm_database_schema.drug_era
+FROM drug_era
 INNER JOIN #cases cases
 ON drug_era.person_id = cases.person_id
 	AND drug_era_start_date <= observation_period_end_date
@@ -232,7 +233,7 @@ SELECT 'dx',
 	condition_concept_id,
 	DATEDIFF(dd, observation_period_start_date, condition_era_start_date),
 	DATEDIFF(dd, observation_period_start_date, condition_era_end_date)
-FROM @cdm_database_schema.condition_era
+FROM condition_era
 INNER JOIN #cases cases
 ON condition_era.person_id = cases.person_id
 	AND condition_era_start_date <= observation_period_end_date
@@ -253,7 +254,7 @@ SELECT 'px',
 	procedure_concept_id,
 	DATEDIFF(dd, observation_period_start_date, procedure_date),
 	DATEDIFF(dd, observation_period_start_date, procedure_date)
-FROM @cdm_database_schema.procedure_occurrence
+FROM procedure_occurrence
 INNER JOIN #cases cases
 ON procedure_occurrence.person_id = cases.person_id
 	AND procedure_date <= observation_period_end_date
@@ -273,7 +274,7 @@ SELECT 'rx',
 	visit_concept_id,
 	DATEDIFF(dd, observation_period_start_date, visit_start_date),
 	DATEDIFF(dd, observation_period_start_date, visit_end_date)
-FROM @cdm_database_schema.visit_occurrence
+FROM visit_occurrence
 INNER JOIN #cases cases
 ON visit_occurrence.person_id = cases.person_id
 	AND visit_start_date <= observation_period_end_date
@@ -293,7 +294,7 @@ SELECT 'rx',
 	observation_concept_id,
 	DATEDIFF(dd, observation_period_start_date, observation_date),
 	DATEDIFF(dd, observation_period_start_date, observation_date)
-FROM @cdm_database_schema.observation
+FROM observation
 INNER JOIN #cases cases
 ON observation.person_id = cases.person_id
 	AND observation_date <= observation_period_end_date
@@ -329,7 +330,7 @@ WHERE era_type != 'hei'
 SELECT concept.concept_id,
 	concept_name
 INTO #covariate_ref
-FROM @cdm_database_schema.concept
+FROM concept
 INNER JOIN (
 	SELECT DISTINCT concept_id
 	FROM #eras

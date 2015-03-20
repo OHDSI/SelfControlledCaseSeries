@@ -44,7 +44,7 @@
 #' @export
 getDbSccsData <- function(connectionDetails,
                          cdmDatabaseSchema,
-                         resultsDatabaseSchema,
+                         oracleTempSchema = cdmDatabaseSchema,
                          outcomeDatabaseSchema = cdmDatabaseSchema,
                          outcomeTable = "condition_occurrence",
                          outcomeConceptIds,
@@ -59,13 +59,12 @@ getDbSccsData <- function(connectionDetails,
                          visitCovariates = FALSE,
                          observationCovariates = FALSE,
                          deleteCovariatesSmallCount = 100) {
-  resultsDatabase <- strsplit(resultsDatabaseSchema ,"\\.")[[1]][1]
+  cdmDatabase <- strsplit(cdmDatabaseSchema ,"\\.")[[1]][1]
   renderedSql <- SqlRender::loadRenderTranslateSql("Sccs.sql",
                                         packageName = "SelfControlledCaseSeries",
                                         dbms = connectionDetails$dbms,
-                                        cdm_database_schema = cdmDatabaseSchema,
-                                        results_database_schema = resultsDatabaseSchema,
-                                        results_database = resultsDatabase,
+										oracleTempSchema = oracleTempSchema,
+                                        cdm_database = cdmDatabase,
                                         outcome_database_schema = outcomeDatabaseSchema,
                                         outcome_table = outcomeTable,
                                         outcome_concept_ids = outcomeConceptIds,

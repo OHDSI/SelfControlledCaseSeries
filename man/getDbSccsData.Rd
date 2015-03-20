@@ -4,7 +4,8 @@
 \alias{getDbSccsData}
 \title{Todo: add title}
 \usage{
-getDbSccsData(connectionDetails, cdmDatabaseSchema, resultsDatabaseSchema,
+getDbSccsData(connectionDetails, cdmDatabaseSchema,
+  oracleTempSchema = cdmDatabaseSchema,
   outcomeDatabaseSchema = cdmDatabaseSchema,
   outcomeTable = "condition_occurrence", outcomeConceptIds,
   outcomeConditionTypeConceptIds = c(),
@@ -18,8 +19,6 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema, resultsDatabaseSchema,
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
 
 \item{cdmDatabaseSchema}{}
-
-\item{resultsDatabaseSchema}{}
 
 \item{outcomeDatabaseSchema}{}
 
@@ -46,6 +45,8 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema, resultsDatabaseSchema,
 \item{visitCovariates}{}
 
 \item{observationCovariates}{}
+
+\item{resultsDatabaseSchema}{}
 }
 \description{
 Todo: add description

@@ -18,7 +18,7 @@
 
 # outcomeConceptId <- 194133
 #' @export
-fitModel <- function(sccsEraData, 
+fitSccsModel <- function(sccsEraData, 
                      exposureConceptId = NULL, 
                      outcomeConceptId = NULL,
                      prior = createPrior("laplace", useCrossValidation = TRUE),
@@ -49,15 +49,7 @@ fitModel <- function(sccsEraData,
   fit <- Cyclops::fitCyclopsModel(cyclopsData, 
                                   prior = prior,
                                   control = control)  
-  
-  fit <- Cyclops::fitCyclopsModel(cyclopsData, prior = createPrior("laplace",0.1))
-  
-  prior = createPrior("laplace", useCrossValidation = TRUE)
-  control <- createControl(cvType = "auto",startingVariance = 0.1, noiseLevel = "quiet")
-  fit <- Cyclops::fitCyclopsModel(cyclopsData, 
-                                  prior = prior,
-                                  control = control)  
-  
+    
   return(fit)
 }
 
