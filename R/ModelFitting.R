@@ -44,8 +44,8 @@ fitSccsModel <- function(sccsEraData,
                                                covariatesSubset, 
                                                modelType = "cpr", 
                                                addIntercept = FALSE,
-                                               checkSorting = TRUE, 
-                                               checkRowIds = TRUE)
+                                               checkSorting = FALSE, 
+                                               checkRowIds = FALSE)
   fit <- Cyclops::fitCyclopsModel(cyclopsData, 
                                   prior = prior,
                                   control = control)  

@@ -271,7 +271,7 @@ WHERE
 INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
 SELECT 'rx',
 	cases.observation_period_id,
-	visit_concept_id,
+	place_of_service_concept_id,
 	DATEDIFF(dd, observation_period_start_date, visit_start_date),
 	DATEDIFF(dd, observation_period_start_date, visit_end_date)
 FROM visit_occurrence
