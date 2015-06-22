@@ -227,7 +227,7 @@ namespace ohdsi {
 			addToResult(concomitantEras, outcomes, personData.observationPeriodId, resultStruct);
 		}
 
-		List SccsConverter::convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
+		List SccsConverter::convertToSccs(const List& cases, const List& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
 				const bool firstOutcomeOnly) {
 			PersonDataIterator iterator(cases, eras);
 			ResultStruct resultStruct;

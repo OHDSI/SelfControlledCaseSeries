@@ -1,6 +1,6 @@
 # @file DataConversion.R
 #
-# Copyright 2014 Observational Health Data Sciences and Informatics
+# Copyright 2015 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 # 
@@ -53,32 +53,37 @@ createSccsEraData <- function(sccsData,
 
 #' @export
 convertToSccs.data.frame <- function(cases, eras, covariateStart = 0, covariatePersistencePeriod = 0, naivePeriod = 0, firstOutcomeOnly = FALSE) {
-  .Call('SelfControlledCaseSeries_convertToSccs', PACKAGE = 'SelfControlledCaseSeries', cases, eras, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly)
+  fakeDf <- .Call('SelfControlledCaseSeries_convertToSccs', PACKAGE = 'SelfControlledCaseSeries', cases, eras, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly)
+  return(as.data.frame.fakeDf(fakeDf))
+}
+
+convertToSccs.fakeDf <- function(cases, eras, covariateStart = 0, covariatePersistencePeriod = 0, naivePeriod = 0, firstOutcomeOnly = FALSE) {
+  return(.Call('SelfControlledCaseSeries_convertToSccs', PACKAGE = 'SelfControlledCaseSeries', cases, eras, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly))
 }
 
 .appendToData <- function(data, batch){
-  n <- nrow(batch$outcomes)
+  n <- nrow.fakeDf(batch$outcomes)
   if (is.null(data$outcomes)){
     if (n == 0){
       data$outcomes <- batch$outcomes #ffdf cannot contain 0 rows, so return data.frame instead
       warning("Data has zero rows, returning an empty data frame")
     } else
-      data$outcomes <- ff::as.ffdf(batch$outcomes)    
+      data$outcomes <- as.ffdf.fakeDf(batch$outcomes)    
   } else if (n != 0){
-    batch$outcomes$rowId = batch$outcomes$rowId + nrow(data$outcomes) 
-    batch$covariates$rowId = batch$covariates$rowId + nrow(data$outcomes)   
-    data$outcomes <- ffbase::ffdfappend(data$outcomes,batch$outcomes)
+    batch$outcomes$rowId = batch$outcomes$rowId + nrow.fakeDf(data$outcomes) 
+    batch$covariates$rowId = batch$covariates$rowId + nrow.fakeDf(data$outcomes)   
+    data$outcomes <- ffbase::ffdfappend(data$outcomes,as.ffdf.fakeDf(batch$outcomes))
   }
   
-  n <- nrow(batch$covariates)
+  n <- nrow.fakeDf(batch$covariates)
   if (is.null(data$covariates)){
     if (n == 0){
       data$covariates <- batch$covariates #ffdf cannot contain 0 rows, so return data.frame instead
       warning("Data has zero rows, returning an empty data frame")
     } else
-      data$covariates <- ff::as.ffdf(batch$covariates)    
+      data$covariates <- as.ffdf.fakeDf(batch$covariates)    
   } else if (n != 0){
-    data$covariates <- ffbase::ffdfappend(data$covariates,batch$covariates)
+    data$covariates <- ffbase::ffdfappend(data$covariates,as.ffdf.fakeDf(batch$covariates))
   }
   return(data)
 }
@@ -113,13 +118,13 @@ convertToSccs.data.frame <- function(cases, eras, covariateStart = 0, covariateP
   spillOverEras <- NULL
   while (!isDone(erasSource)){
     batchEras <- getErasBatch(erasSource)
-    lastObservationPeriodId <- batchEras$observationPeriodId[nrow(batchEras)]
+    lastObservationPeriodId <- batchEras$observationPeriodId[nrow.fakeDf(batchEras)]
     endCompleteRow <- .lastRowNotHavingThisValue(batchEras$observationPeriodId,lastObservationPeriodId)
     
     if (endCompleteRow == 0){ #Entire batch is about 1 row
       if (!is.null(spillOverEras)){
         if (spillOverEras$observationPeriodId[1] == batchEras$observationPeriodId[1]){ #SpilloverCovars contains info on same row
-          spillOverEras <- rbind(spillOverEras,batchEras)
+          spillOverEras <- rbind.fakeDf(spillOverEras,batchEras)
           erasToConvert <- NULL
         } else { #SplilloverCovars contains covars for a different row
           erasToConvert <- spillOverEras
@@ -130,34 +135,34 @@ convertToSccs.data.frame <- function(cases, eras, covariateStart = 0, covariateP
       }
     } else { #Batch is about different rows (so at least one is complete)
       if (!is.null(spillOverEras)){
-        erasToConvert <- rbind(spillOverEras,batchEras[1:endCompleteRow,])      
+        erasToConvert <- rbind.fakeDf(spillOverEras,subsetFakeDf(batchEras,1:endCompleteRow))      
       } else {
-        erasToConvert <- batchEras[1:endCompleteRow,]
+        erasToConvert <- subsetFakeDf(batchEras, 1:endCompleteRow)
       }
-      spillOverEras <- batchEras[(endCompleteRow+1):nrow(batchEras),]
+      spillOverEras <- subsetFakeDf(batchEras,(endCompleteRow+1):nrow.fakeDf(batchEras))
     }    
     
     #Get matching cases:
     if (!is.null(erasToConvert)){ # There is a complete row
-      completeObservationPeriodId = erasToConvert$observationPeriodId[nrow(erasToConvert)]
+      completeObservationPeriodId = erasToConvert$observationPeriodId[nrow.fakeDf(erasToConvert)]
       endCompleteRowInCases <- which(batchCases$observationPeriodId == completeObservationPeriodId)
       while (length(endCompleteRowInCases) == 0 & !isDone(casesSource)){
-        if (lastUsedCase == nrow(batchCases)){
+        if (lastUsedCase == nrow.fakeDf(batchCases)){
           batchCases <- getCasesBatch(casesSource)
         } else {      
           newBatchCases <- getCasesBatch(casesSource)
-          batchCases <- rbind(batchCases[(lastUsedCase+1):nrow(batchCases),],newBatchCases)          
+          batchCases <- rbind.fakeDf(subsetFakeDf(batchCases,(lastUsedCase+1):nrow.fakeDf(batchCases)),newBatchCases)          
         }
         lastUsedCase = 0
         endCompleteRowInCases <- which(batchCases$observationPeriodId == completeObservationPeriodId)
       }
       #Convert and append to ffdf:
-      batch <- convertToSccs.data.frame(batchCases[(lastUsedCase+1):endCompleteRowInCases,],
-                                        erasToConvert,
-                                        covariateStart,
-                                        covariatePersistencePeriod, 
-                                        naivePeriod, 
-                                        firstOutcomeOnly)
+      batch <- convertToSccs.fakeDf(subsetFakeDf(batchCases,(lastUsedCase+1):endCompleteRowInCases),
+                                    erasToConvert,
+                                    covariateStart,
+                                    covariatePersistencePeriod, 
+                                    naivePeriod, 
+                                    firstOutcomeOnly)
       data <- .appendToData(data, batch)
       lastUsedCase = endCompleteRowInCases
     }
@@ -166,26 +171,26 @@ convertToSccs.data.frame <- function(cases, eras, covariateStart = 0, covariateP
   #End of covar batches, add spillover to Cyclops:
   erasToConvert <- spillOverEras
   
-  completeObservationPeriodId = erasToConvert$observationPeriodId[nrow(erasToConvert)]
+  completeObservationPeriodId = erasToConvert$observationPeriodId[nrow.fakeDf(erasToConvert)]
   endCompleteRowInCases <- which(batchCases$observationPeriodId == completeObservationPeriodId)
   while (length(endCompleteRowInCases) == 0 & !isDone(casesSource)){
-    if (lastUsedCase == nrow(batchCases)){
+    if (lastUsedCase == nrow.fakeDf(batchCases)){
       batchCases <- getCasesBatch(casesSource)
     } else {      
       batchCases <- getCasesBatch(casesSource)
-      batchCases <- rbind(batchCases[(lastUsedCase+1):nrow(batchCases),],newBatchCases)          
+      batchCases <- rbind.fakeDf(subsetFakeDf(batchCases,(lastUsedCase+1):nrow.fakeDf(batchCases)),newBatchCases)          
     }
     lastUsedCase = 0
     endCompleteRowInCases <- which(batchCases$observationPeriodId == completeObservationPeriodId)
   }
   
   #Convert and append to ffdf:
-  batch <- convertToSccs.data.frame(batchCases[(lastUsedCase+1):endCompleteRowInCases,],
-                                    erasToConvert,
-                                    covariateStart,
-                                    covariatePersistencePeriod, 
-                                    naivePeriod, 
-                                    firstOutcomeOnly)
+  batch <- convertToSccs.fakeDf(subsetFakeDf(batchCases,(lastUsedCase+1):endCompleteRowInCases),
+                                erasToConvert,
+                                covariateStart,
+                                covariatePersistencePeriod, 
+                                naivePeriod, 
+                                firstOutcomeOnly)
   data <- .appendToData(data, batch)
   close(pb)
   return(data)
@@ -212,7 +217,7 @@ convertToSccs.ffdf <- function(cases,
     data <- get("data",envir=casesSource)
     chunks <- get("chunks",envir=casesSource)
     cursor <- get("cursor",envir=casesSource)
-    batchCases <- data[chunks[[cursor]],]
+    batchCases <- subsetFfdfToFakeDf(data, chunks[[cursor]])
     assign("cursor",cursor+1,envir=casesSource)
     return(batchCases)
   }
@@ -221,7 +226,8 @@ convertToSccs.ffdf <- function(cases,
     data <- get("data",envir=erasSource)
     chunks <- get("chunks",envir=erasSource)
     cursor <- get("cursor",envir=erasSource)
-    batchEras <- data[chunks[[cursor]],]
+    batchEras <- subsetFfdfToFakeDf(data, chunks[[cursor]])
+    batchEras$eraType <- as.character(batchEras$eraType)
     assign("cursor",cursor+1,envir=erasSource)
     return(batchEras)
   }

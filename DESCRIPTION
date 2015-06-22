@@ -10,6 +10,7 @@ Depends:
     R (>= 3.1.0),
     DatabaseConnector
 Imports:
+    RJDBC,
     bit,
     Cyclops (>= 1.0.0),
     SqlRender (>= 1.0.0),

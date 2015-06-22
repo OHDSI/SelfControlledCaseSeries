@@ -60,7 +60,7 @@ namespace ohdsi {
 
 		class PersonDataIterator {
 		public:
-			PersonDataIterator(const DataFrame& _cases, const DataFrame& _eras);
+			PersonDataIterator(const List& _cases, const List& _eras);
 			bool hasNext();
 			PersonData next();
 		private:

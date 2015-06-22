@@ -27,7 +27,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export(".convertToSccs")]]
-List convertToSccs(const DataFrame& cases, const DataFrame& eras, int covariateStart, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly) {
+List convertToSccs(const List& cases, const List& eras, int covariateStart, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly) {
 
 	using namespace ohdsi::sccs;
 

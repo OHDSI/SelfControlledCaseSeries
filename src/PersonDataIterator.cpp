@@ -29,7 +29,7 @@ using namespace Rcpp;
 namespace ohdsi {
 	namespace sccs {
 
-		PersonDataIterator::PersonDataIterator(const DataFrame& _cases, const DataFrame& _eras) :
+		PersonDataIterator::PersonDataIterator(const List& _cases, const List& _eras) :
 				casesCursor(0), erasCursor(0) {
 			casesPersonId = _cases["personId"];
 			casesObservationPeriodId = _cases["observationPeriodId"];

@@ -99,9 +99,9 @@ namespace ohdsi {
 			}
 
 			List convertToRList() {
-				DataFrame outcomes = DataFrame::create(Named("rowId") = wrap(*outcomeRowId), Named("stratumId") = wrap(*outcomeStratumId),
+				List outcomes = List::create(Named("rowId") = wrap(*outcomeRowId), Named("stratumId") = wrap(*outcomeStratumId),
 						Named("time") = wrap(*outcomeTime), Named("y") = wrap(*outcomeY), Named("outcomeId") = wrap(*outcomeOutcomeId));
-				DataFrame covariates = DataFrame::create(Named("rowId") = wrap(*eraRowId), Named("stratumId") = wrap(*eraStratumId), Named("covariateId") =
+			  List covariates = List::create(Named("rowId") = wrap(*eraRowId), Named("stratumId") = wrap(*eraStratumId), Named("covariateId") =
 						wrap(*eraCovariateId));
 				return List::create(Named("outcomes") = outcomes, Named("covariates") = covariates);
 			}
@@ -119,7 +119,7 @@ namespace ohdsi {
 
 		struct SccsConverter {
 		public:
-			static List convertToSccs(const DataFrame& cases, const DataFrame& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
+			static List convertToSccs(const List& cases, const List& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
 					bool firstOutcomeOnly);
 		private:
 			static void processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
