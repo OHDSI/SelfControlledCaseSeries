@@ -16,40 +16,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-subsetFfdfToFakeDf <- function(ffdf, index){
+subsetFfdfToFakeDf <- function(ffdf, index) {
   fakeDf <- vector(length = length(ffdf), mode = "list")
-  for (i in 1:length(ffdf)){
-    fakeDf[[i]] <- ffdf[index,i]
+  for (i in 1:length(ffdf)) {
+    fakeDf[[i]] <- ffdf[index, i]
   }
   names(fakeDf) <- names(ffdf)
   class(fakeDf) <- "fakeDf"
   return(fakeDf)
 }
 
-nrow.fakeDf <- function(fakeDf){
+nrow.fakeDf <- function(fakeDf) {
   return(length(fakeDf[[1]]))
 }
 
 rbind.fakeDf <- function(fakeDf1, fakeDf2) {
-  for (i in 1:length(fakeDf1)){
-    if (is.factor(fakeDf1[[i]])){
+  for (i in 1:length(fakeDf1)) {
+    if (is.factor(fakeDf1[[i]])) {
       stop("R cannot concatenate factors")
     }
-    fakeDf1[[i]] <-  c(fakeDf1[[i]], fakeDf2[[i]])
+    fakeDf1[[i]] <- c(fakeDf1[[i]], fakeDf2[[i]])
   }
   return(fakeDf1)
 }
 
-as.ffdf.fakeDf <- function(fakeDf) { 
-  fun <- function(...){
+as.ffdf.fakeDf <- function(fakeDf) {
+  fun <- function(...) {
     ff::ffdf(...)
   }
-  return(do.call("fun", sapply(fakeDf,ff::ff)))
+  return(do.call("fun", sapply(fakeDf, ff::ff)))
 }
 
-subsetFakeDf <- function(fakeDf, index){
+subsetFakeDf <- function(fakeDf, index) {
   result <- vector(length = length(fakeDf), mode = "list")
-  for (i in 1:length(fakeDf)){
+  for (i in 1:length(fakeDf)) {
     result[[i]] <- fakeDf[[i]][index]
   }
   names(result) <- names(fakeDf)
@@ -61,5 +61,5 @@ as.data.frame.fakeDf <- function(fakeDf) {
   class(fakeDf) <- "data.frame"
   row.names(fakeDf) <- seq_len(nrow.fakeDf(fakeDf))
   return(fakeDf)
-  
+
 }
