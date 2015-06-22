@@ -18,8 +18,16 @@ testcode <- function() {
   dbms <- "postgresql"
   server <- "localhost/ohdsi"
   user <- "postgres"
-  schema <- "cdm4_sim"
   cdmDatabaseSchema <- "cdm4_sim"
+  resultsDatabaseSchema <- "scratch"
+  port <- NULL
+
+  # Settings for OHDSI test environment
+  dbms <- "postgresql"
+  server <-  Sys.getenv("CDM5_POSTGRESQL_SERVER")
+  user <- Sys.getenv("CDM5_POSTGRESQL_USER")
+  pw <-  URLdecode(Sys.getenv("CDM5_POSTGRESQL_PASSWORD"))
+  cdmDatabaseSchema <- Sys.getenv("CDM5_POSTGRESQL_SCHEMA")
   resultsDatabaseSchema <- "scratch"
   port <- NULL
 
@@ -33,7 +41,6 @@ testcode <- function() {
   # low back pain
   sccsData <- getDbSccsData(connectionDetails,
                             cdmDatabaseSchema = cdmDatabaseSchema,
-                            resultsDatabaseSchema = resultsDatabaseSchema,
                             outcomeConceptIds = 194133,
                             exposureConceptIds = c(),
                             excludeConceptIds = c(),
