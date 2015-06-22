@@ -23,6 +23,11 @@
 }
 
 .createManualAndVignettes <- function() {
-  shell("rm extras/SelfControlledCaseSeries")
-  shell("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
+  if (.Platform$OS.type == "unix") {
+    system("rm extras/SelfControlledCaseSeries")
+    system("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
+  } else {
+    shell("rm extras/SelfControlledCaseSeries")
+    shell("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
+  }
 }
