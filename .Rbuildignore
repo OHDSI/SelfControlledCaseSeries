@@ -2,3 +2,4 @@
 ^\.Rproj\.user$
 .gitattributes
 extras
+standalone
