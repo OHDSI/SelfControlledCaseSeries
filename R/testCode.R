@@ -42,13 +42,14 @@ testcode <- function(){
   #You can start here if you already saved sccsData:
   sccsData <- loadSccsData("sccsData", readOnly = TRUE)
   
-  sccsEraData <- createSccsEraData(sccsData,
+  system.time(sccsEraData <- createSccsEraData(sccsData,
                                    covariateStart = 0,
                                    covariatePersistencePeriod = 0, 
                                    naivePeriod = 0, 
                                    firstOutcomeOnly = FALSE,
-                                   excludeConceptIds = NULL)
-  
+                                   excludeConceptIds = NULL))
+  # user  system elapsed 
+  # 36.05    2.15   49.48 
   saveSccsEraData(sccsEraData, "sccsEraData")
   
   #You can start here if you already saved sccsEraData:

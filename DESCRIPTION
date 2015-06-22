@@ -2,23 +2,23 @@ Package: SelfControlledCaseSeries
 Type: Package
 Title: What the package does (short line)
 Version: 0.0.1
-Date: 2014-06-10
+Date: 2015-06-22
 Author: Patrick Ryan, Marc Suchard, Trevor Shaddox, Martijn Schuemie
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
 Description: More about what it does (maybe more than one line)
 Depends:
     R (>= 3.1.0),
+    DatabaseConnector
+Imports:
     bit,
     Cyclops (>= 1.0.0),
-    DatabaseConnector,
-    RJDBC
-Imports:
     SqlRender (>= 1.0.0),
     ff,
     ffbase,
     Rcpp (>= 0.11.2)
 License: Apache License
 Suggests:
-    testthat
+    testthat,
+    OhdsiRTools
 LinkingTo: Rcpp
 NeedsCompilation: yes
