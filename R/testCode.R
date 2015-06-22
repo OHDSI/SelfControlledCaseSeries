@@ -67,7 +67,7 @@ testcode <- function() {
   # You can start here if you already saved sccsEraData:
   sccsEraData <- loadSccsEraData("sccsEraData")
 
-  fit <- fitModel(sccsEraData)
+  fit <- fitSccsModel(sccsEraData)
 
   model <- getModel(fit, sccsEraData)
   head(model)
