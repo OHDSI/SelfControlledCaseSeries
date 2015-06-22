@@ -7,10 +7,11 @@
 saveSccsData(sccsData, folder)
 }
 \arguments{
-\item{folder}{The name of the folder where the data will be written. The folder should
-not yet exist.}
+\item{folder}{The name of the folder where the data will be written. The folder should not yet
+                    exist.}
 
-\item{cohortData}{An object of type \code{sccsData} as generated using \code{\link{getDbSccsData}}.}
+\item{cohortData}{An object of type \code{sccsData} as generated using
+\code{\link{getDbSccsData}}.}
 }
 \description{
 \code{sccsData} saves an object of type sccsData to folder.
@@ -19,6 +20,6 @@ not yet exist.}
 The data will be written to a set of files in the specified folder.
 }
 \examples{
-#todo
+# todo
 }
 

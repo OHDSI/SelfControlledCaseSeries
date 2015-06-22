@@ -16,8 +16,6 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
   observationCovariates = FALSE, deleteCovariatesSmallCount = 100)
 }
 \arguments{
-\item{connectionDetails}{An R object of type \code{ConnectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
-
 \item{cdmDatabaseSchema}{}
 
 \item{outcomeDatabaseSchema}{}
@@ -45,6 +43,10 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
 \item{visitCovariates}{}
 
 \item{observationCovariates}{}
+
+\item{connectionDetailsAn}{R object of type \code{ConnectionDetails} created using the
+function \code{createConnectionDetails} in the
+\code{DatabaseConnector} package.}
 
 \item{resultsDatabaseSchema}{}
 }
