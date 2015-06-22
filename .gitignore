@@ -18,3 +18,5 @@ src/*.so
 src/*.dll
 /Debug
 standalone/build/*
+
+R/LocalEnvironment.R
