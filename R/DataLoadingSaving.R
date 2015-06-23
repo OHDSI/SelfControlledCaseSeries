@@ -3,13 +3,13 @@
 # Copyright 2014 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -61,6 +61,11 @@ getDbSccsData <- function(connectionDetails,
                           visitCovariates = FALSE,
                           observationCovariates = FALSE,
                           deleteCovariatesSmallCount = 100) {
+  if (exposureTable == "drug_era" && length(exposureConceptIds) == 0 && drugEraCovariates){
+    drugEraCovariates = FALSE
+    warning("Including all drugs in era table as exposures of interest, so using drug era covariates would duplicate all exposures. Setting drugEraCovariates to false.")
+  }
+
   cdmDatabase <- strsplit(cdmDatabaseSchema, "\\.")[[1]][1]
   renderedSql <- SqlRender::loadRenderTranslateSql("Sccs.sql",
                                                    packageName = "SelfControlledCaseSeries",

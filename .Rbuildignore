@@ -3,3 +3,5 @@
 .gitattributes
 extras
 standalone
+.travis.yml
+^\.git

@@ -3,13 +3,13 @@
 # Copyright 2015 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -71,7 +71,7 @@ convertToSccs.data.frame <- function(cases,
                   covariatePersistencePeriod,
                   naivePeriod,
                   firstOutcomeOnly)
-  return(as.data.frame.fakeDf(fakeDf))
+  return(OhdsiRTools::convertFakeDfToDataFrame(fakeDf))
 }
 
 convertToSccs.fakeDf <- function(cases,
@@ -91,26 +91,26 @@ convertToSccs.fakeDf <- function(cases,
 }
 
 .appendToData <- function(data, batch) {
-  n <- nrow.fakeDf(batch$outcomes)
+  n <- OhdsiRTools::nrowOfFakeDf(batch$outcomes)
   if (is.null(data$outcomes)) {
     if (n == 0) {
       data$outcomes <- batch$outcomes  #ffdf cannot contain 0 rows, so return data.frame instead
       warning("Data has zero rows, returning an empty data frame")
-    } else data$outcomes <- as.ffdf.fakeDf(batch$outcomes)
+    } else data$outcomes <- OhdsiRTools::fakeDfToFfdf(batch$outcomes)
   } else if (n != 0) {
-    batch$outcomes$rowId <- batch$outcomes$rowId + nrow.fakeDf(data$outcomes)
-    batch$covariates$rowId <- batch$covariates$rowId + nrow.fakeDf(data$outcomes)
-    data$outcomes <- ffbase::ffdfappend(data$outcomes, as.ffdf.fakeDf(batch$outcomes))
+    batch$outcomes$rowId <- batch$outcomes$rowId + OhdsiRTools::nrowOfFakeDf(data$outcomes)
+    batch$covariates$rowId <- batch$covariates$rowId + OhdsiRTools::nrowOfFakeDf(data$outcomes)
+    data$outcomes <- ffbase::ffdfappend(data$outcomes, OhdsiRTools::fakeDfToFfdf(batch$outcomes))
   }
 
-  n <- nrow.fakeDf(batch$covariates)
+  n <- OhdsiRTools::nrowOfFakeDf(batch$covariates)
   if (is.null(data$covariates)) {
     if (n == 0) {
       data$covariates <- batch$covariates  #ffdf cannot contain 0 rows, so return data.frame instead
       warning("Data has zero rows, returning an empty data frame")
-    } else data$covariates <- as.ffdf.fakeDf(batch$covariates)
+    } else data$covariates <- OhdsiRTools::fakeDfToFfdf(batch$covariates)
   } else if (n != 0) {
-    data$covariates <- ffbase::ffdfappend(data$covariates, as.ffdf.fakeDf(batch$covariates))
+    data$covariates <- ffbase::ffdfappend(data$covariates, OhdsiRTools::fakeDfToFfdf(batch$covariates))
   }
   return(data)
 }
@@ -145,7 +145,7 @@ convertToSccs.fakeDf <- function(cases,
   spillOverEras <- NULL
   while (!isDone(erasSource)) {
     batchEras <- getErasBatch(erasSource)
-    lastObservationPeriodId <- batchEras$observationPeriodId[nrow.fakeDf(batchEras)]
+    lastObservationPeriodId <- batchEras$observationPeriodId[OhdsiRTools::nrowOfFakeDf(batchEras)]
     endCompleteRow <- .lastRowNotHavingThisValue(batchEras$observationPeriodId,
                                                  lastObservationPeriodId)
 
@@ -154,7 +154,7 @@ convertToSccs.fakeDf <- function(cases,
       if (!is.null(spillOverEras)) {
         if (spillOverEras$observationPeriodId[1] == batchEras$observationPeriodId[1]) {
           # SpilloverCovars contains info on same row
-          spillOverEras <- rbind.fakeDf(spillOverEras, batchEras)
+          spillOverEras <- OhdsiRTools::rbindFakeDfs(spillOverEras, batchEras)
           erasToConvert <- NULL
         } else {
           # SplilloverCovars contains covars for a different row
@@ -167,31 +167,31 @@ convertToSccs.fakeDf <- function(cases,
     } else {
       # Batch is about different rows (so at least one is complete)
       if (!is.null(spillOverEras)) {
-        erasToConvert <- rbind.fakeDf(spillOverEras, subsetFakeDf(batchEras, 1:endCompleteRow))
+        erasToConvert <- OhdsiRTools::rbindFakeDfs(spillOverEras, OhdsiRTools::subsetFakeDf(batchEras, 1:endCompleteRow))
       } else {
-        erasToConvert <- subsetFakeDf(batchEras, 1:endCompleteRow)
+        erasToConvert <- OhdsiRTools::subsetFakeDf(batchEras, 1:endCompleteRow)
       }
-      spillOverEras <- subsetFakeDf(batchEras, (endCompleteRow + 1):nrow.fakeDf(batchEras))
+      spillOverEras <- OhdsiRTools::subsetFakeDf(batchEras, (endCompleteRow + 1):OhdsiRTools::nrowOfFakeDf(batchEras))
     }
 
     # Get matching cases: There is a complete row
     if (!is.null(erasToConvert)) {
-      completeObservationPeriodId <- erasToConvert$observationPeriodId[nrow.fakeDf(erasToConvert)]
+      completeObservationPeriodId <- erasToConvert$observationPeriodId[OhdsiRTools::nrowOfFakeDf(erasToConvert)]
       endCompleteRowInCases <- which(batchCases$observationPeriodId == completeObservationPeriodId)
       while (length(endCompleteRowInCases) == 0 & !isDone(casesSource)) {
-        if (lastUsedCase == nrow.fakeDf(batchCases)) {
+        if (lastUsedCase == OhdsiRTools::nrowOfFakeDf(batchCases)) {
           batchCases <- getCasesBatch(casesSource)
         } else {
           newBatchCases <- getCasesBatch(casesSource)
-          batchCases <- rbind.fakeDf(subsetFakeDf(batchCases,
-                                                  (lastUsedCase + 1):nrow.fakeDf(batchCases)),
+          batchCases <- OhdsiRTools::rbindFakeDfs(OhdsiRTools::subsetFakeDf(batchCases,
+                                                  (lastUsedCase + 1):OhdsiRTools::nrowOfFakeDf(batchCases)),
                                      newBatchCases)
         }
         lastUsedCase <- 0
         endCompleteRowInCases <- which(batchCases$observationPeriodId == completeObservationPeriodId)
       }
       # Convert and append to ffdf:
-      batch <- convertToSccs.fakeDf(subsetFakeDf(batchCases,
+      batch <- convertToSccs.fakeDf(OhdsiRTools::subsetFakeDf(batchCases,
                                                  (lastUsedCase + 1):endCompleteRowInCases),
                                     erasToConvert,
                                     covariateStart,
@@ -206,15 +206,15 @@ convertToSccs.fakeDf <- function(cases,
   # End of covar batches, add spillover to Cyclops:
   erasToConvert <- spillOverEras
 
-  completeObservationPeriodId <- erasToConvert$observationPeriodId[nrow.fakeDf(erasToConvert)]
+  completeObservationPeriodId <- erasToConvert$observationPeriodId[OhdsiRTools::nrowOfFakeDf(erasToConvert)]
   endCompleteRowInCases <- which(batchCases$observationPeriodId == completeObservationPeriodId)
   while (length(endCompleteRowInCases) == 0 & !isDone(casesSource)) {
-    if (lastUsedCase == nrow.fakeDf(batchCases)) {
+    if (lastUsedCase == OhdsiRTools::nrowOfFakeDf(batchCases)) {
       batchCases <- getCasesBatch(casesSource)
     } else {
       batchCases <- getCasesBatch(casesSource)
-      batchCases <- rbind.fakeDf(subsetFakeDf(batchCases,
-                                              (lastUsedCase + 1):nrow.fakeDf(batchCases)),
+      batchCases <- OhdsiRTools::rbindFakeDfs(OhdsiRTools::subsetFakeDf(batchCases,
+                                              (lastUsedCase + 1):OhdsiRTools::nrowOfFakeDf(batchCases)),
                                  newBatchCases)
     }
     lastUsedCase <- 0
@@ -222,7 +222,7 @@ convertToSccs.fakeDf <- function(cases,
   }
 
   # Convert and append to ffdf:
-  batch <- convertToSccs.fakeDf(subsetFakeDf(batchCases, (lastUsedCase + 1):endCompleteRowInCases),
+  batch <- convertToSccs.fakeDf(OhdsiRTools::subsetFakeDf(batchCases, (lastUsedCase + 1):endCompleteRowInCases),
                                 erasToConvert,
                                 covariateStart,
                                 covariatePersistencePeriod,
@@ -254,7 +254,7 @@ convertToSccs.ffdf <- function(cases,
     data <- get("data", envir = casesSource)
     chunks <- get("chunks", envir = casesSource)
     cursor <- get("cursor", envir = casesSource)
-    batchCases <- subsetFfdfToFakeDf(data, chunks[[cursor]])
+    batchCases <- OhdsiRTools::subsetFfdfToFakeDf(data, chunks[[cursor]])
     assign("cursor", cursor + 1, envir = casesSource)
     return(batchCases)
   }
@@ -263,7 +263,7 @@ convertToSccs.ffdf <- function(cases,
     data <- get("data", envir = erasSource)
     chunks <- get("chunks", envir = erasSource)
     cursor <- get("cursor", envir = erasSource)
-    batchEras <- subsetFfdfToFakeDf(data, chunks[[cursor]])
+    batchEras <- OhdsiRTools::subsetFfdfToFakeDf(data, chunks[[cursor]])
     batchEras$eraType <- as.character(batchEras$eraType)
     assign("cursor", cursor + 1, envir = erasSource)
     return(batchEras)

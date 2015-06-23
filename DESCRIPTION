@@ -13,12 +13,13 @@ Imports:
     RJDBC,
     Cyclops (>= 1.0.0),
     SqlRender (>= 1.0.0),
+    bit,
     ff,
     ffbase (>= 0.12.1),
-    Rcpp (>= 0.11.2)
-License: Apache License
-Suggests:
-    testthat,
+    Rcpp (>= 0.11.2),
     OhdsiRTools
+Suggests:
+    testthat
+License: Apache License
 LinkingTo: Rcpp
 NeedsCompilation: yes

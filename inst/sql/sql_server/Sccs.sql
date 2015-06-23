@@ -269,7 +269,7 @@ WHERE
 /* Create visit eras */
 {@visit_covariates} ? {
 INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
-SELECT 'rx',
+SELECT 'vx',
 	cases.observation_period_id,
 	place_of_service_concept_id,
 	DATEDIFF(dd, observation_period_start_date, visit_start_date),
@@ -314,9 +314,7 @@ WHERE concept_id = 0;
 
 {@delete_covariates_small_count != 0} ? {	
 DELETE FROM #eras 
-WHERE era_type != 'hei'
-	AND era_type != 'hoi'
-	AND concept_id IN (
+WHERE concept_id IN (
 	  SELECT concept_id
 	  FROM #eras
 		GROUP BY concept_id
