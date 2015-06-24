@@ -63,7 +63,7 @@ convertToSccs.data.frame <- function(cases,
                                      covariatePersistencePeriod = 0,
                                      naivePeriod = 0,
                                      firstOutcomeOnly = FALSE) {
-  fakeDf <- .Call("SelfControlledCaseSeries_convertToSccs",
+  fakeDfs <- .Call("SelfControlledCaseSeries_convertToSccs",
                   PACKAGE = "SelfControlledCaseSeries",
                   cases,
                   eras,
@@ -71,7 +71,9 @@ convertToSccs.data.frame <- function(cases,
                   covariatePersistencePeriod,
                   naivePeriod,
                   firstOutcomeOnly)
-  return(OhdsiRTools::convertFakeDfToDataFrame(fakeDf))
+  result <- list(outcomes = OhdsiRTools::convertFakeDfToDataFrame(fakeDfs$outcomes),
+                 covariates = OhdsiRTools::convertFakeDfToDataFrame(fakeDfs$covariates))
+  return(result)
 }
 
 convertToSccs.fakeDf <- function(cases,

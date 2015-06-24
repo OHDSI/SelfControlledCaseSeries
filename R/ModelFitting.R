@@ -41,17 +41,12 @@ fitSccsModel <- function(sccsEraData,
   if (!is.null(exposureConceptId))
     prior$exclude <- exposureConceptId
 
-  # Re-sort covariates for new interface.  TODO move sorting into SQL
-  covariatesSubset <- covariatesSubset[ff::ffdforder(covariatesSubset[c("covariateId", "stratumId","rowId")]),]
-
   cyclopsData <- Cyclops::convertToCyclopsData(outcomesSubset,
                                                covariatesSubset,
                                                modelType = "cpr",
                                                addIntercept = FALSE,
-                                               checkSorting = FALSE,
-                                               checkRowIds = FALSE)
+                                               checkRowIds = FALSE, quiet = TRUE)
   fit <- Cyclops::fitCyclopsModel(cyclopsData, prior = prior, control = control)
-
   return(fit)
 }
 

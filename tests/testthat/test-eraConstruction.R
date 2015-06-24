@@ -86,6 +86,57 @@ test_that("Concomitant drug use (3 drugs", {
   expect_equal(result$covariates$covariateId, c(11, 12, 12, 13, 11, 12, 13))
 })
 
+test_that("Start risk window at day 1 not 0", {
+  cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays = 100)
+  eras <- data.frame(eraType = c("hoi", "hei"),
+                     observationPeriodId = c(1, 1),
+                     conceptId = c(10, 11),
+                     startDay = c(50, 50),
+                     endDay = c(50, 75))
+  result <- convertToSccs.data.frame(cases, eras, covariateStart = 1)
+  expect_equal(result$outcomes$rowId, c(0, 1))
+  expect_equal(result$outcomes$stratumId, c(1, 1))
+  expect_equal(result$outcomes$time, c(76, 25))
+  expect_equal(result$outcomes$y, c(1, 0))
+  expect_equal(result$covariates$rowId, c(1))
+  expect_equal(result$covariates$stratumId, c(1))
+  expect_equal(result$covariates$covariateId, c(11))
+})
+
+test_that("Two HOIs, keeping both", {
+  cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays = 100)
+  eras <- data.frame(eraType = c("hoi", "hoi", "hei"),
+                     observationPeriodId = c(1, 1, 1),
+                     conceptId = c(10, 10, 11),
+                     startDay = c(25, 50,30),
+                     endDay = c(25, 50, 60))
+  result <- convertToSccs.data.frame(cases, eras, firstOutcomeOnly = FALSE)
+  expect_equal(result$outcomes$rowId, c(0, 1))
+  expect_equal(result$outcomes$stratumId, c(1, 1))
+  expect_equal(result$outcomes$time, c(70, 31))
+  expect_equal(result$outcomes$y, c(1, 1))
+  expect_equal(result$covariates$rowId, c(1))
+  expect_equal(result$covariates$stratumId, c(1))
+  expect_equal(result$covariates$covariateId, c(11))
+})
+
+test_that("Two HOIs, keeping first", {
+  cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays = 100)
+  eras <- data.frame(eraType = c("hoi", "hoi", "hei"),
+                     observationPeriodId = c(1, 1, 1),
+                     conceptId = c(10, 10, 11),
+                     startDay = c(25, 50,30),
+                     endDay = c(25, 50, 60))
+  result <- convertToSccs.data.frame(cases, eras, firstOutcomeOnly = TRUE)
+  expect_equal(result$outcomes$rowId, c(0, 1))
+  expect_equal(result$outcomes$stratumId, c(1, 1))
+  expect_equal(result$outcomes$time, c(70, 31))
+  expect_equal(result$outcomes$y, c(1, 0))
+  expect_equal(result$covariates$rowId, c(1))
+  expect_equal(result$covariates$stratumId, c(1))
+  expect_equal(result$covariates$covariateId, c(11))
+})
+
 # f <- function() { writeLines(paste('expect_equal(result$outcomes$rowId, c(',
 # paste(result$outcomes$rowId, collapse = ','), '))', sep = ''))
 # writeLines(paste('expect_equal(result$outcomes$stratumId, c(', paste(result$outcomes$stratumId,

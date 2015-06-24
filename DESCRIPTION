@@ -8,10 +8,10 @@ Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
 Description: More about what it does (maybe more than one line)
 Depends:
     R (>= 3.1.0),
+    Cyclops (>= 1.0.0),
     DatabaseConnector (>= 1.3.0)
 Imports:
     RJDBC,
-    Cyclops (>= 1.0.0),
     SqlRender (>= 1.0.0),
     bit,
     ff,
