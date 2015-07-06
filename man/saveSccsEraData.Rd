@@ -8,7 +8,7 @@ saveSccsEraData(sccsEraData, folder)
 }
 \arguments{
 \item{sccsEraData}{An object of type \code{sccsEraData} as generated using
-\code{\link{createsccsEraData}}.}
+\code{\link{createSccsEraData}}.}
 
 \item{folder}{The name of the folder where the data will be written. The folder should not
                      yet exist.}
@@ -18,8 +18,5 @@ saveSccsEraData(sccsEraData, folder)
 }
 \details{
 The data will be written to a set of files in the specified folder.
-}
-\examples{
-# todo
 }
 

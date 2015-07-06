@@ -18,6 +18,8 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
 \arguments{
 \item{cdmDatabaseSchema}{}
 
+\item{oracleTempSchema}{}
+
 \item{outcomeDatabaseSchema}{}
 
 \item{outcomeTable}{}
@@ -44,11 +46,11 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
 
 \item{observationCovariates}{}
 
+\item{deleteCovariatesSmallCount}{}
+
 \item{connectionDetailsAn}{R object of type \code{ConnectionDetails} created using the
 function \code{createConnectionDetails} in the
 \code{DatabaseConnector} package.}
-
-\item{resultsDatabaseSchema}{}
 }
 \description{
 Todo: add description

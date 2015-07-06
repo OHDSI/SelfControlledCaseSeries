@@ -60,22 +60,29 @@ testcode <- function() {
                             visitCovariates = FALSE,
                             observationCovariates = FALSE,
                             deleteCovariatesSmallCount = 100)
-  saveSccsData(sccsData, "sccsData")
+  saveSccsData(sccsData, "sccsDataBackPain")
+
+  sccsData
+
+  summary(sccsData)
 
   # You can start here if you already saved sccsData:
-  sccsData <- loadSccsData("sccsData", readOnly = TRUE)
+  sccsData <- loadSccsData("sccsDataBackPain")
 
-  system.time(sccsEraData <- createSccsEraData(sccsData,
-                                               covariateStart = 0,
+  sccsEraData <- createSccsEraData(sccsData,  covariateStart = 0,
                                                covariatePersistencePeriod = 0,
                                                naivePeriod = 0,
                                                firstOutcomeOnly = FALSE,
-                                               excludeConceptIds = NULL))
-  # user system elapsed 36.05 2.15 49.48
-  saveSccsEraData(sccsEraData, "sccsEraData")
+                                               excludeConceptIds = NULL)
+
+  saveSccsEraData(sccsEraData, "sccsEraDataBackPain")
 
   # You can start here if you already saved sccsEraData:
-  sccsEraData <- loadSccsEraData("sccsEraData")
+  sccsEraData <- loadSccsEraData("sccsEraDataBackPain")
+
+  sccsEraData
+
+  summary(sccsEraData)
 
   fit <- fitSccsModel(sccsEraData)
 

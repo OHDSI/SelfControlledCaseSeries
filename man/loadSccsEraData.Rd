@@ -12,15 +12,12 @@ loadSccsEraData(folder, readOnly = FALSE)
 \item{file}{The name of the folder containing the data.}
 }
 \value{
-An object of class cohortEraData.
+An object of class sccsEraData
 }
 \description{
 \code{loadSccsEraData} loads an object of type sccsEraData from a folder in the file system.
 }
 \details{
 The data will be written to a set of files in the folder specified by the user.
-}
-\examples{
-# todo
 }
 

@@ -28,7 +28,7 @@
 #'                                         function \code{createConnectionDetails} in the
 #'                                         \code{DatabaseConnector} package.
 #' @param cdmDatabaseSchema
-#' @param resultsDatabaseSchema
+#' @param oracleTempSchema
 #' @param outcomeDatabaseSchema
 #' @param outcomeTable
 #' @param outcomeConceptIds
@@ -42,6 +42,7 @@
 #' @param procedureCovariates
 #' @param visitCovariates
 #' @param observationCovariates
+#' @param deleteCovariatesSmallCount
 #'
 #' @export
 getDbSccsData <- function(connectionDetails,
@@ -168,6 +169,7 @@ saveSccsData <- function(sccsData, folder) {
   open(sccsData$cases)
   open(sccsData$eras)
   open(sccsData$covariateRef)
+  invisible(TRUE)
 }
 
 #' Load the SCCS data from a folder
@@ -188,7 +190,7 @@ saveSccsData <- function(sccsData, folder) {
 #' # todo
 #'
 #' @export
-loadSccsData <- function(folder, readOnly = FALSE) {
+loadSccsData <- function(folder, readOnly = TRUE) {
   if (!file.exists(folder))
     stop(paste("Cannot find folder", folder))
   if (!file.info(folder)$isdir)
@@ -208,7 +210,6 @@ loadSccsData <- function(folder, readOnly = FALSE) {
   open(result$cases, readonly = readOnly)
   open(result$eras, readonly = readOnly)
   open(result$covariateRef, readonly = readOnly)
-
   class(result) <- "sccsData"
   rm(e)
   return(result)
@@ -220,4 +221,54 @@ print.sccsData <- function(x, ...) {
   writeLines("")
   writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureConceptIds, collapse = ",")))
   writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeConceptIds, collapse = ",")))
+}
+
+#' @export
+summary.sccsData <- function(object, ...) {
+  caseCount <- nrow(object$cases)
+
+  outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeConceptIds,
+                              eventCount = 0,
+                              caseCount = 0)
+  t <- object$eras$eraType == "hoi"
+  hois <- object$eras[ffbase::ffwhich(t, t == TRUE),]
+  for (i in 1:nrow(outcomeCounts)) {
+    outcomeCounts$eventCount[i] <- ffbase::sum.ff(hois$conceptId == object$metaData$outcomeConceptIds[i])
+    if (outcomeCounts$eventCount[i] == 0) {
+      outcomeCounts$caseCount[i] <- 0
+    } else {
+      t <- (hois$conceptId == object$metaData$outcomeConceptIds[i])
+      outcomeCounts$caseCount[i] <- length(ffbase::unique.ff(hois$observationPeriodId[ffbase::ffwhich(t, t == TRUE)]))
+    }
+  }
+  covariateValueCount <- ffbase::sum.ff(object$eras$eraType != "hoi")
+
+  result <- list(metaData = object$metaData,
+                 caseCount = caseCount,
+                 outcomeCounts = outcomeCounts,
+                 covariateCount = nrow(object$covariateRef),
+                 covariateValueCount = covariateValueCount)
+  class(result) <- "summary.sccsData"
+  return(result)
+}
+
+#' @export
+print.summary.sccsData <- function(x, ...) {
+  writeLines("sccsData object summary")
+  writeLines("")
+  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureConceptIds, collapse = ",")))
+  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeConceptIds, collapse = ",")))
+  writeLines("")
+  writeLines(paste("Cases:", paste(x$caseCount)))
+  writeLines("")
+  writeLines("Outcome counts:")
+  outcomeCounts <- x$outcomeCounts
+  rownames(outcomeCounts) <- outcomeCounts$outcomeConceptId
+  outcomeCounts$outcomeConceptId <- NULL
+  colnames(outcomeCounts) <- c("Event count", "Case count")
+  printCoefmat(outcomeCounts)
+  writeLines("")
+  writeLines("Covariates:")
+  writeLines(paste("Number of covariates:", x$covariateCount))
+  writeLines(paste("Number of non-zero covariate values:", x$covariateValueCount))
 }

@@ -4,7 +4,7 @@
 \alias{loadSccsData}
 \title{Load the SCCS data from a folder}
 \usage{
-loadSccsData(folder, readOnly = FALSE)
+loadSccsData(folder, readOnly = TRUE)
 }
 \arguments{
 \item{readOnly}{If true, the data is opened read only.}
