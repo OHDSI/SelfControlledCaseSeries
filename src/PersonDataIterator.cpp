@@ -3,7 +3,7 @@
  *
  * This file is part of SelfControlledCaseSeries
  *
- * Copyright 2014 Observational Health Data Sciences and Informatics
+ * Copyright 2015 Observational Health Data Sciences and Informatics
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,39 +23,63 @@
 
 #include <Rcpp.h>
 #include "PersonDataIterator.h"
+#include "FfdfIterator.h"
 
 using namespace Rcpp;
 
 namespace ohdsi {
-	namespace sccs {
+namespace sccs {
 
-		PersonDataIterator::PersonDataIterator(const List& _cases, const List& _eras) :
-				casesCursor(0), erasCursor(0) {
-			casesPersonId = _cases["personId"];
-			casesObservationPeriodId = _cases["observationPeriodId"];
-			casesObservationDays = _cases["observationDays"];
-			erasObservationPeriodId = _eras["observationPeriodId"];
-			erasStartDay = _eras["startDay"];
-			erasEndDay = _eras["endDay"];
-			erasConceptId = _eras["conceptId"];
-			erasEraType = _eras["eraType"];
-		}
 
-		bool PersonDataIterator::hasNext() {
-			return (casesCursor < casesObservationPeriodId.length());
-		}
+PersonDataIterator::PersonDataIterator(const List& _cases, const List& _eras) :
+ casesIterator(_cases, false), erasIterator(_eras, true), casesCursor(0), erasCursor(0) {
+  loadNextCases();
+  loadNextEras();
+}
 
-		PersonData PersonDataIterator::next() {
-			int64_t observationPeriodId = casesObservationPeriodId[casesCursor];
-			PersonData nextPerson(casesPersonId[casesCursor], observationPeriodId, casesObservationDays[casesCursor]);
-			while (erasObservationPeriodId[erasCursor] == observationPeriodId) {
-				Era era(erasStartDay[erasCursor], erasEndDay[erasCursor], erasConceptId[erasCursor], erasEraType[erasCursor] == "hoi");
-				nextPerson.eras->push_back(era);
-				erasCursor++;
-			}
-			casesCursor++;
-			return nextPerson;
-		}
-	}
+void PersonDataIterator::loadNextCases() {
+  List cases = casesIterator.next();
+  casesPersonId = cases["personId"];
+  casesObservationPeriodId = cases["observationPeriodId"];
+  casesObservationDays = cases["observationDays"];
+}
+
+void PersonDataIterator::loadNextEras() {
+  List eras = erasIterator.next();
+  erasObservationPeriodId = eras["observationPeriodId"];
+  erasStartDay = eras["startDay"];
+  erasEndDay = eras["endDay"];
+  erasConceptId = eras["conceptId"];
+  erasEraType = eras["eraType"];
+}
+
+bool PersonDataIterator::hasNext() {
+  return (casesCursor < casesObservationPeriodId.length());
+}
+
+PersonData PersonDataIterator::next() {
+  int64_t observationPeriodId = casesObservationPeriodId[casesCursor];
+  PersonData nextPerson(casesPersonId[casesCursor], observationPeriodId, casesObservationDays[casesCursor]);
+  casesCursor++;
+  if (casesCursor == casesObservationPeriodId.length() && casesIterator.hasNext()){
+    loadNextCases();
+    casesCursor = 0;
+  }
+  while (erasObservationPeriodId[erasCursor] == observationPeriodId) {
+    Era era(erasStartDay[erasCursor], erasEndDay[erasCursor], erasConceptId[erasCursor], erasEraType[erasCursor] == "hoi");
+    nextPerson.eras->push_back(era);
+    erasCursor++;
+    if (erasCursor == erasObservationPeriodId.length()){
+      if (erasIterator.hasNext()){
+        loadNextEras();
+        erasCursor = 0;
+      } else {
+        break;
+      }
+    }
+  }
+  return nextPerson;
+}
+}
 }
 #endif /* PERSONDATAITERATOR_CPP_ */

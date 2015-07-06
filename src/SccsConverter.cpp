@@ -3,7 +3,7 @@
  *
  * This file is part of SelfControlledCaseSeries
  *
- * Copyright 2014 Observational Health Data Sciences and Informatics
+ * Copyright 2015 Observational Health Data Sciences and Informatics
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,20 +139,14 @@ namespace ohdsi {
 				const int64_t& observationPeriodId, ResultStruct& resultStruct, const std::set<int64_t>& outcomeIds) {
 			// Add to outcome table:
 			for (int64_t outcomeId : outcomeIds) {
-				resultStruct.outcomeOutcomeId->push_back(outcomeId);
-				resultStruct.outcomeY->push_back(outcomeIdToCount[outcomeId]);
-				resultStruct.outcomeRowId->push_back(resultStruct.rowId);
-				resultStruct.outcomeTime->push_back(duration);
-				resultStruct.outcomeStratumId->push_back(observationPeriodId);
+			  resultStruct.addToOutcomes(outcomeId, outcomeIdToCount[outcomeId], duration, observationPeriodId);
 			}
 
 			// Add to covariates table:
 			for (int64_t conceptId : conceptIds) {
-				resultStruct.eraRowId->push_back(resultStruct.rowId);
-				resultStruct.eraStratumId->push_back(observationPeriodId);
-				resultStruct.eraCovariateId->push_back(conceptId);
+			  resultStruct.addToCovariates(observationPeriodId, conceptId);
 			}
-			resultStruct.rowId++;
+			resultStruct.incRowId();
 		}
 
 		void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId,

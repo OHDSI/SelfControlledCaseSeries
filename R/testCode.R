@@ -4,6 +4,16 @@ testcode <- function() {
   setwd("s:/temp")
   options(fftempdir = "s:/temp")
 
+  sccsData <- loadSccsData("s:/temp/sccsData")
+  system.time(sccsEraData <- createSccsEraData(sccsData, covariateStart = 1, covariatePersistencePeriod = 30))
+
+  #user  system elapsed
+  #296.59  114.57 1718.76
+
+  #user  system elapsed
+  #323.13   80.14 1153.08
+  saveSccsEraData(sccsEraData, "sccsEraData")
+
   # Settings for SQL Server (at JnJ)
   pw <- NULL
   dbms <- "sql server"

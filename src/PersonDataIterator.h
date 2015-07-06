@@ -3,7 +3,7 @@
  *
  * This file is part of SelfControlledCaseSeries
  *
- * Copyright 2014 Observational Health Data Sciences and Informatics
+ * Copyright 2015 Observational Health Data Sciences and Informatics
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #define PERSONDATAITERATOR_H_
 
 #include <Rcpp.h>
+#include "FfdfIterator.h"
 
 using namespace Rcpp;
 
@@ -64,6 +65,8 @@ namespace ohdsi {
 			bool hasNext();
 			PersonData next();
 		private:
+		  FfdfIterator casesIterator;
+		  FfdfIterator erasIterator;
 			NumericVector casesPersonId;
 			NumericVector casesObservationPeriodId;
 			NumericVector casesObservationDays;
@@ -74,6 +77,8 @@ namespace ohdsi {
 			CharacterVector erasEraType;
 			int casesCursor;
 			int erasCursor;
+			void loadNextCases();
+			void loadNextEras();
 		};
 	}
 }
