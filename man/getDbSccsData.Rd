@@ -13,7 +13,8 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
   exposureConceptIds = c(), excludeConceptIds = c(),
   drugEraCovariates = FALSE, conditionEraCovariates = FALSE,
   procedureCovariates = FALSE, visitCovariates = FALSE,
-  observationCovariates = FALSE, deleteCovariatesSmallCount = 100)
+  observationCovariates = FALSE, measurementCovariates = FALSE,
+  deleteCovariatesSmallCount = 100, cdmVersion = "4")
 }
 \arguments{
 \item{cdmDatabaseSchema}{}
@@ -45,6 +46,8 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
 \item{visitCovariates}{}
 
 \item{observationCovariates}{}
+
+\item{measurementCovariates}{}
 
 \item{deleteCovariatesSmallCount}{}
 

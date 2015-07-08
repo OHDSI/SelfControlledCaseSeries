@@ -1,6 +1,6 @@
 # @file DataLoadingSaving.R
 #
-# Copyright 2014 Observational Health Data Sciences and Informatics
+# Copyright 2015 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 #
@@ -42,6 +42,7 @@
 #' @param procedureCovariates
 #' @param visitCovariates
 #' @param observationCovariates
+#' @param measurementCovariates
 #' @param deleteCovariatesSmallCount
 #'
 #' @export
@@ -61,10 +62,18 @@ getDbSccsData <- function(connectionDetails,
                           procedureCovariates = FALSE,
                           visitCovariates = FALSE,
                           observationCovariates = FALSE,
-                          deleteCovariatesSmallCount = 100) {
+                          measurementCovariates = FALSE,
+                          deleteCovariatesSmallCount = 100,
+                          cdmVersion = "4") {
   if (exposureTable == "drug_era" && length(exposureConceptIds) == 0 && drugEraCovariates){
     drugEraCovariates = FALSE
     warning("Including all drugs in era table as exposures of interest, so using drug era covariates would duplicate all exposures. Setting drugEraCovariates to false.")
+  }
+
+  if (cdmVersion == "4"){
+    cohortDefinitionId <- "cohort_concept_id"
+  } else {
+    cohortDefinitionId <- "cohort_definition_id"
   }
 
   cdmDatabase <- strsplit(cdmDatabaseSchema, "\\.")[[1]][1]
@@ -86,7 +95,10 @@ getDbSccsData <- function(connectionDetails,
                                                    procedure_covariates = procedureCovariates,
                                                    visit_covariates = visitCovariates,
                                                    observation_covariates = observationCovariates,
-                                                   delete_covariates_small_count = deleteCovariatesSmallCount)
+                                                   measurement_covariates = measurementCovariates,
+                                                   delete_covariates_small_count = deleteCovariatesSmallCount,
+                                                   cdm_version = cdmVersion,
+                                                   cohort_definition_id = cohortDefinitionId)
   conn <- connect(connectionDetails)
 
   writeLines("Executing multiple queries. This could take a while")

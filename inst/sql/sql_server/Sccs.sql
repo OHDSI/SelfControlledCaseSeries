@@ -32,7 +32,10 @@ limitations under the License.
 {DEFAULT @procedure_covariates = FALSE}
 {DEFAULT @visit_covariates = FALSE}
 {DEFAULT @observation_covariates = FALSE}
+{DEFAULT @measurement_covariates = FALSE}
 {DEFAULT @delete_covariates_small_count = 100}
+{DEFAULT @cdm_version == '4'}
+{DEFAULT @cohort_definition_id = 'cohort_concept_id'} 
 
 USE @cdm_database;
 
@@ -82,7 +85,7 @@ WHERE EXISTS (
 		WHERE outcome.subject_id = observation_period.person_id
 			AND cohort_start_date <= observation_period_end_date
 			AND	cohort_start_date >= observation_period_start_date	
-			AND	cohort_concept_id IN (@outcome_concept_ids)
+			AND	@cohort_definition_id IN (@outcome_concept_ids)
 	}
 }
 	) 
@@ -129,7 +132,7 @@ WHERE
 INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
 SELECT 'hei',
 	cases.observation_period_id,
-	cohort_concept_id,
+	@cohort_definition_id,
 	DATEDIFF(dd, observation_period_start_date, cohort_start_date),
 	DATEDIFF(dd, observation_period_start_date, cohort_end_date)
 FROM @exposure_database_schema.@exposure_table exposure
@@ -191,7 +194,7 @@ WHERE
 INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
 SELECT 'hoi',
 	cases.observation_period_id,
-	cohort_concept_id,
+	@cohort_definition_id,
 	DATEDIFF(dd, observation_period_start_date, cohort_start_date),
 	DATEDIFF(dd, observation_period_start_date, cohort_end_date)
 FROM @outcome_database_schema.@outcome_table outcomes
@@ -200,7 +203,7 @@ ON outcomes.subject_id = cases.person_id
 	AND cohort_start_date >= observation_period_start_date
 	AND cohort_start_date <= observation_period_end_date
 WHERE
-	cohort_concept_id IN (@outcome_concept_ids)
+	@cohort_definition_id IN (@outcome_concept_ids)
 ;  	
 	}	
 }
@@ -271,7 +274,11 @@ WHERE
 INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
 SELECT 'vx',
 	cases.observation_period_id,
+{@cdm_version == '4'} ? {
 	place_of_service_concept_id,
+} : {
+    visit_concept_id,
+}
 	DATEDIFF(dd, observation_period_start_date, visit_start_date),
 	DATEDIFF(dd, observation_period_start_date, visit_end_date)
 FROM visit_occurrence
@@ -279,10 +286,14 @@ INNER JOIN #cases cases
 ON visit_occurrence.person_id = cases.person_id
 	AND visit_start_date <= observation_period_end_date
 	AND visit_end_date >= observation_period_start_date
-	{@exclude_concept_ids != ''} ? {
+{@exclude_concept_ids != ''} ? {
 WHERE
+{@cdm_version == '4'} ? {
+	place_of_service_concept_id NOT IN (@exclude_concept_ids)	
+} : {
 	visit_concept_id NOT IN (@exclude_concept_ids)	
-	}		
+}
+}		
 ;  		
 }
 
@@ -305,6 +316,27 @@ WHERE
 	}		
 ;  		
 }
+
+/* Create measurement eras */
+{@cdm_version != '4' & @measurement_covariates} ? {
+INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+SELECT 'rx',
+	cases.observation_period_id,
+	measurement_concept_id,
+	DATEDIFF(dd, observation_period_start_date, measurement_date),
+	DATEDIFF(dd, observation_period_start_date, measurement_date)
+FROM measurement
+INNER JOIN #cases cases
+ON measurement.person_id = cases.person_id
+	AND measurement_date <= observation_period_end_date
+	AND measurement_date >= observation_period_start_date
+	{@exclude_concept_ids != ''} ? {
+WHERE
+	measurement_concept_id NOT IN (@exclude_concept_ids)	
+	}		
+;  		
+}
+
 
 /**********************************************************************
 		Delete covariates with concept_id = 0 or small cell count
