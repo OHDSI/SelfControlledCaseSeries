@@ -48,7 +48,9 @@ createSccsEraData <- function(sccsData,
                               covariatePersistencePeriod = 0,
                               naivePeriod = 0,
                               firstOutcomeOnly = FALSE,
-                              excludeConceptIds = NULL) {
+                              excludeConceptIds = NULL,
+                              includeAge = FALSE,
+                              ageKnots = 5) {
   start <- Sys.time()
   if (is.null(excludeConceptIds)) {
     erasSubset <- sccsData$eras
@@ -56,6 +58,22 @@ createSccsEraData <- function(sccsData,
     t <- in.ff(sccsData$eras$conceptId, ff::as.ff(excludeConceptIds))
     erasSubset <- sccsData$eras[ffbase::ffwhich(t, t == FALSE), ]
   }
+  if (!includeAge){
+    ageOffset <- 0
+    ageDesignMatrix <- matrix()
+  } else {
+    if (length(ageKnots) == 1){
+      # Single number, should interpret as number of knots. Spread out knots evenly:
+      minAge <- min(sccsData$cases$ageInDays + naivePeriod)
+      maxAge <- max(sccsData$cases$ageInDays + sccsData$cases$observationDays)
+      ageKnots <- seq(minAge, maxAge, length.out = ageKnots)
+    } else {
+      ageKnotCount <- length(ageKnots)
+    }
+    ageOffset <- minAge
+    ageDesignMatrix <- splines::bs(minAge:maxAge, knots = ageKnots)[,1:(length(ageKnots)-1)]
+  }
+
   metaData <- sccsData$metaData
   metaData$call2 <- match.call()
   writeLines("Converting person data to SCCS eras. This might take a while.")
@@ -64,7 +82,10 @@ createSccsEraData <- function(sccsData,
                          covariateStart,
                          covariatePersistencePeriod,
                          naivePeriod,
-                         firstOutcomeOnly)
+                         firstOutcomeOnly,
+                         includeAge,
+                         ageOffset,
+                         ageDesignMatrix)
   result <- list(outcomes = data$outcomes,
                  covariates = data$covariates,
                  covariateRef = ff::clone(sccsData$covariateRef),

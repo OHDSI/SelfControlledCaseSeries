@@ -17,7 +17,8 @@ Imports:
     ff,
     ffbase (>= 0.12.1),
     Rcpp (>= 0.11.2),
-    OhdsiRTools
+    OhdsiRTools,
+    splines
 Suggests:
     testthat
 License: Apache License

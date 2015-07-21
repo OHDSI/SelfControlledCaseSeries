@@ -27,60 +27,70 @@
 using namespace Rcpp;
 
 namespace ohdsi {
-	namespace sccs {
-		struct Era {
-			Era(int _start, int _end, int _conceptId, bool _isOutcome) :
-					start(_start), end(_end), conceptId(_conceptId), isOutcome(_isOutcome) {
-			}
+namespace sccs {
+struct Era {
+  Era(int _start, int _end, int _conceptId, double _value, bool _isOutcome) :
+  start(_start), end(_end), conceptId(_conceptId), value(_value),isOutcome(_isOutcome) {
+  }
 
-			bool operator <(const Era& era) const {
-				return (start < era.start);
-			}
+  bool operator <(const Era& era) const {
+    return (start < era.start);
+  }
 
-			int start;
-			int end;
-			int64_t conceptId;
-			bool isOutcome;
-		};
+  int start;
+  int end;
+  int64_t conceptId;
+  double value;
+  bool isOutcome;
+};
 
-		struct PersonData {
-			PersonData(int64_t _personId, int64_t _observationPeriodId, int _daysOfObservation) :
-					personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation) {
-				eras = new std::vector<Era>;
-			}
+struct PersonData {
+  PersonData(int64_t _personId, int64_t _observationPeriodId, int _daysOfObservation, int _ageInDays, int _observationStartYear, int _observationStartMonth, int _observationStartDay) :
+  personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation), ageInDays(_ageInDays), observationStartYear(_observationStartYear), observationStartMonth(_observationStartMonth), observationStartDay(_observationStartDay) {
+    eras = new std::vector<Era>;
+  }
 
-			~PersonData() {
-				delete eras;
-			}
+  ~PersonData() {
+    delete eras;
+  }
 
-			std::vector<Era> *eras;
-			int64_t personId;
-			int64_t observationPeriodId;
-			int daysOfObservation;
-		};
+  std::vector<Era> *eras;
+  int64_t personId;
+  int64_t observationPeriodId;
+  int daysOfObservation;
+  int ageInDays;
+  int observationStartYear;
+  int observationStartMonth;
+  int observationStartDay;
+};
 
-		class PersonDataIterator {
-		public:
-			PersonDataIterator(const List& _cases, const List& _eras);
-			bool hasNext();
-			PersonData next();
-		private:
-		  FfdfIterator casesIterator;
-		  FfdfIterator erasIterator;
-			NumericVector casesPersonId;
-			NumericVector casesObservationPeriodId;
-			NumericVector casesObservationDays;
-			NumericVector erasObservationPeriodId;
-			NumericVector erasStartDay;
-			NumericVector erasEndDay;
-			NumericVector erasConceptId;
-			CharacterVector erasEraType;
-			int casesCursor;
-			int erasCursor;
-			void loadNextCases();
-			void loadNextEras();
-		};
-	}
+class PersonDataIterator {
+public:
+  PersonDataIterator(const List& _cases, const List& _eras);
+  bool hasNext();
+  PersonData next();
+private:
+  FfdfIterator casesIterator;
+  FfdfIterator erasIterator;
+  NumericVector casesPersonId;
+  NumericVector casesObservationPeriodId;
+  NumericVector casesObservationDays;
+  NumericVector casesAgeInDays;
+  NumericVector casesObservationStartYear;
+  NumericVector casesObservationStartMonth;
+  NumericVector casesObservationStartDay;
+  NumericVector erasObservationPeriodId;
+  NumericVector erasStartDay;
+  NumericVector erasEndDay;
+  NumericVector erasConceptId;
+  NumericVector erasValue;
+  CharacterVector erasEraType;
+  int casesCursor;
+  int erasCursor;
+  void loadNextCases();
+  void loadNextEras();
+};
+}
 }
 
 #endif /* PERSONDATAITERATOR_H_ */

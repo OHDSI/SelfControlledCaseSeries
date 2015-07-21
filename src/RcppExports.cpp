@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // convertToSccs
-List convertToSccs(const List& cases, const List& eras, int covariateStart, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly);
-RcppExport SEXP SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP erasSEXP, SEXP covariateStartSEXP, SEXP covariatePersistencePeriodSEXP, SEXP naivePeriodSEXP, SEXP firstOutcomeOnlySEXP) {
+List convertToSccs(const List& cases, const List& eras, int covariateStart, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix);
+RcppExport SEXP SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP erasSEXP, SEXP covariateStartSEXP, SEXP covariatePersistencePeriodSEXP, SEXP naivePeriodSEXP, SEXP firstOutcomeOnlySEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -17,7 +17,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type covariatePersistencePeriod(covariatePersistencePeriodSEXP);
     Rcpp::traits::input_parameter< int >::type naivePeriod(naivePeriodSEXP);
     Rcpp::traits::input_parameter< bool >::type firstOutcomeOnly(firstOutcomeOnlySEXP);
-    __result = Rcpp::wrap(convertToSccs(cases, eras, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly));
+    Rcpp::traits::input_parameter< bool >::type includeAge(includeAgeSEXP);
+    Rcpp::traits::input_parameter< int >::type ageOffset(ageOffsetSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type ageDesignMatrix(ageDesignMatrixSEXP);
+    __result = Rcpp::wrap(convertToSccs(cases, eras, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix));
     return __result;
 END_RCPP
 }

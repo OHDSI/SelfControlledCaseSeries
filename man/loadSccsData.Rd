@@ -7,9 +7,9 @@
 loadSccsData(folder, readOnly = TRUE)
 }
 \arguments{
-\item{readOnly}{If true, the data is opened read only.}
+\item{folder}{The name of the folder containing the data.}
 
-\item{file}{The name of the folder containing the data.}
+\item{readOnly}{If true, the data is opened read only.}
 }
 \value{
 An object of class cohortData.

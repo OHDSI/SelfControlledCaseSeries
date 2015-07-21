@@ -24,7 +24,7 @@
 #' @details
 #' Todo: add details
 #'
-#' @param connectionDetailsAn              R object of type \code{ConnectionDetails} created using the
+#' @param connectionDetails  An R object of type \code{ConnectionDetails} created using the
 #'                                         function \code{createConnectionDetails} in the
 #'                                         \code{DatabaseConnector} package.
 #' @param cdmDatabaseSchema
@@ -44,6 +44,7 @@
 #' @param observationCovariates
 #' @param measurementCovariates
 #' @param deleteCovariatesSmallCount
+#' @param cdmVersion
 #'
 #' @export
 getDbSccsData <- function(connectionDetails,
@@ -111,7 +112,7 @@ getDbSccsData <- function(connectionDetails,
                                                    dbms = connectionDetails$dbms)
   cases <- querySql.ffdf(conn, renderedSql)
 
-  renderedSql <- "SELECT era_type, observation_period_id, concept_id, start_day, end_day FROM #eras ORDER BY observation_period_id"
+  renderedSql <- "SELECT era_type, observation_period_id, concept_id, era_value AS value, start_day, end_day FROM #eras ORDER BY observation_period_id"
   renderedSql <- SqlRender::translateSql(renderedSql, "sql server", connectionDetails$dbms)$sql
   eras <- querySql.ffdf(conn, renderedSql)
 
@@ -151,7 +152,7 @@ getDbSccsData <- function(connectionDetails,
 #' @description
 #' \code{sccsData} saves an object of type sccsData to folder.
 #'
-#' @param cohortData   An object of type \code{sccsData} as generated using
+#' @param sccsData   An object of type \code{sccsData} as generated using
 #'                     \code{\link{getDbSccsData}}.
 #' @param folder       The name of the folder where the data will be written. The folder should not yet
 #'                     exist.
@@ -189,7 +190,7 @@ saveSccsData <- function(sccsData, folder) {
 #' @description
 #' \code{loadSccsData} loads an object of type sccsData from a folder in the file system.
 #'
-#' @param file       The name of the folder containing the data.
+#' @param folder       The name of the folder containing the data.
 #' @param readOnly   If true, the data is opened read only.
 #'
 #' @details

@@ -42,6 +42,10 @@ void PersonDataIterator::loadNextCases() {
   casesPersonId = cases["personId"];
   casesObservationPeriodId = cases["observationPeriodId"];
   casesObservationDays = cases["observationDays"];
+  casesAgeInDays = cases["ageInDays"];
+  casesObservationStartYear = cases["observationStartYear"];
+  casesObservationStartMonth = cases["observationStartMonth"];
+  casesObservationStartDay = cases["observationStartDay"];
 }
 
 void PersonDataIterator::loadNextEras() {
@@ -50,6 +54,7 @@ void PersonDataIterator::loadNextEras() {
   erasStartDay = eras["startDay"];
   erasEndDay = eras["endDay"];
   erasConceptId = eras["conceptId"];
+  erasValue = eras["value"];
   erasEraType = eras["eraType"];
 }
 
@@ -59,14 +64,15 @@ bool PersonDataIterator::hasNext() {
 
 PersonData PersonDataIterator::next() {
   int64_t observationPeriodId = casesObservationPeriodId[casesCursor];
-  PersonData nextPerson(casesPersonId[casesCursor], observationPeriodId, casesObservationDays[casesCursor]);
+  PersonData nextPerson(casesPersonId[casesCursor], observationPeriodId, casesObservationDays[casesCursor], casesAgeInDays[casesCursor],
+                        casesObservationStartYear[casesCursor], casesObservationStartMonth[casesCursor], casesObservationStartDay[casesCursor]);
   casesCursor++;
   if (casesCursor == casesObservationPeriodId.length() && casesIterator.hasNext()){
     loadNextCases();
     casesCursor = 0;
   }
   while (erasObservationPeriodId[erasCursor] == observationPeriodId) {
-    Era era(erasStartDay[erasCursor], erasEndDay[erasCursor], erasConceptId[erasCursor], erasEraType[erasCursor] == "hoi");
+    Era era(erasStartDay[erasCursor], erasEndDay[erasCursor], erasConceptId[erasCursor], erasValue[erasCursor], erasEraType[erasCursor] == "hoi");
     nextPerson.eras->push_back(era);
     erasCursor++;
     if (erasCursor == erasObservationPeriodId.length()){

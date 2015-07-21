@@ -31,12 +31,6 @@ fitSccsModel <- function(sccsEraData,
   outcomesSubset <- sccsEraData$outcomes
   covariatesSubset <- sccsEraData$covariates
 
-  # Add a covariateValue row to covariates with value 1:
-  covariatesSubset$covariateValue <- ff::ff(vmode = "double", length = nrow(covariatesSubset))
-  for (i in bit::chunk(covariatesSubset$covariateValue)) {
-    covariatesSubset$covariateValue[i] <- 1
-  }
-
   # If we're fitting a model specifically for one exposure, exclude that one from regularization:
   if (!is.null(exposureConceptId))
     prior$exclude <- exposureConceptId

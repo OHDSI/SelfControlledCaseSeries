@@ -28,9 +28,20 @@ testcode <- function() {
   dbms <- "postgresql"
   server <- "localhost/ohdsi"
   user <- "postgres"
-  cdmDatabaseSchema <- "cdm4_sim"
+  cdmDatabaseSchema <- "cdm_truven_ccae_6k"
   resultsDatabaseSchema <- "scratch"
   port <- NULL
+  cdmVersion <- "4"
+
+  # Settings for PostgreSQL
+  dbms <- "postgresql"
+  server <- "localhost/ohdsi"
+  user <- "postgres"
+  cdmDatabaseSchema <- "vocabulary5"
+  resultsDatabaseSchema <- "scratch"
+  port <- NULL
+  cdmVersion <- "5"
+
 
   # Settings for OHDSI test environment
   dbms <- "postgresql"
@@ -55,11 +66,13 @@ testcode <- function() {
                             exposureConceptIds = c(),
                             excludeConceptIds = c(),
                             drugEraCovariates = FALSE,
-                            conditionEraCovariates = FALSE,
-                            procedureCovariates = FALSE,
-                            visitCovariates = FALSE,
-                            observationCovariates = FALSE,
-                            deleteCovariatesSmallCount = 100)
+                            conditionEraCovariates = TRUE,
+                            procedureCovariates = TRUE,
+                            visitCovariates = TRUE,
+                            observationCovariates = TRUE,
+                            measurementCovariates = TRUE,
+                            deleteCovariatesSmallCount = 100,
+                            cdmVersion = cdmVersion)
   saveSccsData(sccsData, "sccsDataBackPain")
 
   sccsData

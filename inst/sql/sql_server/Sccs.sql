@@ -98,16 +98,18 @@ CREATE TABLE #eras (
 	era_type VARCHAR(3),
 	observation_period_id INT,
 	concept_id INT,
+	era_value FLOAT,
 	start_day INT,
 	end_day INT
 );
 
 /* Create exposure eras */
 {@exposure_table == 'drug_era'} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'hei',
 	cases.observation_period_id,
 	drug_concept_id,
+	1, 
 	DATEDIFF(dd, observation_period_start_date, drug_era_start_date),
 	DATEDIFF(dd, observation_period_start_date, drug_era_end_date)
 FROM @exposure_database_schema.drug_era
@@ -129,10 +131,11 @@ WHERE
 	}	
 ;  	
 } : { /* exposure table has same structure as cohort table */
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'hei',
 	cases.observation_period_id,
 	@cohort_definition_id,
+	1,
 	DATEDIFF(dd, observation_period_start_date, cohort_start_date),
 	DATEDIFF(dd, observation_period_start_date, cohort_end_date)
 FROM @exposure_database_schema.@exposure_table exposure
@@ -157,10 +160,11 @@ WHERE
 
 /* Create outcome eras */
 {@outcome_table == 'condition_occurrence'} ? {	
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'hoi',
 	cases.observation_period_id,
 	condition_concept_id,
+	1,
 	DATEDIFF(dd, observation_period_start_date, condition_start_date),
 	DATEDIFF(dd, observation_period_start_date, condition_end_date)
 FROM @outcome_database_schema.condition_occurrence 
@@ -176,10 +180,11 @@ WHERE
 ;  	
 } : { 
 	{@outcome_table == 'condition_era'} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'hoi',
 	cases.observation_period_id,
 	condition_concept_id,
+	1,
 	DATEDIFF(dd, observation_period_start_date, condition_era_start_date),
 	DATEDIFF(dd, observation_period_start_date, condition_era_end_date)
 FROM @outcome_database_schema.condition_era
@@ -191,10 +196,11 @@ WHERE
 	condition_concept_id IN (@outcome_concept_ids)
 ;  
 	} : { /* outcome table has same structure as cohort table */
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'hoi',
 	cases.observation_period_id,
 	@cohort_definition_id,
+	1,
 	DATEDIFF(dd, observation_period_start_date, cohort_start_date),
 	DATEDIFF(dd, observation_period_start_date, cohort_end_date)
 FROM @outcome_database_schema.@outcome_table outcomes
@@ -210,10 +216,11 @@ WHERE
 	
 /* Create drug eras */
 {@drug_era_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'rx',
 	cases.observation_period_id,
 	drug_concept_id,
+	1,
 	DATEDIFF(dd, observation_period_start_date, drug_era_start_date),
 	DATEDIFF(dd, observation_period_start_date, drug_era_end_date)
 FROM drug_era
@@ -230,10 +237,11 @@ WHERE
 
 /* Create condition eras */
 {@condition_era_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'dx',
 	cases.observation_period_id,
 	condition_concept_id,
+	1,
 	DATEDIFF(dd, observation_period_start_date, condition_era_start_date),
 	DATEDIFF(dd, observation_period_start_date, condition_era_end_date)
 FROM condition_era
@@ -245,16 +253,16 @@ ON condition_era.person_id = cases.person_id
 WHERE
 	condition_concept_id NOT IN (@exclude_concept_ids)	
 	}	
-	
 ;  		
 }
 
 /* Create procedure eras */
 {@procedure_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'px',
 	cases.observation_period_id,
 	procedure_concept_id,
+	1,
 	DATEDIFF(dd, observation_period_start_date, procedure_date),
 	DATEDIFF(dd, observation_period_start_date, procedure_date)
 FROM procedure_occurrence
@@ -271,7 +279,7 @@ WHERE
 
 /* Create visit eras */
 {@visit_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'vx',
 	cases.observation_period_id,
 {@cdm_version == '4'} ? {
@@ -279,6 +287,7 @@ SELECT 'vx',
 } : {
     visit_concept_id,
 }
+    1,
 	DATEDIFF(dd, observation_period_start_date, visit_start_date),
 	DATEDIFF(dd, observation_period_start_date, visit_end_date)
 FROM visit_occurrence
@@ -299,10 +308,11 @@ WHERE
 
 /* Create observation eras */
 {@observation_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'rx',
 	cases.observation_period_id,
 	observation_concept_id,
+	1,
 	DATEDIFF(dd, observation_period_start_date, observation_date),
 	DATEDIFF(dd, observation_period_start_date, observation_date)
 FROM observation
@@ -319,10 +329,11 @@ WHERE
 
 /* Create measurement eras */
 {@cdm_version != '4' & @measurement_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, start_day, end_day)
+INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'rx',
 	cases.observation_period_id,
 	measurement_concept_id,
+	1,
 	DATEDIFF(dd, observation_period_start_date, measurement_date),
 	DATEDIFF(dd, observation_period_start_date, measurement_date)
 FROM measurement

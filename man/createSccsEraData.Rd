@@ -6,7 +6,8 @@
 \usage{
 createSccsEraData(sccsData, covariateStart = 0,
   covariatePersistencePeriod = 0, naivePeriod = 0,
-  firstOutcomeOnly = FALSE, excludeConceptIds = NULL)
+  firstOutcomeOnly = FALSE, excludeConceptIds = NULL, includeAge = FALSE,
+  ageKnots = 5)
 }
 \arguments{
 \item{sccsData}{An object of type sccsData as created using the \code{\link{getDbSccsData}} function.}

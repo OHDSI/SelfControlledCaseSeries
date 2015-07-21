@@ -34,12 +34,6 @@ struct ConcomitantEra {
   start(0), end(0) {
   }
 
-  ConcomitantEra(Era era) {
-    start = era.start;
-    end = era.end;
-    conceptIds.push_back(era.conceptId);
-  }
-
   bool operator <(const ConcomitantEra &era) const {
     return (start < era.start);
   }
@@ -49,28 +43,33 @@ struct ConcomitantEra {
   }
 
   void print() {
-    std::cout << "Start: " << start << ", end: " << end << ", size: " << conceptIds.size() << std::endl;
-    for (unsigned int i = 0; i < conceptIds.size(); i++) {
-      std::cout << "CID: " << conceptIds[i] << std::endl;
+    std::cout << "Start: " << start << ", end: " << end << ", size: " << conceptIdToValue.size() << std::endl;
+    for (unsigned int i = 0; i < conceptIdToValue.size(); i++) {
+      std::cout << "CID: " << conceptIdToValue[i] << std::endl;
     }
   }
 
   int start;
   int end;
-  std::vector<int64_t> conceptIds;
+  std::map<int64_t, double> conceptIdToValue;
 };
 
 struct ConcomitantEraCovariateComparator {
   bool operator()(const ConcomitantEra& era1, const ConcomitantEra& era2) const {
-    if (era1.conceptIds.size() == era2.conceptIds.size()) {
-      for (unsigned int i = 0; i < era1.conceptIds.size(); i++) {
-        if (era1.conceptIds[i] != era2.conceptIds[i]) {
-          return (era1.conceptIds[i] < era2.conceptIds[i]);
+    if (era1.conceptIdToValue.size() != era2.conceptIdToValue.size() || era1.conceptIdToValue.size() == 0) {
+      return  era1.conceptIdToValue.size() < era2.conceptIdToValue.size();
+    } else {
+      std::map<int64_t, double>::const_iterator iter1 = era1.conceptIdToValue.begin();
+      std::map<int64_t, double>::const_iterator iter2 = era2.conceptIdToValue.begin();
+      while (iter1 != era1.conceptIdToValue.end()) {
+        if (iter1->first != iter2->first){
+          return (iter1->first < iter2->first);
         }
+        iter1++;
+        iter2++;
       }
       return false;
-    } else
-      return (era1.conceptIds.size() < era2.conceptIds.size());
+    }
   }
 };
 
@@ -86,6 +85,7 @@ struct ResultStruct {
     eraRowId = new std::vector<int64_t>;
     eraStratumId = new std::vector<int64_t>;
     eraCovariateId = new std::vector<int64_t>;
+    eraCovariateValue = new std::vector<double>;
   }
 
   ~ResultStruct() {
@@ -97,6 +97,7 @@ struct ResultStruct {
     delete eraRowId;
     delete eraStratumId;
     delete eraCovariateId;
+    delete eraCovariateValue;
   }
 
   void addToOutcomes(const int64_t &outcomeId, const int64_t &y, const int64_t &time, const int64_t &stratumId){
@@ -110,10 +111,11 @@ struct ResultStruct {
     }
   }
 
-  void addToCovariates(const int64_t &stratumId, const int64_t &conceptId){
+  void addToCovariates(const int64_t &stratumId, const int64_t &conceptId, const double &value){
     eraRowId->push_back(rowId);
     eraStratumId->push_back(stratumId);
     eraCovariateId->push_back(conceptId);
+    eraCovariateValue ->push_back(value);
     if (eraRowId->size() > 1000000){
       flushErasToFfdf();
     }
@@ -144,11 +146,12 @@ private:
   void flushErasToFfdf(){
     if (eraRowId->size() > 0){
       List covariates = List::create(Named("rowId") = wrap(*eraRowId), Named("stratumId") = wrap(*eraStratumId), Named("covariateId") =
-        wrap(*eraCovariateId));
+        wrap(*eraCovariateId), Named("covariateValue") = wrap(*eraCovariateValue));
       erasBuiler.append(covariates);
       eraRowId->clear();
       eraStratumId->clear();
       eraCovariateId->clear();
+      eraCovariateValue->clear();
     }
   }
 
@@ -162,16 +165,18 @@ private:
   std::vector<int64_t>* eraRowId;
   std::vector<int64_t>* eraStratumId;
   std::vector<int64_t>* eraCovariateId;
+  std::vector<double>* eraCovariateValue;
   int64_t rowId;
 };
 
 struct SccsConverter {
 public:
   static List convertToSccs(const List& cases, const List& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                            bool firstOutcomeOnly);
+                            bool firstOutcomeOnly, const bool includeAge, const int offset, const NumericMatrix& ageDesignMatrix);
+  static const int ageIdOffset = 100;
 private:
   static void processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                            bool firstOutcomeOnly);
+                            const bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix);
   static void clipEras(std::vector<Era>& eras, const int startDay, const int endDay);
   static void removeAllButFirstOutcome(std::vector<Era>& eras);
   static std::vector<Era> mergeOverlapping(std::vector<Era>& eras);
@@ -182,8 +187,11 @@ private:
   static void addNonExposure(std::vector<ConcomitantEra>& concomittantEras, const int _start, const int end);
   static void addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId,
                           ResultStruct& resultStruct);
-  static void addToResult(const std::vector<int64_t>& conceptIds, std::map<int64_t, int>& outcomeIdToCount, const int duration,
+  static void addToResult(const ConcomitantEra& conceptIds, std::map<int64_t, int>& outcomeIdToCount, const int duration,
                           const int64_t& observationPeriodId, ResultStruct& resultStruct, const std::set<int64_t>& outcomeIds);
+  static int dateDifference(struct tm &date1, struct tm &date2);
+  static struct tm addMonth(const struct tm &date);
+  static void addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData, const int ageOffset, const NumericMatrix& ageDesignMatrix);
 };
 }
 }
