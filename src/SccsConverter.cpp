@@ -165,12 +165,12 @@ void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, st
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
     if (previousPattern == NULL || era->conceptIdToValue.size() != previousPattern->conceptIdToValue.size() ||
         !std::equal(era->conceptIdToValue.begin(), era->conceptIdToValue.end(), previousPattern->conceptIdToValue.begin())) {
-      if (previousPattern != NULL) {
-        addToResult(*previousPattern, outcomeIdToCount, duration, observationPeriodId, resultStruct, outcomeIds);
-      }
-      previousPattern = &*era;
-      outcomeIdToCount.clear();
-      duration = 0;
+        if (previousPattern != NULL) {
+          addToResult(*previousPattern, outcomeIdToCount, duration, observationPeriodId, resultStruct, outcomeIds);
+        }
+        previousPattern = &*era;
+        outcomeIdToCount.clear();
+        duration = 0;
     }
     duration += era->end - era->start + 1;
     for (Era outcome : outcomes) {
@@ -207,7 +207,7 @@ int SccsConverter::dateDifference(struct tm &date1, struct tm &date2) {
   return difference;
 }
 
-void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData, const int ageOffset, const NumericMatrix& ageDesignMatrix){
+void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix){
   struct tm startDate = { 0, 0, 12 } ;
   startDate.tm_year = personData.observationStartYear - 1900;
   startDate.tm_mon = personData.observationStartMonth - 1;
@@ -218,26 +218,35 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, con
   struct tm startOfNextMonth = addMonth(startOfMonth);
   int eraStartDay = startDay;
   int nextEraStartDay = std::min(startDay + dateDifference(startOfNextMonth, startDate), endDay + 1);
+  int month = startOfMonth.tm_mon;
   while (eraStartDay <= endDay) {
-     int ageIndex = personData.ageInDays + eraStartDay - ageOffset;
-     if (ageIndex < 0) {
-       ageIndex = 0;
-     } else if (ageIndex >= ageDesignMatrix.nrow()) {
-       ageIndex = ageDesignMatrix.nrow() - 1;
-     }
-     for (int i = 0; i < ageDesignMatrix.ncol(); i++){
-       Era era(eraStartDay, nextEraStartDay - 1, ageIdOffset + i, ageDesignMatrix(ageIndex, i), false);
-       eras.push_back(era);
-       //std::cout << eraStartDay << ", " << nextEraStartDay << "\n";
-     }
-     eraStartDay = nextEraStartDay;
-     startOfNextMonth = addMonth(startOfNextMonth);
-     nextEraStartDay = std::min(startDay + dateDifference(startOfNextMonth, startDate), endDay + 1);
+    if (includeAge){
+      int ageIndex = personData.ageInDays + eraStartDay - ageOffset;
+      if (ageIndex < 0) {
+        ageIndex = 0;
+      } else if (ageIndex >= ageDesignMatrix.nrow()) {
+        ageIndex = ageDesignMatrix.nrow() - 1;
+      }
+      for (int i = 0; i < ageDesignMatrix.ncol(); i++){
+        Era era(eraStartDay, nextEraStartDay - 1, ageIdOffset + i, ageDesignMatrix(ageIndex, i), false);
+        eras.push_back(era);
+      }
+    }
+    if (includeSeason){
+      for (int i = 0; i < seasonDesignMatrix.ncol(); i++){
+        Era era(eraStartDay, nextEraStartDay - 1, seasonIdOffset + i, seasonDesignMatrix(month, i), false);
+        eras.push_back(era);
+      }
+    }
+    eraStartDay = nextEraStartDay;
+    month = startOfNextMonth.tm_mon;
+    startOfNextMonth = addMonth(startOfNextMonth);
+    nextEraStartDay = std::min(startDay + dateDifference(startOfNextMonth, startDate), endDay + 1);
   }
 }
 
 void SccsConverter::processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                                  const bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix) {
+                                  const bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix) {
   std::vector<Era> *eras = personData.eras;
   std::sort(eras->begin(), eras->end()); // Sort by start date
   std::vector<Era> outcomes = extractOutcomes(*eras);
@@ -261,20 +270,20 @@ void SccsConverter::processPerson(PersonData& personData, ResultStruct& resultSt
     return;
   clipEras(*eras, startDay, endDay);
   std::vector<Era> mergedEras = mergeOverlapping(*eras);
-  if (includeAge){
-    addMonthEras(mergedEras, startDay, endDay, personData, ageOffset, ageDesignMatrix);
+  if (includeAge || includeSeason){
+    addMonthEras(mergedEras, startDay, endDay, personData, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix);
   }
   std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(mergedEras, startDay, endDay);
   addToResult(concomitantEras, outcomes, personData.observationPeriodId, resultStruct);
 }
 
 List SccsConverter::convertToSccs(const List& cases, const List& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                                  bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix) {
+                                  bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix) {
   PersonDataIterator iterator(cases, eras);
   ResultStruct resultStruct;
   while (iterator.hasNext()) {
     PersonData personData = iterator.next();
-    processPerson(personData, resultStruct, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix);
+    processPerson(personData, resultStruct, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix);
   }
 
   return resultStruct.convertToRList();

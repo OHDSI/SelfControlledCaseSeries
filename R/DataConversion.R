@@ -50,7 +50,9 @@ createSccsEraData <- function(sccsData,
                               firstOutcomeOnly = FALSE,
                               excludeConceptIds = NULL,
                               includeAge = FALSE,
-                              ageKnots = 5) {
+                              ageKnots = 5,
+                              includeSeason = FALSE,
+                              seasonKnots = 5) {
   start <- Sys.time()
   if (is.null(excludeConceptIds)) {
     erasSubset <- sccsData$eras
@@ -67,15 +69,32 @@ createSccsEraData <- function(sccsData,
       minAge <- min(sccsData$cases$ageInDays + naivePeriod)
       maxAge <- max(sccsData$cases$ageInDays + sccsData$cases$observationDays)
       ageKnots <- seq(minAge, maxAge, length.out = ageKnots)
-    } else {
-      ageKnotCount <- length(ageKnots)
     }
     ageOffset <- minAge
-    ageDesignMatrix <- splines::bs(minAge:maxAge, knots = ageKnots)[,1:(length(ageKnots)-1)]
+    ageDesignMatrix <- splines::bs(minAge:maxAge, knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
   }
-
+  if (!includeSeason){
+    seasonDesignMatrix <- matrix()
+  } else {
+    if (length(seasonKnots) == 1){
+      # Single number, should interpret as number of knots. Spread out knots evenly:
+      seasonKnots <- seq(1,12, length.out = seasonKnots)
+    }
+    seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
+  }
   metaData <- sccsData$metaData
   metaData$call2 <- match.call()
+  covariateRef <- ff::clone(sccsData$covariateRef)
+  if (includeAge) {
+    metaData$ageKnots <- ageKnots
+    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) -1), covariateName = "Age spline component")
+    covariateRef <- ffbase::ffdfappend(covariateRef, splineCovariateRef)
+  }
+  if (includeSeason){
+    metaData$seasonKnots <- seasonKnots
+    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) -1), covariateName = "Seasonality spline component")
+    covariateRef <- ffbase::ffdfappend(covariateRef, splineCovariateRef)
+  }
   writeLines("Converting person data to SCCS eras. This might take a while.")
   data <- .convertToSccs(sccsData$cases,
                          erasSubset,
@@ -85,10 +104,12 @@ createSccsEraData <- function(sccsData,
                          firstOutcomeOnly,
                          includeAge,
                          ageOffset,
-                         ageDesignMatrix)
+                         ageDesignMatrix,
+                         includeSeason,
+                         seasonDesignMatrix)
   result <- list(outcomes = data$outcomes,
                  covariates = data$covariates,
-                 covariateRef = ff::clone(sccsData$covariateRef),
+                 covariateRef = covariateRef,
                  metaData = metaData)
   open(result$outcomes)
   open(result$covariates)
@@ -236,4 +257,26 @@ print.summary.sccsEraData <- function(x, ...) {
   writeLines(paste("Number of non-zero covariate values:", x$covariateValueCount))
 }
 
-
+#' @export
+cyclicSplineDesign <- function (x, knots, ord = 4) {
+  nk <- length(knots)
+  if (ord < 2)
+    stop("order too low")
+  if (nk < ord)
+    stop("too few knots")
+  knots <- sort(knots)
+  k1 <- knots[1]
+  if (min(x) < k1 || max(x) > knots[nk])
+    stop("x out of range")
+  xc <- knots[nk - ord + 1]
+  knots <- c(k1 - (knots[nk] - knots[(nk - ord + 1):(nk - 1)]),
+             knots)
+  ind <- x > xc
+  X1 <- splines::splineDesign(knots, x, ord, outer.ok = TRUE)
+  x[ind] <- x[ind] - max(knots) + k1
+  if (sum(ind)) {
+    X2 <- splines::splineDesign(knots, x[ind], ord, outer.ok = TRUE)
+    X1[ind, ] <- X1[ind, ] + X2
+  }
+  X1
+}

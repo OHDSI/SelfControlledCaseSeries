@@ -172,11 +172,12 @@ private:
 struct SccsConverter {
 public:
   static List convertToSccs(const List& cases, const List& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                            bool firstOutcomeOnly, const bool includeAge, const int offset, const NumericMatrix& ageDesignMatrix);
+                            bool firstOutcomeOnly, const bool includeAge, const int offset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix);
   static const int ageIdOffset = 100;
+  static const int seasonIdOffset = 200;
 private:
   static void processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                            const bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix);
+                            const bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix);
   static void clipEras(std::vector<Era>& eras, const int startDay, const int endDay);
   static void removeAllButFirstOutcome(std::vector<Era>& eras);
   static std::vector<Era> mergeOverlapping(std::vector<Era>& eras);
@@ -191,7 +192,7 @@ private:
                           const int64_t& observationPeriodId, ResultStruct& resultStruct, const std::set<int64_t>& outcomeIds);
   static int dateDifference(struct tm &date1, struct tm &date2);
   static struct tm addMonth(const struct tm &date);
-  static void addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData, const int ageOffset, const NumericMatrix& ageDesignMatrix);
+  static void addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix);
 };
 }
 }

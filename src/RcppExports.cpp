@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // convertToSccs
-List convertToSccs(const List& cases, const List& eras, int covariateStart, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix);
-RcppExport SEXP SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP erasSEXP, SEXP covariateStartSEXP, SEXP covariatePersistencePeriodSEXP, SEXP naivePeriodSEXP, SEXP firstOutcomeOnlySEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP) {
+List convertToSccs(const List& cases, const List& eras, int covariateStart, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, bool includeSeason, NumericMatrix seasonDesignMatrix);
+RcppExport SEXP SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP erasSEXP, SEXP covariateStartSEXP, SEXP covariatePersistencePeriodSEXP, SEXP naivePeriodSEXP, SEXP firstOutcomeOnlySEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP, SEXP includeSeasonSEXP, SEXP seasonDesignMatrixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -20,7 +20,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type includeAge(includeAgeSEXP);
     Rcpp::traits::input_parameter< int >::type ageOffset(ageOffsetSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type ageDesignMatrix(ageDesignMatrixSEXP);
-    __result = Rcpp::wrap(convertToSccs(cases, eras, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix));
+    Rcpp::traits::input_parameter< bool >::type includeSeason(includeSeasonSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type seasonDesignMatrix(seasonDesignMatrixSEXP);
+    __result = Rcpp::wrap(convertToSccs(cases, eras, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix));
+    return __result;
+END_RCPP
+}
+// simulateSccsOutcomes
+List simulateSccsOutcomes(const List& cases, const List& eras, const std::vector<double>& baselineRates, const List& eraRrs, bool includeAge, int ageOffset, std::vector<double> ageRrs, bool includeSeasonality, std::vector<double> seasonRrs);
+RcppExport SEXP SelfControlledCaseSeries_simulateSccsOutcomes(SEXP casesSEXP, SEXP erasSEXP, SEXP baselineRatesSEXP, SEXP eraRrsSEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageRrsSEXP, SEXP includeSeasonalitySEXP, SEXP seasonRrsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const List& >::type cases(casesSEXP);
+    Rcpp::traits::input_parameter< const List& >::type eras(erasSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type baselineRates(baselineRatesSEXP);
+    Rcpp::traits::input_parameter< const List& >::type eraRrs(eraRrsSEXP);
+    Rcpp::traits::input_parameter< bool >::type includeAge(includeAgeSEXP);
+    Rcpp::traits::input_parameter< int >::type ageOffset(ageOffsetSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type ageRrs(ageRrsSEXP);
+    Rcpp::traits::input_parameter< bool >::type includeSeasonality(includeSeasonalitySEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type seasonRrs(seasonRrsSEXP);
+    __result = Rcpp::wrap(simulateSccsOutcomes(cases, eras, baselineRates, eraRrs, includeAge, ageOffset, ageRrs, includeSeasonality, seasonRrs));
     return __result;
 END_RCPP
 }

@@ -23,22 +23,39 @@
 
 #include <Rcpp.h>
 #include "SccsConverter.h"
+#include "SccsSimulator.h"
 
 using namespace Rcpp;
 
 // [[Rcpp::export(".convertToSccs")]]
-List convertToSccs(const List& cases, const List& eras, int covariateStart, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix) {
+List convertToSccs(const List& cases, const List& eras, int covariateStart, int covariatePersistencePeriod, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, bool includeSeason, NumericMatrix seasonDesignMatrix) {
 
 	using namespace ohdsi::sccs;
 
 	try {
-		return (SccsConverter::convertToSccs(cases, eras, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix));
+		return (SccsConverter::convertToSccs(cases, eras, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix));
 	} catch (std::exception &e) {
 		forward_exception_to_r(e);
 	} catch (...) {
 		::Rf_error("c++ exception (unknown reason)");
 	}
 	return List::create();
+}
+
+// [[Rcpp::export(".simulateSccsOutcomes")]]
+List simulateSccsOutcomes(const List& cases, const List& eras,  const std::vector<double>& baselineRates, const List& eraRrs, bool includeAge, int ageOffset, std::vector<double> ageRrs, bool includeSeasonality, std::vector<double> seasonRrs) {
+
+  using namespace ohdsi::sccs;
+
+  try {
+    SccsSimulator sccsSimulator(cases, eras, baselineRates, eraRrs, includeAge, ageOffset, ageRrs, includeSeasonality, seasonRrs);
+    return (sccsSimulator.simulateOutcomes());
+  } catch (std::exception &e) {
+    forward_exception_to_r(e);
+  } catch (...) {
+    ::Rf_error("c++ exception (unknown reason)");
+  }
+  return List::create();
 }
 
 #endif // __RcppWrapper_cpp__
