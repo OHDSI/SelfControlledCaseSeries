@@ -145,14 +145,14 @@ ON exposure.subject_id = cases.person_id
 	AND cohort_end_date >= observation_period_start_date
 	{@exposure_concept_ids != ''} ? {
 WHERE
-	drug_concept_id IN (@exposure_concept_ids)
+	@cohort_definition_id IN (@exposure_concept_ids)
 		{@exclude_concept_ids != ''} ? {
-	AND drug_concept_id NOT IN (@exclude_concept_ids)	
+	AND @cohort_definition_id NOT IN (@exclude_concept_ids)	
 		}
 	} : {
 		{@exclude_concept_ids != ''} ? {
 WHERE
-	drug_concept_id NOT IN (@exclude_concept_ids)	
+	@cohort_definition_id NOT IN (@exclude_concept_ids)	
 		}
 	}	
 ;  		
@@ -368,8 +368,8 @@ WHERE concept_id IN (
 /**********************************************************************
 					Create covariate ref table
 ***********************************************************************/
-SELECT concept.concept_id,
-	concept_name
+SELECT concept.concept_id AS covariate_id,
+	concept_name AS covariate_name
 INTO #covariate_ref
 FROM concept
 INNER JOIN (

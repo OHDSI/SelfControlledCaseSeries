@@ -93,9 +93,9 @@ getModel <- function(sccsModel, sccsEraData) {
   cfs <- merge(ff::as.ffdf(cfs),
                sccsEraData$covariateRef,
                by.x = "id",
-               by.y = "conceptId",
+               by.y = "covariateId",
                all.x = TRUE)
-  cfs <- ff::as.ram(cfs[, c("coefficient", "id", "conceptName")])
+  cfs <- ff::as.ram(cfs[, c("coefficient", "id", "covariateName")])
   cfs$conceptName <- as.character(cfs$conceptName)
   cfs <- cfs[order(-abs(cfs$coefficient)), ]
   cfs

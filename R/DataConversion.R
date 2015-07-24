@@ -65,13 +65,14 @@ createSccsEraData <- function(sccsData,
     ageDesignMatrix <- matrix()
   } else {
     if (length(ageKnots) == 1){
-      # Single number, should interpret as number of knots. Spread out knots evenly:
-      minAge <- min(sccsData$cases$ageInDays + naivePeriod)
-      maxAge <- max(sccsData$cases$ageInDays + sccsData$cases$observationDays)
-      ageKnots <- seq(minAge, maxAge, length.out = ageKnots)
+      # Single number, should interpret as number of knots. Spread out knots to data quantiles:
+      outcomes <- ffbase::subset.ffdf(sccsData$era, eraType == "hoi" &  startDay >= naivePeriod)
+      outcomes <- merge(outcomes, sccsData$cases)
+      outcomeAges <- outcomes$startDay + outcomes$ageInDays
+      ageKnots <- ffbase::quantile.ff(outcomeAges, seq(0,1, length.out = ageKnots))
     }
-    ageOffset <- minAge
-    ageDesignMatrix <- splines::bs(minAge:maxAge, knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
+    ageOffset <- ageKnots[1]
+    ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)], knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
   }
   if (!includeSeason){
     seasonDesignMatrix <- matrix()

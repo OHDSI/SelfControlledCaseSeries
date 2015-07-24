@@ -116,7 +116,7 @@ getDbSccsData <- function(connectionDetails,
   renderedSql <- SqlRender::translateSql(renderedSql, "sql server", connectionDetails$dbms)$sql
   eras <- querySql.ffdf(conn, renderedSql)
 
-  renderedSql <- "SELECT concept_id, concept_name  FROM #covariate_ref"
+  renderedSql <- "SELECT covariate_id, covariate_name FROM #covariate_ref"
   renderedSql <- SqlRender::translateSql(renderedSql, "sql server", connectionDetails$dbms)$sql
   covariateRef <- querySql.ffdf(conn, renderedSql)
 

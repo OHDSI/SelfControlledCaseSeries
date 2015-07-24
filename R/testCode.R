@@ -25,16 +25,17 @@ testcode <- function() {
                                    naivePeriod = 180,
                                    firstOutcomeOnly = FALSE,
                                    includeAge = TRUE,
+                                   ageKnots = 5,
                                    includeSeason = TRUE)
 
-  model <- fitSccsModel(sccsEraData, exposureConceptId = 1, prior = createPrior("none"))
-  #model <- fitSccsModel(sccsEraData, prior = createPrior("laplace", 0.001, exclude = 1))
+  #model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("none"))
+  model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("laplace", 1, exclude = 1))
   exp(model$treatmentEstimate)
   sccsData$metaData$sccsSimulationSettings$relativeRisks[1]
 
 
-  plotAgeEffect(model)
-  plotSeasonality(model)
+  #plotAgeEffect(model)
+ # plotSeasonality(model)
 
 
   allCoefs <- coef(model)
@@ -121,6 +122,7 @@ testcode <- function() {
 
 
   library(SelfControlledCaseSeries)
+  library(SqlRender)
   setwd("s:/temp")
   options(fftempdir = "s:/temp")
 
@@ -180,12 +182,31 @@ testcode <- function() {
                                                                   schema = cdmDatabaseSchema,
                                                                   port = port)
 
-  # low back pain
+  sql <- loadRenderTranslateSql("coxibVsNonselVsGiBleed.sql",
+                                packageName = "CohortMethod",
+                                dbms = dbms,
+                                cdmDatabaseSchema = cdmDatabaseSchema,
+                                resultsDatabaseSchema = resultsDatabaseSchema)
+
+  connection <- DatabaseConnector::connect(connectionDetails)
+  DatabaseConnector::executeSql(connection, sql)
+
+
+  sql <- "SELECT cohort_concept_id, COUNT(*) AS count FROM @resultsDatabaseSchema.coxibVsNonselVsGiBleed GROUP BY cohort_concept_id"
+  sql <- SqlRender::renderSql(sql, resultsDatabaseSchema = resultsDatabaseSchema)$sql
+  sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+  DatabaseConnector::querySql(connection, sql)
+  dbDisconnect(connection)
+
   sccsData <- getDbSccsData(connectionDetails,
                             cdmDatabaseSchema = cdmDatabaseSchema,
-                            outcomeConceptIds = 194133,
-                            exposureConceptIds = c(755695),
+                            exposureConceptIds = c(1,2),
+                            outcomeConceptIds = 3,
                             excludeConceptIds = c(),
+                            exposureDatabaseSchema = resultsDatabaseSchema,
+                            exposureTable = "coxibVsNonselVsGiBleed",
+                            outcomeDatabaseSchema = resultsDatabaseSchema,
+                            outcomeTable = "coxibVsNonselVsGiBleed",
                             drugEraCovariates = FALSE,
                             conditionEraCovariates = FALSE,
                             procedureCovariates = FALSE,
@@ -194,32 +215,37 @@ testcode <- function() {
                             measurementCovariates = FALSE,
                             deleteCovariatesSmallCount = 100,
                             cdmVersion = cdmVersion)
-  saveSccsData(sccsData, "sccsDataBackPain")
+  saveSccsData(sccsData, "s:/temp/sccsDataGiBleed")
 
   sccsData
 
   summary(sccsData)
 
   # You can start here if you already saved sccsData:
-  sccsData <- loadSccsData("sccsDataBackPain")
+  sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
+  names(sccsData$covariateRef) <- c("covariateId", "covariateName")
 
-  sccsEraData <- createSccsEraData(sccsData,  covariateStart = 0,
-                                               covariatePersistencePeriod = 0,
-                                               naivePeriod = 0,
-                                               firstOutcomeOnly = FALSE,
-                                               excludeConceptIds = NULL)
+  sccsEraData <- createSccsEraData(sccsData,
+                                   covariateStart = 0,
+                                   covariatePersistencePeriod = 0,
+                                   naivePeriod = 180,
+                                   firstOutcomeOnly = FALSE,
+                                   excludeConceptIds = NULL,
+                                   includeAge = TRUE,
+                                   includeSeason = TRUE)
 
-  saveSccsEraData(sccsEraData, "sccsEraDataBackPain")
+  saveSccsEraData(sccsEraData, "sccsEraDataGiBleed")
 
   # You can start here if you already saved sccsEraData:
-  sccsEraData <- loadSccsEraData("sccsEraDataBackPain")
+  sccsEraData <- loadSccsEraData("sccsEraDataGiBleed")
 
   sccsEraData
 
   summary(sccsEraData)
 
-  fit <- fitSccsModel(sccsEraData)
+  model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("laplace", 1), control = createControl(noiseLevel = "noisy"))
 
+  saveRDS(model, "s:/temp/sccsModel.rds")
   model <- getModel(fit, sccsEraData)
   head(model)
 }
