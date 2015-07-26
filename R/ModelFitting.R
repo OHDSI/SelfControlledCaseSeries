@@ -106,6 +106,7 @@ plotAgeEffect <- function(sccsModel, rrLim = c(0.1,10), fileName = NULL){
   allCoefs <- sccsModel$coefficients
   coefId <- as.numeric(names(allCoefs))
   splineCoefs <- allCoefs[coefId >= 100 & coefId < 130]
+  splineCoefs <- c(0, splineCoefs)
   ageKnots <- sccsModel$ageKnots
   age <- seq(min(ageKnots), max(ageKnots), length.out = 100)
   ageDesignMatrix <- splines::bs(age, knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
@@ -146,6 +147,7 @@ plotSeasonality <- function(sccsModel, rrLim = c(0.1,10), fileName = NULL){
   allCoefs <- sccsModel$coefficients
   coefId <- as.numeric(names(allCoefs))
   splineCoefs <- allCoefs[coefId >= 200 & coefId < 220]
+  splineCoefs <- c(0, splineCoefs)
   seasonKnots <- sccsModel$seasonKnots
   season <- seq(min(seasonKnots), max(seasonKnots), length.out = 100)
   seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)

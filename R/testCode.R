@@ -30,7 +30,7 @@ testcode <- function() {
 
   #model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("none"))
   model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("laplace", 1, exclude = 1))
-  exp(model$treatmentEstimate)
+  exp(model$coefficients)
   sccsData$metaData$sccsSimulationSettings$relativeRisks[1]
 
 
@@ -41,6 +41,7 @@ testcode <- function() {
   allCoefs <- coef(model)
   coefId <- as.numeric(names(allCoefs))
   splineCoefs <- allCoefs[coefId >= 100 & coefId < 120]
+  splineCoefs <- c(0, splineCoefs)
   ageKnots <- sccsEraData$metaData$ageKnots
   age <- seq(min(ageKnots), max(ageKnots), length.out = 100)
   ageDesignMatrix <- splines::bs(age, knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
@@ -81,6 +82,7 @@ testcode <- function() {
   allCoefs <- coef(model)
   coefId <- as.numeric(names(allCoefs))
   splineCoefs <- allCoefs[coefId >= 200 & coefId < 220]
+  splineCoefs <- c(0, splineCoefs)
   seasonKnots <- sccsEraData$metaData$seasonKnots
   season <- seq(min(seasonKnots), max(seasonKnots), length.out = 100)
   seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
@@ -126,23 +128,13 @@ testcode <- function() {
   setwd("s:/temp")
   options(fftempdir = "s:/temp")
 
-  sccsData <- loadSccsData("s:/temp/sccsData")
-  system.time(sccsEraData <- createSccsEraData(sccsData, covariateStart = 1, covariatePersistencePeriod = 30))
-
-  #user  system elapsed
-  #296.59  114.57 1718.76
-
-  #user  system elapsed
-  #323.13   80.14 1153.08
-  saveSccsEraData(sccsEraData, "sccsEraData")
-
   # Settings for SQL Server (at JnJ)
   pw <- NULL
   dbms <- "sql server"
   user <- NULL
   server <- "RNDUSRDHIT07"
   #cdmDatabaseSchema <- "cdm4_sim.dbo"
-  cdmDatabaseSchema <- 'CDM_Truven_MDCR.dbo'
+  cdmDatabaseSchema <- 'CDM_Truven_MDCd.dbo'
   resultsDatabaseSchema <- "scratch.dbo"
   port <- NULL
   cdmVersion <- "4"
@@ -222,10 +214,9 @@ testcode <- function() {
   summary(sccsData)
 
   # You can start here if you already saved sccsData:
-  sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
-  names(sccsData$covariateRef) <- c("covariateId", "covariateName")
+  #sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
 
-  sccsEraData <- createSccsEraData(sccsData,
+    sccsEraData <- createSccsEraData(sccsData,
                                    covariateStart = 0,
                                    covariatePersistencePeriod = 0,
                                    naivePeriod = 180,
@@ -237,15 +228,19 @@ testcode <- function() {
   saveSccsEraData(sccsEraData, "sccsEraDataGiBleed")
 
   # You can start here if you already saved sccsEraData:
-  sccsEraData <- loadSccsEraData("sccsEraDataGiBleed")
-
+  #sccsEraData <- loadSccsEraData("sccsEraDataGiBleed")
+  #sum(sccsEraData$covariates$covariateId ==1)
+  #sum(sccsEraData$covariates$covariateId ==2)
   sccsEraData
 
   summary(sccsEraData)
 
-  model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("laplace", 1), control = createControl(noiseLevel = "noisy"))
+  model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("none"))
 
   saveRDS(model, "s:/temp/sccsModel.rds")
+  plotSeasonality(model)
+  plotAgeEffect(model, rrLim =c(0.01, 100))
+
   model <- getModel(fit, sccsEraData)
   head(model)
 }

@@ -69,10 +69,13 @@ createSccsEraData <- function(sccsData,
       outcomes <- ffbase::subset.ffdf(sccsData$era, eraType == "hoi" &  startDay >= naivePeriod)
       outcomes <- merge(outcomes, sccsData$cases)
       outcomeAges <- outcomes$startDay + outcomes$ageInDays
-      ageKnots <- ffbase::quantile.ff(outcomeAges, seq(0,1, length.out = ageKnots))
+      #ageKnots <- ffbase::quantile.ff(outcomeAges, seq(0,1, length.out = ageKnots))
+      ageKnots <- ffbase::quantile.ff(outcomeAges, seq(0.01,0.99, length.out = ageKnots))
     }
     ageOffset <- ageKnots[1]
     ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)], knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
+    # Fixing first beta to zero, so dropping first column of design matrix:
+    ageDesignMatrix <- ageDesignMatrix[,2:ncol(ageDesignMatrix)]
   }
   if (!includeSeason){
     seasonDesignMatrix <- matrix()
@@ -82,6 +85,8 @@ createSccsEraData <- function(sccsData,
       seasonKnots <- seq(1,12, length.out = seasonKnots)
     }
     seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
+    # Fixing first beta to zero, so dropping first column of design matrix:
+    seasonDesignMatrix <- seasonDesignMatrix[,2:ncol(seasonDesignMatrix)]
   }
   metaData <- sccsData$metaData
   metaData$call2 <- match.call()
