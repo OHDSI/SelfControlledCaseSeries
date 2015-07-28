@@ -21,7 +21,7 @@ limitations under the License.
 SELECT
 	observation_period_id,
 	person_id,
-	DATEDIFF(dd, observation_period_start_date, observation_period_end_date) AS observation_days,
+	DATEDIFF(dd, observation_period_start_date, observation_period_end_date) + 1 AS observation_days,
 	YEAR(observation_period_start_date) AS observation_start_year,
 	MONTH(observation_period_start_date) AS observation_start_month,
 	DAY(observation_period_start_date) AS observation_start_day,

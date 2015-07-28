@@ -53,7 +53,7 @@ baselineRates(_baselineRates), includeAge(_includeAge), ageOffset(_ageOffset), a
 void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, const int eraEndIndex){
   double baselineRate = baselineRates[caseIndex];
   int ageAtStart = casesAgeInDays[caseIndex];
-  struct tm startDate = { 0, 0, 12 } ;
+  struct tm startDate = {0, 0, 12};
   startDate.tm_year = casesObservationStartYear[caseIndex] - 1900;
   startDate.tm_mon = casesObservationStartMonth[caseIndex] - 1;
   startDate.tm_mday = casesObservationStartDay[caseIndex];
@@ -64,7 +64,7 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
   std::time_t time2 = std::mktime(&startOfYear);
   int startDayOfYear = std::difftime(time1, time2) / (60 * 60 * 24);
 
-  for (int day = 0; day <= casesObservationDays[caseIndex]; day++){
+  for (int day = 0; day < casesObservationDays[caseIndex]; day++){
     // Start with baseline rate:
     double dailyRate = baselineRate;
 

@@ -29,6 +29,35 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace sccs {
 
+struct CovariateSettings {
+  CovariateSettings(const List& _covariateSettings) : stratifyById(as<bool>(_covariateSettings["stratifyByID"])), mergeErasBeforeSplit(as<bool>(_covariateSettings["mergeErasBeforeSplit"])),
+  firstOccurrenceOnly(as<bool>(_covariateSettings["firstOccurrenceOnly"])), covariateIds(as<NumericVector>(_covariateSettings["covariateIds"])),
+  outputIds(as<NumericMatrix>(_covariateSettings["outputIds"])), start(as<int>(_covariateSettings["start"])), end(as<int>(_covariateSettings["end"])),
+  addExposedDaysToEnd(_covariateSettings["addExposedDaysToEnd"]){
+    if (_covariateSettings.containsElementNamed("splitPoints")){
+      NumericVector splitPointsList = _covariateSettings["splitPoints"];
+      for (int i = 0; i < splitPointsList.size(); i++){
+        splitPoints.push_back(splitPointsList[i]);
+      }
+    }
+    for (int i = 0; i < covariateIds.size(); i++){
+      covariateIdSet.insert(covariateIds[i]);
+    }
+
+  }
+  bool stratifyById;
+  bool mergeErasBeforeSplit;
+  bool firstOccurrenceOnly;
+  NumericVector covariateIds;
+  std::set<int64_t> covariateIdSet;
+  NumericMatrix outputIds;
+  int start;
+  int end;
+  bool addExposedDaysToEnd;
+  std::vector<int> splitPoints;
+
+};
+
 struct ConcomitantEra {
   ConcomitantEra() :
   start(0), end(0) {
@@ -80,7 +109,6 @@ struct ResultStruct {
     outcomeRowId = new std::vector<int64_t>;
     outcomeStratumId = new std::vector<int64_t>;
     outcomeY = new std::vector<int64_t>;
-    outcomeOutcomeId = new std::vector<int64_t>;
     outcomeTime = new std::vector<int64_t>;
     eraRowId = new std::vector<int64_t>;
     eraStratumId = new std::vector<int64_t>;
@@ -92,7 +120,6 @@ struct ResultStruct {
     delete outcomeRowId;
     delete outcomeStratumId;
     delete outcomeY;
-    delete outcomeOutcomeId;
     delete outcomeTime;
     delete eraRowId;
     delete eraStratumId;
@@ -100,8 +127,7 @@ struct ResultStruct {
     delete eraCovariateValue;
   }
 
-  void addToOutcomes(const int64_t &outcomeId, const int64_t &y, const int64_t &time, const int64_t &stratumId){
-    outcomeOutcomeId->push_back(outcomeId);
+  void addToOutcomes(const int64_t &y, const int64_t &time, const int64_t &stratumId){
     outcomeY->push_back(y);
     outcomeRowId->push_back(rowId);
     outcomeTime->push_back(time);
@@ -134,12 +160,11 @@ private:
   void flushOutcomesToFfdf(){
     if (outcomeRowId->size() > 0){
       List outcomes = List::create(Named("rowId") = wrap(*outcomeRowId), Named("stratumId") = wrap(*outcomeStratumId),
-                                   Named("time") = wrap(*outcomeTime), Named("y") = wrap(*outcomeY), Named("outcomeId") = wrap(*outcomeOutcomeId));
+                                   Named("time") = wrap(*outcomeTime), Named("y") = wrap(*outcomeY));
       outcomesBuiler.append(outcomes);
       outcomeRowId->clear();
       outcomeStratumId->clear();
       outcomeY->clear();
-      outcomeOutcomeId->clear();
       outcomeTime->clear();
     }
   }
@@ -160,7 +185,6 @@ private:
   std::vector<int64_t>* outcomeRowId;
   std::vector<int64_t>* outcomeStratumId;
   std::vector<int64_t>* outcomeY;
-  std::vector<int64_t>* outcomeOutcomeId;
   std::vector<int64_t>* outcomeTime;
   std::vector<int64_t>* eraRowId;
   std::vector<int64_t>* eraStratumId;
@@ -169,30 +193,40 @@ private:
   int64_t rowId;
 };
 
-struct SccsConverter {
+class SccsConverter {
 public:
-  static List convertToSccs(const List& cases, const List& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                            bool firstOutcomeOnly, const bool includeAge, const int offset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix);
+  SccsConverter(const List& _cases, const List& _eras, const int64_t _outcomeId, const int _naivePeriod,
+                bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const bool _includeSeason,
+                const NumericMatrix& _seasonDesignMatrix, const List& covariateSettingsList);
+  List convertToSccs();
   static const int ageIdOffset = 100;
   static const int seasonIdOffset = 200;
 private:
-  static void processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                            const bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix);
-  static void clipEras(std::vector<Era>& eras, const int startDay, const int endDay);
-  static void removeAllButFirstOutcome(std::vector<Era>& eras);
-  static std::vector<Era> mergeOverlapping(std::vector<Era>& eras);
-  static std::vector<Era> extractOutcomes(std::vector<Era>& eras);
-  static std::vector<ConcomitantEra> buildConcomitantEras(std::vector<Era>& eras, const int startDay, const int endDay);
-  static void compareToRunningEras(ConcomitantEra& newEra, std::vector<ConcomitantEra>& runningEras);
-  static void addFinishedEras(const int day, std::vector<ConcomitantEra>& runningEras, std::vector<ConcomitantEra>& concomittantEras);
-  static void addNonExposure(std::vector<ConcomitantEra>& concomittantEras, const int _start, const int end);
-  static void addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId,
-                          ResultStruct& resultStruct);
-  static void addToResult(const ConcomitantEra& conceptIds, std::map<int64_t, int>& outcomeIdToCount, const int duration,
-                          const int64_t& observationPeriodId, ResultStruct& resultStruct, const std::set<int64_t>& outcomeIds);
-  static int dateDifference(struct tm &date1, struct tm &date2);
-  static struct tm addMonth(const struct tm &date);
-  static void addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix);
+  void processPerson(PersonData& personData);
+  void clipEras(std::vector<Era>& eras, const int startDay, const int endDay);
+  void removeAllButFirstOutcome(std::vector<Era>& eras);
+  std::vector<Era> mergeOverlapping(std::vector<Era>& eras);
+  std::vector<Era> extractOutcomes(std::vector<Era>& eras);
+  std::vector<ConcomitantEra> buildConcomitantEras(std::vector<Era>& eras, const int startDay, const int endDay);
+  void addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId);
+  void addToResult(const ConcomitantEra& era, int outcomeCount, const int duration, const int64_t& observationPeriodId);
+  int dateDifference(struct tm &date1, struct tm &date2);
+  struct tm addMonth(const struct tm &date);
+  void addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData);
+  void addCovariateEra(std::vector<Era>& outputEras, int start, int end, int64_t covariateId, int covariateIdRow, const CovariateSettings& covariateSettings);
+  void addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings);
+
+  PersonDataIterator personDataIterator;
+  ResultStruct resultStruct;
+  int64_t outcomeId;
+  int naivePeriod;
+  bool firstOutcomeOnly;
+  bool includeAge;
+  int ageOffset;
+  NumericMatrix ageDesignMatrix;
+  bool includeSeason;
+  NumericMatrix seasonDesignMatrix;
+  std::vector<CovariateSettings> covariateSettingsVector;
 };
 }
 }

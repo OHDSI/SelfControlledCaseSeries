@@ -16,22 +16,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# outcomeConceptId <- 194133
 #' @export
 fitSccsModel <- function(sccsEraData,
-                         exposureConceptId,
-                         outcomeConceptId = NULL,
+                         exposureId,
                          prior = createPrior("laplace", useCrossValidation = TRUE),
                          control = createControl(cvType = "auto",
                                                  startingVariance = 0.1,
                                                  noiseLevel = "quiet")) {
-  # TODO filter covariates based on selected outcomes: t <- in.ff(sccsEraData$outcomes$outcomeId,
-  # ff::as.ff(outcomeConceptId)) outcomesSubset <- sccsEraData$outcomes[ffbase::ffwhich(t,t == TRUE),]
-  outcomesSubset <- sccsEraData$outcomes
-  covariatesSubset <- sccsEraData$covariates
-  prior$exclude <- exposureConceptId
-  cyclopsData <- Cyclops::convertToCyclopsData(outcomesSubset,
-                                               covariatesSubset,
+  if (is.null(sccsEraData$metaData$exposureRef)){
+    covariateIds <- exposureId
+  } else {
+    covariateIds <- sccsEraData$metaData$exposureRef$covariateId[sccsEraData$metaData$exposureRef$conceptId %in% exposureId]
+  }
+  prior$exclude <- covariateIds
+  cyclopsData <- Cyclops::convertToCyclopsData(sccsEraData$outcomes,
+                                               sccsEraData$covariates,
                                                modelType = "cpr",
                                                addIntercept = FALSE,
                                                checkRowIds = FALSE,
@@ -54,24 +53,24 @@ fitSccsModel <- function(sccsEraData,
   } else {
     status <- "OK"
     coefficients <- coef(fit)
-    logRr <- coef(fit)[names(coef(fit)) == exposureConceptId]
+    logRr <- coef(fit)[names(coef(fit)) == covariateIds]
     ci <- tryCatch({
-      confint(fit, parm = exposureConceptId, includePenalty = TRUE)
+      confint(fit, parm = covariateIds, includePenalty = TRUE)
     }, error = function(e) {
       missing(e)  # suppresses R CMD check note
       c(0, -Inf, Inf)
     })
     if (identical(ci, c(0, -Inf, Inf)))
       status <- "ERROR COMPUTING CI"
-    seLogRr <- (ci[3] - logRr)/qnorm(0.975)
+    seLogRr <- (ci[,3] - logRr)/qnorm(0.975)
     treatmentEstimate <- data.frame(logRr = logRr,
-                                    logLb95 = ci[2],
-                                    logUb95 = ci[3],
+                                    logLb95 = ci[,2],
+                                    logUb95 = ci[,3],
                                     seLogRr = seLogRr)
     priorVariance <- fit$variance[1]
   }
-  result <- list(exposureConceptId = exposureConceptId,
-                 outcomeConceptId = outcomeConceptId,
+  result <- list(exposureId = exposureId,
+                 outcomeId = sccsEraData$metaData$outcomeId,
                  coefficients = coefficients,
                  priorVariance = priorVariance,
                  treatmentEstimate = treatmentEstimate,

@@ -31,15 +31,26 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace sccs {
 
+SccsConverter::SccsConverter(const List& _cases, const List& _eras, const int64_t _outcomeId, const int _naivePeriod,
+                             bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const bool _includeSeason,
+                             const NumericMatrix& _seasonDesignMatrix, const List& covariateSettingsList) : personDataIterator(_cases, _eras),
+                             outcomeId(_outcomeId), naivePeriod(_naivePeriod),
+                             firstOutcomeOnly(_firstOutcomeOnly), includeAge(_includeAge), ageOffset(_ageOffset), includeSeason(_includeSeason){
+                               ageDesignMatrix = _ageDesignMatrix;
+                               seasonDesignMatrix = _seasonDesignMatrix;
+                               for (int i = 0; i < covariateSettingsList.size(); i++) {
+                                 CovariateSettings covariateSettings(as<List>(covariateSettingsList[i]));
+                                 covariateSettingsVector.push_back(covariateSettings);
+                               }
+                             }
+
 std::vector<Era> SccsConverter::extractOutcomes(std::vector<Era>& eras) {
   std::vector<Era> outcomes;
   std::vector<Era>::iterator iterator;
-  for (iterator = eras.begin(); iterator != eras.end();) {
-    if ((*iterator).isOutcome) {
+  for (iterator = eras.begin(); iterator != eras.end();++iterator) {
+    if (iterator->isOutcome && iterator->conceptId == outcomeId) {
+      iterator->end =  iterator->start;
       outcomes.push_back((*iterator));
-      iterator = eras.erase(iterator);
-    } else {
-      ++iterator;
     }
   }
   return outcomes;
@@ -51,14 +62,14 @@ std::vector<Era> SccsConverter::mergeOverlapping(std::vector<Era>& eras) {
   for (std::vector<Era>::iterator era = eras.begin(); era != eras.end(); ++era) {
     std::map<int64_t, Era>::iterator found = conceptIdToRunningEra.find(era->conceptId);
     if (found != conceptIdToRunningEra.end()) {
-      Era* runningEra = &(*found).second;
-      if (runningEra->end >= era->start) {
+      Era* runningEra = &(found->second);
+      if (runningEra->end >= era->start - 1) {
         if (runningEra->end < era->end) {
           runningEra->end = era->end;
         }
       } else {
         mergedEras.push_back(*runningEra);
-        (*found).second = *era;
+        found->second = *era;
       }
     } else {
       conceptIdToRunningEra.insert(std::pair<int, Era>(era->conceptId, *era));
@@ -74,10 +85,11 @@ void SccsConverter::removeAllButFirstOutcome(std::vector<Era>& outcomes) {
   std::set<int64_t> seenOutcomes;
   std::vector<Era>::iterator iterator;
   for (iterator = outcomes.begin(); iterator != outcomes.end();) {
-    if (!seenOutcomes.insert((*iterator).conceptId).second)
+    if (!seenOutcomes.insert((*iterator).conceptId).second) {
       iterator = outcomes.erase(iterator);
-    else
+    } else {
       ++iterator;
+    }
   }
 }
 
@@ -135,12 +147,10 @@ std::vector<ConcomitantEra> SccsConverter::buildConcomitantEras(std::vector<Era>
   return concomitantEras;
 }
 
-void SccsConverter::addToResult(const ConcomitantEra& era, std::map<int64_t, int>& outcomeIdToCount, const int duration,
-                                const int64_t& observationPeriodId, ResultStruct& resultStruct, const std::set<int64_t>& outcomeIds) {
+void SccsConverter::addToResult(const ConcomitantEra& era, int outcomeCount, const int duration, const int64_t& observationPeriodId) {
   // Add to outcome table:
-  for (int64_t outcomeId : outcomeIds) {
-    resultStruct.addToOutcomes(outcomeId, outcomeIdToCount[outcomeId], duration, observationPeriodId);
-  }
+    resultStruct.addToOutcomes(outcomeCount, duration, observationPeriodId);
+
 
   // Add to covariates table:
   for(std::map<int64_t, double>::const_iterator iterator = era.conceptIdToValue.begin(); iterator != era.conceptIdToValue.end(); iterator++) {
@@ -149,43 +159,33 @@ void SccsConverter::addToResult(const ConcomitantEra& era, std::map<int64_t, int
   resultStruct.incRowId();
 }
 
-void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId,
-                                ResultStruct& resultStruct) {
-  std::set<int64_t> outcomeIds;
-  for (Era era : outcomes)
-    outcomeIds.insert(era.conceptId);
-
+void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId) {
   // Sort eras based on covariate pattern:
   std::sort(concomitantEras.begin(), concomitantEras.end(), ConcomitantEraCovariateComparator());
 
   // Iterate over eras, merging those with similar patterns:
   ConcomitantEra* previousPattern = NULL;
   int duration = 0;
-  std::map<int64_t, int> outcomeIdToCount;
+  int outcomeCount = 0;
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
     if (previousPattern == NULL || era->conceptIdToValue.size() != previousPattern->conceptIdToValue.size() ||
         !std::equal(era->conceptIdToValue.begin(), era->conceptIdToValue.end(), previousPattern->conceptIdToValue.begin())) {
         if (previousPattern != NULL) {
-          addToResult(*previousPattern, outcomeIdToCount, duration, observationPeriodId, resultStruct, outcomeIds);
+          addToResult(*previousPattern, outcomeCount, duration, observationPeriodId);
         }
         previousPattern = &*era;
-        outcomeIdToCount.clear();
+        outcomeCount = 0;
         duration = 0;
     }
     duration += era->end - era->start + 1;
     for (Era outcome : outcomes) {
       if (outcome.start >= era->start && outcome.start <= era->end) {
-        std::map<int64_t, int>::iterator found = outcomeIdToCount.find(outcome.conceptId);
-        if (found == outcomeIdToCount.end()) {
-          outcomeIdToCount[outcome.conceptId] = 1;
-        } else {
-          (*found).second++;
-        }
+        outcomeCount++;
       }
     }
   }
   if (previousPattern != NULL) {
-    addToResult(*previousPattern, outcomeIdToCount, duration, observationPeriodId, resultStruct, outcomeIds);
+    addToResult(*previousPattern, outcomeCount, duration, observationPeriodId);
   }
 }
 
@@ -207,8 +207,8 @@ int SccsConverter::dateDifference(struct tm &date1, struct tm &date2) {
   return difference;
 }
 
-void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix){
-  struct tm startDate = { 0, 0, 12 } ;
+void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData){
+  struct tm startDate = {0, 0, 12};
   startDate.tm_year = personData.observationStartYear - 1900;
   startDate.tm_mon = personData.observationStartMonth - 1;
   startDate.tm_mday = personData.observationStartDay + startDay;
@@ -245,47 +245,157 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, con
   }
 }
 
-void SccsConverter::processPerson(PersonData& personData, ResultStruct& resultStruct, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                                  const bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix) {
+void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int end, int64_t covariateId, int covariateIdRow, const CovariateSettings& covariateSettings) {
+  if (covariateSettings.splitPoints.size() == 0) {
+    Era era(start, end, covariateId, 1, false);
+    outputEras.push_back(era);
+  } else {
+    int newStart = start;
+    for (unsigned int j = 0; j < covariateSettings.splitPoints.size() + 1; j++){
+      int newEnd;
+      if (j == covariateSettings.splitPoints.size()) {
+        newEnd = end;
+      } else {
+        newEnd = start + covariateSettings.splitPoints[j];
+        if (newEnd > end) {
+          newEnd = end;
+        }
+      }
+      Era era(newStart, newEnd, covariateSettings.outputIds(covariateIdRow, j), 1, false);
+      outputEras.push_back(era);
+      newStart = newEnd + 1;
+      if (newStart > end){
+        break;
+      }
+    }
+  }
+}
+
+void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings) {
+  if (covariateSettings.stratifyById) {
+    if (covariateSettings.mergeErasBeforeSplit) {
+      // Stratify by ID, merge prior to splitting:
+      for (int i = 0; i < covariateSettings.covariateIds.size(); i++) {
+        int64_t covariateId = covariateSettings.covariateIds[i];
+        int start = -1;
+        int end = -2;
+        bool first = true;
+        for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
+          if (era->conceptId == covariateId) {
+            int eraStart = covariateSettings.start + era->start;
+            int eraEnd = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?era->end:era->start);
+            if (eraStart > (end + 1)) {
+              if (end != -2){
+                addCovariateEra(outputEras, start, end, covariateId, i, covariateSettings);
+                if (covariateSettings.firstOccurrenceOnly){
+                  first = false;
+                  break;
+                }
+              }
+              start = eraStart;
+            }
+            if (eraEnd > end){
+              end = eraEnd;
+            }
+          }
+        }
+        if (end != -2 && (!covariateSettings.firstOccurrenceOnly || first)){
+          addCovariateEra(outputEras, start, end, covariateId, i ,covariateSettings);
+        }
+      }
+    } else {
+      // Stratify by ID, don't merge prior to splitting:
+      for (int i = 0; i < covariateSettings.covariateIds.size(); i++) {
+        int64_t covariateId = covariateSettings.covariateIds[i];
+        for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
+          if (era->conceptId == covariateId) {
+            int start = era->start + covariateSettings.start;
+            int end = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?era->end:era->start);
+            addCovariateEra(outputEras, start, end, covariateId, i, covariateSettings);
+            if (covariateSettings.firstOccurrenceOnly){
+              break;
+            }
+          }
+        }
+      }
+    }
+  } else {
+    if (covariateSettings.mergeErasBeforeSplit) {
+      // Don't stratify by ID, merge prior to splitting:
+      int64_t covariateId = covariateSettings.outputIds[0];
+      int start = -1;
+      int end = -2;
+      bool first = true;
+      for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
+        if (covariateSettings.covariateIdSet.find(era->conceptId) != covariateSettings.covariateIdSet.end()) {
+          int eraStart = covariateSettings.start + era->start;
+          int eraEnd = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?era->end:era->start);
+          if (eraStart > (end + 1)) {
+            if (end != -2){
+              addCovariateEra(outputEras, start, end, covariateId, 0, covariateSettings);
+              if (covariateSettings.firstOccurrenceOnly){
+                first = false;
+                break;
+              }
+            }
+            start = eraStart;
+          }
+          if (eraEnd > end){
+            end = eraEnd;
+          }
+        }
+      }
+      if (end != -2 && (!covariateSettings.firstOccurrenceOnly || first)){
+        addCovariateEra(outputEras, start, end, covariateId, 0 ,covariateSettings);
+      }
+    } else {
+      // Don't stratify by ID, don't merge prior to splitting:
+      int64_t covariateId = covariateSettings.outputIds[0];
+      for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
+        if (covariateSettings.covariateIdSet.find(era->conceptId) != covariateSettings.covariateIdSet.end()) {
+          int start = era->start + covariateSettings.start;
+          int end = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?era->end:era->start);
+          addCovariateEra(outputEras, start, end, covariateId, 0, covariateSettings);
+          if (covariateSettings.firstOccurrenceOnly){
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+void SccsConverter::processPerson(PersonData& personData) {
   std::vector<Era> *eras = personData.eras;
   std::sort(eras->begin(), eras->end()); // Sort by start date
   std::vector<Era> outcomes = extractOutcomes(*eras);
   if (firstOutcomeOnly)
     removeAllButFirstOutcome(outcomes);
   int startDay = naivePeriod;
-  int endDay = personData.daysOfObservation;
-
+  int endDay = personData.daysOfObservation - 1;
   if (startDay > endDay) // Days of observation is less than the naive period
     return;
-  for (std::vector<Era>::iterator outcome = outcomes.begin(); outcome != outcomes.end(); ++outcome) {
-    outcome->end = outcome->start;
-  }
-  for (std::vector<Era>::iterator era = eras->begin(); era != eras->end(); ++era) {
-    era->start += covariateStart;
-    era->end += covariatePersistencePeriod;
-  }
-
   clipEras(outcomes, startDay, endDay);
   if (outcomes.size() == 0) // We lost all outcomes in the clipping
     return;
-  clipEras(*eras, startDay, endDay);
-  std::vector<Era> mergedEras = mergeOverlapping(*eras);
-  if (includeAge || includeSeason){
-    addMonthEras(mergedEras, startDay, endDay, personData, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix);
+  std::vector<Era> outputEras;
+  for (CovariateSettings covariateSettings : covariateSettingsVector){
+    addCovariateEras(outputEras, *eras, covariateSettings);
   }
-  std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(mergedEras, startDay, endDay);
-  addToResult(concomitantEras, outcomes, personData.observationPeriodId, resultStruct);
+  clipEras(outputEras, startDay, endDay);
+  outputEras = mergeOverlapping(outputEras);
+  if (includeAge || includeSeason){
+    addMonthEras(outputEras, startDay, endDay, personData);
+  }
+  std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, startDay, endDay);
+  addToResult(concomitantEras, outcomes, personData.observationPeriodId);
 }
 
-List SccsConverter::convertToSccs(const List& cases, const List& eras, const int covariateStart, const int covariatePersistencePeriod, const int naivePeriod,
-                                  bool firstOutcomeOnly, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix) {
-  PersonDataIterator iterator(cases, eras);
-  ResultStruct resultStruct;
-  while (iterator.hasNext()) {
-    PersonData personData = iterator.next();
-    processPerson(personData, resultStruct, covariateStart, covariatePersistencePeriod, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix);
+List SccsConverter::convertToSccs() {
+  while (personDataIterator.hasNext()) {
+    PersonData personData = personDataIterator.next();
+    processPerson(personData);
   }
-
   return resultStruct.convertToRList();
 }
 

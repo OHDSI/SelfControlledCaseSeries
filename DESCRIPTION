@@ -18,7 +18,8 @@ Imports:
     ffbase (>= 0.12.1),
     Rcpp (>= 0.11.2),
     OhdsiRTools,
-    splines
+    splines,
+    ggplot2
 Suggests:
     testthat
 License: Apache License

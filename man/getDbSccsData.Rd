@@ -7,14 +7,14 @@
 getDbSccsData(connectionDetails, cdmDatabaseSchema,
   oracleTempSchema = cdmDatabaseSchema,
   outcomeDatabaseSchema = cdmDatabaseSchema,
-  outcomeTable = "condition_occurrence", outcomeConceptIds,
+  outcomeTable = "condition_occurrence", outcomeIds,
   outcomeConditionTypeConceptIds = c(),
   exposureDatabaseSchema = cdmDatabaseSchema, exposureTable = "drug_era",
-  exposureConceptIds = c(), excludeConceptIds = c(),
-  drugEraCovariates = FALSE, conditionEraCovariates = FALSE,
-  procedureCovariates = FALSE, visitCovariates = FALSE,
-  observationCovariates = FALSE, measurementCovariates = FALSE,
-  deleteCovariatesSmallCount = 100, cdmVersion = "4")
+  exposureIds = c(), excludeConceptIds = c(), drugEraCovariates = FALSE,
+  conditionEraCovariates = FALSE, procedureCovariates = FALSE,
+  visitCovariates = FALSE, observationCovariates = FALSE,
+  measurementCovariates = FALSE, deleteCovariatesSmallCount = 100,
+  cdmVersion = "4")
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using the
@@ -29,7 +29,7 @@ function \code{createConnectionDetails} in the
 
 \item{outcomeTable}{}
 
-\item{outcomeConceptIds}{}
+\item{outcomeIds}{}
 
 \item{outcomeConditionTypeConceptIds}{}
 
@@ -37,7 +37,7 @@ function \code{createConnectionDetails} in the
 
 \item{exposureTable}{}
 
-\item{exposureConceptIds}{}
+\item{exposureIds}{}
 
 \item{excludeConceptIds}{}
 

@@ -31,11 +31,11 @@
 #' @param oracleTempSchema
 #' @param outcomeDatabaseSchema
 #' @param outcomeTable
-#' @param outcomeConceptIds
+#' @param outcomeIds
 #' @param outcomeConditionTypeConceptIds
 #' @param exposureDatabaseSchema
 #' @param exposureTable
-#' @param exposureConceptIds
+#' @param exposureIds
 #' @param excludeConceptIds
 #' @param drugEraCovariates
 #' @param conditionEraCovariates
@@ -52,11 +52,11 @@ getDbSccsData <- function(connectionDetails,
                           oracleTempSchema = cdmDatabaseSchema,
                           outcomeDatabaseSchema = cdmDatabaseSchema,
                           outcomeTable = "condition_occurrence",
-                          outcomeConceptIds,
+                          outcomeIds,
                           outcomeConditionTypeConceptIds = c(),
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
-                          exposureConceptIds = c(),
+                          exposureIds = c(),
                           excludeConceptIds = c(),
                           drugEraCovariates = FALSE,
                           conditionEraCovariates = FALSE,
@@ -66,7 +66,7 @@ getDbSccsData <- function(connectionDetails,
                           measurementCovariates = FALSE,
                           deleteCovariatesSmallCount = 100,
                           cdmVersion = "4") {
-  if (exposureTable == "drug_era" && length(exposureConceptIds) == 0 && drugEraCovariates){
+  if (exposureTable == "drug_era" && length(exposureIds) == 0 && drugEraCovariates){
     drugEraCovariates = FALSE
     warning("Including all drugs in era table as exposures of interest, so using drug era covariates would duplicate all exposures. Setting drugEraCovariates to false.")
   }
@@ -85,11 +85,11 @@ getDbSccsData <- function(connectionDetails,
                                                    cdm_database = cdmDatabase,
                                                    outcome_database_schema = outcomeDatabaseSchema,
                                                    outcome_table = outcomeTable,
-                                                   outcome_concept_ids = outcomeConceptIds,
+                                                   outcome_concept_ids = outcomeIds,
                                                    outcome_condition_type_concept_ids = outcomeConditionTypeConceptIds,
                                                    exposure_database_schema = exposureDatabaseSchema,
                                                    exposure_table = exposureTable,
-                                                   exposure_concept_ids = exposureConceptIds,
+                                                   exposure_concept_ids = exposureIds,
                                                    exclude_concept_ids = excludeConceptIds,
                                                    drug_era_covariates = drugEraCovariates,
                                                    condition_era_covariates = conditionEraCovariates,
@@ -134,8 +134,8 @@ getDbSccsData <- function(connectionDetails,
   colnames(cases) <- SqlRender::snakeCaseToCamelCase(colnames(cases))
   colnames(eras) <- SqlRender::snakeCaseToCamelCase(colnames(eras))
   colnames(covariateRef) <- SqlRender::snakeCaseToCamelCase(colnames(covariateRef))
-  metaData <- list(exposureConceptIds = exposureConceptIds,
-                   outcomeConceptIds = outcomeConceptIds,
+  metaData <- list(exposureIds = exposureIds,
+                   outcomeIds = outcomeIds,
                    call = match.call())
   result <- list(cases = cases, eras = eras, covariateRef = covariateRef, metaData = metaData)
 
@@ -232,25 +232,25 @@ loadSccsData <- function(folder, readOnly = TRUE) {
 print.sccsData <- function(x, ...) {
   writeLines("SCCS data object")
   writeLines("")
-  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureConceptIds, collapse = ",")))
-  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeConceptIds, collapse = ",")))
+  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureIds, collapse = ",")))
+  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeIds, collapse = ",")))
 }
 
 #' @export
 summary.sccsData <- function(object, ...) {
   caseCount <- nrow(object$cases)
 
-  outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeConceptIds,
+  outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeIds,
                               eventCount = 0,
                               caseCount = 0)
   t <- object$eras$eraType == "hoi"
   hois <- object$eras[ffbase::ffwhich(t, t == TRUE),]
   for (i in 1:nrow(outcomeCounts)) {
-    outcomeCounts$eventCount[i] <- ffbase::sum.ff(hois$conceptId == object$metaData$outcomeConceptIds[i])
+    outcomeCounts$eventCount[i] <- ffbase::sum.ff(hois$conceptId == object$metaData$outcomeIds[i])
     if (outcomeCounts$eventCount[i] == 0) {
       outcomeCounts$caseCount[i] <- 0
     } else {
-      t <- (hois$conceptId == object$metaData$outcomeConceptIds[i])
+      t <- (hois$conceptId == object$metaData$outcomeIds[i])
       outcomeCounts$caseCount[i] <- length(ffbase::unique.ff(hois$observationPeriodId[ffbase::ffwhich(t, t == TRUE)]))
     }
   }
@@ -269,8 +269,8 @@ summary.sccsData <- function(object, ...) {
 print.summary.sccsData <- function(x, ...) {
   writeLines("sccsData object summary")
   writeLines("")
-  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureConceptIds, collapse = ",")))
-  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeConceptIds, collapse = ",")))
+  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureIds, collapse = ",")))
+  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeIds, collapse = ",")))
   writeLines("")
   writeLines(paste("Cases:", paste(x$caseCount)))
   writeLines("")

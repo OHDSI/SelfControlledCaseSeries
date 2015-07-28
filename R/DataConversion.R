@@ -23,7 +23,6 @@ in.ff <- function(a, b) {
                                                                          nomatch = 0L) > 0L)
 }
 
-
 #' Create SCCS era data
 #'
 #' @details
@@ -44,75 +43,157 @@ in.ff <- function(a, b) {
 #'
 #' @export
 createSccsEraData <- function(sccsData,
-                              covariateStart = 0,
-                              covariatePersistencePeriod = 0,
+                              exposureId,
+                              outcomeId = NULL,
                               naivePeriod = 0,
                               firstOutcomeOnly = FALSE,
-                              excludeConceptIds = NULL,
-                              includeAge = FALSE,
+                              includeExposureOfInterest = TRUE,
+                              exposureOfInterestSettings = createCovariateSettings(stratifyByID = TRUE,
+                                                                                   start = 0,
+                                                                                   end = 0,
+                                                                                   addExposedDaysToEnd = TRUE,
+                                                                                   splitPoints = c()),
+                              includePreExposureOfInterest = FALSE,
+                              preExposureOfInterestSetting = createCovariateSettings(stratifyByID = TRUE,
+                                                                                     mergeErasBeforeSplit = FALSE,
+                                                                                     start = -30,
+                                                                                     end = 0,
+                                                                                     addExposedDaysToEnd = FALSE,
+                                                                                     splitPoints = c()),
+                              covariateSettingsList = list(),
+                              includeAgeEffect = FALSE,
                               ageKnots = 5,
-                              includeSeason = FALSE,
+                              includeSeasonality = FALSE,
                               seasonKnots = 5) {
   start <- Sys.time()
-  if (is.null(excludeConceptIds)) {
-    erasSubset <- sccsData$eras
-  } else {
-    t <- in.ff(sccsData$eras$conceptId, ff::as.ff(excludeConceptIds))
-    erasSubset <- sccsData$eras[ffbase::ffwhich(t, t == FALSE), ]
+  if (is.null(outcomeId)){
+    outcomeId <- sccsData$metaData$outcomeIds
+    if (length(outcomeId) != 1){
+      stop("No outcome ID specified, but multiple outcomes found")
+    }
   }
-  if (!includeAge){
+  if (includeExposureOfInterest) {
+    exposureOfInterestSettings$covariateIds <- exposureId
+    if (is.null(exposureOfInterestSettings$label)){
+      exposureOfInterestSettings$label <- "Exposure of interest"
+    }
+    covariateSettingsList[[length(covariateSettingsList) + 1]] <- exposureOfInterestSettings
+  }
+  if (includePreExposureOfInterest) {
+    preExposureOfInterestSetting$covariateIds <- exposureId
+    if (is.null(preExposureOfInterestSetting$label)){
+      preExposureOfInterestSetting$label <- "Pre exposure of interest"
+    }
+    covariateSettingsList[[length(covariateSettingsList) + 1]] <- preExposureOfInterestSetting
+  }
+  metaData <- sccsData$metaData
+  metaData$call2 <- match.call()
+  covariateRef <- ff::clone(sccsData$covariateRef)
+  if (!includeAgeEffect){
     ageOffset <- 0
     ageDesignMatrix <- matrix()
   } else {
     if (length(ageKnots) == 1){
       # Single number, should interpret as number of knots. Spread out knots to data quantiles:
-      outcomes <- ffbase::subset.ffdf(sccsData$era, eraType == "hoi" &  startDay >= naivePeriod)
+      outcomes <- ffbase::subset.ffdf(sccsData$eras, eraType == "hoi" &  conceptId == outcomeId)
+      if (firstOutcomeOnly){
+        outcomes <- ff::as.ffdf(aggregate(startDay ~ observationPeriodId, outcomes, min))
+      }
+      outcomes <- ffbase::subset.ffdf(outcomes, startDay >= naivePeriod)
       outcomes <- merge(outcomes, sccsData$cases)
       outcomeAges <- outcomes$startDay + outcomes$ageInDays
-      #ageKnots <- ffbase::quantile.ff(outcomeAges, seq(0,1, length.out = ageKnots))
       ageKnots <- ffbase::quantile.ff(outcomeAges, seq(0.01,0.99, length.out = ageKnots))
+    } else {
+      ageKnots <- ageKnots
     }
     ageOffset <- ageKnots[1]
     ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)], knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
     # Fixing first beta to zero, so dropping first column of design matrix:
     ageDesignMatrix <- ageDesignMatrix[,2:ncol(ageDesignMatrix)]
+    metaData$ageKnots <- ageKnots
+    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) -1), covariateName = "Age spline component")
+    covariateRef <- ffbase::ffdfappend(covariateRef, splineCovariateRef)
   }
-  if (!includeSeason){
+  if (!includeSeasonality){
     seasonDesignMatrix <- matrix()
   } else {
     if (length(seasonKnots) == 1){
       # Single number, should interpret as number of knots. Spread out knots evenly:
       seasonKnots <- seq(1,12, length.out = seasonKnots)
+    } else {
+      seasonKnots <- seasonKnots
     }
     seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
     # Fixing first beta to zero, so dropping first column of design matrix:
     seasonDesignMatrix <- seasonDesignMatrix[,2:ncol(seasonDesignMatrix)]
-  }
-  metaData <- sccsData$metaData
-  metaData$call2 <- match.call()
-  covariateRef <- ff::clone(sccsData$covariateRef)
-  if (includeAge) {
-    metaData$ageKnots <- ageKnots
-    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) -1), covariateName = "Age spline component")
-    covariateRef <- ffbase::ffdfappend(covariateRef, splineCovariateRef)
-  }
-  if (includeSeason){
     metaData$seasonKnots <- seasonKnots
     splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) -1), covariateName = "Seasonality spline component")
     covariateRef <- ffbase::ffdfappend(covariateRef, splineCovariateRef)
   }
+  conceptId <- 300
+  for (i in 1:length(covariateSettingsList)){
+    covariateSettings <- covariateSettingsList[[i]]
+    if (!is.null(covariateSettings$covariateType)){
+      t <- sccsData$eras$eraType == covariateSettings$covariateType
+      if (ffbase::any.ff(t)){
+        covariateSettings$covariateIds <- ff::as.ram(ffbase::unique.ff(sccsData$eras$conceptId[t]))
+      } else {
+        covariateSettings$covariateIds <- c(-1)
+      }
+      if (is.null(covariateSettings$label)) {
+        covariateSettings$label <- covariateSettings$covariateType
+      }
+    }
+    if (is.null(covariateSettings$label)){
+      covariateSettings$label <- "Covariate"
+    }
+    if (length(covariateSettings$splitPoints) == 0){
+      if (!covariateSettings$stratifyByID && length(covariateSettings$covariateIds) > 1){
+        covariateSettings$outputIds <- conceptId
+        newCovariateRef <- data.frame(covariateId = conceptId, covariateName = covariateSettings$label)
+        covariateRef <- ffbase::ffdfappend(covariateRef, newCovariateRef)
+        conceptId <- conceptId + 1
+      } else {
+        covariateSettings$outputIds <- matrix(covariateSettings$covariateIds, ncol = 1)
+      }
+    } else {
+      startDays <- c(covariateSettings$start, covariateSettings$splitPoints + 1)
+      endDays <- c(covariateSettings$splitPoints, NA)
+      if (!covariateSettings$stratifyByID && length(covariateSettings$covariateIds) > 1){
+        conceptIds <- conceptId:(conceptId-1+(1 + length(covariateSettings$splitPoints)))
+        conceptId <- max(conceptIds) + 1
+        names <- rep(covariateSettings$label, length(covariateSettings$splitPoints) + 1)
+        names <- paste(names," day ", startDays,"-", c(endDays[1:length(endDays)-1],"") , sep = "")
+      } else {
+        conceptIds <- conceptId:(conceptId-1+(1 + length(covariateSettings$splitPoints)) * length(covariateSettings$covariateIds))
+        conceptId <- max(conceptIds) + 1
+        names <- paste("Covariate", rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1))
+        names <- paste(names,", day ", startDays,"-", c(endDays[1:length(endDays)-1],"") , sep = "")
+      }
+      if (identical(covariateSettings, exposureOfInterestSettings)) {
+        metaData$exposureRef <- data.frame(conceptId = rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1),
+                                           covariateId = conceptIds,
+                                           startDay = startDays, endDay = endDays)
+      }
+      covariateSettings$outputIds <- matrix(conceptIds, ncol = length(covariateSettings$splitPoints) + 1, byrow = TRUE)
+      newCovariateRef <- data.frame(covariateId = conceptIds, covariateName = names)
+      covariateRef <- ffbase::ffdfappend(covariateRef, newCovariateRef)
+    }
+    covariateSettingsList[[i]] <- covariateSettings
+  }
   writeLines("Converting person data to SCCS eras. This might take a while.")
   data <- .convertToSccs(sccsData$cases,
-                         erasSubset,
-                         covariateStart,
-                         covariatePersistencePeriod,
+                         sccsData$eras,
+                         outcomeId,
                          naivePeriod,
                          firstOutcomeOnly,
-                         includeAge,
+                         includeAgeEffect,
                          ageOffset,
                          ageDesignMatrix,
-                         includeSeason,
-                         seasonDesignMatrix)
+                         includeSeasonality,
+                         seasonDesignMatrix,
+                         covariateSettingsList)
+  metaData$outcomeId <- outcomeId
   result <- list(outcomes = data$outcomes,
                  covariates = data$covariates,
                  covariateRef = covariateRef,
@@ -124,6 +205,23 @@ createSccsEraData <- function(sccsData,
   delta <- Sys.time() - start
   writeLines(paste("Analysis took", signif(delta, 3), attr(delta, "units")))
   return(result)
+}
+
+#' @export
+createCovariateSettings <- function(covariateIds = NULL,
+                                    covariateType = NULL,
+                                    label = NULL,
+                                    stratifyByID = TRUE,
+                                    start = 0,
+                                    end = 0,
+                                    addExposedDaysToEnd = TRUE,
+                                    firstOccurrenceOnly = FALSE,
+                                    splitPoints = c(),
+                                    mergeErasBeforeSplit = FALSE) {
+  if (length(splitPoints) == 0){
+    mergeErasBeforeSplit <- FALSE
+  }
+  OhdsiRTools::convertArgsToList(match.call(), "covariateSettings")
 }
 
 #' Save the SCCS era data to folder
@@ -206,8 +304,8 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
 print.sccsEraData <- function(x, ...) {
   writeLines("sccsEraData object")
   writeLines("")
-  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureConceptIds, collapse = ",")))
-  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeConceptIds, collapse = ",")))
+  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureIds, collapse = ",")))
+  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeIds, collapse = ",")))
 }
 
 #' @export
@@ -215,17 +313,17 @@ summary.sccsEraData  <- function(object, ...) {
   caseCount <- length(ffbase::unique.ff(object$outcomes$stratumId))
   eraCount <- nrow(object$outcomes)
 
-  outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeConceptIds,
+  outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeIds,
                               eventCount = 0,
                               caseCount = 0)
   t <- object$outcomes$y == 1
   hois <- object$outcomes[ffbase::ffwhich(t, t == TRUE),]
   for (i in 1:nrow(outcomeCounts)) {
-    outcomeCounts$eventCount[i] <- ffbase::sum.ff(hois$outcomeId == object$metaData$outcomeConceptIds[i])
+    outcomeCounts$eventCount[i] <- ffbase::sum.ff(hois$outcomeId == object$metaData$outcomeIds[i])
     if (outcomeCounts$eventCount[i] == 0) {
       outcomeCounts$caseCount[i] <- 0
     } else {
-      t <- (hois$outcomeId == object$metaData$outcomeConceptIds[i])
+      t <- (hois$outcomeId == object$metaData$outcomeIds[i])
       outcomeCounts$caseCount[i] <- length(ffbase::unique.ff(hois$stratumId[ffbase::ffwhich(t, t == TRUE)]))
     }
   }
@@ -245,8 +343,8 @@ summary.sccsEraData  <- function(object, ...) {
 print.summary.sccsEraData <- function(x, ...) {
   writeLines("sccsEraData object summary")
   writeLines("")
-  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureConceptIds, collapse = ",")))
-  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeConceptIds, collapse = ",")))
+  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureIds, collapse = ",")))
+  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeIds, collapse = ",")))
   writeLines("")
   writeLines(paste("Cases:", paste(x$caseCount)))
   writeLines(paste("Eras:", paste(x$eraCount)))

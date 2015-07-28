@@ -4,23 +4,29 @@
 \alias{createSccsEraData}
 \title{Create SCCS era data}
 \usage{
-createSccsEraData(sccsData, covariateStart = 0,
-  covariatePersistencePeriod = 0, naivePeriod = 0,
-  firstOutcomeOnly = FALSE, excludeConceptIds = NULL, includeAge = FALSE,
-  ageKnots = 5, includeSeason = FALSE, seasonKnots = 5)
+createSccsEraData(sccsData, exposureId, outcomeId = NULL, naivePeriod = 0,
+  firstOutcomeOnly = FALSE, includeExposureOfInterest = TRUE,
+  exposureOfInterestSettings = createCovariateSettings(stratifyByID = TRUE,
+  start = 0, end = 0, addExposedDaysToEnd = TRUE, splitPoints = c()),
+  includePreExposureOfInterest = FALSE,
+  preExposureOfInterestSetting = createCovariateSettings(stratifyByID = TRUE,
+  mergeErasBeforeSplit = FALSE, start = -30, end = 0, addExposedDaysToEnd =
+  FALSE, splitPoints = c()), covariateSettingsList = list(),
+  includeAgeEffect = FALSE, ageKnots = 5, includeSeasonality = FALSE,
+  seasonKnots = 5)
 }
 \arguments{
 \item{sccsData}{An object of type sccsData as created using the \code{\link{getDbSccsData}} function.}
-
-\item{covariateStart}{Start day relative to the start of a covariate when the covariate should be considered in the risk profile.}
-
-\item{covariatePersistencePeriod}{Number of days after the end of the covariate when the risk is assumed to stop.}
 
 \item{naivePeriod}{The number of days at the start of a patient's observation period that should not be included in the risk
 calculations. Note that the naive period can be used to determine current covariate status right after the naive period, and whether
 an outcome is the first one.}
 
 \item{firstOutcomeOnly}{Whether only the first occurrence of an outcome should be considered.}
+
+\item{covariateStart}{Start day relative to the start of a covariate when the covariate should be considered in the risk profile.}
+
+\item{covariatePersistencePeriod}{Number of days after the end of the covariate when the risk is assumed to stop.}
 
 \item{excludeConceptIds}{Concept IDs that should be excluded from the list of covariates.}
 }

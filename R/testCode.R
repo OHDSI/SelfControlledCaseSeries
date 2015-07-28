@@ -4,34 +4,33 @@ testcode <- function() {
   setwd("s:/temp")
   options(fftempdir = "s:/temp")
   settings <- createSccsSimulationSettings()
-#   settings <- createSccsSimulationSettings(minAge = 65*365,
-#                                            maxAge = 75*365,
-#                                            includeAgeEffect = TRUE,
-#                                            ageKnots = 5,
-#                                            includeSeasonality = TRUE,
-#                                            seasonKnots = 5,
-#                                            minBaselineRate = 0.001,
-#                                            maxBaselineRate = 0.01,
-#                                            meanPatientTime = 4*365,
-#                                            sdPatientTime = 2*365,
-#                                            patientUsages = c(0.1,0.1),
-#                                            usageRate = c(0.01,0.01))
+  settings <- createSccsSimulationSettings(includeAgeEffect = FALSE, includeSeasonality = FALSE)
+
   sccsData <- simulateSccsData(1000, settings)
 
-  sum(sccsData$eras$eraType == "hoi")
-
-  sccsEraData <- createSccsEraData(sccsData,  covariateStart = 0,
-                                   covariatePersistencePeriod = 0,
-                                   naivePeriod = 180,
+  sccsEraData <- createSccsEraData(sccsData,
+                                   naivePeriod = 0,
                                    firstOutcomeOnly = FALSE,
-                                   includeAge = TRUE,
-                                   ageKnots = 5,
-                                   includeSeason = TRUE)
+                                   exposureId = c(1,2),
+                                   includeAgeEffect = TRUE,
+                                   includeSeasonality = TRUE,
+                                   exposureOfInterestSettings = createCovariateSettings(stratifyByID = TRUE,
+                                                                                        start = 0,
+                                                                                        end = 0,
+                                                                                        addExposedDaysToEnd = TRUE,
+                                                                                        splitPoints = c(7)))
 
-  #model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("none"))
-  model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("laplace", 1, exclude = 1))
+  model <- fitSccsModel(sccsEraData, exposureId = c(1,2), prior = createPrior("none"))
   exp(model$coefficients)
-  sccsData$metaData$sccsSimulationSettings$relativeRisks[1]
+  exp(model$treatmentEstimate)
+  sccsData$metaData$sccsSimulationSettings$simulationRiskWindows
+
+
+  sccsEraData$covariates
+
+  sccsEraData$outcomes
+  sccsEraData$metaData
+
 
 
   #plotAgeEffect(model)

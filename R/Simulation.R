@@ -17,6 +17,11 @@
 # limitations under the License.
 
 #' @export
+createSimulationRiskWindow <- function(start = 0, end = 0, addExposedDaysToEnd = TRUE, splitPoints = c(), relativeRisks = c(2)) {
+  OhdsiRTools::convertArgsToList(match.call(), "simulationRiskWindow")
+}
+
+#' @export
 createSccsSimulationSettings <- function(meanPatientTime = 4*365,
                                          sdPatientTime = 2*365,
                                          minAge = 18*365,
@@ -28,28 +33,18 @@ createSccsSimulationSettings <- function(meanPatientTime = 4*365,
                                          usageRate = c(0.01,0.01),
                                          meanPrescriptionDurations = c(14,30),
                                          sdPrescriptionDurations = c(7,14),
-                                         relativeRisks = c(2,1.5),
+                                         simulationRiskWindows = list(createSimulationRiskWindow(),
+                                                                      createSimulationRiskWindow(relativeRisks = 1.5)),
                                          includeAgeEffect = TRUE,
                                          ageKnots = 5,
                                          includeSeasonality = TRUE,
                                          seasonKnots = 5,
                                          outcomeId = 10) {
-  # First: get default values:
-  analysis <- list()
-  for (name in names(formals(createSccsSimulationSettings))) {
-    analysis[[name]] <- get(name)
-  }
-  # Second: overwrite defaults with actual values:
-  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
-  for (name in names(values)) {
-    if (name %in% names(analysis))
-      analysis[[name]] <- values[[name]]
-  }
-  class(analysis) <- "sccsSimulationSettings"
-  return(analysis)
+  return(OhdsiRTools::convertArgsToList(match.call(), "sccsSimulationSettings"))
 }
 
 simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset){
+  # settings <- createSccsSimulationSettings(includeAgeEffect = FALSE, includeSeasonality = FALSE)
   # Simulate a batch of persons, and eliminate non-cases
   n <- 1000
 
@@ -105,14 +100,50 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset){
   } else {
     seasonRrs <- c(0)
   }
-  eraRrs <- data.frame(conceptId = settings$covariateIds, rr = settings$relativeRisks)
-  outcomes <- .Call('SelfControlledCaseSeries_simulateSccsOutcomes', PACKAGE = 'SelfControlledCaseSeries', cases, eras, baselineRates, eraRrs, settings$includeAge, settings$minAge, ageRrs, settings$includeSeasonality, seasonRrs)
+  # Apply risk windows:
+  newEras <- data.frame()
+  conceptIds <- c()
+  rrs <- c()
+  conceptId <- 1000
+  for (i in 1:length(settings$simulationRiskWindows)){
+    simulationRiskWindow <- settings$simulationRiskWindows[[i]]
+    sourceEras <- eras[eras$conceptId == settings$covariateIds[i],]
+    riskEnds <- rep(simulationRiskWindow$end, nrow(sourceEras))
+    if (simulationRiskWindow$addExposedDaysToEnd) {
+      riskEnds <- riskEnds + sourceEras$endDay - sourceEras$startDay
+    }
+    start <- simulationRiskWindow$start
+    for (j in 1:(length(simulationRiskWindow$splitPoints) + 1)) {
+      if (j > length(simulationRiskWindow$splitPoints)){
+        end <- riskEnds
+      } else {
+        end <- simulationRiskWindow$splitPoints[j]
+      }
+      truncatedEnds <- riskEnds
+      truncatedEnds[truncatedEnds > end] <- end
+      filteredIndex <- truncatedEnds >= start
+      riskEras <- data.frame(eraType = "hei",
+                             observationPeriodId = sourceEras$observationPeriodId[filteredIndex],
+                             conceptId = conceptId,
+                             value = 1,
+                             startDay = sourceEras$startDay[filteredIndex] + start,
+                             endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex])
+      newEras <- rbind(newEras, riskEras)
+      conceptIds <- c(conceptIds, conceptId)
+      rrs <- c(rrs, simulationRiskWindow$relativeRisks[j])
+      conceptId <- conceptId + 1
+      start <- end + 1
+    }
+  }
+  newEras <- newEras[order(newEras$observationPeriodId, newEras$conceptId),]
+  eraRrs <- data.frame(conceptId = conceptIds, rr = rrs)
+  outcomes <- .Call('SelfControlledCaseSeries_simulateSccsOutcomes', PACKAGE = 'SelfControlledCaseSeries', cases, newEras, baselineRates, eraRrs, settings$includeAge, settings$minAge, ageRrs, settings$includeSeasonality, seasonRrs)
   outcomes <- data.frame(eraType = "hoi",
-                        observationPeriodId = outcomes$observationPeriodId,
-                        conceptId = settings$outcomeId,
-                        value = 1,
-                        startDay = outcomes$startDay,
-                        endDay = outcomes$startDay)
+                         observationPeriodId = outcomes$observationPeriodId,
+                         conceptId = settings$outcomeId,
+                         value = 1,
+                         startDay = outcomes$startDay,
+                         endDay = outcomes$startDay)
 
   #** Remove non-cases ***
   caseIds <- unique(outcomes$observationPeriodId)
@@ -166,7 +197,9 @@ simulateSccsData <- function(nCases, settings) {
                eras = ff::as.ffdf(eras),
                metaData = list(sccsSimulationSettings = settings,
                                ageFun = ageFun,
-                               seasonFun = seasonFun),
+                               seasonFun = seasonFun,
+                               exposureIds = settings$covariateIds,
+                               outcomeIds = settings$outcomeId),
                covariateRef = ff::as.ffdf(data.frame(covariateId = c(1), covariateName = c(""))))
   class(data) <- "sccsData"
   return(data)
