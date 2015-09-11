@@ -6,6 +6,10 @@ convertToSccsDataWrapper <- function(cases,
                                      exposureSettings = createCovariateSettings(start = 0,
                                                                                 end = 0,
                                                                                 addExposedDaysToEnd = TRUE),
+                                     includePreExposureOfInterest = FALSE,
+                                     preExposureOfInterestSetting = createCovariateSettings(start = -30,
+                                                                                            end = -1,
+                                                                                            addExposedDaysToEnd = FALSE),
                                      includeAgeEffect = FALSE,
                                      ageKnots = 5,
                                      naivePeriod = 0,
@@ -22,7 +26,9 @@ convertToSccsDataWrapper <- function(cases,
                               naivePeriod = naivePeriod,
                               firstOutcomeOnly = firstOutcomeOnly,
                               includeAgeEffect = includeAgeEffect,
-                              ageKnots = ageKnots)
+                              ageKnots = ageKnots,
+                              includePreExposureOfInterest = includePreExposureOfInterest,
+                              preExposureOfInterestSetting = preExposureOfInterestSetting)
   return(list(outcomes = ff::as.ram(result$outcomes), covariates = ff::as.ram(result$covariates)))
 }
 
@@ -391,6 +397,62 @@ test_that("Exposure splitting", {
   expect_equal(result$covariates$covariateId, c(300, 301))
 })
 
+test_that("Exposure splitting twice", {
+  cases <- data.frame(observationPeriodId = 1,
+                      personId = 1,
+                      observationDays = 100,
+                      ageInDays = 0,
+                      observationStartYear = 2000,
+                      observationStartMonth = 5,
+                      observationStartDay = 1)
+  eras <- data.frame(eraType = c("hoi", "hei"),
+                     observationPeriodId = c(1, 1),
+                     conceptId = c(10, 11),
+                     value = c(1,1),
+                     startDay = c(50, 25),
+                     endDay = c(50, 75))
+  result <- convertToSccsDataWrapper(cases,
+                                     eras,
+                                     exposureId = c(11),
+                                     exposureSettings = createCovariateSettings(start = 0,
+                                                                                end = 0,
+                                                                                addExposedDaysToEnd = TRUE,
+                                                                                splitPoints = c(7,15)))
+  expect_equal(result$outcomes$rowId, c(0, 1, 2, 3))
+  expect_equal(result$outcomes$stratumId, c(1, 1, 1, 1))
+  expect_equal(result$outcomes$time, c(49, 8, 8, 35))
+  expect_equal(result$outcomes$y, c(0, 0, 0, 1))
+  expect_equal(result$covariates$rowId, c(1, 2, 3))
+  expect_equal(result$covariates$stratumId, c(1, 1, 1))
+  expect_equal(result$covariates$covariateId, c(300, 301, 302))
+})
+
+test_that("Pre-exposure window", {
+  cases <- data.frame(observationPeriodId = 1,
+                      personId = 1,
+                      observationDays = 100,
+                      ageInDays = 0,
+                      observationStartYear = 2000,
+                      observationStartMonth = 5,
+                      observationStartDay = 1)
+  eras <- data.frame(eraType = c("hoi", "hei"),
+                     observationPeriodId = c(1, 1),
+                     conceptId = c(10, 11),
+                     value = c(1,1),
+                     startDay = c(50, 25),
+                     endDay = c(50, 75))
+  result <- convertToSccsDataWrapper(cases,
+                                     eras,
+                                     exposureId = c(11),
+                                     includePreExposureOfInterest = TRUE)
+  expect_equal(result$outcomes$rowId, c(0, 1, 2))
+  expect_equal(result$outcomes$stratumId, c(1, 1, 1))
+  expect_equal(result$outcomes$time, c(24, 51, 25))
+  expect_equal(result$outcomes$y, c(0, 1, 0))
+  expect_equal(result$covariates$rowId, c(1, 2))
+  expect_equal(result$covariates$stratumId, c(1, 1))
+  expect_equal(result$covariates$covariateId, c(300, 301))
+})
 
 # test_that("Age", {
 #   cases <- data.frame(observationPeriodId = 1,

@@ -10,7 +10,7 @@ createSccsEraData(sccsData, exposureId, outcomeId = NULL, naivePeriod = 0,
   start = 0, end = 0, addExposedDaysToEnd = TRUE, splitPoints = c()),
   includePreExposureOfInterest = FALSE,
   preExposureOfInterestSetting = createCovariateSettings(stratifyByID = TRUE,
-  mergeErasBeforeSplit = FALSE, start = -30, end = 0, addExposedDaysToEnd =
+  mergeErasBeforeSplit = FALSE, start = -30, end = -1, addExposedDaysToEnd =
   FALSE, splitPoints = c()), covariateSettingsList = list(),
   includeAgeEffect = FALSE, ageKnots = 5, includeSeasonality = FALSE,
   seasonKnots = 5)

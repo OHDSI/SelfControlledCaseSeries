@@ -125,7 +125,7 @@ testcode <- function() {
   library(SelfControlledCaseSeries)
   library(SqlRender)
   setwd("s:/temp")
-  options(fftempdir = "s:/temp")
+  options(fftempdir = "s:/fftemp")
 
   # Settings for SQL Server (at JnJ)
   pw <- NULL
@@ -191,14 +191,14 @@ testcode <- function() {
 
   sccsData <- getDbSccsData(connectionDetails,
                             cdmDatabaseSchema = cdmDatabaseSchema,
-                            exposureConceptIds = c(1,2),
-                            outcomeConceptIds = 3,
+                            exposureIds = c(1,2),
+                            outcomeIds = 3,
                             excludeConceptIds = c(),
                             exposureDatabaseSchema = resultsDatabaseSchema,
                             exposureTable = "coxibVsNonselVsGiBleed",
                             outcomeDatabaseSchema = resultsDatabaseSchema,
                             outcomeTable = "coxibVsNonselVsGiBleed",
-                            drugEraCovariates = FALSE,
+                            drugEraCovariates = TRUE,
                             conditionEraCovariates = FALSE,
                             procedureCovariates = FALSE,
                             visitCovariates = FALSE,
@@ -213,28 +213,49 @@ testcode <- function() {
   summary(sccsData)
 
   # You can start here if you already saved sccsData:
-  #sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
+  # sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
 
-    sccsEraData <- createSccsEraData(sccsData,
-                                   covariateStart = 0,
-                                   covariatePersistencePeriod = 0,
+  sccsEraData <- createSccsEraData(sccsData = sccsData,
                                    naivePeriod = 180,
+                                   exposureId = 2,
+                                   outcomeId = 3,
                                    firstOutcomeOnly = FALSE,
-                                   excludeConceptIds = NULL,
-                                   includeAge = TRUE,
-                                   includeSeason = TRUE)
+                                   includeExposureOfInterest = TRUE,
+                                   exposureOfInterestSettings = createCovariateSettings(stratifyByID = TRUE,
+                                                                                        start = 0,
+                                                                                        end = 0,
+                                                                                        addExposedDaysToEnd = TRUE,
+                                                                                        mergeErasBeforeSplit = TRUE,
+                                                                                        splitPoints = c(7,15)),
+                                   includePreExposureOfInterest = TRUE,
+                                   preExposureOfInterestSetting = createCovariateSettings(stratifyByID = TRUE,
+                                                                                          mergeErasBeforeSplit = FALSE,
+                                                                                          start = -30,
+                                                                                          end = -1,
+                                                                                          addExposedDaysToEnd = FALSE,
+                                                                                          splitPoints = c()),
+                                   includeAgeEffect = FALSE,
+                                   includeSeasonality = FALSE)
 
-  saveSccsEraData(sccsEraData, "sccsEraDataGiBleed")
+  saveSccsEraData(sccsEraData, "s:/temp/sccsEraDataGiBleed")
 
   # You can start here if you already saved sccsEraData:
-  #sccsEraData <- loadSccsEraData("sccsEraDataGiBleed")
-  #sum(sccsEraData$covariates$covariateId ==1)
-  #sum(sccsEraData$covariates$covariateId ==2)
-  sccsEraData
+  # sccsEraData <- loadSccsEraData("sccsEraDataGiBleed")
+  sccsEraData$covariateRef
+
+outcomes <- ff::as.ram(sccsEraData$outcomes)
+covariates <- ff::as.ram(sccsEraData$covariates)
+eras <- ff::as.ram(sccsData$eras)
+
+outcomes[outcomes$stratumId == 6700,]
+covariates[covariates$stratumId == 6700,]
+eras[eras$observationPeriodId == 6700 & eras$conceptId %in% c(1,3), ]
+
+sccsEraData
 
   summary(sccsEraData)
 
-  model <- fitSccsModel(sccsEraData, exposureConceptId = c(1,2), prior = createPrior("none"))
+  model <- fitSccsModel(sccsEraData, exposureId = 1, prior = createPrior("none"))
 
   saveRDS(model, "s:/temp/sccsModel.rds")
   plotSeasonality(model)

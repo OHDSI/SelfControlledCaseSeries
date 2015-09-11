@@ -57,7 +57,7 @@ createSccsEraData <- function(sccsData,
                               preExposureOfInterestSetting = createCovariateSettings(stratifyByID = TRUE,
                                                                                      mergeErasBeforeSplit = FALSE,
                                                                                      start = -30,
-                                                                                     end = 0,
+                                                                                     end = -1,
                                                                                      addExposedDaysToEnd = FALSE,
                                                                                      splitPoints = c()),
                               covariateSettingsList = list(),
@@ -72,12 +72,14 @@ createSccsEraData <- function(sccsData,
       stop("No outcome ID specified, but multiple outcomes found")
     }
   }
+  exposureOfInterestIndex <- -1
   if (includeExposureOfInterest) {
     exposureOfInterestSettings$covariateIds <- exposureId
     if (is.null(exposureOfInterestSettings$label)){
       exposureOfInterestSettings$label <- "Exposure of interest"
     }
     covariateSettingsList[[length(covariateSettingsList) + 1]] <- exposureOfInterestSettings
+    exposureOfInterestIndex <- length(covariateSettingsList)
   }
   if (includePreExposureOfInterest) {
     preExposureOfInterestSetting$covariateIds <- exposureId
@@ -88,7 +90,8 @@ createSccsEraData <- function(sccsData,
   }
   metaData <- sccsData$metaData
   metaData$call2 <- match.call()
-  covariateRef <- ff::clone(sccsData$covariateRef)
+  covariateRef <- ff::as.ram(sccsData$covariateRef)
+  newCovariateRefs <- data.frame()
   if (!includeAgeEffect){
     ageOffset <- 0
     ageDesignMatrix <- matrix()
@@ -111,8 +114,8 @@ createSccsEraData <- function(sccsData,
     # Fixing first beta to zero, so dropping first column of design matrix:
     ageDesignMatrix <- ageDesignMatrix[,2:ncol(ageDesignMatrix)]
     metaData$ageKnots <- ageKnots
-    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) -1), covariateName = "Age spline component")
-    covariateRef <- ffbase::ffdfappend(covariateRef, splineCovariateRef)
+    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) -1), covariateName = "Age spline component", originalCovariateId = 0, originalCovariateName = "")
+    newCovariateRefs <- rbind(newCovariateRefs, splineCovariateRef)
   }
   if (!includeSeasonality){
     seasonDesignMatrix <- matrix()
@@ -127,12 +130,16 @@ createSccsEraData <- function(sccsData,
     # Fixing first beta to zero, so dropping first column of design matrix:
     seasonDesignMatrix <- seasonDesignMatrix[,2:ncol(seasonDesignMatrix)]
     metaData$seasonKnots <- seasonKnots
-    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) -1), covariateName = "Seasonality spline component")
-    covariateRef <- ffbase::ffdfappend(covariateRef, splineCovariateRef)
+    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) -1), covariateName = "Seasonality spline component", originalCovariateId = 0, originalCovariateName = "")
+    newCovariateRefs <- rbind(newCovariateRefs, splineCovariateRef)
   }
-  conceptId <- 300
+
+  # Iterate over different covariate settings. Assign unique IDs, and store in covariateRef:
+  outputId <- 300
   for (i in 1:length(covariateSettingsList)){
     covariateSettings <- covariateSettingsList[[i]]
+
+    # When user specified a type of covariates:
     if (!is.null(covariateSettings$covariateType)){
       t <- sccsData$eras$eraType == covariateSettings$covariateType
       if (ffbase::any.ff(t)){
@@ -144,41 +151,64 @@ createSccsEraData <- function(sccsData,
         covariateSettings$label <- covariateSettings$covariateType
       }
     }
+
     if (is.null(covariateSettings$label)){
       covariateSettings$label <- "Covariate"
     }
+
     if (length(covariateSettings$splitPoints) == 0){
-      if (!covariateSettings$stratifyByID && length(covariateSettings$covariateIds) > 1){
-        covariateSettings$outputIds <- conceptId
-        newCovariateRef <- data.frame(covariateId = conceptId, covariateName = covariateSettings$label)
-        covariateRef <- ffbase::ffdfappend(covariateRef, newCovariateRef)
-        conceptId <- conceptId + 1
+      if (!covariateSettings$stratifyByID){
+        # Create a single output ID
+        covariateSettings$outputIds <- outputId
+        newCovariateRef <- data.frame(covariateId = outputId, covariateName = covariateSettings$label, originalCovariateId = 0, originalCovariateName = "")
+        newCovariateRefs <- rbind(newCovariateRefs, newCovariateRef)
+        outputId <- outputId + 1
       } else {
-        covariateSettings$outputIds <- matrix(covariateSettings$covariateIds, ncol = 1)
+        # Create a unique output ID for every covariate ID
+        outputIds <- outputId:(outputId + length(covariateSettings$covariateIds) - 1)
+        covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
+        outputId <- outputId + length(outputIds)
+        newCovariateRef <- data.frame(covariateId = outputIds, covariateName = covariateSettings$label, originalCovariateId = 0, originalCovariateName = "")
+        newCovariateRefs <- rbind(newCovariateRefs, newCovariateRef)
       }
     } else {
       startDays <- c(covariateSettings$start, covariateSettings$splitPoints + 1)
       endDays <- c(covariateSettings$splitPoints, NA)
-      if (!covariateSettings$stratifyByID && length(covariateSettings$covariateIds) > 1){
-        conceptIds <- conceptId:(conceptId-1+(1 + length(covariateSettings$splitPoints)))
-        conceptId <- max(conceptIds) + 1
+      if (!covariateSettings$stratifyByID){
+        outputIds <- outputId:(outputId + length(covariateSettings$splitPoints))
+        outputId <- outputId + length(covariateSettings$splitPoints) + 1
         names <- rep(covariateSettings$label, length(covariateSettings$splitPoints) + 1)
         names <- paste(names," day ", startDays,"-", c(endDays[1:length(endDays)-1],"") , sep = "")
+        covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
+        newCovariateRef <- data.frame(covariateId = outputIds, covariateName = names, originalCovariateId = 0, originalCovariateName = "")
+        newCovariateRefs <- rbind(newCovariateRefs, newCovariateRef)
       } else {
-        conceptIds <- conceptId:(conceptId-1+(1 + length(covariateSettings$splitPoints)) * length(covariateSettings$covariateIds))
-        conceptId <- max(conceptIds) + 1
+        outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$covariateIds) - 1)
+        outputId <- max(outputIds) + 1
         names <- paste("Covariate", rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1))
         names <- paste(names,", day ", startDays,"-", c(endDays[1:length(endDays)-1],"") , sep = "")
+        covariateSettings$outputIds <- matrix(outputIds, ncol = length(covariateSettings$splitPoints) + 1, byrow = TRUE)
+        originalCovariateId <- rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1)
+        originalCovariateName <- covariateRef$covariateName[match(originalCovariateId, covariateRef$covariateId)]
+        newCovariateRef <- data.frame(covariateId = outputIds,
+                                      covariateName = names,
+                                      originalCovariateId = originalCovariateId,
+                                      originalCovariateName = originalCovariateName)
+        newCovariateRefs <- rbind(newCovariateRefs, newCovariateRef)
       }
-      if (identical(covariateSettings, exposureOfInterestSettings)) {
+      if (i == exposureOfInterestIndex) {
         metaData$exposureRef <- data.frame(conceptId = rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1),
-                                           covariateId = conceptIds,
-                                           startDay = startDays, endDay = endDays)
+                                           covariateId = outputIds,
+                                           startDay = startDays,
+                                           endDay = endDays)
       }
-      covariateSettings$outputIds <- matrix(conceptIds, ncol = length(covariateSettings$splitPoints) + 1, byrow = TRUE)
-      newCovariateRef <- data.frame(covariateId = conceptIds, covariateName = names)
-      covariateRef <- ffbase::ffdfappend(covariateRef, newCovariateRef)
     }
+    # For some reason can't have booleans in a list. Rcpp will always interpret bools in a list as 1, whether TRUE or FALSE
+#     covariateSettings$stratifyByID <- as.numeric(covariateSettings$stratifyByID)
+#     covariateSettings$addExposedDaysToEnd <- as.numeric(covariateSettings$addExposedDaysToEnd)
+#     covariateSettings$firstOccurrenceOnly <- as.numeric(covariateSettings$firstOccurrenceOnly)
+#     covariateSettings$mergeErasBeforeSplit <- as.numeric(covariateSettings$mergeErasBeforeSplit)
+
     covariateSettingsList[[i]] <- covariateSettings
   }
   writeLines("Converting person data to SCCS eras. This might take a while.")
@@ -196,7 +226,7 @@ createSccsEraData <- function(sccsData,
   metaData$outcomeId <- outcomeId
   result <- list(outcomes = data$outcomes,
                  covariates = data$covariates,
-                 covariateRef = covariateRef,
+                 covariateRef = ff::as.ffdf(newCovariateRefs),
                  metaData = metaData)
   open(result$outcomes)
   open(result$covariates)
@@ -314,19 +344,8 @@ summary.sccsEraData  <- function(object, ...) {
   eraCount <- nrow(object$outcomes)
 
   outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeIds,
-                              eventCount = 0,
-                              caseCount = 0)
-  t <- object$outcomes$y == 1
-  hois <- object$outcomes[ffbase::ffwhich(t, t == TRUE),]
-  for (i in 1:nrow(outcomeCounts)) {
-    outcomeCounts$eventCount[i] <- ffbase::sum.ff(hois$outcomeId == object$metaData$outcomeIds[i])
-    if (outcomeCounts$eventCount[i] == 0) {
-      outcomeCounts$caseCount[i] <- 0
-    } else {
-      t <- (hois$outcomeId == object$metaData$outcomeIds[i])
-      outcomeCounts$caseCount[i] <- length(ffbase::unique.ff(hois$stratumId[ffbase::ffwhich(t, t == TRUE)]))
-    }
-  }
+                              eventCount = ffbase::sum.ff(object$outcomes$y),
+                              caseCount = caseCount)
   covariateValueCount <- nrow(object$covariates)
 
   result <- list(metaData = object$metaData,

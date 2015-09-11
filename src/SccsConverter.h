@@ -33,7 +33,7 @@ struct CovariateSettings {
   CovariateSettings(const List& _covariateSettings) : stratifyById(as<bool>(_covariateSettings["stratifyByID"])), mergeErasBeforeSplit(as<bool>(_covariateSettings["mergeErasBeforeSplit"])),
   firstOccurrenceOnly(as<bool>(_covariateSettings["firstOccurrenceOnly"])), covariateIds(as<NumericVector>(_covariateSettings["covariateIds"])),
   outputIds(as<NumericMatrix>(_covariateSettings["outputIds"])), start(as<int>(_covariateSettings["start"])), end(as<int>(_covariateSettings["end"])),
-  addExposedDaysToEnd(_covariateSettings["addExposedDaysToEnd"]){
+  addExposedDaysToEnd(as<bool>(_covariateSettings["addExposedDaysToEnd"])){
     if (_covariateSettings.containsElementNamed("splitPoints")){
       NumericVector splitPointsList = _covariateSettings["splitPoints"];
       for (int i = 0; i < splitPointsList.size(); i++){
