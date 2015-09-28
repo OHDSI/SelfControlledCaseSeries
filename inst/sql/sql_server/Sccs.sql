@@ -34,7 +34,7 @@ limitations under the License.
 {DEFAULT @observation_covariates = FALSE}
 {DEFAULT @measurement_covariates = FALSE}
 {DEFAULT @delete_covariates_small_count = 100}
-{DEFAULT @cdm_version == '4'}
+{DEFAULT @cdm_version = '4'}
 {DEFAULT @cohort_definition_id = 'cohort_concept_id'} 
 
 USE @cdm_database;
