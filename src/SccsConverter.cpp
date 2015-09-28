@@ -256,7 +256,7 @@ void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int
       if (j == covariateSettings.splitPoints.size()) {
         newEnd = end;
       } else {
-        newEnd = start + covariateSettings.splitPoints[j];
+        newEnd = start - covariateSettings.start + covariateSettings.splitPoints[j];
         if (newEnd > end) {
           newEnd = end;
         }

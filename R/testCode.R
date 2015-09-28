@@ -217,7 +217,7 @@ testcode <- function() {
 
   sccsEraData <- createSccsEraData(sccsData = sccsData,
                                    naivePeriod = 180,
-                                   exposureId = 2,
+                                   exposureId = 1,
                                    outcomeId = 3,
                                    firstOutcomeOnly = FALSE,
                                    includeExposureOfInterest = TRUE,
@@ -230,10 +230,10 @@ testcode <- function() {
                                    includePreExposureOfInterest = TRUE,
                                    preExposureOfInterestSetting = createCovariateSettings(stratifyByID = TRUE,
                                                                                           mergeErasBeforeSplit = FALSE,
-                                                                                          start = -30,
+                                                                                          start = -180,
                                                                                           end = -1,
                                                                                           addExposedDaysToEnd = FALSE,
-                                                                                          splitPoints = c()),
+                                                                                          splitPoints = c(-90,-60,-30)),
                                    includeAgeEffect = FALSE,
                                    includeSeasonality = FALSE)
 
@@ -248,7 +248,7 @@ covariates <- ff::as.ram(sccsEraData$covariates)
 eras <- ff::as.ram(sccsData$eras)
 
 outcomes[outcomes$stratumId == 6700,]
-covariates[covariates$stratumId == 6700,]
+covariates[covariates$covariateId == 304,]
 eras[eras$observationPeriodId == 6700 & eras$conceptId %in% c(1,3), ]
 
 sccsEraData
@@ -256,6 +256,7 @@ sccsEraData
   summary(sccsEraData)
 
   model <- fitSccsModel(sccsEraData, exposureId = 1, prior = createPrior("none"))
+  model$coefficients
 
   saveRDS(model, "s:/temp/sccsModel.rds")
   plotSeasonality(model)
@@ -263,4 +264,5 @@ sccsEraData
 
   model <- getModel(fit, sccsEraData)
   head(model)
+
 }

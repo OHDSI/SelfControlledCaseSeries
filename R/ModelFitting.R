@@ -1,6 +1,6 @@
 # @file ModelFitting.R
 #
-# Copyright 2014 Observational Health Data Sciences and Informatics
+# Copyright 2015 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 #
@@ -49,7 +49,7 @@ fitSccsModel <- function(sccsEraData,
   } else {
     status <- "OK"
     coefficients <- coef(fit)
-    logRr <- coef(fit)[names(coef(fit)) == covariateIds]
+    logRr <- coef(fit)[names(coef(fit)) %in% covariateIds]
     ci <- tryCatch({
       confint(fit, parm = covariateIds, includePenalty = TRUE)
     }, error = function(e) {
