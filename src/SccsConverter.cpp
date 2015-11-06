@@ -33,14 +33,27 @@ namespace sccs {
 
 SccsConverter::SccsConverter(const List& _cases, const List& _eras, const int64_t _outcomeId, const int _naivePeriod,
                              bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const bool _includeSeason,
-                             const NumericMatrix& _seasonDesignMatrix, const List& covariateSettingsList) : personDataIterator(_cases, _eras),
+                             const NumericMatrix& _seasonDesignMatrix, const List& _covariateSettingsList, const bool _eventDependentObservation,const List& _censorModel) : personDataIterator(_cases, _eras),
                              outcomeId(_outcomeId), naivePeriod(_naivePeriod),
-                             firstOutcomeOnly(_firstOutcomeOnly), includeAge(_includeAge), ageOffset(_ageOffset), includeSeason(_includeSeason){
+                             firstOutcomeOnly(_firstOutcomeOnly), includeAge(_includeAge), ageOffset(_ageOffset), includeSeason(_includeSeason), eventDependentObservation(_eventDependentObservation) {
                                ageDesignMatrix = _ageDesignMatrix;
                                seasonDesignMatrix = _seasonDesignMatrix;
-                               for (int i = 0; i < covariateSettingsList.size(); i++) {
-                                 CovariateSettings covariateSettings(as<List>(covariateSettingsList[i]));
+                               for (int i = 0; i < _covariateSettingsList.size(); i++) {
+                                 CovariateSettings covariateSettings(as<List>(_covariateSettingsList[i]));
                                  covariateSettingsVector.push_back(covariateSettings);
+                               }
+                               if (eventDependentObservation) {
+                                 std::vector<double> p = _censorModel["p"];
+                                 double model = _censorModel["model"];
+                                 if (model == 1){
+                                   weightFunction = new WsmallEwad2(p);
+                                 } else if (model == 2){
+                                   weightFunction = new WsmallEwid2(p);
+                                 } else if (model == 3){
+                                   weightFunction = new WsmallEgad2(p);
+                                 } else if (model == 4){
+                                   weightFunction = new WsmallEgid2(p);
+                                 }
                                }
                              }
 
@@ -149,7 +162,7 @@ std::vector<ConcomitantEra> SccsConverter::buildConcomitantEras(std::vector<Era>
 
 void SccsConverter::addToResult(const ConcomitantEra& era, int outcomeCount, const int duration, const int64_t& observationPeriodId) {
   // Add to outcome table:
-    resultStruct.addToOutcomes(outcomeCount, duration, observationPeriodId);
+  resultStruct.addToOutcomes(outcomeCount, duration, observationPeriodId);
 
 
   // Add to covariates table:

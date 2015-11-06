@@ -53,7 +53,7 @@ test_that("Simple era construction", {
   expect_equal(result$outcomes$y, c(0, 1))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(300))
 })
 
 test_that("Outcome on boundary", {
@@ -77,7 +77,7 @@ test_that("Outcome on boundary", {
   expect_equal(result$outcomes$y, c(0, 1))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(300))
 })
 
 test_that("Outcome on boundary", {
@@ -101,7 +101,7 @@ test_that("Outcome on boundary", {
   expect_equal(result$outcomes$y, c(1, 0))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(300))
 })
 
 test_that("Outcome on boundary", {
@@ -125,7 +125,7 @@ test_that("Outcome on boundary", {
   expect_equal(result$outcomes$y, c(0, 1))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(300))
 })
 
 
@@ -150,7 +150,7 @@ test_that("Outcome on boundary", {
   expect_equal(result$outcomes$y, c(1, 0))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(300))
 })
 
 test_that("One day era", {
@@ -174,7 +174,7 @@ test_that("One day era", {
   expect_equal(result$outcomes$y, c(1, 0))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(300))
 })
 
 test_that("Merging overlapping eras", {
@@ -198,7 +198,7 @@ test_that("Merging overlapping eras", {
   expect_equal(result$outcomes$y, c(0, 1))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(300))
 })
 
 test_that("Concomitant drug use", {

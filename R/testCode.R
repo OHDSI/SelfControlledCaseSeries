@@ -3,6 +3,15 @@ testcode <- function() {
   library(SelfControlledCaseSeries)
   setwd("s:/temp")
   options(fftempdir = "s:/temp")
+  sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
+  naivePeriod = 180
+  outcomeId = 3
+
+
+
+  library(SelfControlledCaseSeries)
+  setwd("s:/temp")
+  options(fftempdir = "s:/temp")
   settings <- createSccsSimulationSettings()
   settings <- createSccsSimulationSettings(includeAgeEffect = FALSE, includeSeasonality = FALSE)
 
@@ -198,7 +207,7 @@ testcode <- function() {
                             exposureTable = "coxibVsNonselVsGiBleed",
                             outcomeDatabaseSchema = resultsDatabaseSchema,
                             outcomeTable = "coxibVsNonselVsGiBleed",
-                            drugEraCovariates = TRUE,
+                            drugEraCovariates = FALSE,
                             conditionEraCovariates = FALSE,
                             procedureCovariates = FALSE,
                             visitCovariates = FALSE,

@@ -24,6 +24,7 @@
 #include <Rcpp.h>
 #include "PersonDataIterator.h"
 #include "FfdfBuilder.h"
+#include "WeightFunctions.h"
 using namespace Rcpp;
 
 namespace ohdsi {
@@ -197,7 +198,7 @@ class SccsConverter {
 public:
   SccsConverter(const List& _cases, const List& _eras, const int64_t _outcomeId, const int _naivePeriod,
                 bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const bool _includeSeason,
-                const NumericMatrix& _seasonDesignMatrix, const List& covariateSettingsList);
+                const NumericMatrix& _seasonDesignMatrix, const List& _covariateSettingsList, const bool _eventDependentObservation,const List& _censorModel);
   List convertToSccs();
   static const int ageIdOffset = 100;
   static const int seasonIdOffset = 200;
@@ -227,6 +228,8 @@ private:
   bool includeSeason;
   NumericMatrix seasonDesignMatrix;
   std::vector<CovariateSettings> covariateSettingsVector;
+  bool eventDependentObservation;
+  WeightFunction* weightFunction;
 };
 }
 }

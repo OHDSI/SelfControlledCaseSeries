@@ -45,8 +45,9 @@ struct Era {
 };
 
 struct PersonData {
-  PersonData(int64_t _personId, int64_t _observationPeriodId, int _daysOfObservation, int _ageInDays, int _observationStartYear, int _observationStartMonth, int _observationStartDay) :
-  personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation), ageInDays(_ageInDays), observationStartYear(_observationStartYear), observationStartMonth(_observationStartMonth), observationStartDay(_observationStartDay) {
+  PersonData(int64_t _personId, int64_t _observationPeriodId, int _daysOfObservation, int _ageInDays, int _observationStartYear, int _observationStartMonth, int _observationStartDay, bool _uncensored) :
+  personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation), ageInDays(_ageInDays), observationStartYear(_observationStartYear), observationStartMonth(_observationStartMonth),
+  observationStartDay(_observationStartDay), uncensored(_uncensored) {
     eras = new std::vector<Era>;
   }
 
@@ -62,6 +63,7 @@ struct PersonData {
   int observationStartYear;
   int observationStartMonth;
   int observationStartDay;
+  bool uncensored;
 };
 
 class PersonDataIterator {
@@ -79,6 +81,7 @@ private:
   NumericVector casesObservationStartYear;
   NumericVector casesObservationStartMonth;
   NumericVector casesObservationStartDay;
+  LogicalVector casesUncensored;
   NumericVector erasObservationPeriodId;
   NumericVector erasStartDay;
   NumericVector erasEndDay;

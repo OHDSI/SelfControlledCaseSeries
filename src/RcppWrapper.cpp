@@ -24,16 +24,17 @@
 #include <Rcpp.h>
 #include "SccsConverter.h"
 #include "SccsSimulator.h"
+#include "WeightFunctions.h"
 
 using namespace Rcpp;
 
 // [[Rcpp::export(".convertToSccs")]]
-List convertToSccs(const List& cases, const List& eras, double outcomeId, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, bool includeSeason, NumericMatrix seasonDesignMatrix, List& covariateSettingsList) {
+List convertToSccs(const List& cases, const List& eras, double outcomeId, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, bool includeSeason, NumericMatrix seasonDesignMatrix, List& covariateSettingsList, bool eventDependentObservation, List& censorModel) {
 
 	using namespace ohdsi::sccs;
 
 	try {
-	  SccsConverter sccsConverter(cases, eras, outcomeId, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix, covariateSettingsList);
+	  SccsConverter sccsConverter(cases, eras, outcomeId, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix, covariateSettingsList, eventDependentObservation, censorModel);
 		return (sccsConverter.convertToSccs());
 	} catch (std::exception &e) {
 		forward_exception_to_r(e);
@@ -57,6 +58,34 @@ List simulateSccsOutcomes(const List& cases, const List& eras,  const std::vecto
     ::Rf_error("c++ exception (unknown reason)");
   }
   return List::create();
+}
+
+// [[Rcpp::export]]
+double testEwad(std::vector<double> p, double present, double astart, double aend, double start, double end) {
+  ohdsi::sccs::WsmallEwad2 fun(p);
+  fun.set(present, astart, aend);
+  return ohdsi::sccs::NumericIntegration::integrate(fun, start, end, 1.490116e-08);
+}
+
+// [[Rcpp::export]]
+double testEwid(std::vector<double> p, double present, double astart, double aend, double start, double end) {
+  ohdsi::sccs::WsmallEwid2 fun(p);
+  fun.set(present, astart, aend);
+  return ohdsi::sccs::NumericIntegration::integrate(fun, start, end, 1.490116e-08);
+}
+
+// [[Rcpp::export]]
+double testEgad(std::vector<double> p, double present, double astart, double aend, double start, double end) {
+  ohdsi::sccs::WsmallEgad2 fun(p);
+  fun.set(present, astart, aend);
+  return ohdsi::sccs::NumericIntegration::integrate(fun, start, end, 1.490116e-08);
+}
+
+// [[Rcpp::export]]
+double testEgid(std::vector<double> p, double present, double astart, double aend, double start, double end) {
+  ohdsi::sccs::WsmallEgid2 fun(p);
+  fun.set(present, astart, aend);
+  return ohdsi::sccs::NumericIntegration::integrate(fun, start, end, 1.490116e-08);
 }
 
 #endif // __RcppWrapper_cpp__

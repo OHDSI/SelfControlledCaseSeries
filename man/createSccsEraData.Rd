@@ -13,7 +13,7 @@ createSccsEraData(sccsData, exposureId, outcomeId = NULL, naivePeriod = 0,
   mergeErasBeforeSplit = FALSE, start = -30, end = -1, addExposedDaysToEnd =
   FALSE, splitPoints = c()), covariateSettingsList = list(),
   includeAgeEffect = FALSE, ageKnots = 5, includeSeasonality = FALSE,
-  seasonKnots = 5)
+  seasonKnots = 5, eventDependentObservation = FALSE)
 }
 \arguments{
 \item{sccsData}{An object of type sccsData as created using the \code{\link{getDbSccsData}} function.}

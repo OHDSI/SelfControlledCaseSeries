@@ -64,7 +64,8 @@ createSccsEraData <- function(sccsData,
                               includeAgeEffect = FALSE,
                               ageKnots = 5,
                               includeSeasonality = FALSE,
-                              seasonKnots = 5) {
+                              seasonKnots = 5,
+                              eventDependentObservation = FALSE) {
   start <- Sys.time()
   if (is.null(outcomeId)){
     outcomeId <- sccsData$metaData$outcomeIds
@@ -72,6 +73,137 @@ createSccsEraData <- function(sccsData,
       stop("No outcome ID specified, but multiple outcomes found")
     }
   }
+  if (eventDependentObservation){
+    sccsData$cases$uncensored <- isUncensored(sccsData)
+  } else {
+    sccsData$cases$uncensored <- ff::ff(FALSE, nrow(sccsData$cases))
+  }
+
+  settings <- list()
+  settings$metaData <- sccsData$metaData
+  settings$metaData$era_call <- match.call()
+  settings$metaData$outcomeId <- outcomeId
+  settings$covariateSettingsList <- covariateSettingsList
+  settings$covariateRef <- data.frame()
+  settings <- addAgeSettings(settings, includeAgeEffect, ageKnots, sccsData)
+  settings <- addSeasonalitySettings(settings, includeSeasonality, seasonKnots, sccsData)
+  settings <- addEventDependentObservationSettings(settings, eventDependentObservation, outcomeId, naivePeriod, sccsData)
+  settings <- addCovariateSettings(settings, includeExposureOfInterest, exposureOfInterestSettings, exposureId, includePreExposureOfInterest, preExposureOfInterestSetting, sccsData)
+
+  writeLines("Converting person data to SCCS eras. This might take a while.")
+  data <- .convertToSccs(sccsData$cases,
+                         sccsData$eras,
+                         outcomeId,
+                         naivePeriod,
+                         firstOutcomeOnly,
+                         includeAgeEffect,
+                         settings$ageOffset,
+                         settings$ageDesignMatrix,
+                         includeSeasonality,
+                         settings$seasonDesignMatrix,
+                         settings$covariateSettingsList,
+                         eventDependentObservation,
+                         settings$censorModel)
+
+  result <- list(outcomes = data$outcomes,
+                 covariates = data$covariates,
+                 covariateRef = ff::as.ffdf(settings$covariateRef),
+                 metaData = settings$metaData)
+  open(result$outcomes)
+  open(result$covariates)
+  open(result$covariateRef)
+  class(result) <- "sccsEraData"
+  delta <- Sys.time() - start
+  writeLines(paste("Analysis took", signif(delta, 3), attr(delta, "units")))
+  return(result)
+}
+
+isUncensored <- function(sccsData) {
+  dates <- as.Date(paste(ff::as.ram(sccsData$cases$observationStartYear),
+                         ff::as.ram(sccsData$cases$observationStartMonth),
+                         ff::as.ram(sccsData$cases$observationStartDay), sep="-"), format = "%Y-%m-%d")
+  dates <- dates + ff::as.ram(sccsData$cases$observationDays)
+  studyEndDate <- max(dates)
+  return(ff::as.ff(dates == studyEndDate))
+}
+
+addAgeSettings <- function(settings, includeAgeEffect, ageKnots, sccsData) {
+  if (!includeAgeEffect){
+    settings$ageOffset <- 0
+    settings$ageDesignMatrix <- matrix()
+  } else {
+    if (length(ageKnots) == 1){
+      # Single number, should interpret as number of knots. Spread out knots to data quantiles:
+      outcomes <- ffbase::subset.ffdf(sccsData$eras, eraType == "hoi" &  conceptId == outcomeId)
+      if (firstOutcomeOnly){
+        outcomes <- ff::as.ffdf(aggregate(startDay ~ observationPeriodId, outcomes, min))
+      }
+      outcomes <- ffbase::subset.ffdf(outcomes, startDay >= naivePeriod)
+      outcomes <- merge(outcomes, sccsData$cases)
+      outcomeAges <- outcomes$startDay + outcomes$ageInDays
+      ageKnots <- ffbase::quantile.ff(outcomeAges, seq(0.01,0.99, length.out = ageKnots))
+    } else {
+      ageKnots <- ageKnots
+    }
+    settings$ageOffset <- ageKnots[1]
+    ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)], knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
+    # Fixing first beta to zero, so dropping first column of design matrix:
+    settings$ageDesignMatrix <- ageDesignMatrix[,2:ncol(ageDesignMatrix)]
+    settings$metaData$ageKnots <- ageKnots
+    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) -1), covariateName = "Age spline component", originalCovariateId = 0, originalCovariateName = "")
+    settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
+  }
+  return(settings)
+}
+
+addSeasonalitySettings <- function(settings, includeSeasonality, seasonKnots, sccsData) {
+  if (!includeSeasonality){
+    settings$seasonDesignMatrix <- matrix()
+  } else {
+    if (length(seasonKnots) == 1){
+      # Single number, should interpret as number of knots. Spread out knots evenly:
+      seasonKnots <- seq(1,12, length.out = seasonKnots)
+    } else {
+      seasonKnots <- seasonKnots
+    }
+    seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
+    # Fixing first beta to zero, so dropping first column of design matrix:
+    settings$seasonDesignMatrix <- seasonDesignMatrix[,2:ncol(seasonDesignMatrix)]
+    settings$metaData$seasonKnots <- seasonKnots
+    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) -1), covariateName = "Seasonality spline component", originalCovariateId = 0, originalCovariateName = "")
+    settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
+  }
+  return(settings)
+}
+
+addEventDependentObservationSettings <- function(settings, eventDependentObservation, outcomeId, naivePeriod, sccsData){
+  if (eventDependentObservation) {
+    # Pick first outcome per person
+    t <- sccsData$eras$eraType == "hoi" & sccsData$eras$conceptId == outcomeId
+    firstOutcomes <- aggregate(startDay ~ observationPeriodId, data = sccsData$eras[ffbase::ffwhich(t, t == TRUE),], min)
+
+    # See who has first event in remaining observation period after applying naive period
+    firstOutcomes <- firstOutcomes[firstOutcomes$startDay > naivePeriod,]
+    t <- in.ff(sccsData$cases$observationPeriodId, ff::as.ff(firstOutcomes$observationPeriodId))
+    cases <- ff::as.ram(sccsData$cases[ffbase::ffwhich(t, t == TRUE), ])
+    cases <- merge(cases, firstOutcomes)
+
+    # Fit censoring models
+    data <- data.frame(astart = cases$ageInDays + naivePeriod,
+                       aend = cases$ageInDays + naivePeriod + cases$observationDays,
+                       aevent = cases$ageInDays + cases$startDay,
+                       present = cases$uncensored)
+    settings$censorModel <- fitModelsAndPickBest(data)
+  } else {
+    settings$censorModel <- list(model = 0, p = c(0))
+  }
+  return(settings)
+}
+
+addCovariateSettings <- function(settings, includeExposureOfInterest, exposureOfInterestSettings, exposureId, includePreExposureOfInterest, preExposureOfInterestSetting, sccsData) {
+  covariateRef <- ff::as.ram(sccsData$covariateRef)
+  covariateSettingsList <- settings$covariateSettingsList
+
   exposureOfInterestIndex <- -1
   if (includeExposureOfInterest) {
     exposureOfInterestSettings$covariateIds <- exposureId
@@ -87,51 +219,6 @@ createSccsEraData <- function(sccsData,
       preExposureOfInterestSetting$label <- "Pre exposure of interest"
     }
     covariateSettingsList[[length(covariateSettingsList) + 1]] <- preExposureOfInterestSetting
-  }
-  metaData <- sccsData$metaData
-  metaData$call2 <- match.call()
-  covariateRef <- ff::as.ram(sccsData$covariateRef)
-  newCovariateRefs <- data.frame()
-  if (!includeAgeEffect){
-    ageOffset <- 0
-    ageDesignMatrix <- matrix()
-  } else {
-    if (length(ageKnots) == 1){
-      # Single number, should interpret as number of knots. Spread out knots to data quantiles:
-      outcomes <- ffbase::subset.ffdf(sccsData$eras, eraType == "hoi" &  conceptId == outcomeId)
-      if (firstOutcomeOnly){
-        outcomes <- ff::as.ffdf(aggregate(startDay ~ observationPeriodId, outcomes, min))
-      }
-      outcomes <- ffbase::subset.ffdf(outcomes, startDay >= naivePeriod)
-      outcomes <- merge(outcomes, sccsData$cases)
-      outcomeAges <- outcomes$startDay + outcomes$ageInDays
-      ageKnots <- ffbase::quantile.ff(outcomeAges, seq(0.01,0.99, length.out = ageKnots))
-    } else {
-      ageKnots <- ageKnots
-    }
-    ageOffset <- ageKnots[1]
-    ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)], knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
-    # Fixing first beta to zero, so dropping first column of design matrix:
-    ageDesignMatrix <- ageDesignMatrix[,2:ncol(ageDesignMatrix)]
-    metaData$ageKnots <- ageKnots
-    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) -1), covariateName = "Age spline component", originalCovariateId = 0, originalCovariateName = "")
-    newCovariateRefs <- rbind(newCovariateRefs, splineCovariateRef)
-  }
-  if (!includeSeasonality){
-    seasonDesignMatrix <- matrix()
-  } else {
-    if (length(seasonKnots) == 1){
-      # Single number, should interpret as number of knots. Spread out knots evenly:
-      seasonKnots <- seq(1,12, length.out = seasonKnots)
-    } else {
-      seasonKnots <- seasonKnots
-    }
-    seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
-    # Fixing first beta to zero, so dropping first column of design matrix:
-    seasonDesignMatrix <- seasonDesignMatrix[,2:ncol(seasonDesignMatrix)]
-    metaData$seasonKnots <- seasonKnots
-    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) -1), covariateName = "Seasonality spline component", originalCovariateId = 0, originalCovariateName = "")
-    newCovariateRefs <- rbind(newCovariateRefs, splineCovariateRef)
   }
 
   # Iterate over different covariate settings. Assign unique IDs, and store in covariateRef:
@@ -161,7 +248,7 @@ createSccsEraData <- function(sccsData,
         # Create a single output ID
         covariateSettings$outputIds <- outputId
         newCovariateRef <- data.frame(covariateId = outputId, covariateName = covariateSettings$label, originalCovariateId = 0, originalCovariateName = "")
-        newCovariateRefs <- rbind(newCovariateRefs, newCovariateRef)
+        settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
         outputId <- outputId + 1
       } else {
         # Create a unique output ID for every covariate ID
@@ -169,7 +256,7 @@ createSccsEraData <- function(sccsData,
         covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
         outputId <- outputId + length(outputIds)
         newCovariateRef <- data.frame(covariateId = outputIds, covariateName = covariateSettings$label, originalCovariateId = 0, originalCovariateName = "")
-        newCovariateRefs <- rbind(newCovariateRefs, newCovariateRef)
+        settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
       }
     } else {
       startDays <- c(covariateSettings$start, covariateSettings$splitPoints + 1)
@@ -181,7 +268,7 @@ createSccsEraData <- function(sccsData,
         names <- paste(names," day ", startDays,"-", c(endDays[1:length(endDays)-1],"") , sep = "")
         covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
         newCovariateRef <- data.frame(covariateId = outputIds, covariateName = names, originalCovariateId = 0, originalCovariateName = "")
-        newCovariateRefs <- rbind(newCovariateRefs, newCovariateRef)
+        settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
       } else {
         outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$covariateIds) - 1)
         outputId <- max(outputIds) + 1
@@ -194,47 +281,19 @@ createSccsEraData <- function(sccsData,
                                       covariateName = names,
                                       originalCovariateId = originalCovariateId,
                                       originalCovariateName = originalCovariateName)
-        newCovariateRefs <- rbind(newCovariateRefs, newCovariateRef)
+        settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
       }
       if (i == exposureOfInterestIndex) {
-        metaData$exposureRef <- data.frame(conceptId = rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1),
-                                           covariateId = outputIds,
-                                           startDay = startDays,
-                                           endDay = endDays)
+        settings$metaData$exposureRef <- data.frame(conceptId = rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1),
+                                                    covariateId = outputIds,
+                                                    startDay = startDays,
+                                                    endDay = endDays)
       }
     }
-    # For some reason can't have booleans in a list. Rcpp will always interpret bools in a list as 1, whether TRUE or FALSE
-#     covariateSettings$stratifyByID <- as.numeric(covariateSettings$stratifyByID)
-#     covariateSettings$addExposedDaysToEnd <- as.numeric(covariateSettings$addExposedDaysToEnd)
-#     covariateSettings$firstOccurrenceOnly <- as.numeric(covariateSettings$firstOccurrenceOnly)
-#     covariateSettings$mergeErasBeforeSplit <- as.numeric(covariateSettings$mergeErasBeforeSplit)
-
     covariateSettingsList[[i]] <- covariateSettings
   }
-  writeLines("Converting person data to SCCS eras. This might take a while.")
-  data <- .convertToSccs(sccsData$cases,
-                         sccsData$eras,
-                         outcomeId,
-                         naivePeriod,
-                         firstOutcomeOnly,
-                         includeAgeEffect,
-                         ageOffset,
-                         ageDesignMatrix,
-                         includeSeasonality,
-                         seasonDesignMatrix,
-                         covariateSettingsList)
-  metaData$outcomeId <- outcomeId
-  result <- list(outcomes = data$outcomes,
-                 covariates = data$covariates,
-                 covariateRef = ff::as.ffdf(newCovariateRefs),
-                 metaData = metaData)
-  open(result$outcomes)
-  open(result$covariates)
-  open(result$covariateRef)
-  class(result) <- "sccsEraData"
-  delta <- Sys.time() - start
-  writeLines(paste("Analysis took", signif(delta, 3), attr(delta, "units")))
-  return(result)
+  settings$covariateSettingsList <- covariateSettingsList
+  return(settings)
 }
 
 #' @export
@@ -403,3 +462,4 @@ cyclicSplineDesign <- function (x, knots, ord = 4) {
   }
   X1
 }
+
