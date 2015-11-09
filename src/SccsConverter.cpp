@@ -25,6 +25,7 @@
 #include <Rcpp.h>
 #include "SccsConverter.h"
 #include "PersonDataIterator.h"
+#include "NumericIntegration.h"
 
 using namespace Rcpp;
 
@@ -160,7 +161,7 @@ std::vector<ConcomitantEra> SccsConverter::buildConcomitantEras(std::vector<Era>
   return concomitantEras;
 }
 
-void SccsConverter::addToResult(const ConcomitantEra& era, int outcomeCount, const int duration, const int64_t& observationPeriodId) {
+void SccsConverter::addToResult(const ConcomitantEra& era, int outcomeCount, const double duration, const int64_t& observationPeriodId) {
   // Add to outcome table:
   resultStruct.addToOutcomes(outcomeCount, duration, observationPeriodId);
 
@@ -178,7 +179,7 @@ void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, st
 
   // Iterate over eras, merging those with similar patterns:
   ConcomitantEra* previousPattern = NULL;
-  int duration = 0;
+  double duration = 0;
   int outcomeCount = 0;
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
     if (previousPattern == NULL || era->conceptIdToValue.size() != previousPattern->conceptIdToValue.size() ||
@@ -190,7 +191,11 @@ void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, st
         outcomeCount = 0;
         duration = 0;
     }
-    duration += era->end - era->start + 1;
+    if (eventDependentObservation) {
+      duration += era->weight;
+    } else {
+      duration += era->end - era->start + 1;
+    }
     for (Era outcome : outcomes) {
       if (outcome.start >= era->start && outcome.start <= era->end) {
         outcomeCount++;
@@ -199,6 +204,21 @@ void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, st
   }
   if (previousPattern != NULL) {
     addToResult(*previousPattern, outcomeCount, duration, observationPeriodId);
+  }
+}
+
+void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData) {
+  double astart = (personData.ageInDays + naivePeriod) / 365.25;
+  double aend = (personData.ageInDays + personData.daysOfObservation) / 365.25;
+  double present = personData.uncensored?1.0:0;
+  weightFunction->set(present, astart, aend);
+
+  for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
+    double start = (personData.ageInDays + era->start) / 365.25;
+    double end = (personData.ageInDays + era->end + 1) / 365.25;
+    double weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, end, 1.490116e-08);
+    era->weight = weight * 365.25;
+    //std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", weight:" << weight*365.25 << "\n";
   }
 }
 
@@ -382,15 +402,18 @@ void SccsConverter::processPerson(PersonData& personData) {
   std::vector<Era> *eras = personData.eras;
   std::sort(eras->begin(), eras->end()); // Sort by start date
   std::vector<Era> outcomes = extractOutcomes(*eras);
-  if (firstOutcomeOnly)
+  if (firstOutcomeOnly) {
     removeAllButFirstOutcome(outcomes);
+  }
   int startDay = naivePeriod;
   int endDay = personData.daysOfObservation - 1;
-  if (startDay > endDay) // Days of observation is less than the naive period
+  if (startDay > endDay) {// Days of observation is less than the naive period
     return;
+  }
   clipEras(outcomes, startDay, endDay);
-  if (outcomes.size() == 0) // We lost all outcomes in the clipping
+  if (outcomes.size() == 0) {// We lost all outcomes in the clipping
     return;
+  }
   std::vector<Era> outputEras;
   for (CovariateSettings covariateSettings : covariateSettingsVector){
     addCovariateEras(outputEras, *eras, covariateSettings);
@@ -401,6 +424,9 @@ void SccsConverter::processPerson(PersonData& personData) {
     addMonthEras(outputEras, startDay, endDay, personData);
   }
   std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, startDay, endDay);
+  if (eventDependentObservation) {
+    computeEventDepObsWeights(concomitantEras, personData);
+  }
   addToResult(concomitantEras, outcomes, personData.observationPeriodId);
 }
 

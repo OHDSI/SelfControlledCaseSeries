@@ -144,7 +144,7 @@ test_that("Weight functions match those in SCCS package", {
   aend <- 10
   start <- 1
   end <- 2
-  Dmatrix <- c(0)
+  Dmatrix <- c(1)
 
   w1 <- SelfControlledCaseSeries:::testEwad(p, present, astart, aend, start, end)
   w2 <- integrate(wsmall_ewad2, lower = start, upper = end, p = p, present = present, astart = astart, aend = aend, Dmatrix = Dmatrix)$value

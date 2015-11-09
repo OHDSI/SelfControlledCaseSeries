@@ -2,7 +2,7 @@
 testcode <- function() {
   library(SelfControlledCaseSeries)
   setwd("s:/temp")
-  options(fftempdir = "s:/temp")
+  options(fftempdir = "s:/fftemp")
   sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
   naivePeriod = 180
   outcomeId = 3

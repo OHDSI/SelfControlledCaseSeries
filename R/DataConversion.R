@@ -82,6 +82,7 @@ createSccsEraData <- function(sccsData,
   settings <- list()
   settings$metaData <- sccsData$metaData
   settings$metaData$era_call <- match.call()
+  settings$metaData$exposureId <- exposureId
   settings$metaData$outcomeId <- outcomeId
   settings$covariateSettingsList <- covariateSettingsList
   settings$covariateRef <- data.frame()
@@ -180,6 +181,7 @@ addEventDependentObservationSettings <- function(settings, eventDependentObserva
   if (eventDependentObservation) {
     # Pick first outcome per person
     t <- sccsData$eras$eraType == "hoi" & sccsData$eras$conceptId == outcomeId
+    rownames(sccsData$eras) <- NULL
     firstOutcomes <- aggregate(startDay ~ observationPeriodId, data = sccsData$eras[ffbase::ffwhich(t, t == TRUE),], min)
 
     # See who has first event in remaining observation period after applying naive period
@@ -190,10 +192,13 @@ addEventDependentObservationSettings <- function(settings, eventDependentObserva
 
     # Fit censoring models
     data <- data.frame(astart = cases$ageInDays + naivePeriod,
-                       aend = cases$ageInDays + naivePeriod + cases$observationDays,
-                       aevent = cases$ageInDays + cases$startDay,
+                       aend = cases$ageInDays + cases$observationDays,
+                       aevent = cases$ageInDays + cases$startDay + 1,
                        present = cases$uncensored)
+    #data$aend[cases$ageInDays + data$aend == data$aevent] <- data$aend[cases$ageInDays + data$aend == data$aevent] + 0.5
+
     settings$censorModel <- fitModelsAndPickBest(data)
+    settings$metaData$censorModel <- settings$censorModel
   } else {
     settings$censorModel <- list(model = 0, p = c(0))
   }
@@ -222,7 +227,7 @@ addCovariateSettings <- function(settings, includeExposureOfInterest, exposureOf
   }
 
   # Iterate over different covariate settings. Assign unique IDs, and store in covariateRef:
-  outputId <- 300
+  outputId <- 1000
   for (i in 1:length(covariateSettingsList)){
     covariateSettings <- covariateSettingsList[[i]]
 
@@ -230,6 +235,7 @@ addCovariateSettings <- function(settings, includeExposureOfInterest, exposureOf
     if (!is.null(covariateSettings$covariateType)){
       t <- sccsData$eras$eraType == covariateSettings$covariateType
       if (ffbase::any.ff(t)){
+        t <- ffbase::ffwhich(t, t == TRUE)
         covariateSettings$covariateIds <- ff::as.ram(ffbase::unique.ff(sccsData$eras$conceptId[t]))
       } else {
         covariateSettings$covariateIds <- c(-1)
@@ -255,8 +261,20 @@ addCovariateSettings <- function(settings, includeExposureOfInterest, exposureOf
         outputIds <- outputId:(outputId + length(covariateSettings$covariateIds) - 1)
         covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
         outputId <- outputId + length(outputIds)
-        newCovariateRef <- data.frame(covariateId = outputIds, covariateName = covariateSettings$label, originalCovariateId = 0, originalCovariateName = "")
+        t <- !ffbase::is.na.ff(ffbase::ffmatch(sccsData$covariateRef$covariateId, ff::as.ff(covariateSettings$covariateIds)))
+        t <- ffbase::ffwhich(t, t == TRUE)
+        varNames <- ff::as.ram(sccsData$covariateRef[t,])
+        names(varNames)[names(varNames) == "covariateId"] <- "originalCovariateId"
+        names(varNames)[names(varNames) == "covariateName"] <- "originalCovariateName"
+        varNames$covariateName <- paste(covariateSettings$label, varNames$originalCovariateName, sep = ": ")
+        newCovariateRef <- data.frame(covariateId = outputIds,
+                                      originalCovariateId = covariateSettings$covariateIds)
+        newCovariateRef <- merge(newCovariateRef, varNames, by = "originalCovariateId")
         settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
+      }
+      if (i == exposureOfInterestIndex) {
+        settings$metaData$exposureRef <- data.frame(conceptId = covariateSettings$covariateIds,
+                                                    covariateId = outputIds)
       }
     } else {
       startDays <- c(covariateSettings$start, covariateSettings$splitPoints + 1)
@@ -293,6 +311,8 @@ addCovariateSettings <- function(settings, includeExposureOfInterest, exposureOf
     covariateSettingsList[[i]] <- covariateSettings
   }
   settings$covariateSettingsList <- covariateSettingsList
+  settings$covariateRef$covariateName <- as.factor(settings$covariateRef$covariateName)
+  settings$covariateRef$originalCovariateName <- as.factor(settings$covariateRef$originalCovariateName)
   return(settings)
 }
 

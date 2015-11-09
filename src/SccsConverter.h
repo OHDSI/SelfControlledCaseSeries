@@ -81,6 +81,7 @@ struct ConcomitantEra {
 
   int start;
   int end;
+  double weight;
   std::map<int64_t, double> conceptIdToValue;
 };
 
@@ -110,7 +111,7 @@ struct ResultStruct {
     outcomeRowId = new std::vector<int64_t>;
     outcomeStratumId = new std::vector<int64_t>;
     outcomeY = new std::vector<int64_t>;
-    outcomeTime = new std::vector<int64_t>;
+    outcomeTime = new std::vector<double>;
     eraRowId = new std::vector<int64_t>;
     eraStratumId = new std::vector<int64_t>;
     eraCovariateId = new std::vector<int64_t>;
@@ -128,7 +129,7 @@ struct ResultStruct {
     delete eraCovariateValue;
   }
 
-  void addToOutcomes(const int64_t &y, const int64_t &time, const int64_t &stratumId){
+  void addToOutcomes(const int64_t &y, const double &time, const int64_t &stratumId){
     outcomeY->push_back(y);
     outcomeRowId->push_back(rowId);
     outcomeTime->push_back(time);
@@ -186,7 +187,7 @@ private:
   std::vector<int64_t>* outcomeRowId;
   std::vector<int64_t>* outcomeStratumId;
   std::vector<int64_t>* outcomeY;
-  std::vector<int64_t>* outcomeTime;
+  std::vector<double>* outcomeTime;
   std::vector<int64_t>* eraRowId;
   std::vector<int64_t>* eraStratumId;
   std::vector<int64_t>* eraCovariateId;
@@ -210,7 +211,8 @@ private:
   std::vector<Era> extractOutcomes(std::vector<Era>& eras);
   std::vector<ConcomitantEra> buildConcomitantEras(std::vector<Era>& eras, const int startDay, const int endDay);
   void addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId);
-  void addToResult(const ConcomitantEra& era, int outcomeCount, const int duration, const int64_t& observationPeriodId);
+  void addToResult(const ConcomitantEra& era, int outcomeCount, const double duration, const int64_t& observationPeriodId);
+  void computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData);
   int dateDifference(struct tm &date1, struct tm &date2);
   struct tm addMonth(const struct tm &date);
   void addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData);

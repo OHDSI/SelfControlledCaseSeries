@@ -194,5 +194,5 @@ fitModelsAndPickBest <- function(data) {
   } else {
     writeLines("Best fit using exponential - Gamma (Interval) mixture Model")
   }
-  return(list(p = best$fit$estimate, model = best$model))
+  return(list(p = best$fit$estimate, model = best$model, aic = minAic))
 }
