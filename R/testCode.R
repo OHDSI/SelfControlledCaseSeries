@@ -244,7 +244,8 @@ testcode <- function() {
                                                                                           addExposedDaysToEnd = FALSE,
                                                                                           splitPoints = c(-90,-60,-30)),
                                    includeAgeEffect = FALSE,
-                                   includeSeasonality = FALSE)
+                                   includeSeasonality = FALSE,
+                                   eventDependentObservation = TRUE)
 
   saveSccsEraData(sccsEraData, "s:/temp/sccsEraDataGiBleed")
 

@@ -19,15 +19,14 @@
 .formatAndCheckCode <- function() {
   OhdsiRTools::formatRFolder()
   OhdsiRTools::checkUsagePackage("SelfControlledCaseSeries")
-  OhdsiRTools::ohdsiLintrFolder()
 }
 
 .createManualAndVignettes <- function() {
   if (.Platform$OS.type == "unix") {
-    system("rm extras/SelfControlledCaseSeries")
+    system("rm extras/SelfControlledCaseSeries.pdf")
     system("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
   } else {
-    shell("rm extras/SelfControlledCaseSeries")
+    shell("rm extras/SelfControlledCaseSeries.pdf")
     shell("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
   }
 }

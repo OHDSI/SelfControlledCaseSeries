@@ -179,7 +179,7 @@ fitModelsAndPickBest <- function(data) {
       list(model = model, p = fit$estimate, aic = 2*npar + fit$minimum)
     }, error = function(e) {
       missing(e)  # suppresses R CMD check note
-      list(model = model, p = rep(0,npar), aic = 9999999)
+      list(model = model, p = rep(0,npar), aic = 999999999)
     })
     return(result)
   }
@@ -188,7 +188,7 @@ fitModelsAndPickBest <- function(data) {
   results <- OhdsiRTools::clusterApply(cluster, 1:4, fitCensorModel, data)
   OhdsiRTools::stopCluster(cluster)
   for (i in 1:4){
-    if (results[[i]]$aic == 9999999) {
+    if (results[[i]]$aic == 999999999) {
       if (results[[i]]$model == 1) {
         warning("Could not fit exponential - Weibull (Age) mixture Model")
       } else if (results[[i]]$model == 2) {
