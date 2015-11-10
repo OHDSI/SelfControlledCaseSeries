@@ -18,7 +18,7 @@ convertToSccsDataWrapper <- function(cases,
   data <- list(cases = ff::as.ffdf(cases),
                eras = ff::as.ffdf(eras),
                metaData = list(outcomeIds = 10),
-               covariateRef = ff::as.ffdf(data.frame(covariateId = c(1), covariateName = c("")))
+               covariateRef = ff::as.ffdf(data.frame(covariateId = exposureId, covariateName = ""))
   )
   result <- createSccsEraData(sccsData = data,
                               exposureId = exposureId,
@@ -53,7 +53,7 @@ test_that("Simple era construction", {
   expect_equal(result$outcomes$y, c(0, 1))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(300))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 test_that("Outcome on boundary", {
@@ -77,7 +77,7 @@ test_that("Outcome on boundary", {
   expect_equal(result$outcomes$y, c(0, 1))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(300))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 test_that("Outcome on boundary", {
@@ -101,7 +101,7 @@ test_that("Outcome on boundary", {
   expect_equal(result$outcomes$y, c(1, 0))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(300))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 test_that("Outcome on boundary", {
@@ -125,7 +125,7 @@ test_that("Outcome on boundary", {
   expect_equal(result$outcomes$y, c(0, 1))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(300))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 
@@ -150,7 +150,7 @@ test_that("Outcome on boundary", {
   expect_equal(result$outcomes$y, c(1, 0))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(300))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 test_that("One day era", {
@@ -174,7 +174,7 @@ test_that("One day era", {
   expect_equal(result$outcomes$y, c(1, 0))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(300))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 test_that("Merging overlapping eras", {
@@ -198,7 +198,7 @@ test_that("Merging overlapping eras", {
   expect_equal(result$outcomes$y, c(0, 1))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(300))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 test_that("Concomitant drug use", {
@@ -213,16 +213,16 @@ test_that("Concomitant drug use", {
                      observationPeriodId = c(1, 1, 1),
                      conceptId = c(10, 11, 12),
                      value = c(1,1,1),
-                     startDay = c(50, 25, 70),
+                     startDay = c(50, 25, 60),
                      endDay = c(50, 75, 70))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11, 12))
   expect_equal(result$outcomes$rowId, c(0, 1, 2))
   expect_equal(result$outcomes$stratumId, c(1, 1, 1))
-  expect_equal(result$outcomes$time, c(49, 50, 1))
+  expect_equal(result$outcomes$time, c(49, 40, 11))
   expect_equal(result$outcomes$y, c(0, 1, 0))
   expect_equal(result$covariates$rowId, c(1, 2, 2))
   expect_equal(result$covariates$stratumId, c(1, 1, 1))
-  expect_equal(result$covariates$covariateId, c(11, 11, 12))
+  expect_equal(result$covariates$covariateId, c(1000, 1000, 1001))
 })
 
 test_that("Concomitant drug use (3 drugs)", {
@@ -246,7 +246,7 @@ test_that("Concomitant drug use (3 drugs)", {
   expect_equal(result$outcomes$y, c(1, 1, 0, 0, 0))
   expect_equal(result$covariates$rowId, c(1, 2, 3, 3, 4, 4, 4))
   expect_equal(result$covariates$stratumId, c(1, 1, 1, 1, 1, 1, 1))
-  expect_equal(result$covariates$covariateId, c(11, 12, 12, 13, 11, 12, 13))
+  expect_equal(result$covariates$covariateId, c(1000, 1001, 1001, 1002, 1000, 1001, 1002))
 })
 
 test_that("Start risk window at day 1 not 0", {
@@ -272,7 +272,7 @@ test_that("Start risk window at day 1 not 0", {
   expect_equal(result$outcomes$y, c(1, 0))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 test_that("Two HOIs, keeping both", {
@@ -296,7 +296,7 @@ test_that("Two HOIs, keeping both", {
   expect_equal(result$outcomes$y, c(1, 1))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 test_that("Two HOIs, keeping first", {
@@ -320,7 +320,7 @@ test_that("Two HOIs, keeping first", {
   expect_equal(result$outcomes$y, c(1, 0))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
-  expect_equal(result$covariates$covariateId, c(11))
+  expect_equal(result$covariates$covariateId, c(1000))
 })
 
 test_that("Aggregates on large set", {
@@ -344,7 +344,7 @@ test_that("Aggregates on large set", {
   z <- subset(z, startDay.y >= startDay.x & startDay.y <= endDay.x)
   z <- unique(z$observationPeriodId)
 
-  x <- ff::as.ram(ffbase::subset.ffdf(sccsEraData$covariates, covariateId == 1))
+  x <- ff::as.ram(ffbase::subset.ffdf(sccsEraData$covariates, covariateId == 1000))
   y <- ff::as.ram(ffbase::subset.ffdf(sccsEraData$outcomes, y !=0))
   z2 <- merge(x, y, by=c("rowId"))
   z2 <- unique(z2$stratumId.x)
@@ -358,7 +358,7 @@ test_that("Aggregates on large set", {
   z <- subset(z, startDay.y >= startDay.x & startDay.y <= endDay.x)
   z <- unique(z$observationPeriodId)
 
-  x <- ff::as.ram(ffbase::subset.ffdf(sccsEraData$covariates, covariateId == 2))
+  x <- ff::as.ram(ffbase::subset.ffdf(sccsEraData$covariates, covariateId == 1001))
   y <- ff::as.ram(ffbase::subset.ffdf(sccsEraData$outcomes, y !=0))
   z2 <- merge(x, y, by=c("rowId"))
   z2 <- unique(z2$stratumId.x)
@@ -394,7 +394,7 @@ test_that("Exposure splitting", {
   expect_equal(result$outcomes$y, c(0, 0, 1))
   expect_equal(result$covariates$rowId, c(1, 2))
   expect_equal(result$covariates$stratumId, c(1, 1))
-  expect_equal(result$covariates$covariateId, c(300, 301))
+  expect_equal(result$covariates$covariateId, c(1000, 1001))
 })
 
 test_that("Exposure splitting twice", {
@@ -424,7 +424,7 @@ test_that("Exposure splitting twice", {
   expect_equal(result$outcomes$y, c(0, 0, 0, 1))
   expect_equal(result$covariates$rowId, c(1, 2, 3))
   expect_equal(result$covariates$stratumId, c(1, 1, 1))
-  expect_equal(result$covariates$covariateId, c(300, 301, 302))
+  expect_equal(result$covariates$covariateId, c(1000, 1001, 1002))
 })
 
 test_that("Pre-exposure window", {
@@ -451,7 +451,7 @@ test_that("Pre-exposure window", {
   expect_equal(result$outcomes$y, c(0, 1, 0))
   expect_equal(result$covariates$rowId, c(1, 2))
   expect_equal(result$covariates$stratumId, c(1, 1))
-  expect_equal(result$covariates$covariateId, c(300, 301))
+  expect_equal(result$covariates$covariateId, c(1000, 1001))
 })
 
 # test_that("Age", {

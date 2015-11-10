@@ -73,7 +73,7 @@ nrow(data)
 #                                      aend = data$ageInDays + data$censorDate - data$observationStartDate + 1,
 #                                      aestudy = data$ageInDays + observationDays))
 
-
+x <- list(summary = list())
 x$summary$coefficients <- c(0.762933)
 x$modelfit <- matrix(c(-3122.776,-3122.776,-3122.776,-3122.776), nrow = 2)
 

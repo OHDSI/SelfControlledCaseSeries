@@ -283,7 +283,7 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, con
 
 void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int end, int64_t covariateId, int covariateIdRow, const CovariateSettings& covariateSettings) {
   if (covariateSettings.splitPoints.size() == 0) {
-    Era era(start, end, covariateSettings.outputIds(0,0), 1, false);
+    Era era(start, end, covariateSettings.outputIds(covariateIdRow,0), 1, false);
     outputEras.push_back(era);
   } else {
     int newStart = start;
