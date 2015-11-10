@@ -24,7 +24,11 @@ fitSccsModel <- function(sccsEraData,
                                                  startingVariance = 0.1,
                                                  noiseLevel = "quiet")) {
   covariateIds <- sccsEraData$metaData$exposureRef$covariateId[sccsEraData$metaData$exposureRef$conceptId %in% exposureId]
-  prior$exclude <- covariateIds
+  if (length(covariateIds) == nrow(sccsEraData$covariateRef)){
+    prior = createPrior("none")
+  } else {
+    prior$exclude <- covariateIds
+  }
   cyclopsData <- Cyclops::convertToCyclopsData(sccsEraData$outcomes,
                                                sccsEraData$covariates,
                                                modelType = "cpr",

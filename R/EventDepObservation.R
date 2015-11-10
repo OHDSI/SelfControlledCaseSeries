@@ -162,25 +162,44 @@ fitModelsAndPickBest <- function(data) {
 
     npar <- 7
     p0 <- rep(0.1, times=npar)   # inital values
-    if (model == 1){
-      fit <- nlm(mod_ewad2, p=p0, astart=data$astart/365.25, aevent=data$aevent/365.25, aend=data$aend/365.25, present=data$present,
-                 hessian = FALSE, iterlim=1000)
-    } else if (model == 2){
-      fit <- nlm(mod_ewid2, p=p0, aevent=data$aevent/365.25, aend=data$aend/365.25, present=data$present,
-                 hessian = FALSE, iterlim=1000)
-    } else if (model == 3){
-      fit <- nlm(mod_egad2, p=p0, astart=data$astart/365.25, aevent=data$aevent/365.25, aend=data$aend/365.25, present=data$present,
-                 hessian = FALSE, iterlim=1000)
-    } else {
-      fit <- nlm(mod_egid2, p=p0, aevent=data$aevent/365.25, aend=data$aend/365.25, present=data$present,
-                 hessian = FALSE, iterlim=1000)
-    }
-    return(list(model = model, fit = fit, aic = 2*npar + fit$minimum))
+    result <- tryCatch({
+      if (model == 1){
+        fit <- nlm(mod_ewad2, p=p0, astart=data$astart/365.25, aevent=data$aevent/365.25, aend=data$aend/365.25, present=data$present,
+                   hessian = FALSE, iterlim=1000)
+      } else if (model == 2){
+        fit <- nlm(mod_ewid2, p=p0, aevent=data$aevent/365.25, aend=data$aend/365.25, present=data$present,
+                   hessian = FALSE, iterlim=1000)
+      } else if (model == 3){
+        fit <- nlm(mod_egad2, p=p0, astart=data$astart/365.25, aevent=data$aevent/365.25, aend=data$aend/365.25, present=data$present,
+                   hessian = FALSE, iterlim=1000)
+      } else {
+        fit <- nlm(mod_egid2, p=p0, aevent=data$aevent/365.25, aend=data$aend/365.25, present=data$present,
+                   hessian = FALSE, iterlim=1000)
+      }
+      list(model = model, p = fit$estimate, aic = 2*npar + fit$minimum)
+    }, error = function(e) {
+      missing(e)  # suppresses R CMD check note
+      list(model = model, p = rep(0,npar), aic = 9999999)
+    })
+    return(result)
   }
   writeLines("Fitting censoring models")
   cluster <- OhdsiRTools::makeCluster(4)
   results <- OhdsiRTools::clusterApply(cluster, 1:4, fitCensorModel, data)
   OhdsiRTools::stopCluster(cluster)
+  for (i in 1:4){
+    if (results[[i]]$aic == 9999999) {
+      if (results[[i]]$model == 1) {
+        warning("Could not fit exponential - Weibull (Age) mixture Model")
+      } else if (results[[i]]$model == 2) {
+        warning("Could not fit exponential - Weibull (Interval) mixture Model")
+      } else if (results[[i]]$model == 3) {
+        warning("Could not fit exponential - Gamma (Age) mixture Model")
+      } else {
+        warning("Could not fit exponential - Gamma (Interval) mixture Model")
+      }
+    }
+  }
 
   aics <- unlist(OhdsiRTools::selectFromList(results, "aic"))
   minAic <- min(aics)
@@ -194,5 +213,5 @@ fitModelsAndPickBest <- function(data) {
   } else {
     writeLines("Best fit using exponential - Gamma (Interval) mixture Model")
   }
-  return(list(p = best$fit$estimate, model = best$model, aic = minAic))
+  return(list(p = best$p, model = best$model, aic = minAic))
 }

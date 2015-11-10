@@ -185,7 +185,7 @@ addEventDependentObservationSettings <- function(settings, eventDependentObserva
     firstOutcomes <- aggregate(startDay ~ observationPeriodId, data = sccsData$eras[ffbase::ffwhich(t, t == TRUE),], min)
 
     # See who has first event in remaining observation period after applying naive period
-    firstOutcomes <- firstOutcomes[firstOutcomes$startDay > naivePeriod,]
+    firstOutcomes <- firstOutcomes[firstOutcomes$startDay >= naivePeriod,]
     t <- in.ff(sccsData$cases$observationPeriodId, ff::as.ff(firstOutcomes$observationPeriodId))
     cases <- ff::as.ram(sccsData$cases[ffbase::ffwhich(t, t == TRUE), ])
     cases <- merge(cases, firstOutcomes)

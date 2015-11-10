@@ -33,14 +33,13 @@ double NumericIntegration::integrate(IntegratableFunction& f, const double start
   const double delta = end-start;
   const double fStart = f(start);
   const double fEnd = f(end);
-  const double fMiddle = f((start+end)/2);
-  double is = delta/8 * (fStart+fEnd+fMiddle+ f(start + 0.9501*delta) + f(start + 0.2311*delta) + f(start + 0.6068*delta) + f(start + 0.4860*delta) + f(start + 0.8913*delta));
+  const double fMiddle = f((start+end)/2.0);
+  double is = delta/8.0 * (fStart+fEnd+fMiddle+f(start + 0.9501*delta) + f(start + 0.2311*delta) + f(start + 0.6068*delta) + f(start + 0.4860*delta) + f(start + 0.8913*delta));
   if(is == 0) {
     is = delta;
   }
   is = is * tolerance;
-  int count = 0;
-  return recursiveIntegerate(f, start, end, fStart, fMiddle, fEnd, is, count);
+  return recursiveIntegerate(f, start, end, fStart, fMiddle, fEnd, is, 0);
 }
 
 double NumericIntegration::recursiveIntegerate(IntegratableFunction& f, const double start, const double end, const double fStart, const double fMiddle, const double fEnd, const double is, const int count) {
@@ -55,7 +54,7 @@ double NumericIntegration::recursiveIntegerate(IntegratableFunction& f, const do
   if ((std::abs(i1-i2) <= std::abs(is)) || (middle <= start) || (end <= middle)) {
     q = i1;
   } else {
-    if(count < 1000) {
+    if(count < 100) {
       q = recursiveIntegerate(f, start, middle, fStart, fMidL, fMiddle, is, count + 1) + recursiveIntegerate(f, middle, end, fMiddle, fMidR, fEnd, is, count + 1);
     }
   }

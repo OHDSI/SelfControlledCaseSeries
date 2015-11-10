@@ -216,9 +216,12 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
     double start = (personData.ageInDays + era->start) / 365.25;
     double end = (personData.ageInDays + era->end + 1) / 365.25;
+    if (end == aend) {
+      end -= 1.490116e-08; // weight function can be unstable at the end, stay epsilon away
+    }
     double weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, end, 1.490116e-08);
     era->weight = weight * 365.25;
-    //std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", weight:" << weight*365.25 << "\n";
+    //std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << ", weight:" << weight*365.25 << "\n";
   }
 }
 

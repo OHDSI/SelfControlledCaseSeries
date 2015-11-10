@@ -82,6 +82,7 @@ public:
                   (1-pi0)*nu0*lamB*(pow(aend*lamB,(nu0-1)))*exp(-(pow(aend*lamB,nu0)-pow(x*lamB,nu0)))) +
                   present * log(pi0*exp(-lamA*(aend-x))+
                   (1-pi0)*exp(-(pow(aend*lamB,nu0)-pow(x*lamB,nu0)))));
+    //std::cout << x << " " << exp(val) << "\n";
     return exp(val);
   }
 };
