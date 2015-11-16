@@ -17,7 +17,7 @@
 # limitations under the License.
 
 #' @export
-createSimulationRiskWindow <- function(start = 0, end = 0, addExposedDaysToEnd = TRUE, splitPoints = c(), relativeRisks = c(2)) {
+createSimulationRiskWindow <- function(start = 0, end = 0, addExposedDaysToEnd = TRUE, splitPoints = c(), relativeRisks = c(0)) {
   OhdsiRTools::convertArgsToList(match.call(), "simulationRiskWindow")
 }
 
@@ -33,7 +33,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4*365,
                                          usageRate = c(0.01,0.01),
                                          meanPrescriptionDurations = c(14,30),
                                          sdPrescriptionDurations = c(7,14),
-                                         simulationRiskWindows = list(createSimulationRiskWindow(),
+                                         simulationRiskWindows = list(createSimulationRiskWindow(relativeRisks = 1),
                                                                       createSimulationRiskWindow(relativeRisks = 1.5)),
                                          includeAgeEffect = TRUE,
                                          ageKnots = 5,
@@ -200,7 +200,7 @@ simulateSccsData <- function(nCases, settings) {
                                seasonFun = seasonFun,
                                exposureIds = settings$covariateIds,
                                outcomeIds = settings$outcomeId),
-               covariateRef = ff::as.ffdf(data.frame(covariateId = c(1), covariateName = c(""))))
+               covariateRef = ff::as.ffdf(data.frame(covariateId = settings$covariateIds, covariateName = c(""))))
   class(data) <- "sccsData"
   return(data)
 }

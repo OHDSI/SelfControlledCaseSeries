@@ -1,7 +1,7 @@
 /**********************************************************************
 @file Sccs.sql
 
-Copyright 2014 Observational Health Data Sciences and Informatics
+Copyright 2015 Observational Health Data Sciences and Informatics
 
 This file is part of SelfControlledCaseSeries
  
@@ -26,13 +26,13 @@ limitations under the License.
 {DEFAULT @exposure_database_schema = 'cdm4_sim.dbo'} 
 {DEFAULT @exposure_table = 'drug_era'} 
 {DEFAULT @exposure_concept_ids = ''}
-{DEFAULT @exclude_concept_ids = ''}
-{DEFAULT @drug_era_covariates = FALSE}
-{DEFAULT @condition_era_covariates = FALSE}
-{DEFAULT @procedure_covariates = FALSE}
-{DEFAULT @visit_covariates = FALSE}
-{DEFAULT @observation_covariates = FALSE}
-{DEFAULT @measurement_covariates = FALSE}
+{DEFAULT @use_custom_covariates = FALSE}
+{DEFAULT @custom_covariate_database_schema = 'cdm4_sim.dbo'} 
+{DEFAULT @custom_covariate_table = 'drug_era'} 
+{DEFAULT @custom_covariate_concept_ids = ''}
+{DEFAULT @has_excluded_covariate_concept_ids = FALSE} 
+{DEFAULT @has_included_covariate_concept_ids = FALSE} 
+{DEFAULT @use_drug_era_covariates = FALSE}
 {DEFAULT @delete_covariates_small_count = 100}
 {DEFAULT @cdm_version = '4'}
 {DEFAULT @cohort_definition_id = 'cohort_concept_id'} 
@@ -88,8 +88,7 @@ WHERE EXISTS (
 			AND	@cohort_definition_id IN (@outcome_concept_ids)
 	}
 }
-	) 
-;
+	);
 
 /**********************************************************************
 							Create eras
@@ -120,15 +119,7 @@ ON drug_era.person_id = cases.person_id
 	{@exposure_concept_ids != ''} ? {
 WHERE
 	drug_concept_id IN (@exposure_concept_ids)
-		{@exclude_concept_ids != ''} ? {
-	AND drug_concept_id NOT IN (@exclude_concept_ids)	
-		}
-	} : {
-		{@exclude_concept_ids != ''} ? {
-WHERE
-	drug_concept_id NOT IN (@exclude_concept_ids)	
-		}
-	}	
+}
 ;  	
 } : { /* exposure table has same structure as cohort table */
 INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
@@ -146,15 +137,7 @@ ON exposure.subject_id = cases.person_id
 	{@exposure_concept_ids != ''} ? {
 WHERE
 	@cohort_definition_id IN (@exposure_concept_ids)
-		{@exclude_concept_ids != ''} ? {
-	AND @cohort_definition_id NOT IN (@exclude_concept_ids)	
-		}
-	} : {
-		{@exclude_concept_ids != ''} ? {
-WHERE
-	@cohort_definition_id NOT IN (@exclude_concept_ids)	
-		}
-	}	
+}
 ;  		
 }
 
@@ -215,7 +198,7 @@ WHERE
 }
 	
 /* Create drug eras */
-{@drug_era_covariates} ? {
+{@use_drug_era_covariates} ? {
 INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'rx',
 	cases.observation_period_id,
@@ -226,128 +209,31 @@ SELECT 'rx',
 FROM drug_era
 INNER JOIN #cases cases
 ON drug_era.person_id = cases.person_id
-	AND drug_era_start_date <= observation_period_end_date
+WHERE drug_era_start_date <= observation_period_end_date
 	AND drug_era_end_date >= observation_period_start_date
-	{@exclude_concept_ids != ''} ? {
-WHERE
-	drug_concept_id NOT IN (@exclude_concept_ids)	
-	}	
+{@has_excluded_covariate_concept_ids} ? {	AND drug_concept_id NOT IN (SELECT concept_id FROM #excluded_cov)}
+{@has_included_covariate_concept_ids} ? {	AND drug_concept_id IN (SELECT concept_id FROM #included_cov)}	
 ;  		
 }
 
-/* Create condition eras */
-{@condition_era_covariates} ? {
+/* Create custom eras */
+{@use_custom_covariates} ? {
 INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
-SELECT 'dx',
+SELECT 'custom',
 	cases.observation_period_id,
-	condition_concept_id,
+	@cohort_definition_id,
 	1,
-	DATEDIFF(dd, observation_period_start_date, condition_era_start_date),
-	DATEDIFF(dd, observation_period_start_date, condition_era_end_date)
-FROM condition_era
+	DATEDIFF(dd, observation_period_start_date, cohort_start_date),
+	DATEDIFF(dd, observation_period_start_date, cohort_start_date)
+FROM @custom_covariate_database_schema.@custom_covariate_table covars
 INNER JOIN #cases cases
-ON condition_era.person_id = cases.person_id
-	AND condition_era_start_date <= observation_period_end_date
-	AND condition_era_end_date >= observation_period_start_date
-	{@exclude_concept_ids != ''} ? {
-WHERE
-	condition_concept_id NOT IN (@exclude_concept_ids)	
-	}	
+ON covars.subject_id = cases.person_id
+WHERE cohort_start_date <= observation_period_end_date
+	AND cohort_start_date >= observation_period_start_date
+{@has_excluded_covariate_concept_ids} ? {	AND @cohort_definition_id NOT IN (SELECT concept_id FROM #excluded_cov)}
+{@has_included_covariate_concept_ids} ? {	AND @cohort_definition_id IN (SELECT concept_id FROM #included_cov)}	
 ;  		
 }
-
-/* Create procedure eras */
-{@procedure_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
-SELECT 'px',
-	cases.observation_period_id,
-	procedure_concept_id,
-	1,
-	DATEDIFF(dd, observation_period_start_date, procedure_date),
-	DATEDIFF(dd, observation_period_start_date, procedure_date)
-FROM procedure_occurrence
-INNER JOIN #cases cases
-ON procedure_occurrence.person_id = cases.person_id
-	AND procedure_date <= observation_period_end_date
-	AND procedure_date >= observation_period_start_date
-	{@exclude_concept_ids != ''} ? {
-WHERE
-	procedure_concept_id NOT IN (@exclude_concept_ids)	
-	}		
-;  		
-}
-
-/* Create visit eras */
-{@visit_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
-SELECT 'vx',
-	cases.observation_period_id,
-{@cdm_version == '4'} ? {
-	place_of_service_concept_id,
-} : {
-    visit_concept_id,
-}
-    1,
-	DATEDIFF(dd, observation_period_start_date, visit_start_date),
-	DATEDIFF(dd, observation_period_start_date, visit_end_date)
-FROM visit_occurrence
-INNER JOIN #cases cases
-ON visit_occurrence.person_id = cases.person_id
-	AND visit_start_date <= observation_period_end_date
-	AND visit_end_date >= observation_period_start_date
-{@exclude_concept_ids != ''} ? {
-WHERE
-{@cdm_version == '4'} ? {
-	place_of_service_concept_id NOT IN (@exclude_concept_ids)	
-} : {
-	visit_concept_id NOT IN (@exclude_concept_ids)	
-}
-}		
-;  		
-}
-
-/* Create observation eras */
-{@observation_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
-SELECT 'rx',
-	cases.observation_period_id,
-	observation_concept_id,
-	1,
-	DATEDIFF(dd, observation_period_start_date, observation_date),
-	DATEDIFF(dd, observation_period_start_date, observation_date)
-FROM observation
-INNER JOIN #cases cases
-ON observation.person_id = cases.person_id
-	AND observation_date <= observation_period_end_date
-	AND observation_date >= observation_period_start_date
-	{@exclude_concept_ids != ''} ? {
-WHERE
-	observation_concept_id NOT IN (@exclude_concept_ids)	
-	}		
-;  		
-}
-
-/* Create measurement eras */
-{@cdm_version != '4' & @measurement_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
-SELECT 'rx',
-	cases.observation_period_id,
-	measurement_concept_id,
-	1,
-	DATEDIFF(dd, observation_period_start_date, measurement_date),
-	DATEDIFF(dd, observation_period_start_date, measurement_date)
-FROM measurement
-INNER JOIN #cases cases
-ON measurement.person_id = cases.person_id
-	AND measurement_date <= observation_period_end_date
-	AND measurement_date >= observation_period_start_date
-	{@exclude_concept_ids != ''} ? {
-WHERE
-	measurement_concept_id NOT IN (@exclude_concept_ids)	
-	}		
-;  		
-}
-
 
 /**********************************************************************
 		Delete covariates with concept_id = 0 or small cell count
@@ -378,3 +264,18 @@ INNER JOIN (
 	) eras
 ON eras.concept_id = concept.concept_id
 ;
+
+/**********************************************************************
+					            Cleanup
+***********************************************************************/
+{@has_excluded_covariate_concept_ids} ? {
+TRUNCATE TABLE #excluded_cov;
+
+DROP TABLE #excluded_cov;
+}
+
+{@has_included_covariate_concept_ids} ? {
+TRUNCATE TABLE #included_cov;
+
+DROP TABLE #included_cov;
+}

@@ -31,9 +31,9 @@ namespace ohdsi {
 namespace sccs {
 
 struct CovariateSettings {
-  CovariateSettings(const List& _covariateSettings) : stratifyById(as<bool>(_covariateSettings["stratifyByID"])), mergeErasBeforeSplit(as<bool>(_covariateSettings["mergeErasBeforeSplit"])),
+  CovariateSettings(const List& _covariateSettings) : stratifyById(as<bool>(_covariateSettings["stratifyByID"])),
   firstOccurrenceOnly(as<bool>(_covariateSettings["firstOccurrenceOnly"])), covariateIds(as<NumericVector>(_covariateSettings["covariateIds"])),
-  outputIds(as<NumericMatrix>(_covariateSettings["outputIds"])), start(as<int>(_covariateSettings["start"])), end(as<int>(_covariateSettings["end"])),
+  outputIds(as<NumericMatrix>(_covariateSettings["outputIds"])), start(as<int>(_covariateSettings["start"])), addExposedDaysToStart(as<bool>(_covariateSettings["addExposedDaysToStart"])), end(as<int>(_covariateSettings["end"])),
   addExposedDaysToEnd(as<bool>(_covariateSettings["addExposedDaysToEnd"])){
     if (_covariateSettings.containsElementNamed("splitPoints")){
       NumericVector splitPointsList = _covariateSettings["splitPoints"];
@@ -47,12 +47,12 @@ struct CovariateSettings {
 
   }
   bool stratifyById;
-  bool mergeErasBeforeSplit;
   bool firstOccurrenceOnly;
   NumericVector covariateIds;
   std::set<int64_t> covariateIdSet;
   NumericMatrix outputIds;
   int start;
+  bool addExposedDaysToStart;
   int end;
   bool addExposedDaysToEnd;
   std::vector<int> splitPoints;
@@ -216,7 +216,7 @@ private:
   int dateDifference(struct tm &date1, struct tm &date2);
   struct tm addMonth(const struct tm &date);
   void addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData);
-  void addCovariateEra(std::vector<Era>& outputEras, int start, int end, int64_t covariateId, int covariateIdRow, const CovariateSettings& covariateSettings);
+  void addCovariateEra(std::vector<Era>& outputEras, int start, int end, int leftCensor, int rightCensor, int covariateIdRow, const CovariateSettings& covariateSettings);
   void addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings);
 
   PersonDataIterator personDataIterator;

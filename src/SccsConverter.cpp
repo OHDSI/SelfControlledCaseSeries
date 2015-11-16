@@ -281,26 +281,37 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, con
   }
 }
 
-void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int end, int64_t covariateId, int covariateIdRow, const CovariateSettings& covariateSettings) {
+void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int end, int leftCensor, int rightCensor, int covariateIdRow, const CovariateSettings& covariateSettings) {
+  int newStart = covariateSettings.start + (covariateSettings.addExposedDaysToStart?end:start);
+  int newEnd = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?end:start);
+  //std::cout << "Start: " << start << ", end: " << end<< ", newStart: " << newStart << ", newEnd: " << newEnd << "\n";
+  if (newStart <= leftCensor){
+    newStart = leftCensor + 1;
+  }
+  if (newEnd >= rightCensor) {
+    newEnd = rightCensor - 1;
+  }
   if (covariateSettings.splitPoints.size() == 0) {
-    Era era(start, end, covariateSettings.outputIds(covariateIdRow,0), 1, false);
+    Era era(newStart, newEnd, covariateSettings.outputIds(covariateIdRow,0), 1, false);
     outputEras.push_back(era);
   } else {
-    int newStart = start;
+    int splitStart = newStart;
     for (unsigned int j = 0; j < covariateSettings.splitPoints.size() + 1; j++){
-      int newEnd;
+      int splitEnd;
       if (j == covariateSettings.splitPoints.size()) {
-        newEnd = end;
+        splitEnd = newEnd;
       } else {
-        newEnd = start - covariateSettings.start + covariateSettings.splitPoints[j];
-        if (newEnd > end) {
-          newEnd = end;
+        splitEnd = start + covariateSettings.splitPoints[j];
+        if (splitEnd > newEnd) {
+          splitEnd = newEnd;
         }
       }
-      Era era(newStart, newEnd, covariateSettings.outputIds(covariateIdRow, j), 1, false);
-      outputEras.push_back(era);
-      newStart = newEnd + 1;
-      if (newStart > end){
+      if (splitEnd > newStart) {
+        Era era(splitStart, splitEnd, covariateSettings.outputIds(covariateIdRow, j), 1, false);
+        outputEras.push_back(era);
+      }
+      splitStart = splitEnd + 1;
+      if (splitStart > newEnd){
         break;
       }
     }
@@ -309,94 +320,86 @@ void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int
 
 void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings) {
   if (covariateSettings.stratifyById) {
-    if (covariateSettings.mergeErasBeforeSplit) {
-      // Stratify by ID, merge prior to splitting:
-      for (int i = 0; i < covariateSettings.covariateIds.size(); i++) {
-        int64_t covariateId = covariateSettings.covariateIds[i];
-        int start = -1;
-        int end = -2;
-        bool first = true;
-        for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
-          if (era->conceptId == covariateId) {
-            int eraStart = covariateSettings.start + era->start;
-            int eraEnd = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?era->end:era->start);
-            if (eraStart > (end + 1)) {
-              if (end != -2){
-                addCovariateEra(outputEras, start, end, covariateId, i, covariateSettings);
-                if (covariateSettings.firstOccurrenceOnly){
-                  first = false;
-                  break;
-                }
-              }
-              start = eraStart;
-            }
-            if (eraEnd > end){
-              end = eraEnd;
-            }
-          }
-        }
-        if (end != -2 && (!covariateSettings.firstOccurrenceOnly || first)){
-          addCovariateEra(outputEras, start, end, covariateId, i ,covariateSettings);
-        }
-      }
-    } else {
-      // Stratify by ID, don't merge prior to splitting:
-      for (int i = 0; i < covariateSettings.covariateIds.size(); i++) {
-        int64_t covariateId = covariateSettings.covariateIds[i];
-        for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
-          if (era->conceptId == covariateId) {
-            int start = era->start + covariateSettings.start;
-            int end = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?era->end:era->start);
-            addCovariateEra(outputEras, start, end, covariateId, i, covariateSettings);
-            if (covariateSettings.firstOccurrenceOnly){
+    for (int i = 0; i < covariateSettings.covariateIds.size(); i++) {
+      int64_t covariateId = covariateSettings.covariateIds[i];
+      std::vector<Era> covariateEras;
+      int start = -9999;
+      int end = -9999;
+      bool first = true;
+      for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
+        if (era->conceptId == covariateId) {
+          if (era->start > (end + 1) && end != -9999) {
+            Era mergedEra(start, end, 0, 1, false);
+            covariateEras.push_back(mergedEra);
+            if (covariateSettings.firstOccurrenceOnly) {
+              first = false;
               break;
             }
+            start = era->start;
           }
+          if (start == -9999){
+            start = era->start;
+          }
+          if (era->end > end) {
+            end = era->end;
+          }
+          //std::cout << "Start: " << start << ", end: " << end<< ", eraStart: " << era->start<< ", eraEnd: " << era->end << "\n";
+        }
+      }
+      if (end != -9999 && (!covariateSettings.firstOccurrenceOnly || first)){
+        Era mergedEra(start, end, 0, 1, false);
+        covariateEras.push_back(mergedEra);
+      }
+      //std::cout << "Count: " << covariateEras.size() << "\n";
+      int leftCensor = -1;
+      for (unsigned int j = 0; j < covariateEras.size(); j++) {
+        int rightCensor;
+        if (j + 1 < covariateEras.size()) {
+          rightCensor = covariateEras[j + 1].start;
+        } else {
+          rightCensor = 99999;
+        }
+        addCovariateEra(outputEras, covariateEras[j].start, covariateEras[j].end, leftCensor, rightCensor, i, covariateSettings);
+      }
+    }
+  } else { //not stratify by ID
+    std::vector<Era> covariateEras;
+    int start = -9999;
+    int end = -9999;
+    bool first = true;
+    for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
+      if (covariateSettings.covariateIdSet.find(era->conceptId) != covariateSettings.covariateIdSet.end()) {
+        if (era->start > (end + 1) && end != -9999) {
+          Era mergedEra(start, end, 0, 1, false);
+          covariateEras.push_back(mergedEra);
+          if (covariateSettings.firstOccurrenceOnly) {
+            first = false;
+            break;
+          }
+          start = era->start;
+        }
+        if (start == -9999){
+          start = era->start;
+        }
+        if (era->end > end) {
+          end = era->end;
         }
       }
     }
-  } else {
-    if (covariateSettings.mergeErasBeforeSplit) {
-      // Don't stratify by ID, merge prior to splitting:
-      int64_t covariateId = covariateSettings.outputIds[0];
-      int start = -1;
-      int end = -2;
-      bool first = true;
-      for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
-        if (covariateSettings.covariateIdSet.find(era->conceptId) != covariateSettings.covariateIdSet.end()) {
-          int eraStart = covariateSettings.start + era->start;
-          int eraEnd = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?era->end:era->start);
-          if (eraStart > (end + 1)) {
-            if (end != -2){
-              addCovariateEra(outputEras, start, end, covariateId, 0, covariateSettings);
-              if (covariateSettings.firstOccurrenceOnly){
-                first = false;
-                break;
-              }
-            }
-            start = eraStart;
-          }
-          if (eraEnd > end){
-            end = eraEnd;
-          }
-        }
+    if (end != -9999 && (!covariateSettings.firstOccurrenceOnly || first)){
+      Era mergedEra(start, end, 0, 1, false);
+      covariateEras.push_back(mergedEra);
+
+    }
+    int leftCensor = -1;
+    for (unsigned int j = 0; j < covariateEras.size(); j++) {
+      int rightCensor;
+      if (j + 1 < covariateEras.size()) {
+        rightCensor = covariateEras[j + 1].start;
+      } else {
+        rightCensor = 99999;
       }
-      if (end != -2 && (!covariateSettings.firstOccurrenceOnly || first)){
-        addCovariateEra(outputEras, start, end, covariateId, 0 ,covariateSettings);
-      }
-    } else {
-      // Don't stratify by ID, don't merge prior to splitting:
-      int64_t covariateId = covariateSettings.outputIds[0];
-      for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
-        if (covariateSettings.covariateIdSet.find(era->conceptId) != covariateSettings.covariateIdSet.end()) {
-          int start = era->start + covariateSettings.start;
-          int end = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?era->end:era->start);
-          addCovariateEra(outputEras, start, end, covariateId, 0, covariateSettings);
-          if (covariateSettings.firstOccurrenceOnly){
-            break;
-          }
-        }
-      }
+      addCovariateEra(outputEras, covariateEras[j].start, covariateEras[j].end, leftCensor, rightCensor, 0, covariateSettings);
     }
   }
 }

@@ -18,16 +18,41 @@
 
 #' @export
 fitSccsModel <- function(sccsEraData,
-                         exposureId,
                          prior = createPrior("laplace", useCrossValidation = TRUE),
                          control = createControl(cvType = "auto",
+                                                 selectorType = "byPid",
                                                  startingVariance = 0.1,
                                                  noiseLevel = "quiet")) {
-  covariateIds <- sccsEraData$metaData$exposureRef$covariateId[sccsEraData$metaData$exposureRef$conceptId %in% exposureId]
-  if (length(covariateIds) == nrow(sccsEraData$covariateRef)){
+  # Build list of IDs that should not be regularized, and see if there is anything that needs regularization:
+  nonRegularized <- c()
+  needRegularization <- FALSE
+  covariateSettingsList <- sccsEraData$metaData$covariateSettingsList
+  for (i in 1:length(covariateSettingsList)){
+    if (covariateSettingsList[[i]]$allowRegularization) {
+      needRegularization <- TRUE
+    } else {
+      nonRegularized <- c(nonRegularized, covariateSettingsList[[i]]$outputIds)
+    }
+  }
+  if (!is.null(sccsEraData$metaData$age)){
+    if (sccsEraData$metaData$age$allowRegularization){
+      needRegularization <- TRUE
+    } else {
+      nonRegularized <- c(nonRegularized, sccsEraData$metaData$age$covariateIds)
+    }
+  }
+  if (!is.null(sccsEraData$metaData$seasonality)){
+    if (sccsEraData$metaData$seasonality$allowRegularization){
+      needRegularization <- TRUE
+    } else {
+      nonRegularized <- c(nonRegularized, sccsEraData$metaData$seasonality$covariateIds)
+    }
+  }
+
+  if (!needRegularization){
     prior = createPrior("none")
   } else {
-    prior$exclude <- covariateIds
+    prior$exclude <- nonRegularized
   }
   cyclopsData <- Cyclops::convertToCyclopsData(sccsEraData$outcomes,
                                                sccsEraData$covariates,
@@ -52,37 +77,40 @@ fitSccsModel <- function(sccsEraData,
     status <- "ILL CONDITIONED, CANNOT FIT"
   } else {
     status <- "OK"
-    coefficients <- coef(fit)
-    logRr <- coef(fit)[names(coef(fit)) %in% covariateIds]
-    ci <- tryCatch({
-      confint(fit, parm = covariateIds, includePenalty = TRUE)
+    estimates <- coef(fit)
+    estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
+    estimates <- merge(estimates, ff::as.ram(sccsEraData$covariateRef), all.x = TRUE)
+    tryCatch({
+      ci <- as.data.frame(confint(fit, parm = nonRegularized, includePenalty = TRUE))
+      rownames(ci) <- NULL
     }, error = function(e) {
       missing(e)  # suppresses R CMD check note
-      c(0, -Inf, Inf)
+      ci <- data.frame(covariateId = 0, logLb95 = 0, logUb95 = 0)
     })
-    if (identical(ci, c(0, -Inf, Inf)))
-      status <- "ERROR COMPUTING CI"
-    seLogRr <- (ci[,3] - logRr)/qnorm(0.975)
-    treatmentEstimate <- data.frame(logRr = logRr,
-                                    logLb95 = ci[,2],
-                                    logUb95 = ci[,3],
-                                    seLogRr = seLogRr)
+    names(ci)[names(ci) == "2.5 %"] <- "logLb95"
+    names(ci)[names(ci) == "97.5 %"] <- "logUb95"
+    ci$evaluations <- NULL
+    estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
     priorVariance <- fit$variance[1]
   }
-  result <- list(exposureId = exposureId,
-                 outcomeId = sccsEraData$metaData$outcomeId,
-                 coefficients = coefficients,
+  result <- list(outcomeId = sccsEraData$metaData$outcomeId,
+                 estimates = estimates,
                  priorVariance = priorVariance,
-                 treatmentEstimate = treatmentEstimate,
                  status = status)
-  if (!is.null(sccsEraData$metaData$ageKnots)){
-    result$ageKnots <- sccsEraData$metaData$ageKnots
+  if (!is.null(sccsEraData$metaData$age)){
+    result$age <- sccsEraData$metaData$age
   }
-  if (!is.null(sccsEraData$metaData$seasonKnots)){
-    result$seasonKnots <- sccsEraData$metaData$seasonKnots
+  if (!is.null(sccsEraData$metaData$seasonanlity)){
+    result$seasononality <- sccsEraData$metaData$seasononality
   }
   class(result) <- "sccsModel"
   return(result)
+}
+
+
+#' @export
+coef.sccsModel <- function(object, ...) {
+  return(object$estimates$logRr)
 }
 
 #' @export

@@ -105,19 +105,16 @@ test_that("Produces same results as SCCS package when using event-dependent obse
                    covariateRef = ff::as.ffdf(data.frame(covariateId = c(1), covariateName = c("")))
   )
   sccsEraData <- createSccsEraData(sccsData = sccsData,
-                                   exposureId = 1,
-                                   exposureOfInterestSettings = createCovariateSettings(start = 0,
-                                                                                        end = 0,
-                                                                                        addExposedDaysToEnd = TRUE),
+                                   covariateSettings = createCovariateSettings(includeCovariateIds = 1,
+                                                                               start = 0,
+                                                                               end = 0,
+                                                                               addExposedDaysToEnd = TRUE),
                                    naivePeriod = 0,
-                                   firstOutcomeOnly = TRUE,
-                                   includeAgeEffect = FALSE,
-                                   includePreExposureOfInterest = FALSE,
                                    eventDependentObservation = TRUE)
 
   expect_equal(sccsEraData$metaData$censorModel$aic, min(x$modelfit[2,]), tolerance = 1E-6)
 
-  fit <- fitSccsModel(sccsEraData, exposureId = 1)
+  fit <- fitSccsModel(sccsEraData)
 
   expect_equal(x$summary$coefficients[1], as.vector(coef(fit)), tolerance = 1E-6)
 })

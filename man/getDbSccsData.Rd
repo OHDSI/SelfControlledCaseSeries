@@ -10,10 +10,11 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
   outcomeTable = "condition_occurrence", outcomeIds,
   outcomeConditionTypeConceptIds = c(),
   exposureDatabaseSchema = cdmDatabaseSchema, exposureTable = "drug_era",
-  exposureIds = c(), excludeConceptIds = c(), drugEraCovariates = FALSE,
-  conditionEraCovariates = FALSE, procedureCovariates = FALSE,
-  visitCovariates = FALSE, observationCovariates = FALSE,
-  measurementCovariates = FALSE, deleteCovariatesSmallCount = 100,
+  exposureIds = c(), useCustomCovariates = FALSE,
+  customCovariateDatabaseSchema = cdmDatabaseSchema,
+  customCovariateTable = "cohort", customCovariateIds = c(),
+  excludedCovariateConceptIds = c(), includedCovariateConceptIds = c(),
+  useDrugEraCovariates = FALSE, deleteCovariatesSmallCount = 100,
   cdmVersion = "4")
 }
 \arguments{
@@ -21,41 +22,71 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
 function \code{createConnectionDetails} in the
 \code{DatabaseConnector} package.}
 
-\item{cdmDatabaseSchema}{}
+\item{cdmDatabaseSchema}{The name of the database schema that contains the OMOP CDM
+instance.  Requires read permissions to this database. On SQL
+Server, this should specifiy both the database and the schema, so
+for example 'cdm_instance.dbo'.}
 
-\item{oracleTempSchema}{}
+\item{oracleTempSchema}{A schema where temp tables can be created in Oracle.}
 
-\item{outcomeDatabaseSchema}{}
+\item{outcomeDatabaseSchema}{The name of the database schema that is the location where
+the data used to define the outcome cohorts is available. If
+outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
+used.  Requires read permissions to this database.}
 
-\item{outcomeTable}{}
+\item{outcomeTable}{The tablename that contains the outcome cohorts.  If
+outcomeTable <> CONDITION_OCCURRENCE, then expectation is
+outcomeTable has format of COHORT table:
+COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
+COHORT_END_DATE.}
 
-\item{outcomeIds}{}
+\item{outcomeIds}{A list of ids used to define outcomes.  If outcomeTable =
+CONDITION_OCCURRENCE, the list is a set of ancestor
+CONCEPT_IDs, and all occurrences of all descendant concepts
+will be selected.  If outcomeTable <> CONDITION_OCCURRENCE,
+the list contains records found in COHORT_DEFINITION_ID
+field.}
 
-\item{outcomeConditionTypeConceptIds}{}
+\item{outcomeConditionTypeConceptIds}{A list of TYPE_CONCEPT_ID values that will restrict
+condition occurrences.  Only applicable if outcomeTable =
+CONDITION_OCCURRENCE.}
 
-\item{exposureDatabaseSchema}{}
+\item{exposureDatabaseSchema}{The name of the database schema that is the location where the
+exposure data used to define the exposure cohorts is available.
+If exposureTable = DRUG_ERA, exposureDatabaseSchema is not used
+by assumed to be cdmSchema.  Requires read permissions to this
+database.}
 
-\item{exposureTable}{}
+\item{exposureTable}{The tablename that contains the exposure cohorts.  If
+exposureTable <> DRUG_ERA, then expectation is exposureTable has
+format of COHORT table: cohort_concept_id, SUBJECT_ID,
+COHORT_START_DATE, COHORT_END_DATE.}
 
-\item{exposureIds}{}
+\item{exposureIds}{A unique identifier to define the exposures of interest.  If
+exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.  If exposureTable <> DRUG_ERA, exposureIds is
+used to select the cohort_concept_id in the cohort-like table. If no exposureIds are provided, all
+drugs or cohorts in the exposureTable are included as exposures.}
 
-\item{excludeConceptIds}{}
+\item{useCustomCovariates}{Create covariates from a custom table?}
 
-\item{drugEraCovariates}{}
+\item{customCovariateDatabaseSchema}{The name of the database schema that is the location where the
+custom covariate data is available.}
 
-\item{conditionEraCovariates}{}
+\item{customCovariateTable}{Name of the table holding the custom covariates. This table should have the same structure as the cohort table.}
 
-\item{procedureCovariates}{}
+\item{customCovariateIds}{A list of cohort definition IDS identifying the records in the customCovariateTable to use for building custom covariates.}
 
-\item{visitCovariates}{}
+\item{excludedCovariateConceptIds}{A list of concept IDs that should NOT be used to
+construct covariates.}
 
-\item{observationCovariates}{}
+\item{includedCovariateConceptIds}{A list of concept IDs that should be used to
+construct covariates.}
 
-\item{measurementCovariates}{}
+\item{useDrugEraCovariates}{Should all drugs in the drug_era table be fetched as covariates?}
 
-\item{deleteCovariatesSmallCount}{}
+\item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be kept.}
 
-\item{cdmVersion}{}
+\item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and "5".}
 }
 \description{
 Todo: add description

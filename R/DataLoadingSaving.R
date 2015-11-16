@@ -27,24 +27,54 @@
 #' @param connectionDetails  An R object of type \code{ConnectionDetails} created using the
 #'                                         function \code{createConnectionDetails} in the
 #'                                         \code{DatabaseConnector} package.
-#' @param cdmDatabaseSchema
-#' @param oracleTempSchema
-#' @param outcomeDatabaseSchema
-#' @param outcomeTable
-#' @param outcomeIds
-#' @param outcomeConditionTypeConceptIds
-#' @param exposureDatabaseSchema
-#' @param exposureTable
-#' @param exposureIds
-#' @param excludeConceptIds
-#' @param drugEraCovariates
-#' @param conditionEraCovariates
-#' @param procedureCovariates
-#' @param visitCovariates
-#' @param observationCovariates
-#' @param measurementCovariates
-#' @param deleteCovariatesSmallCount
-#' @param cdmVersion
+#' @param cdmDatabaseSchema         The name of the database schema that contains the OMOP CDM
+#'                                  instance.  Requires read permissions to this database. On SQL
+#'                                  Server, this should specifiy both the database and the schema, so
+#'                                  for example 'cdm_instance.dbo'.
+#' @param oracleTempSchema          A schema where temp tables can be created in Oracle.
+#' @param outcomeDatabaseSchema            The name of the database schema that is the location where
+#'                                         the data used to define the outcome cohorts is available. If
+#'                                         outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
+#'                                         used.  Requires read permissions to this database.
+#' @param outcomeTable                     The tablename that contains the outcome cohorts.  If
+#'                                         outcomeTable <> CONDITION_OCCURRENCE, then expectation is
+#'                                         outcomeTable has format of COHORT table:
+#'                                         COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
+#'                                         COHORT_END_DATE.
+#' @param outcomeIds                       A list of ids used to define outcomes.  If outcomeTable =
+#'                                         CONDITION_OCCURRENCE, the list is a set of ancestor
+#'                                         CONCEPT_IDs, and all occurrences of all descendant concepts
+#'                                         will be selected.  If outcomeTable <> CONDITION_OCCURRENCE,
+#'                                         the list contains records found in COHORT_DEFINITION_ID
+#'                                         field.
+#' @param outcomeConditionTypeConceptIds   A list of TYPE_CONCEPT_ID values that will restrict
+#'                                         condition occurrences.  Only applicable if outcomeTable =
+#'                                         CONDITION_OCCURRENCE.
+#' @param exposureDatabaseSchema       The name of the database schema that is the location where the
+#'                                     exposure data used to define the exposure cohorts is available.
+#'                                     If exposureTable = DRUG_ERA, exposureDatabaseSchema is not used
+#'                                     by assumed to be cdmSchema.  Requires read permissions to this
+#'                                     database.
+#' @param exposureTable                The tablename that contains the exposure cohorts.  If
+#'                                     exposureTable <> DRUG_ERA, then expectation is exposureTable has
+#'                                     format of COHORT table: cohort_concept_id, SUBJECT_ID,
+#'                                     COHORT_START_DATE, COHORT_END_DATE.
+#' @param exposureIds                  A unique identifier to define the exposures of interest.  If
+#'                                     exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.  If exposureTable <> DRUG_ERA, exposureIds is
+#'                                     used to select the cohort_concept_id in the cohort-like table. If no exposureIds are provided, all
+#'                                     drugs or cohorts in the exposureTable are included as exposures.
+#' @param excludedCovariateConceptIds               A list of concept IDs that should NOT be used to
+#'                                                  construct covariates.
+#' @param includedCovariateConceptIds               A list of concept IDs that should be used to
+#'                                                  construct covariates.
+#' @param useDrugEraCovariates        Should all drugs in the drug_era table be fetched as covariates?
+#' @param useCustomCovariates         Create covariates from a custom table?
+#' @param customCovariateDatabaseSchema   The name of the database schema that is the location where the
+#'                                     custom covariate data is available.
+#' @param customCovariateTable         Name of the table holding the custom covariates. This table should have the same structure as the cohort table.
+#' @param customCovariateIds           A list of cohort definition IDS identifying the records in the customCovariateTable to use for building custom covariates.
+#' @param deleteCovariatesSmallCount  The minimum count for a covariate to appear in the data to be kept.
+#' @param cdmVersion                Define the OMOP CDM version used: currently support "4" and "5".
 #'
 #' @export
 getDbSccsData <- function(connectionDetails,
@@ -57,27 +87,57 @@ getDbSccsData <- function(connectionDetails,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
                           exposureIds = c(),
-                          excludeConceptIds = c(),
-                          drugEraCovariates = FALSE,
-                          conditionEraCovariates = FALSE,
-                          procedureCovariates = FALSE,
-                          visitCovariates = FALSE,
-                          observationCovariates = FALSE,
-                          measurementCovariates = FALSE,
+                          useCustomCovariates = FALSE,
+                          customCovariateDatabaseSchema = cdmDatabaseSchema,
+                          customCovariateTable = "cohort",
+                          customCovariateIds = c(),
+                          excludedCovariateConceptIds = c(),
+                          includedCovariateConceptIds = c(),
+                          useDrugEraCovariates = FALSE,
                           deleteCovariatesSmallCount = 100,
                           cdmVersion = "4") {
-  if (exposureTable == "drug_era" && length(exposureIds) == 0 && drugEraCovariates){
-    drugEraCovariates = FALSE
-    warning("Including all drugs in era table as exposures of interest, so using drug era covariates would duplicate all exposures. Setting drugEraCovariates to false.")
+  if (exposureTable == "drug_era" && length(exposureIds) == 0 && useDrugEraCovariates){
+    useDrugEraCovariates = FALSE
+    warning("Including all drugs in era table as exposures of interest, so using drug era covariates would duplicate all exposures. Setting useDrugEraCovariates to false.")
   }
-
+  if (useCustomCovariates == FALSE && length(customCovariateIds) == 0) {
+    stop("Must provide custom covariate IDs if useCustomCovariates is TRUE")
+  }
   if (cdmVersion == "4"){
     cohortDefinitionId <- "cohort_concept_id"
   } else {
     cohortDefinitionId <- "cohort_definition_id"
   }
-
   cdmDatabase <- strsplit(cdmDatabaseSchema, "\\.")[[1]][1]
+  if (is.null(excludedCovariateConceptIds) || length(excludedCovariateConceptIds) == 0) {
+    hasExcludedCovariateConceptIds <- FALSE
+  } else {
+    if (!is.numeric(excludedCovariateConceptIds))
+      stop("excludedCovariateConceptIds must be a (vector of) numeric")
+    hasExcludedCovariateConceptIds <- TRUE
+    DatabaseConnector::insertTable(connection,
+                                   tableName = "#excluded_cov",
+                                   data = data.frame(concept_id = as.integer(excludedCovariateConceptIds)),
+                                   dropTableIfExists = TRUE,
+                                   createTable = TRUE,
+                                   tempTable = TRUE,
+                                   oracleTempSchema = oracleTempSchema)
+  }
+
+  if (is.null(includedCovariateConceptIds) || length(includedCovariateConceptIds) == 0) {
+    hasIncludedCovariateConceptIds <- FALSE
+  } else {
+    if (!is.numeric(includedCovariateConceptIds))
+      stop("includedCovariateConceptIds must be a (vector of) numeric")
+    hasIncludedCovariateConceptIds <- TRUE
+    DatabaseConnector::insertTable(connection,
+                                   tableName = "#included_cov",
+                                   data = data.frame(concept_id = as.integer(includedCovariateConceptIds)),
+                                   dropTableIfExists = TRUE,
+                                   createTable = TRUE,
+                                   tempTable = TRUE,
+                                   oracleTempSchema = oracleTempSchema)
+  }
   renderedSql <- SqlRender::loadRenderTranslateSql("Sccs.sql",
                                                    packageName = "SelfControlledCaseSeries",
                                                    dbms = connectionDetails$dbms,
@@ -90,13 +150,13 @@ getDbSccsData <- function(connectionDetails,
                                                    exposure_database_schema = exposureDatabaseSchema,
                                                    exposure_table = exposureTable,
                                                    exposure_concept_ids = exposureIds,
-                                                   exclude_concept_ids = excludeConceptIds,
-                                                   drug_era_covariates = drugEraCovariates,
-                                                   condition_era_covariates = conditionEraCovariates,
-                                                   procedure_covariates = procedureCovariates,
-                                                   visit_covariates = visitCovariates,
-                                                   observation_covariates = observationCovariates,
-                                                   measurement_covariates = measurementCovariates,
+                                                   use_custom_covariates = useCustomCovariates,
+                                                   custom_covariate_database_schema = customCovariateDatabaseSchema,
+                                                   custom_covariate_table = customCovariateTable,
+                                                   custom_covariate_concept_ids = customCovariateIds,
+                                                   has_excluded_covariate_concept_ids = hasExcludedCovariateConceptIds,
+                                                   has_included_covariate_concept_ids = hasIncludedCovariateConceptIds,
+                                                   use_drug_era_covariates = useDrugEraCovariates,
                                                    delete_covariates_small_count = deleteCovariatesSmallCount,
                                                    cdm_version = cdmVersion,
                                                    cohort_definition_id = cohortDefinitionId)

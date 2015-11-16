@@ -4,16 +4,11 @@
 \alias{createSccsEraData}
 \title{Create SCCS era data}
 \usage{
-createSccsEraData(sccsData, exposureId, outcomeId = NULL, naivePeriod = 0,
-  firstOutcomeOnly = FALSE, includeExposureOfInterest = TRUE,
-  exposureOfInterestSettings = createCovariateSettings(stratifyByID = TRUE,
-  start = 0, end = 0, addExposedDaysToEnd = TRUE, splitPoints = c()),
-  includePreExposureOfInterest = FALSE,
-  preExposureOfInterestSetting = createCovariateSettings(stratifyByID = TRUE,
-  mergeErasBeforeSplit = FALSE, start = -30, end = -1, addExposedDaysToEnd =
-  FALSE, splitPoints = c()), covariateSettingsList = list(),
-  includeAgeEffect = FALSE, ageKnots = 5, includeSeasonality = FALSE,
-  seasonKnots = 5, eventDependentObservation = FALSE)
+createSccsEraData(sccsData, outcomeId = NULL, naivePeriod = 0,
+  firstOutcomeOnly = FALSE, covariateSettings,
+  ageSettings = createAgeSettings(includeAge = FALSE),
+  seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
+  eventDependentObservation = FALSE)
 }
 \arguments{
 \item{sccsData}{An object of type sccsData as created using the \code{\link{getDbSccsData}} function.}
