@@ -68,7 +68,7 @@ createSccsEraData <- function(sccsData,
   settings$metaData$era_call <- match.call()
   settings$metaData$outcomeId <- outcomeId
   settings$covariateRef <- data.frame()
-  settings <- addAgeSettings(settings, ageSettings, sccsData)
+  settings <- addAgeSettings(settings, ageSettings, outcomeId, firstOutcomeOnly, naivePeriod, sccsData)
   settings <- addSeasonalitySettings(settings, seasonalitySettings, sccsData)
   settings <- addEventDependentObservationSettings(settings, eventDependentObservation, outcomeId, naivePeriod, sccsData)
   settings <- addCovariateSettings(settings, covariateSettings, sccsData)
@@ -111,7 +111,7 @@ isUncensored <- function(sccsData) {
   return(ff::as.ff(dates == studyEndDate))
 }
 
-addAgeSettings <- function(settings, ageSettings, sccsData) {
+addAgeSettings <- function(settings, ageSettings, outcomeId, firstOutcomeOnly, naivePeriod, sccsData) {
   if (!ageSettings$includeAge){
     settings$ageOffset <- 0
     settings$ageDesignMatrix <- matrix()
@@ -135,7 +135,9 @@ addAgeSettings <- function(settings, ageSettings, sccsData) {
     settings$ageDesignMatrix <- ageDesignMatrix[,2:ncol(ageDesignMatrix)]
     splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) -1), covariateName = "Age spline component", originalCovariateId = 0, originalCovariateName = "")
     settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
-    age <- list(ageKnots, covariateIds = splineCovariateRef$covariateId, settings$allowRegularization)
+    age <- list(ageKnots = ageKnots,
+                covariateIds = splineCovariateRef$covariateId,
+                allowRegularization = ageSettings$allowRegularization)
     settings$metaData$age <- age
   }
   return(settings)
@@ -154,9 +156,11 @@ addSeasonalitySettings <- function(settings, seasonalitySettings, sccsData) {
     seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$seasonDesignMatrix <- seasonDesignMatrix[,2:ncol(seasonDesignMatrix)]
-    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) -1), covariateName = "Seasonality spline component", originalCovariateId = 0, originalCovariateName = "")
+    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) - 3), covariateName = "Seasonality spline component", originalCovariateId = 0, originalCovariateName = "")
     settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
-    seasonality <- list(seasonKnots, covariateIds = splineCovariateRef$covariateId, seasonalitySettings$allowRegularization)
+    seasonality <- list(seasonKnots = seasonKnots,
+                        covariateIds = splineCovariateRef$covariateId,
+                        allowRegularization = seasonalitySettings$allowRegularization)
     settings$metaData$seasonality <- seasonality
   }
   return(settings)

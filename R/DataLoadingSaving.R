@@ -100,7 +100,7 @@ getDbSccsData <- function(connectionDetails,
     useDrugEraCovariates = FALSE
     warning("Including all drugs in era table as exposures of interest, so using drug era covariates would duplicate all exposures. Setting useDrugEraCovariates to false.")
   }
-  if (useCustomCovariates == FALSE && length(customCovariateIds) == 0) {
+  if (useCustomCovariates == TRUE && length(customCovariateIds) == 0) {
     stop("Must provide custom covariate IDs if useCustomCovariates is TRUE")
   }
   if (cdmVersion == "4"){

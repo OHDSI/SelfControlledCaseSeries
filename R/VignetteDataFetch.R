@@ -28,6 +28,7 @@
   server <- "JRDUSAPSCTL01"
   cdmDatabaseSchema <- "cdm_truven_mdcd.dbo"
   cohortDatabaseSchema <- "scratch.dbo"
+  oracleTempSchema <- NULL
   outcomeTable <- "mschuemi_sccs_vignette"
   port <- 17001
   cdmVersion <- "4"
@@ -75,7 +76,7 @@
                             exposureTable = "drug_era",
                             exposureIds = diclofenac,
                             cdmVersion = cdmVersion)
-
+  saveSccsData(sccsData, "s:/temp/vignetteSccsData1")
   covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
                                             includeCovariateIds = diclofenac,
                                             start = 0,
@@ -88,6 +89,8 @@
                                    covariateSettings = covarDiclofenac)
 
   model <- fitSccsModel(sccsEraData)
+
+  coef(model)
 
   ### Risk windows: Adding pre-exposure window ###
 
@@ -104,6 +107,7 @@
 
   model <- fitSccsModel(sccsEraData)
 
+  coef(model)
   ### Risk windows: Adding window splits ###
 
   covarDiclofenacSplit = createCovariateSettings(label = "Exposure of interest",
@@ -127,6 +131,9 @@
 
   model <- fitSccsModel(sccsEraData)
 
+  coef(model)
+  model$estimates
+
   ### Adding age and seasonality ###
 
   ageSettings <- createAgeSettings(includeAge = TRUE,
@@ -134,6 +141,8 @@
 
   seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE,
                                                    seasonKnots = 5)
+
+  #sccsData <- loadSccsData("s:/temp/vignetteSccsData1")
 
   sccsEraData <- createSccsEraData(sccsData,
                                    naivePeriod = 180,
@@ -151,7 +160,7 @@
 
   plotSeasonality(model)
 
-  ### Adding time-dependent observaton periods
+  ### Adding time-dependent observation periods
 
   sccsEraData <- createSccsEraData(sccsData,
                                    naivePeriod = 180,

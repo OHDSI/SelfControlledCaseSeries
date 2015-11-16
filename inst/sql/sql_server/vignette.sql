@@ -1,10 +1,10 @@
 IF OBJECT_ID('@cohortDatabaseSchema.@outcomeTable', 'U') IS NOT NULL
   DROP TABLE @cohortDatabaseSchema.@outcomeTable;
 
-SELECT 1,
-	condition_start_date,
-	condition_end_date,
-	condition_occurrence.person_id
+SELECT 1 AS cohort_concept_id,
+	condition_start_date AS cohort_start_date,
+	condition_end_date AS cohort_end_date,
+	condition_occurrence.person_id AS subject_id
 INTO @cohortDatabaseSchema.@outcomeTable
 FROM @cdmDatabaseSchema.condition_occurrence
 INNER JOIN @cdmDatabaseSchema.visit_occurrence
