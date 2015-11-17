@@ -301,7 +301,7 @@ void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int
       if (j == covariateSettings.splitPoints.size()) {
         splitEnd = newEnd;
       } else {
-        splitEnd = start + covariateSettings.splitPoints[j];
+        splitEnd = covariateSettings.splitPoints[j] + (covariateSettings.addExposedDaysToStart?end:start);
         if (splitEnd > newEnd) {
           splitEnd = newEnd;
         }

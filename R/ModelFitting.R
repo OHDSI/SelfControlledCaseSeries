@@ -16,6 +16,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#' Fit the SCCS model
+#'
+#' @details
+#' Fits the SCCS model as a conditional Poisson regression. When allowed, coefficients for
+#' some or all covariates can be regularized.
+#'
+#' @param sccsEraData  An object of type \code{sccsEraData} as created using the
+#' \code{\link{createSccsEraData}} function.
+#' @param prior                  The prior used to fit the model. See
+#'                               \code{\link[Cyclops]{createPrior}} for details.
+#' @param control                The control object used to control the cross-validation used to
+#'                               determine the hyperparameters of the prior (if applicable). See
+#'                               \code{\link[Cyclops]{createControl}} for details.
+#'
+#' @return
+#' An object of type \code{sccsModel}. eneric function \code{summary}, \code{coef}, and
+#' \code{confint} are available.
+#'
 #' @export
 fitSccsModel <- function(sccsEraData,
                          prior = createPrior("laplace", useCrossValidation = TRUE),
@@ -113,8 +131,17 @@ coef.sccsModel <- function(object, ...) {
   return(object$estimates$logRr)
 }
 
+#' Output the full model
+#'
+#' @param sccsModel  An object of type \code{sccsModel} as created using the \code{\link{fitSccsModel}}
+#' function.
+#'
+#' @return
+#' A data frame with the coefficients and confidence intervals (when not-regularized) for all
+#' covariates in the model.
+#'
 #' @export
-getModel <- function(sccsModel, sccsEraData) {
+getModel <- function(sccsModel) {
   cfs <- sccsModel$coefficients
   cfs <- data.frame(coefficient = cfs, id = as.numeric(names(cfs)))
   cfs <- merge(ff::as.ffdf(cfs),
@@ -128,6 +155,18 @@ getModel <- function(sccsModel, sccsEraData) {
   cfs
 }
 
+#' Plot the age effect
+#'
+#' @details
+#' Plot the spline curve of the age effect.
+#'
+#' @param sccsModel An object of type \code{sccsModel} as created using the \code{\link{fitSccsModel}}
+#' function.
+#' @param rrLim  The limits on the incidence rate ratio scale in the plot.
+#' @param fileName  Name of the file where the plot should be saved, for example
+#'                              'plot.png'. See the function \code{ggsave} in the ggplot2 package for
+#'                              supported file formats.
+#'
 #' @export
 plotAgeEffect <- function(sccsModel, rrLim = c(0.1,10), fileName = NULL){
   allCoefs <- sccsModel$coefficients
@@ -169,7 +208,20 @@ plotAgeEffect <- function(sccsModel, rrLim = c(0.1,10), fileName = NULL){
   return(plot)
 }
 
+#' Plot the seasonality effect
+#'
+#' @details
+#' Plot the spline curve of the seasonality effect.
+#'
+#' @param sccsModel An object of type \code{sccsModel} as created using the \code{\link{fitSccsModel}}
+#' function.
+#' @param rrLim  The limits on the incidence rate ratio scale in the plot.
+#' @param fileName  Name of the file where the plot should be saved, for example
+#'                              'plot.png'. See the function \code{ggsave} in the ggplot2 package for
+#'                              supported file formats.
+#'
 #' @export
+
 plotSeasonality <- function(sccsModel, rrLim = c(0.1,10), fileName = NULL){
   allCoefs <- sccsModel$coefficients
   coefId <- as.numeric(names(allCoefs))

@@ -5,7 +5,7 @@ Version: 0.0.2
 Date: 2015-11-10
 Author: Martijn Schuemie, Patrick Ryan, Marc Suchard, Trevor Shaddox
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
-Description: SelfControlledCaseSeries is an R package for performing Self-Controlled Case Series (SCCS) analyses in an observational database in the OMOP Common Data Model
+Description: SelfControlledCaseSeries is an R package for performing Self-Controlled Case Series (SCCS) analyses in an observational database in the OMOP Common Data Model.
 Depends:
     R (>= 3.2.2),
     Cyclops (>= 1.2.0),

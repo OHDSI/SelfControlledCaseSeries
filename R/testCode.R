@@ -132,7 +132,7 @@ testcode <- function() {
 
 
   library(SelfControlledCaseSeries)
-  library(SqlRender)
+  #library(SqlRender)
   setwd("s:/temp")
   options(fftempdir = "s:/fftemp")
 

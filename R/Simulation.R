@@ -16,11 +16,52 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#' Create a risk window definition for simulation
+#'
+#' @param start Start of the risk window relative to exposure start.
+#' @param end  End of risk window relative to exposure start, or if \code{addExposedDaysToEnd} is TRUE,
+#' relative to the end date.
+#' @param addExposedDaysToEnd Should the length of exposure be added to the end date? In other words,
+#' should the exposure end date be used as reference point for the risk window end?
+#' @param splitPoints Subdivision of the risk window in to smaller sub-windows.
+#' @param relativeRisks Either a single number representing the relative risk in the risk window, or when
+#' splitPoints have been defined a vector of relative risks, one for each sub-window.
+#'
+#' @return
+#' An object of type \code{simulationRiskWindow}.
+#'
 #' @export
 createSimulationRiskWindow <- function(start = 0, end = 0, addExposedDaysToEnd = TRUE, splitPoints = c(), relativeRisks = c(0)) {
   OhdsiRTools::convertArgsToList(match.call(), "simulationRiskWindow")
 }
 
+#' Create SCCS simulation settings
+#'
+#' @details
+#' Create an object of settings for an SCCS simulation.
+#'
+#' @param meanPatientTime Mean number of observation days per patient.
+#' @param sdPatientTime Standard deviation of the observation days per patient.
+#' @param minAge The minimum age in days.
+#' @param maxAge The maximum age in days.
+#' @param minBaselineRate The minimum baseline rate (per day).
+#' @param maxBaselineRate The maximum baseline rate (per day).
+#' @param covariateIds The IDs for the covariates to be generated.
+#' @param patientUsages The fraction of patients that use the drugs.
+#' @param usageRate The rate of prescriptions per person that uses the drug.
+#' @param meanPrescriptionDurations The mean duration of a prescription, per drug.
+#' @param sdPrescriptionDurations The standard deviation of the duration of a prescription, per drug.
+#' @param simulationRiskWindows One or a list of objects of type \code{simulationRiskWindow} as created
+#' using the \code{\link{createSimulationRiskWindow}} function.
+#' @param includeAgeEffect Include an age effect for the outcome?
+#' @param ageKnots Number of knots in the age spline.
+#' @param includeSeasonality Include seasonality for the outcome?
+#' @param seasonKnots Number of knots in the seasonality spline.
+#' @param outcomeId The ID to be used for the outcome.
+#'
+#' @return
+#' An object of type \code{sccsSimulationSettings}.
+#'
 #' @export
 createSccsSimulationSettings <- function(meanPatientTime = 4*365,
                                          sdPatientTime = 2*365,
@@ -159,6 +200,15 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset){
   return(result)
 }
 
+#' Simulate SCCS data
+#'
+#' @param nCases The number of cases to simulate.
+#' @param settings An object of type \code{sccsSimulationSettings} as created using the \code{
+#' \link{createSccsSimulationSettings}}.
+#'
+#' @return
+#' An object of type \code{sccsData}.
+#'
 #' @export
 simulateSccsData <- function(nCases, settings) {
   if (settings$includeAgeEffect) {

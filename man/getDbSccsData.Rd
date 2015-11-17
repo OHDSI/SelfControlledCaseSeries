@@ -2,7 +2,7 @@
 % Please edit documentation in R/DataLoadingSaving.R
 \name{getDbSccsData}
 \alias{getDbSccsData}
-\title{Todo: add title}
+\title{Load data for SCCS from the database}
 \usage{
 getDbSccsData(connectionDetails, cdmDatabaseSchema,
   oracleTempSchema = cdmDatabaseSchema,
@@ -13,9 +13,7 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
   exposureIds = c(), useCustomCovariates = FALSE,
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort", customCovariateIds = c(),
-  excludedCovariateConceptIds = c(), includedCovariateConceptIds = c(),
-  useDrugEraCovariates = FALSE, deleteCovariatesSmallCount = 100,
-  cdmVersion = "4")
+  deleteCovariatesSmallCount = 100, cdmVersion = "4")
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using the
@@ -35,7 +33,7 @@ outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
 used.  Requires read permissions to this database.}
 
 \item{outcomeTable}{The tablename that contains the outcome cohorts.  If
-outcomeTable <> CONDITION_OCCURRENCE, then expectation is
+outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA, then expectation is
 outcomeTable has format of COHORT table:
 COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
 COHORT_END_DATE.}
@@ -54,7 +52,7 @@ CONDITION_OCCURRENCE.}
 \item{exposureDatabaseSchema}{The name of the database schema that is the location where the
 exposure data used to define the exposure cohorts is available.
 If exposureTable = DRUG_ERA, exposureDatabaseSchema is not used
-by assumed to be cdmSchema.  Requires read permissions to this
+but assumed to be cdmSchema.  Requires read permissions to this
 database.}
 
 \item{exposureTable}{The tablename that contains the exposure cohorts.  If
@@ -76,22 +74,36 @@ custom covariate data is available.}
 
 \item{customCovariateIds}{A list of cohort definition IDS identifying the records in the customCovariateTable to use for building custom covariates.}
 
-\item{excludedCovariateConceptIds}{A list of concept IDs that should NOT be used to
-construct covariates.}
-
-\item{includedCovariateConceptIds}{A list of concept IDs that should be used to
-construct covariates.}
-
-\item{useDrugEraCovariates}{Should all drugs in the drug_era table be fetched as covariates?}
-
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be kept.}
 
 \item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and "5".}
 }
+\value{
+Returns an object of type \code{sccsData}, containing information on the cases, their
+outcomes, exposures, and potentially other covariates. Information about multiple outcomes can be captured at once for
+efficiency reasons. This object is a list with the following components: \describe{
+\item{cases}{An ffdf object listing the persons that have the outcome(s), their age, and observation
+time.} \item{eras}{An ffdf object listing the exposures, outcomes and other covariates.}
+\item{covariateRef}{An ffdf object describing the covariates that have been extracted.}
+\item{metaData}{A list of objects with information on how the sccsData object was
+constructed.} } The generic \code{summary()} function has been implemented for this object.
+}
 \description{
-Todo: add description
+Load all data needed to perform an SCCS analysis from the database.
 }
 \details{
-Todo: add details
+This function downloads several types of information:
+\itemize{
+\item{Information on the occurrences of the outcome(s) of interest. Note that
+information for multiple outcomes can be fetched in one go, and later the
+specific outcome can be specified for which we want to build a model.}
+\item{Information on the observation time and age for the people with the outcomes.}
+\item{Information on exposures of interest which we want to include in the model.}
+}
+Four different database schemas can be specified, for four different types of information:
+The \code{cdmDatabaseSchema} is used to extract patient age and observation period. The \code{outcomeDatabaseSchema}
+is used to extract information about the outcomes, the \code{exposureDatabaseSchema} is used to retrieve
+information on exposures, and the \code{customCovariateDatabaseSchema} is optionally used to find additional,
+user-defined covariates. All four locations could point to the same database schema.
 }
 

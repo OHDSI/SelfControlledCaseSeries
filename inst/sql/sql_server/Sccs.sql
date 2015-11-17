@@ -25,14 +25,11 @@ limitations under the License.
 {DEFAULT @outcome_condition_type_concept_ids = ''}  
 {DEFAULT @exposure_database_schema = 'cdm4_sim.dbo'} 
 {DEFAULT @exposure_table = 'drug_era'} 
-{DEFAULT @exposure_concept_ids = ''}
 {DEFAULT @use_custom_covariates = FALSE}
 {DEFAULT @custom_covariate_database_schema = 'cdm4_sim.dbo'} 
 {DEFAULT @custom_covariate_table = 'drug_era'} 
-{DEFAULT @custom_covariate_concept_ids = ''}
-{DEFAULT @has_excluded_covariate_concept_ids = FALSE} 
-{DEFAULT @has_included_covariate_concept_ids = FALSE} 
-{DEFAULT @use_drug_era_covariates = FALSE}
+{DEFAULT @has_exposure_ids = FALSE} 
+{DEFAULT @has_custom_covariate_ids = FALSE} 
 {DEFAULT @delete_covariates_small_count = 100}
 {DEFAULT @cdm_version = '4'}
 {DEFAULT @cohort_definition_id = 'cohort_concept_id'} 
@@ -116,9 +113,9 @@ INNER JOIN #cases cases
 ON drug_era.person_id = cases.person_id
 	AND drug_era_start_date <= observation_period_end_date
 	AND drug_era_end_date >= observation_period_start_date
-	{@exposure_concept_ids != ''} ? {
+{@has_exposure_ids} ? {
 WHERE
-	drug_concept_id IN (@exposure_concept_ids)
+	drug_concept_id IN (SELECT concept_id FROM #exposure_ids)
 }
 ;  	
 } : { /* exposure table has same structure as cohort table */
@@ -134,9 +131,9 @@ INNER JOIN #cases cases
 ON exposure.subject_id = cases.person_id
 	AND cohort_start_date <= observation_period_end_date
 	AND cohort_end_date >= observation_period_start_date
-	{@exposure_concept_ids != ''} ? {
+{@has_exposure_ids} ? {
 WHERE
-	@cohort_definition_id IN (@exposure_concept_ids)
+	@cohort_definition_id IN (SELECT concept_id FROM #exposure_ids)
 }
 ;  		
 }
@@ -197,25 +194,6 @@ WHERE
 	}	
 }
 	
-/* Create drug eras */
-{@use_drug_era_covariates} ? {
-INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
-SELECT 'rx',
-	cases.observation_period_id,
-	drug_concept_id,
-	1,
-	DATEDIFF(dd, observation_period_start_date, drug_era_start_date),
-	DATEDIFF(dd, observation_period_start_date, drug_era_end_date)
-FROM drug_era
-INNER JOIN #cases cases
-ON drug_era.person_id = cases.person_id
-WHERE drug_era_start_date <= observation_period_end_date
-	AND drug_era_end_date >= observation_period_start_date
-{@has_excluded_covariate_concept_ids} ? {	AND drug_concept_id NOT IN (SELECT concept_id FROM #excluded_cov)}
-{@has_included_covariate_concept_ids} ? {	AND drug_concept_id IN (SELECT concept_id FROM #included_cov)}	
-;  		
-}
-
 /* Create custom eras */
 {@use_custom_covariates} ? {
 INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
@@ -230,8 +208,9 @@ INNER JOIN #cases cases
 ON covars.subject_id = cases.person_id
 WHERE cohort_start_date <= observation_period_end_date
 	AND cohort_start_date >= observation_period_start_date
-{@has_excluded_covariate_concept_ids} ? {	AND @cohort_definition_id NOT IN (SELECT concept_id FROM #excluded_cov)}
-{@has_included_covariate_concept_ids} ? {	AND @cohort_definition_id IN (SELECT concept_id FROM #included_cov)}	
+{@has_custom_covariate_ids} ? {
+	AND @cohort_definition_id IN (SELECT concept_id FROM #custom_coviariate_ids)
+}
 ;  		
 }
 
@@ -268,14 +247,14 @@ ON eras.concept_id = concept.concept_id
 /**********************************************************************
 					            Cleanup
 ***********************************************************************/
-{@has_excluded_covariate_concept_ids} ? {
-TRUNCATE TABLE #excluded_cov;
+{@has_exposure_ids} ? {
+TRUNCATE TABLE #exposure_ids;
 
-DROP TABLE #excluded_cov;
+DROP TABLE #exposure_ids;
 }
 
-{@has_included_covariate_concept_ids} ? {
-TRUNCATE TABLE #included_cov;
+{@has_custom_covariate_ids} ? {
+TRUNCATE TABLE #custom_covariate_ids;
 
-DROP TABLE #included_cov;
+DROP TABLE #custom_covariate_ids;
 }

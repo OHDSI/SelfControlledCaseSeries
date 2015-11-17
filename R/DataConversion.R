@@ -26,20 +26,33 @@ in.ff <- function(a, b) {
 #' Create SCCS era data
 #'
 #' @details
-#' This function chops patient time into periods during which all covariates remain constant. The output details
+#' This function creates covariates based on the data in the \code{sccsData} object, according to the
+#' provided settings. It chops patient time into periods during which all covariates remain constant. The output details
 #' these periods, their durations, and a sparse representation of the covariate values.
 #'
-#' @param sccsData       An object of type sccsData as created using the \code{\link{getDbSccsData}} function.
-#' @param covariateStart Start day relative to the start of a covariate when the covariate should be considered in the risk profile.
-#' @param covariatePersistencePeriod  Number of days after the end of the covariate when the risk is assumed to stop.
-#' @param naivePeriod    The number of days at the start of a patient's observation period that should not be included in the risk
+#' @param sccsData  An object of type \code{sccsData} as created using the \code{\link{getDbSccsData}} function.
+#' @param outcomeId  The outcome to create the era data for. If not specified it is assumed to be the one
+#' outcome for which the data was loaded from the database.
+#' @param naivePeriod  The number of days at the start of a patient's observation period that should not be included in the risk
 #' calculations. Note that the naive period can be used to determine current covariate status right after the naive period, and whether
 #' an outcome is the first one.
 #' @param firstOutcomeOnly  Whether only the first occurrence of an outcome should be considered.
-#' @param excludeConceptIds Concept IDs that should be excluded from the list of covariates.
+#' @param covariateSettings  Either an object of type \code{covariateSettings} as created using the
+#' \code{\link{createCovariateSettings}} function, or a list of such objects.
+#' @param ageSettings  An object of type \code{ageSettings} as created using the \code{\link{createAgeSettings}}
+#' function.
+#' @param seasonalitySettings  An object of type \code{seasonalitySettings} as created using the \code{\link{createSeasonalitySettings}}
+#' function.
+#' @param eventDependentObservation  Should the extension proposed by Farrington et al. be used to adjust for event-dependent
+#' observation time?
+#'
+#' @references
+#' Farrington, C. P., Anaya-Izquierdo, A., Whitaker, H. J., Hocine, M.N., Douglas, I., and Smeeth, L.
+#' (2011). Self-Controlled case series analysis with event-Dependent observation periods. Journal of
+#' the American Statistical Association 106 (494), 417-426
 #'
 #' @return
-#' An object of type sccsEraData.
+#' An object of type \code{sccsEraData}.
 #'
 #' @export
 createSccsEraData <- function(sccsData,
@@ -64,8 +77,9 @@ createSccsEraData <- function(sccsData,
   }
 
   settings <- list()
-  settings$metaData <- sccsData$metaData
-  settings$metaData$era_call <- match.call()
+  settings$metaData <- list()
+  settings$metaData$getDbCall <- sccsData$metaData$call
+  settings$metaData$eraCall <- match.call()
   settings$metaData$outcomeId <- outcomeId
   settings$covariateRef <- data.frame()
   settings <- addAgeSettings(settings, ageSettings, outcomeId, firstOutcomeOnly, naivePeriod, sccsData)
@@ -93,6 +107,7 @@ createSccsEraData <- function(sccsData,
                  covariates = data$covariates,
                  covariateRef = ff::as.ffdf(settings$covariateRef),
                  metaData = settings$metaData)
+
   open(result$outcomes)
   open(result$covariates)
   open(result$covariateRef)
@@ -276,10 +291,38 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
   return(settings)
 }
 
+#' Create covariate settings
+#'
+#' @details
+#' Create an object specifying how to create a (set of) covariates.
+#'
+#' @param includeCovariateIds  One or more IDs of variables in the \code{sccsData} object that should
+#' be used to construct this covariate. If no IDs are specified, all variables will be used.
+#' @param excludeCovariateIds  One or more IDs of variables in the \code{sccsData} object that should not
+#' be used to construct this covariate.
+#' @param label  A label used to identify the covariates created using these settings.
+#' @param stratifyByID  Should a single covariate be created for every ID in the \code{sccsData} object,
+#' or should a single covariate be constructed? For example, if the IDs identify exposures to different drugs,
+#' should a covariate be constructed for every drug, or a single covariate for exposure to any of these drugs. Note
+#' that overlap will be considered a single exposure.
+#' @param start   The start of the risk window in days, relative to the exposure start date.
+#' @param addExposedDaysToStart Should the length of exposure be added to the start date?
+#' @param end     The start of the risk window in days, relative to the exposure start date.
+#' @param addExposedDaysToEnd  Should the length of exposure be added to the end date?
+#' @param firstOccurrenceOnly  Should only the first occurrence of the exposure be used?
+#' @param splitPoints  To split the risk window into several smaller windows, specify the end of each sub-
+#' window relative to the start of the main risk window. If addExposedDaysToStart is TRUE, the split points
+#' will be considered to be relative to the end of the main risk window instead.
+#' @param allowRegularization  When fitting the model, should the covariates defined here be allowed to be
+#' regularized?
+#'
+#' @return
+#' An object of type \code{covariateSettings}.
+#'
 #' @export
 createCovariateSettings <- function(includeCovariateIds = NULL,
                                     excludeCovariateIds = NULL,
-                                    label = NULL,
+                                    label = "Covariates",
                                     stratifyByID = TRUE,
                                     start = 0,
                                     addExposedDaysToStart = FALSE,
@@ -291,6 +334,23 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
    return(OhdsiRTools::convertArgsToList(match.call(), "covariateSettings"))
 }
 
+#' Create age settings
+#'
+#' @details
+#' Create an object specifing whether and how age should be included in the model. Age can be included
+#' by splitting patient time into calendar months. During a month, the relative risk attributed to age is
+#' assumed to be constant, and the risk from month to month is modeled using a cubic spline.
+#'
+#' @param includeAge  Should age be included in the model?
+#' @param ageKnots If a single number is provided this is assumed to indicate the number of knots to use for
+#' the spline, and the knots are automatically spaced according to equal percentiles of the data. If more than one
+#' numer is provided these are assumed to be the exact location of the knots in age-days
+#' @param allowRegularization  When fitting the model, should the covariates defined here be allowed to be
+#' regularized?
+#'
+#' @return
+#' An object of type \code{ageSettings}.
+#'
 #' @export
 createAgeSettings <- function(includeAge = FALSE,
                               ageKnots= 5,
@@ -298,6 +358,23 @@ createAgeSettings <- function(includeAge = FALSE,
   return(OhdsiRTools::convertArgsToList(match.call(), "ageSettings"))
 }
 
+#' Create seasonality settings
+#'
+#' @details
+#' Create an object specifing whether and how seasonality should be included in the model. Seasonality can be included
+#' by splitting patient time into calendar months. During a month, the relative risk attributed to season is
+#' assumed to be constant, and the risk from month to month is modeled using a cyclic cubic spline.
+#'
+#' @param includeSeasonality  Should seasonlaity be included in the model?
+#' @param seasonKnots If a single number is provided this is assumed to indicate the number of knots to use for
+#' the spline, and the knots are automatically equaly spaced across the year. If more than one
+#' numer is provided these are assumed to be the exact location of the knots in days relative to the start of the year.
+#' @param allowRegularization  When fitting the model, should the covariates defined here be allowed to be
+#' regularized?
+#'
+#' @return
+#' An object of type \code{seasonalitySettings}.
+#'
 #' @export
 createSeasonalitySettings <- function(includeSeasonality = FALSE,
                                       seasonKnots= 5,
@@ -345,7 +422,7 @@ saveSccsEraData <- function(sccsEraData, folder) {
 #' @description
 #' \code{loadSccsEraData} loads an object of type sccsEraData from a folder in the file system.
 #'
-#' @param file       The name of the folder containing the data.
+#' @param folder       The name of the folder containing the data.
 #' @param readOnly   If true, the data is opened read only.
 #'
 #' @details
@@ -385,8 +462,7 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
 print.sccsEraData <- function(x, ...) {
   writeLines("sccsEraData object")
   writeLines("")
-  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureIds, collapse = ",")))
-  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeIds, collapse = ",")))
+  writeLines(paste("Outcome ID:", paste(x$metaData$outcomeId, collapse = ",")))
 }
 
 #' @export
@@ -394,17 +470,16 @@ summary.sccsEraData  <- function(object, ...) {
   caseCount <- length(ffbase::unique.ff(object$outcomes$stratumId))
   eraCount <- nrow(object$outcomes)
 
-  outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeIds,
+  outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
                               eventCount = ffbase::sum.ff(object$outcomes$y),
                               caseCount = caseCount)
-  covariateValueCount <- nrow(object$covariates)
 
   result <- list(metaData = object$metaData,
                  caseCount = caseCount,
                  eraCount = eraCount,
                  outcomeCounts = outcomeCounts,
                  covariateCount = nrow(object$covariateRef),
-                 covariateValueCount = covariateValueCount)
+                 covariateValueCount = nrow(object$covariates))
   class(result) <- "summary.sccsEraData"
   return(result)
 }
@@ -413,13 +488,12 @@ summary.sccsEraData  <- function(object, ...) {
 print.summary.sccsEraData <- function(x, ...) {
   writeLines("sccsEraData object summary")
   writeLines("")
-  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureIds, collapse = ",")))
-  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeIds, collapse = ",")))
+  writeLines(paste("Outcome ID:", paste(x$metaData$outcomeId, collapse = ",")))
   writeLines("")
   writeLines(paste("Cases:", paste(x$caseCount)))
   writeLines(paste("Eras:", paste(x$eraCount)))
   writeLines("")
-  writeLines("Outcome counts:")
+  writeLines("Outcome count:")
   outcomeCounts <- x$outcomeCounts
   rownames(outcomeCounts) <- outcomeCounts$outcomeConceptId
   outcomeCounts$outcomeConceptId <- NULL
@@ -431,6 +505,15 @@ print.summary.sccsEraData <- function(x, ...) {
   writeLines(paste("Number of non-zero covariate values:", x$covariateValueCount))
 }
 
+#' Create a design matrix for a cyclic spline
+#'
+#' @details
+#' This function is used by other functions in this package.
+#'
+#' @param x Vector of coordinates of the points to be interpolated.
+#' @param knots  Location of the knots.
+#' @param ord  Order of the spline function.
+#'
 #' @export
 cyclicSplineDesign <- function (x, knots, ord = 4) {
   nk <- length(knots)
@@ -454,4 +537,3 @@ cyclicSplineDesign <- function (x, knots, ord = 4) {
   }
   X1
 }
-

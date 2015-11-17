@@ -16,13 +16,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' Todo: add title
+#' Load data for SCCS from the database
 #'
 #' @description
-#' Todo: add description
+#' Load all data needed to perform an SCCS analysis from the database.
 #'
 #' @details
-#' Todo: add details
+#' This function downloads several types of information:
+#' \itemize{
+#' \item{Information on the occurrences of the outcome(s) of interest. Note that
+#' information for multiple outcomes can be fetched in one go, and later the
+#' specific outcome can be specified for which we want to build a model.}
+#' \item{Information on the observation time and age for the people with the outcomes.}
+#' \item{Information on exposures of interest which we want to include in the model.}
+#' }
+#' Four different database schemas can be specified, for four different types of information:
+#' The \code{cdmDatabaseSchema} is used to extract patient age and observation period. The \code{outcomeDatabaseSchema}
+#' is used to extract information about the outcomes, the \code{exposureDatabaseSchema} is used to retrieve
+#' information on exposures, and the \code{customCovariateDatabaseSchema} is optionally used to find additional,
+#' user-defined covariates. All four locations could point to the same database schema.
+#'
+#' @return
+#' Returns an object of type \code{sccsData}, containing information on the cases, their
+#' outcomes, exposures, and potentially other covariates. Information about multiple outcomes can be captured at once for
+#' efficiency reasons. This object is a list with the following components: \describe{
+#' \item{cases}{An ffdf object listing the persons that have the outcome(s), their age, and observation
+#' time.} \item{eras}{An ffdf object listing the exposures, outcomes and other covariates.}
+#' \item{covariateRef}{An ffdf object describing the covariates that have been extracted.}
+#' \item{metaData}{A list of objects with information on how the sccsData object was
+#' constructed.} } The generic \code{summary()} function has been implemented for this object.
 #'
 #' @param connectionDetails  An R object of type \code{ConnectionDetails} created using the
 #'                                         function \code{createConnectionDetails} in the
@@ -37,7 +59,7 @@
 #'                                         outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
 #'                                         used.  Requires read permissions to this database.
 #' @param outcomeTable                     The tablename that contains the outcome cohorts.  If
-#'                                         outcomeTable <> CONDITION_OCCURRENCE, then expectation is
+#'                                         outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA, then expectation is
 #'                                         outcomeTable has format of COHORT table:
 #'                                         COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
 #'                                         COHORT_END_DATE.
@@ -53,7 +75,7 @@
 #' @param exposureDatabaseSchema       The name of the database schema that is the location where the
 #'                                     exposure data used to define the exposure cohorts is available.
 #'                                     If exposureTable = DRUG_ERA, exposureDatabaseSchema is not used
-#'                                     by assumed to be cdmSchema.  Requires read permissions to this
+#'                                     but assumed to be cdmSchema.  Requires read permissions to this
 #'                                     database.
 #' @param exposureTable                The tablename that contains the exposure cohorts.  If
 #'                                     exposureTable <> DRUG_ERA, then expectation is exposureTable has
@@ -63,11 +85,6 @@
 #'                                     exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.  If exposureTable <> DRUG_ERA, exposureIds is
 #'                                     used to select the cohort_concept_id in the cohort-like table. If no exposureIds are provided, all
 #'                                     drugs or cohorts in the exposureTable are included as exposures.
-#' @param excludedCovariateConceptIds               A list of concept IDs that should NOT be used to
-#'                                                  construct covariates.
-#' @param includedCovariateConceptIds               A list of concept IDs that should be used to
-#'                                                  construct covariates.
-#' @param useDrugEraCovariates        Should all drugs in the drug_era table be fetched as covariates?
 #' @param useCustomCovariates         Create covariates from a custom table?
 #' @param customCovariateDatabaseSchema   The name of the database schema that is the location where the
 #'                                     custom covariate data is available.
@@ -91,9 +108,6 @@ getDbSccsData <- function(connectionDetails,
                           customCovariateDatabaseSchema = cdmDatabaseSchema,
                           customCovariateTable = "cohort",
                           customCovariateIds = c(),
-                          excludedCovariateConceptIds = c(),
-                          includedCovariateConceptIds = c(),
-                          useDrugEraCovariates = FALSE,
                           deleteCovariatesSmallCount = 100,
                           cdmVersion = "4") {
   if (exposureTable == "drug_era" && length(exposureIds) == 0 && useDrugEraCovariates){
@@ -109,30 +123,30 @@ getDbSccsData <- function(connectionDetails,
     cohortDefinitionId <- "cohort_definition_id"
   }
   cdmDatabase <- strsplit(cdmDatabaseSchema, "\\.")[[1]][1]
-  if (is.null(excludedCovariateConceptIds) || length(excludedCovariateConceptIds) == 0) {
-    hasExcludedCovariateConceptIds <- FALSE
+  if (is.null(exposureIds) || length(exposureIds) == 0) {
+    hasExposureIds <- FALSE
   } else {
-    if (!is.numeric(excludedCovariateConceptIds))
-      stop("excludedCovariateConceptIds must be a (vector of) numeric")
-    hasExcludedCovariateConceptIds <- TRUE
+    if (!is.numeric(exposureIds))
+      stop("exposureIds must be a (vector of) numeric")
+    hasExposureIds <- TRUE
     DatabaseConnector::insertTable(connection,
-                                   tableName = "#excluded_cov",
-                                   data = data.frame(concept_id = as.integer(excludedCovariateConceptIds)),
+                                   tableName = "#exposure_ids",
+                                   data = data.frame(concept_id = as.integer(exposureIds)),
                                    dropTableIfExists = TRUE,
                                    createTable = TRUE,
                                    tempTable = TRUE,
                                    oracleTempSchema = oracleTempSchema)
   }
 
-  if (is.null(includedCovariateConceptIds) || length(includedCovariateConceptIds) == 0) {
-    hasIncludedCovariateConceptIds <- FALSE
+  if (is.null(customCovariateIds) || length(customCovariateIds) == 0) {
+    hasCustomCovariateIds <- FALSE
   } else {
-    if (!is.numeric(includedCovariateConceptIds))
-      stop("includedCovariateConceptIds must be a (vector of) numeric")
-    hasIncludedCovariateConceptIds <- TRUE
+    if (!is.numeric(customCovariateIds))
+      stop("customCovariateIds must be a (vector of) numeric")
+    hasCustomCovariateIds <- TRUE
     DatabaseConnector::insertTable(connection,
-                                   tableName = "#included_cov",
-                                   data = data.frame(concept_id = as.integer(includedCovariateConceptIds)),
+                                   tableName = "#custom_covariate_ids",
+                                   data = data.frame(concept_id = as.integer(customCovariateIds)),
                                    dropTableIfExists = TRUE,
                                    createTable = TRUE,
                                    tempTable = TRUE,
@@ -149,14 +163,11 @@ getDbSccsData <- function(connectionDetails,
                                                    outcome_condition_type_concept_ids = outcomeConditionTypeConceptIds,
                                                    exposure_database_schema = exposureDatabaseSchema,
                                                    exposure_table = exposureTable,
-                                                   exposure_concept_ids = exposureIds,
                                                    use_custom_covariates = useCustomCovariates,
                                                    custom_covariate_database_schema = customCovariateDatabaseSchema,
                                                    custom_covariate_table = customCovariateTable,
-                                                   custom_covariate_concept_ids = customCovariateIds,
-                                                   has_excluded_covariate_concept_ids = hasExcludedCovariateConceptIds,
-                                                   has_included_covariate_concept_ids = hasIncludedCovariateConceptIds,
-                                                   use_drug_era_covariates = useDrugEraCovariates,
+                                                   has_exposure_ids = hasExposureIds,
+                                                   has_custom_covariate_ids = hasCustomCovariateIds,
                                                    delete_covariates_small_count = deleteCovariatesSmallCount,
                                                    cdm_version = cdmVersion,
                                                    cohort_definition_id = cohortDefinitionId)
@@ -258,9 +269,6 @@ saveSccsData <- function(sccsData, folder) {
 #'
 #' @return
 #' An object of class cohortData.
-#'
-#' @examples
-#' # todo
 #'
 #' @export
 loadSccsData <- function(folder, readOnly = TRUE) {
