@@ -32,7 +32,7 @@ class WeightFunction: public IntegratableFunction {
 public:
   WeightFunction(const std::vector<double> &_p): p(_p) {}
 
-  virtual double operator() (const double x) = 0;
+  virtual double getValue(const double x) = 0;
 
   void set(const double _present, const double _astart, const double _aend) {
     present = _present;
@@ -67,7 +67,7 @@ class WsmallEwad2: public WeightFunction {
 public:
   WsmallEwad2(const std::vector<double> &_p): WeightFunction(_p){}
 
-  virtual double operator() (const double x) {
+  virtual double getValue(const double x) {
     double thetaA = p[0];
     double thetaB = p[1] + p[2] * log(astart);
     double eta = p[3] + p[4] * x;
@@ -91,7 +91,7 @@ class WsmallEwid2: public WeightFunction {
 public:
   WsmallEwid2(const std::vector<double> &_p): WeightFunction(_p){}
 
-  virtual double operator() (const double x) {
+  virtual double getValue(const double x) {
     double thetaA = p[0];
     double thetaB = p[1] + p[2] * log(x);
     double eta = p[3] + p[4] * x;
@@ -116,7 +116,7 @@ class WsmallEgad2: public WeightFunction {
 public:
   WsmallEgad2(const std::vector<double> &_p): WeightFunction(_p){}
 
-  virtual double operator() (const double x) {
+  virtual double getValue(const double x) {
     double thetaA = p[0];
     double thetaB = p[1] + p[2] * log(astart);
     double eta = p[3] + p[4] * x;
@@ -141,7 +141,7 @@ class WsmallEgid2: public WeightFunction {
 public:
   WsmallEgid2(const std::vector<double> &_p): WeightFunction(_p){}
 
-  virtual double operator() (const double x) {
+  virtual double getValue(const double x) {
     double thetaA = p[0];
     double thetaB = p[1] + p[2] * log(x);
     double eta = p[3] + p[4] * x;

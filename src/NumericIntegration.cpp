@@ -31,10 +31,10 @@ namespace sccs {
 
 double NumericIntegration::integrate(IntegratableFunction& f, const double start, const double end, const double tolerance){
   const double delta = end-start;
-  const double fStart = f(start);
-  const double fEnd = f(end);
-  const double fMiddle = f((start+end)/2.0);
-  double is = delta/8.0 * (fStart+fEnd+fMiddle+f(start + 0.9501*delta) + f(start + 0.2311*delta) + f(start + 0.6068*delta) + f(start + 0.4860*delta) + f(start + 0.8913*delta));
+  const double fStart = f.getValue(start);
+  const double fEnd = f.getValue(end);
+  const double fMiddle = f.getValue((start+end)/2.0);
+  double is = delta/8.0 * (fStart+fEnd+fMiddle+f.getValue(start + 0.9501*delta) + f.getValue(start + 0.2311*delta) + f.getValue(start + 0.6068*delta) + f.getValue(start + 0.4860*delta) + f.getValue(start + 0.8913*delta));
   if(is == 0) {
     is = delta;
   }
@@ -45,8 +45,8 @@ double NumericIntegration::integrate(IntegratableFunction& f, const double start
 double NumericIntegration::recursiveIntegerate(IntegratableFunction& f, const double start, const double end, const double fStart, const double fMiddle, const double fEnd, const double is, const int count) {
   double middle = (start + end)/2.0;
   double quart = (end - start)/4.0;
-  double fMidL = f(start + quart);
-  double fMidR = f(end - quart);
+  double fMidL = f.getValue(start + quart);
+  double fMidR = f.getValue(end - quart);
   double i1 = quart/1.5*(fStart+4.0*fMiddle+fEnd);
   double i2 = quart/3.0*(fStart+4.0*(fMidL+fMidR)+2.0*fMiddle+fEnd);
   i1 = (16.0 * i2 - i1) / 15.0;

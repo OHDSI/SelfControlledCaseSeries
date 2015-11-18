@@ -31,7 +31,7 @@ namespace sccs {
 
 class IntegratableFunction {
 public:
-  virtual double operator() (const double x);
+  virtual double getValue(const double x);
 };
 
 struct NumericIntegration {
