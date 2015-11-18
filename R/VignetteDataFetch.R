@@ -18,7 +18,7 @@
 
 # This function should be used to fetch the data that is used in the vignettes.
 .vignetteDataFetch <- function() {
-  # library(SqlRender);library(DatabaseConnector) ;library(CohortMethod);
+  # library(SqlRender);library(DatabaseConnector) ;library(SelfControlledCaseSeries);
   setwd("s:/temp")
   options("fftempdir" = "s:/fftemp")
 
@@ -76,7 +76,7 @@
                             exposureTable = "drug_era",
                             exposureIds = diclofenac,
                             cdmVersion = cdmVersion)
-  saveSccsData(sccsData, "s:/temp/vignetteSccsData1")
+  saveSccsData(sccsData, "s:/temp/vignetteSccs/data1")
   covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
                                             includeCovariateIds = diclofenac,
                                             start = 0,

@@ -111,16 +111,11 @@ fitSccsModel <- function(sccsEraData,
     estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
     priorVariance <- fit$variance[1]
   }
-  result <- list(outcomeId = sccsEraData$metaData$outcomeId,
-                 estimates = estimates,
+  result <- list(estimates = estimates,
                  priorVariance = priorVariance,
-                 status = status)
-  if (!is.null(sccsEraData$metaData$age)){
-    result$age <- sccsEraData$metaData$age
-  }
-  if (!is.null(sccsEraData$metaData$seasonanlity)){
-    result$seasononality <- sccsEraData$metaData$seasononality
-  }
+                 status = status,
+                 metaData = sccsEraData$metaData)
+
   class(result) <- "sccsModel"
   return(result)
 }

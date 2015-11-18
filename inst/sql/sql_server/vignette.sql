@@ -1,3 +1,7 @@
+/***********************************
+File vignette.sql 
+***********************************/
+
 IF OBJECT_ID('@cohortDatabaseSchema.@outcomeTable', 'U') IS NOT NULL
   DROP TABLE @cohortDatabaseSchema.@outcomeTable;
 

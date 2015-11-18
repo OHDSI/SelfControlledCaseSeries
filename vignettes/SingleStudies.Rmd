@@ -1,0 +1,442 @@
+---
+title: "Single studies using the SelfControlledCaseSeries package"
+author: "Martijn J. Schuemie, Marc A. Suchard and Patrick Ryan"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+  html_document:
+    number_sections: yes
+    toc: yes
+---
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{Single studies using CohortMethod}
+-->
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(SelfControlledCaseSeries)
+knitr::opts_chunk$set(
+  cache=FALSE,
+  comment = "#>",
+  error = FALSE,
+  tidy = FALSE)
+```
+# Introduction
+
+This vignette describes how you can use the `SelfControlledCaseSeries` package to perform a single Self-Controlled Case Series (SCCS) study. We will walk through all the steps needed to perform an exemplar study, and we have selected the well-studied topic of the effect of NSAIDs on gastrointestinal (GI) bleeding-related hospitalization. For simplicity, we focus on one NSAID: diclofenac.
+
+# Installation instructions
+
+Before installing the `SelfControlledCaseSeries` package make sure you have Java available.  Java can be downloaded from [www.java.com](http://www.java.com). For Windows users, RTools is also necessary.  RTools can be downloaded from [CRAN](http://cran.r-project.org/bin/windows/Rtools/).
+
+The `SelfControlledCaseSeries` package is currently maintained in a [Github repository](https://github.com/OHDSI/SelfControlledCaseSeries), and has dependencies on other packages in Github. All of these packages can be downloaded and installed from within R using the `devtools` package:
+
+```{r tidy=TRUE,eval=FALSE}
+install.packages("devtools")
+library(devtools)
+install_github("ohdsi/OhdsiRTools") 
+install_github("ohdsi/SqlRender") 
+install_github("ohdsi/DatabaseConnector") 
+install_github("ohdsi/Cyclops") 
+install_github("ohdsi/SelfControlledCaseSeries") 
+```
+
+Once installed, you can type `library(SelfControlledCaseSeries)` to load the package.
+
+# Overview
+
+In the `SelfControlledCaseSeries` package a study requires at least three steps:
+
+1. Loading the needed data from the database.
+2. Transforming the data into a format suitable for an SCCS study. This step includes the creation of covariates based on the variables extracted from the database, such as defining risk windows based on exposures.
+3. Fitting the model using conditional Poisson regression.
+
+In the following sections these steps will be demonstrated for increasingly complex studies.
+
+# Studies with a single drug
+
+## Configuring the connection to the server
+
+We need to tell R how to connect to the server where the data are. `SelfControlledCaseSeries` uses the `DatabaseConnector` package, which provides the `createConnectionDetails` function. Type `?createConnectionDetails` for the specific settings required for the various database management systems (DBMS). For example, one might connect to a PostgreSQL database using this code:
+
+```{r tidy=FALSE,eval=FALSE}
+connectionDetails <- createConnectionDetails(dbms = "postgresql", 
+                                             server = "localhost/ohdsi", 
+                                             user = "joe", 
+                                             password = "supersecret")
+
+cdmDatabaseSchema <- "my_cdm_data"
+cohortDatabaseSchema <- "my_results"
+cdmVersion <- "4"
+```
+
+The last three lines define the `cdmDatabaseSchema` and `cohortDatabaseSchema` variables,as well as the CDM version. We'll use these later to tell R where the data in CDM format live, where we have stored our cohorts of interest, and what version CDM is used. Note that for Microsoft SQL Server, databaseschemas need to specify both the database and the schema, so for example `cdmDatabaseSchema <- "my_cdm_data.dbo"`.
+
+## Preparing the health outcome of interest
+
+We need to define the outcome for our study. One way to do this is by writing SQL statements against the OMOP CDM that populate a table of events in which we are interested. The resulting table should have the same structure as the `cohort` table in the CDM. For CDM v4, this means it should have the fields `cohort_concept_id`, `cohort_start_date`, `cohort_end_date`,and `subject_id`. For CDM v4, the `cohort_concept_id` field must be called `cohort_definition_id`. 
+
+For our example study, we have created a file called *vignette.sql* with the following contents:
+
+```sql
+/***********************************
+File vignette.sql 
+***********************************/
+
+IF OBJECT_ID('@cohortDatabaseSchema.@outcomeTable', 'U') IS NOT NULL
+  DROP TABLE @cohortDatabaseSchema.@outcomeTable;
+
+SELECT 1 AS cohort_concept_id,
+	condition_start_date AS cohort_start_date,
+	condition_end_date AS cohort_end_date,
+	condition_occurrence.person_id AS subject_id
+INTO @cohortDatabaseSchema.@outcomeTable
+FROM @cdmDatabaseSchema.condition_occurrence
+INNER JOIN @cdmDatabaseSchema.visit_occurrence
+	ON condition_occurrence.visit_occurrence_id = visit_occurrence.visit_occurrence_id
+WHERE condition_concept_id IN (
+		SELECT descendant_concept_id
+		FROM @cdmDatabaseSchema.concept_ancestor
+		WHERE ancestor_concept_id = 192671 -- GI - Gastrointestinal haemorrhage
+		)
+	AND visit_occurrence.place_of_service_concept_id IN (9201, 9203);
+```
+
+This is parameterized SQL which can be used by the `SqlRender` package. We use parameterized SQL so we do not have to pre-specify the names of the CDM and cohort schemas. That way, if we want to run the SQL on a different schema, we only need to change the parameter values; we do not have to change the SQL code. By also making use of translation functionality in `SqlRender`, we can make sure the SQL code can be run in many different environments.
+
+```{r tidy=FALSE,eval=FALSE}
+library(SqlRender)
+sql <- readSql("vignette.sql")
+sql <- renderSql(sql,
+                 cdmDatabaseSchema = cdmDatabaseSchema, 
+                 cohortDatabaseSchema = cohortDatabaseSchema
+                 outcomeTable = "my_outcomes")$sql
+sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+
+connection <- connect(connectionDetails)
+executeSql(connection, sql)
+```
+
+In this code, we first read the SQL from the file into memory. In the next line, we replace the two parameter names with the actual values. We then translate the SQL into the dialect appropriate for the DBMS we already specified in the `connectionDetails`. Next, we connect to the server, and submit the rendered and translated SQL.
+
+If all went well, we now have a table with the outcome of interest. We can see how many events:
+
+```{r tidy=FALSE,eval=FALSE}
+sql <- paste("SELECT cohort_concept_id, COUNT(*) AS count",
+             "FROM @cohortDatabaseSchema.@outcomeTable",
+             "GROUP BY cohort_concept_id")
+sql <- renderSql(sql, 
+                 cohortDatabaseSchema = cohortDatabaseSchema, 
+                 outcomeTable = outcomeTable)$sql
+sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+
+querySql(connection, sql)
+```
+```{r echo=FALSE,message=FALSE}
+data.frame(cohort_concept_id = c(1,2,3),count=c(128785,417027,419141))
+```
+
+## Extracting the data from the server
+
+Now we can tell `SelfControlledCaseSeries` to extract all necessary data for our analysis:
+
+```{r tidy=FALSE,eval=FALSE}
+diclofenac <- 1124300
+
+sccsData <- getDbSccsData(connectionDetails = connectionDetails,
+                          cdmDatabaseSchema = cdmDatabaseSchema,
+                          oracleTempSchema = oracleTempSchema,
+                          outcomeDatabaseSchema = cohortDatabaseSchema,
+                          outcomeTable = outcomeTable,
+                          outcomeIds = 1,
+                          exposureDatabaseSchema = cdmDatabaseSchema,
+                          exposureTable = "drug_era",
+                          exposureIds = diclofenac,
+                          cdmVersion = cdmVersion)
+sccsData
+```
+```{r echo=FALSE,message=FALSE,eval=TRUE}
+if (file.exists("s:/temp/vignetteSccs")){
+  sccsData <- loadCohortMethodData("s:/temp/vignetteSccs/data1")
+} 
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")){
+  sccsData
+}
+```
+
+There are many parameters, but they are all documented in the `SelfControlledCaseSeries` manual. In short, we are pointing the function to the table created earlier and indicating which concept ID in that table identifies the outcome. Note that it is possible to fetch the data for multiple outcomes
+at once. We further point the function to the `drug_era` table, and specify the
+concept ID of our exposure of interest: diclofenac. Again, note that it is also
+possible to fetch data for multiple drugs at once. In fact, when we do not specify any exposureIds the function will retrieve the data for all the drugs found in the `drug_era` table.
+
+All data about the patients, outcomes and exposures are extracted from the server and stored in the `sccsData` object. This object uses the package `ff` to store information in a way that ensures R does not run out of memory, even when the data are large. 
+
+We can use the generic `summary()` function to view some more information of the data we extracted:
+
+```{r tidy=TRUE,eval=FALSE}
+summary(sccsData)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")){
+  summary(sccsData)
+}
+```
+
+### Saving the data to file
+
+Creating the `sccsData` file can take considerable computing time, and it is probably a good idea to save it for future sessions. Because `sccsData` uses `ff`, we cannot use R's regular save function. Instead, we'll have to use the `saveSccsData()` function:
+
+```{r tidy=TRUE,eval=FALSE}
+saveSccsData(sccsData, "diclofenacAndGiBleed")
+```
+
+We can use the `loadSccsData()` function to load the data in a future session.
+
+## Using a simple model
+
+Next, we can use the data to specify a simple model which we can fit:
+
+```{r tidy=FALSE,eval=FALSE}
+covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
+                                          includeCovariateIds = diclofenac,
+                                          start = 0,
+                                          end = 0,
+                                          addExposedDaysToEnd = TRUE)
+
+sccsEraData <- createSccsEraData(sccsData,
+                                 naivePeriod = 180,
+                                 firstOutcomeOnly = FALSE,
+                                 covariateSettings = covarDiclofenac)
+
+model <- fitSccsModel(sccsEraData)
+```
+
+In this example, we use the `createCovariateSettings` to define a single covariate: exposure to diclofenac. We specify that the risk window is from start of exposure to the end. We then use that definition in the `createSccsEraData`, and also specify that the first 180 days of observation of every person, the so-called 'naive period', will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (at the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person. The `fitSccsModel` function is used to fit the model.
+
+---------
+
+
+The `CohortMethod` can use propensity scores to adjust for potential confounders. Instead of the traditional approach of using a handful of predefined covariates, `CohortMethod` typically uses thousands to millions of covariates that are automatically constructed based on conditions, procedures and drugs in the records of the subjects.
+
+## Fitting a propensity model
+
+We can fit a propensity model using the covariates constructed by the `getDbcohortMethodData()` function:
+
+```{r tidy=TRUE,eval=FALSE}
+ps <- createPs(cohortMethodData, outcomeId = 3)
+```
+```{r echo=FALSE,message=FALSE,eval=TRUE}
+data(vignettePs)
+ps <- vignettePs
+```
+
+The `createPs()` function uses the `Cyclops` package to fit a large-scale regularized logistic regression. Note that we have to tell `createPs()` what the `outcomeId` is for which we will use the model so it can remove subjects who had the outcome prior to the index date before fitting the model. 
+
+To fit the propensity model, `Cyclops` needs to know the hyperparameter value which specifies the variance of the prior. By default `Cyclops` will use cross-validation to estimate the optimal hyperparameter. However, be aware that this can take a really long time. You can use the `prior` and `control` parameters of the `createPs()` to specify `Cyclops` behavior, including using multiple CPUs to speed-up the cross-validation. 
+
+## Propensity score diagnostics
+
+We can compute the area under the receiver-operator curve (AUC) for the propensity score model:
+
+```{r tidy=TRUE,eval=TRUE}
+computePsAuc(ps)
+```
+
+We can also plot the propensity score distribution, although we prefer the preference score distribution:
+
+```{r tidy=TRUE,eval=TRUE}
+plotPs(ps, scale = "preference")
+```
+
+It is also possible to inspect the propensity model itself by showing the covariates that have non-zero coefficients:
+
+```{r tidy=TRUE,eval=FALSE}
+propensityModel <- getPsModel(ps, cohortMethodData)
+head(propensityModel)  
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignettecohortMethodData")){
+  propensityModel <- getPsModel(ps, cohortMethodData)
+  truncRight <- function(x, n){
+    nc <- nchar(x)
+    x[nc > (n-3)] <- paste('...',substr(x[nc > (n-3)], nc[nc > (n-3)]-n+1, nc[nc > (n-3)]),sep="")
+    x
+  }
+  propensityModel$covariateName <- truncRight(as.character(propensityModel$covariateName),40)
+  head(propensityModel)  
+  }
+```
+
+One advantage of using the regularization when fitting the propensity model is that most coefficients will shrink to zero and fall out of the model. It is a good idea to inspect the remaining variables for anything that should not be there, for example instrumental variables.
+
+## Using the propensity score
+
+We can use the propensity scores to trim, stratify, or match our population. For example, one could  trim to equipoise, meaning only subjects with a preference score between 0.25 and 0.75 are kept:
+
+```{r tidy=TRUE,eval=TRUE}
+psTrimmed <- trimByPsToEquipoise(ps)  
+plotPs(psTrimmed, ps, scale = "preference")
+```
+
+Instead (or additionally), we could stratify the population based on the propensity score:
+
+```{r tidy=TRUE,eval=TRUE}
+psStratified <- stratifyByPs(ps, numberOfStrata = 5)  
+plotPs(psStratified, ps, scale = "preference")
+```
+
+We can also match subjects based on propensity scores. In this example, we're using one-to-one matching:
+
+```{r tidy=TRUE,eval=TRUE}
+  strata <- matchOnPs(ps, caliper = 0.25, caliperScale = "standardized", maxRatio = 1)
+  plotPs(strata, ps)
+```
+
+Note that for both stratification and matching it is possible to specify additional matching criteria such as age and sex using the `stratifyByPsAndCovariates()` and `matchOnPsAndCovariates()` functions, respectively.
+
+## Evaluating covariate balance
+
+To evaluate whether our use of the propensity score is indeed making the two cohorts more comparable, we can compute the covariate balance before and after trimming, matching, and/or stratifying:
+
+```{r tidy=TRUE,eval=FALSE}
+balance <- computeCovariateBalance(strata, cohortMethodData, outcomeId = 3)
+```
+```{r echo=FALSE,message=FALSE,eval=TRUE}
+data(vignetteBalance)
+balance <- vignetteBalance
+```
+```{r tidy=TRUE,eval=TRUE,warning=FALSE,fig.width=8,fig.height=5}
+plotCovariateBalanceScatterPlot(balance)
+plotCovariateBalanceOfTopVariables(balance)
+```
+
+# Outcome models
+
+The outcome model is a model describing which variables are associated with the outcome. 
+
+## Fitting the outcome model
+
+In theory we could fit an outcome model without using the propensity scores. In this example we are fitting an outcome model using a Cox regression. The risk window is defined as time of exposure + 30 days:
+
+
+```{r tidy=FALSE,eval=FALSE}
+outcomeModel <- fitOutcomeModel(outcomeId = 3,
+                                cohortMethodData = cohortMethodData,
+                                riskWindowStart = 0, 
+                                riskWindowEnd = 30,
+                                addExposureDaysToEnd = TRUE,
+                                useCovariates = FALSE, 
+                                modelType = "cox",
+                                stratifiedCox = FALSE) 
+outcomeModel
+```
+```{r echo=FALSE,message=FALSE,eval=TRUE}
+data(vignetteOutcomeModel1)
+outcomeModel <- vignetteOutcomeModel1
+outcomeModel
+```
+
+But of course we want to make use of the matching done on the propensity score:
+
+```{r tidy=FALSE,eval=FALSE}
+outcomeModel <- fitOutcomeModel(outcomeId = 3,
+                                cohortMethodData = cohortMethodData,
+                                subPopulation = strata,
+                                riskWindowStart = 0, 
+                                riskWindowEnd = 30,
+                                addExposureDaysToEnd = TRUE,
+                                useCovariates = FALSE, 
+                                modelType = "cox",
+                                stratifiedCox = TRUE) 
+outcomeModel
+```
+```{r echo=FALSE,message=FALSE,eval=TRUE}
+data(vignetteOutcomeModel2)
+outcomeModel <- vignetteOutcomeModel2
+outcomeModel
+```
+
+Note that we define the sub-population to be only those in the `strata` object, which we created earlier by matching on the propensity score. We also now use a stratified Cox model, conditioning on the propensity score match sets.
+
+One final refinement would be to use the same covariates we used to fit the propensity model to also fit the outcome model. This way we are more robust against misspecification of the model, and more likely to remove bias. For this we use the regularized Cox regression in the `Cyclops` package. (Note that the treatment variable is automatically excluded from regularization.)
+
+```{r tidy=FALSE,eval=FALSE}
+outcomeModel <- fitOutcomeModel(outcomeId = 3,
+                                cohortMethodData = cohortMethodData,
+                                subPopulation = strata,
+                                riskWindowStart = 0, 
+                                riskWindowEnd = 30,
+                                addExposureDaysToEnd = TRUE,
+                                useCovariates = TRUE, 
+                                modelType = "cox",
+                                stratifiedCox = TRUE) 
+outcomeModel
+```
+```{r echo=FALSE,message=FALSE,eval=TRUE}
+data(vignetteOutcomeModel3)
+outcomeModel <- vignetteOutcomeModel3
+outcomeModel
+```
+
+## Inpecting the outcome model
+We can inspect more details of the outcome model:
+
+```{r tidy=TRUE,eval=TRUE}
+summary(outcomeModel)
+coef(outcomeModel)
+confint(outcomeModel)
+```
+
+We can also see the covariates that ended up in the outcome model:
+
+```{r tidy=TRUE,eval=FALSE}
+fullOutcomeModel <- getOutcomeModel(outcomeModel,cohortMethodData)
+head(fullOutcomeModel)
+```
+```{r echo=FALSE,message=FALSE}
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignettecohortMethodData")){
+  fullOutcomeModel <- getOutcomeModel(outcomeModel,cohortMethodData)
+  fullOutcomeModel$covariateName <- truncRight(as.character(fullOutcomeModel$covariateName),40)
+  head(fullOutcomeModel)  
+}
+```
+
+## Kaplan-Meier plot
+
+We can create the Kaplan-Meier plot:
+
+```{r tidy=TRUE,eval=TRUE}
+plotKaplanMeier(outcomeModel, includeZero = FALSE)
+```
+
+## Attrition diagram
+
+We can also investigate how we got to the study population by drawing the attrition diagram:
+
+```{r tidy=TRUE,eval=TRUE,fig.width=5,fig.height=6}
+drawAttritionDiagram(outcomeModel)
+```
+
+# Acknowledgments
+
+Considerable work has been dedicated to provide the `CohortMethod` package.
+
+```{r tidy=TRUE,eval=TRUE}
+citation("CohortMethod")
+```
+
+Further, `CohortMethod` makes extensive use of the `Cyclops` package.
+
+```{r tidy=TRUE,eval=TRUE}
+citation("Cyclops")
+```
+
+This work is supported in part through the National Science Foundation grant IIS 1251151.
+
+
+
