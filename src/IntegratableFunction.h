@@ -1,5 +1,5 @@
 /**
- * @file NumericIntegration.h
+ * @file IntegratableFunction.h
  *
  * This file is part of SelfControlledCaseSeries
  *
@@ -18,24 +18,24 @@
  * limitations under the License.
  */
 
-#ifndef __NumericIntegration_h__
-#define __NumericIntegration_h__
+#ifndef __IntegratableFunction_h__
+#define __IntegratableFunction_h__
 
 #include <Rcpp.h>
-#include "IntegratableFunction.h"
 
 using namespace Rcpp;
 
 namespace ohdsi {
 namespace sccs {
 
-struct NumericIntegration {
+
+class IntegratableFunction {
 public:
-  static double integrate(IntegratableFunction& f, const double start, const double end, const double tolerance);
-private:
-  static double recursiveIntegerate(IntegratableFunction& f, const double start, const double end, const double fStart, const double fMiddle, const double fEnd, const double is, const int count);
+  virtual double getValue(const double x);
 };
+
 }
 }
 
-#endif // __NumericIntegration_h__
+#endif // __IntegratableFunction_h__
+
