@@ -29,7 +29,7 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace sccs {
 
-double NumericIntegration::integrate(IntegratableFunction& f, const double start, const double end, const double tolerance){
+double NumericIntegration::integrate(IntegrableFunction& f, const double start, const double end, const double tolerance){
   const double delta = end-start;
   const double fStart = f.getValue(start);
   const double fEnd = f.getValue(end);
@@ -42,7 +42,7 @@ double NumericIntegration::integrate(IntegratableFunction& f, const double start
   return recursiveIntegerate(f, start, end, fStart, fMiddle, fEnd, is, 0);
 }
 
-double NumericIntegration::recursiveIntegerate(IntegratableFunction& f, const double start, const double end, const double fStart, const double fMiddle, const double fEnd, const double is, const int count) {
+double NumericIntegration::recursiveIntegerate(IntegrableFunction& f, const double start, const double end, const double fStart, const double fMiddle, const double fEnd, const double is, const int count) {
   double middle = (start + end)/2.0;
   double quart = (end - start)/4.0;
   double fMidL = f.getValue(start + quart);

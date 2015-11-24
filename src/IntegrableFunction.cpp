@@ -1,5 +1,5 @@
 /**
- * @file IntegratableFunction.h
+ * @file IntegrableFunction.cpp
  *
  * This file is part of SelfControlledCaseSeries
  *
@@ -18,24 +18,20 @@
  * limitations under the License.
  */
 
-#ifndef __IntegratableFunction_h__
-#define __IntegratableFunction_h__
+#ifndef IntegrableFunction_CPP_
+#define IntegrableFunction_CPP_
 
 #include <Rcpp.h>
+#include "IntegrableFunction.h"
 
 using namespace Rcpp;
 
 namespace ohdsi {
 namespace sccs {
 
-
-class IntegratableFunction {
-public:
-  virtual double getValue(const double x);
-};
-
+double IntegrableFunction::getValue(const double x) {
+  return x;
 }
 }
-
-#endif // __IntegratableFunction_h__
-
+}
+#endif /* IntegrableFunction_CPP_ */

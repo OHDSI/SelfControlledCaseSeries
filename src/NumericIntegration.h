@@ -22,7 +22,7 @@
 #define __NumericIntegration_h__
 
 #include <Rcpp.h>
-#include "IntegratableFunction.h"
+#include "IntegrableFunction.h"
 
 using namespace Rcpp;
 
@@ -31,9 +31,9 @@ namespace sccs {
 
 struct NumericIntegration {
 public:
-  static double integrate(IntegratableFunction& f, const double start, const double end, const double tolerance);
+  static double integrate(IntegrableFunction& f, const double start, const double end, const double tolerance);
 private:
-  static double recursiveIntegerate(IntegratableFunction& f, const double start, const double end, const double fStart, const double fMiddle, const double fEnd, const double is, const int count);
+  static double recursiveIntegerate(IntegrableFunction& f, const double start, const double end, const double fStart, const double fMiddle, const double fEnd, const double is, const int count);
 };
 }
 }

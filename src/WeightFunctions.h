@@ -28,7 +28,7 @@
 namespace ohdsi {
 namespace sccs {
 
-class WeightFunction: public IntegratableFunction {
+class WeightFunction: public IntegrableFunction {
 public:
   WeightFunction(const std::vector<double> &_p): p(_p) {}
 
