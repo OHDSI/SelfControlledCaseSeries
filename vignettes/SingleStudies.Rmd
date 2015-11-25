@@ -12,7 +12,7 @@ output:
 ---
 <!--
 %\VignetteEngine{knitr}
-%\VignetteIndexEntry{Single studies using CohortMethod}
+%\VignetteIndexEntry{Single studies using SelfControlledCaseSeries}
 -->
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
@@ -49,7 +49,7 @@ Once installed, you can type `library(SelfControlledCaseSeries)` to load the pac
 
 In the `SelfControlledCaseSeries` package a study requires at least three steps:
 
-1. Loading the needed data from the database.
+1. Loading the necessary data from the database.
 2. Transforming the data into a format suitable for an SCCS study. This step includes the creation of covariates based on the variables extracted from the database, such as defining risk windows based on exposures.
 3. Fitting the model using conditional Poisson regression.
 
@@ -76,7 +76,7 @@ The last three lines define the `cdmDatabaseSchema` and `cohortDatabaseSchema` v
 
 ## Preparing the health outcome of interest
 
-We need to define the outcome for our study. One way to do this is by writing SQL statements against the OMOP CDM that populate a table of events in which we are interested. The resulting table should have the same structure as the `cohort` table in the CDM. For CDM v4, this means it should have the fields `cohort_concept_id`, `cohort_start_date`, `cohort_end_date`,and `subject_id`. For CDM v4, the `cohort_concept_id` field must be called `cohort_definition_id`. 
+We need to define the outcome for our study. One way to do this is by writing SQL statements against the OMOP CDM that populate a table of events in which we are interested. The resulting table should have the same structure as the `cohort` table in the CDM. For CDM v4, this means it should have the fields `cohort_concept_id`, `cohort_start_date`, `cohort_end_date`, and `subject_id`. For CDM v5, the `cohort_concept_id` field must be called `cohort_definition_id`. 
 
 For our example study, we have created a file called *vignette.sql* with the following contents:
 
@@ -119,7 +119,7 @@ connection <- connect(connectionDetails)
 executeSql(connection, sql)
 ```
 
-In this code, we first read the SQL from the file into memory. In the next line, we replace the two parameter names with the actual values. We then translate the SQL into the dialect appropriate for the DBMS we already specified in the `connectionDetails`. Next, we connect to the server, and submit the rendered and translated SQL.
+In this code, we first read the SQL from the file into memory. In the next line, we replace the three parameter names with the actual values. We then translate the SQL into the dialect appropriate for the DBMS we already specified in the `connectionDetails`. Next, we connect to the server, and submit the rendered and translated SQL.
 
 If all went well, we now have a table with the outcome of interest. We can see how many events:
 
@@ -129,13 +129,13 @@ sql <- paste("SELECT cohort_concept_id, COUNT(*) AS count",
              "GROUP BY cohort_concept_id")
 sql <- renderSql(sql, 
                  cohortDatabaseSchema = cohortDatabaseSchema, 
-                 outcomeTable = outcomeTable)$sql
+                 outcomeTable = "my_outcomes")$sql
 sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
 
 querySql(connection, sql)
 ```
 ```{r echo=FALSE,message=FALSE}
-data.frame(cohort_concept_id = c(1,2,3),count=c(128785,417027,419141))
+data.frame(cohort_concept_id = c(1),count=c(422274))
 ```
 
 ## Extracting the data from the server
@@ -158,8 +158,9 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
 sccsData
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
+diclofenac <- 1124300
 if (file.exists("s:/temp/vignetteSccs")){
-  sccsData <- loadCohortMethodData("s:/temp/vignetteSccs/data1")
+  sccsData <- loadSccsData("s:/temp/vignetteSccs/data1")
 } 
 ```
 ```{r echo=FALSE,message=FALSE}
@@ -171,7 +172,7 @@ if (file.exists("s:/temp/vignetteSccs")){
 There are many parameters, but they are all documented in the `SelfControlledCaseSeries` manual. In short, we are pointing the function to the table created earlier and indicating which concept ID in that table identifies the outcome. Note that it is possible to fetch the data for multiple outcomes
 at once. We further point the function to the `drug_era` table, and specify the
 concept ID of our exposure of interest: diclofenac. Again, note that it is also
-possible to fetch data for multiple drugs at once. In fact, when we do not specify any exposureIds the function will retrieve the data for all the drugs found in the `drug_era` table.
+possible to fetch data for multiple drugs at once. In fact, when we do not specify any exposure IDs the function will retrieve the data for all the drugs found in the `drug_era` table.
 
 All data about the patients, outcomes and exposures are extracted from the server and stored in the `sccsData` object. This object uses the package `ff` to store information in a way that ensures R does not run out of memory, even when the data are large. 
 
@@ -215,228 +216,353 @@ sccsEraData <- createSccsEraData(sccsData,
 model <- fitSccsModel(sccsEraData)
 ```
 
-In this example, we use the `createCovariateSettings` to define a single covariate: exposure to diclofenac. We specify that the risk window is from start of exposure to the end. We then use that definition in the `createSccsEraData`, and also specify that the first 180 days of observation of every person, the so-called 'naive period', will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (at the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person. The `fitSccsModel` function is used to fit the model.
+In this example, we use the `createCovariateSettings` to define a single covariate: exposure to diclofenac. We specify that the risk window is from start of exposure to the end by setting start and end to 0, and requiring that the length of exposure is added to the end date. 
 
----------
+We then use the covariate definition in the `createSccsEraData`, and also specify that the first 180 days of observation of every person, the so-called 'naive period', will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person. 
 
-
-The `CohortMethod` can use propensity scores to adjust for potential confounders. Instead of the traditional approach of using a handful of predefined covariates, `CohortMethod` typically uses thousands to millions of covariates that are automatically constructed based on conditions, procedures and drugs in the records of the subjects.
-
-## Fitting a propensity model
-
-We can fit a propensity model using the covariates constructed by the `getDbcohortMethodData()` function:
+The `fitSccsModel` function is used to fit the model. We can inspect the resulting model:
 
 ```{r tidy=TRUE,eval=FALSE}
-ps <- createPs(cohortMethodData, outcomeId = 3)
-```
-```{r echo=FALSE,message=FALSE,eval=TRUE}
-data(vignettePs)
-ps <- vignettePs
-```
-
-The `createPs()` function uses the `Cyclops` package to fit a large-scale regularized logistic regression. Note that we have to tell `createPs()` what the `outcomeId` is for which we will use the model so it can remove subjects who had the outcome prior to the index date before fitting the model. 
-
-To fit the propensity model, `Cyclops` needs to know the hyperparameter value which specifies the variance of the prior. By default `Cyclops` will use cross-validation to estimate the optimal hyperparameter. However, be aware that this can take a really long time. You can use the `prior` and `control` parameters of the `createPs()` to specify `Cyclops` behavior, including using multiple CPUs to speed-up the cross-validation. 
-
-## Propensity score diagnostics
-
-We can compute the area under the receiver-operator curve (AUC) for the propensity score model:
-
-```{r tidy=TRUE,eval=TRUE}
-computePsAuc(ps)
-```
-
-We can also plot the propensity score distribution, although we prefer the preference score distribution:
-
-```{r tidy=TRUE,eval=TRUE}
-plotPs(ps, scale = "preference")
-```
-
-It is also possible to inspect the propensity model itself by showing the covariates that have non-zero coefficients:
-
-```{r tidy=TRUE,eval=FALSE}
-propensityModel <- getPsModel(ps, cohortMethodData)
-head(propensityModel)  
+summary(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignettecohortMethodData")){
-  propensityModel <- getPsModel(ps, cohortMethodData)
-  truncRight <- function(x, n){
-    nc <- nchar(x)
-    x[nc > (n-3)] <- paste('...',substr(x[nc > (n-3)], nc[nc > (n-3)]-n+1, nc[nc > (n-3)]),sep="")
-    x
-  }
-  propensityModel$covariateName <- truncRight(as.character(propensityModel$covariateName),40)
-  head(propensityModel)  
-  }
-```
-
-One advantage of using the regularization when fitting the propensity model is that most coefficients will shrink to zero and fall out of the model. It is a good idea to inspect the remaining variables for anything that should not be there, for example instrumental variables.
-
-## Using the propensity score
-
-We can use the propensity scores to trim, stratify, or match our population. For example, one could  trim to equipoise, meaning only subjects with a preference score between 0.25 and 0.75 are kept:
-
-```{r tidy=TRUE,eval=TRUE}
-psTrimmed <- trimByPsToEquipoise(ps)  
-plotPs(psTrimmed, ps, scale = "preference")
-```
-
-Instead (or additionally), we could stratify the population based on the propensity score:
-
-```{r tidy=TRUE,eval=TRUE}
-psStratified <- stratifyByPs(ps, numberOfStrata = 5)  
-plotPs(psStratified, ps, scale = "preference")
-```
-
-We can also match subjects based on propensity scores. In this example, we're using one-to-one matching:
-
-```{r tidy=TRUE,eval=TRUE}
-  strata <- matchOnPs(ps, caliper = 0.25, caliperScale = "standardized", maxRatio = 1)
-  plotPs(strata, ps)
-```
-
-Note that for both stratification and matching it is possible to specify additional matching criteria such as age and sex using the `stratifyByPsAndCovariates()` and `matchOnPsAndCovariates()` functions, respectively.
-
-## Evaluating covariate balance
-
-To evaluate whether our use of the propensity score is indeed making the two cohorts more comparable, we can compute the covariate balance before and after trimming, matching, and/or stratifying:
-
-```{r tidy=TRUE,eval=FALSE}
-balance <- computeCovariateBalance(strata, cohortMethodData, outcomeId = 3)
-```
-```{r echo=FALSE,message=FALSE,eval=TRUE}
-data(vignetteBalance)
-balance <- vignetteBalance
-```
-```{r tidy=TRUE,eval=TRUE,warning=FALSE,fig.width=8,fig.height=5}
-plotCovariateBalanceScatterPlot(balance)
-plotCovariateBalanceOfTopVariables(balance)
-```
-
-# Outcome models
-
-The outcome model is a model describing which variables are associated with the outcome. 
-
-## Fitting the outcome model
-
-In theory we could fit an outcome model without using the propensity scores. In this example we are fitting an outcome model using a Cox regression. The risk window is defined as time of exposure + 30 days:
-
-
-```{r tidy=FALSE,eval=FALSE}
-outcomeModel <- fitOutcomeModel(outcomeId = 3,
-                                cohortMethodData = cohortMethodData,
-                                riskWindowStart = 0, 
-                                riskWindowEnd = 30,
-                                addExposureDaysToEnd = TRUE,
-                                useCovariates = FALSE, 
-                                modelType = "cox",
-                                stratifiedCox = FALSE) 
-outcomeModel
-```
-```{r echo=FALSE,message=FALSE,eval=TRUE}
-data(vignetteOutcomeModel1)
-outcomeModel <- vignetteOutcomeModel1
-outcomeModel
-```
-
-But of course we want to make use of the matching done on the propensity score:
-
-```{r tidy=FALSE,eval=FALSE}
-outcomeModel <- fitOutcomeModel(outcomeId = 3,
-                                cohortMethodData = cohortMethodData,
-                                subPopulation = strata,
-                                riskWindowStart = 0, 
-                                riskWindowEnd = 30,
-                                addExposureDaysToEnd = TRUE,
-                                useCovariates = FALSE, 
-                                modelType = "cox",
-                                stratifiedCox = TRUE) 
-outcomeModel
-```
-```{r echo=FALSE,message=FALSE,eval=TRUE}
-data(vignetteOutcomeModel2)
-outcomeModel <- vignetteOutcomeModel2
-outcomeModel
-```
-
-Note that we define the sub-population to be only those in the `strata` object, which we created earlier by matching on the propensity score. We also now use a stratified Cox model, conditioning on the propensity score match sets.
-
-One final refinement would be to use the same covariates we used to fit the propensity model to also fit the outcome model. This way we are more robust against misspecification of the model, and more likely to remove bias. For this we use the regularized Cox regression in the `Cyclops` package. (Note that the treatment variable is automatically excluded from regularization.)
-
-```{r tidy=FALSE,eval=FALSE}
-outcomeModel <- fitOutcomeModel(outcomeId = 3,
-                                cohortMethodData = cohortMethodData,
-                                subPopulation = strata,
-                                riskWindowStart = 0, 
-                                riskWindowEnd = 30,
-                                addExposureDaysToEnd = TRUE,
-                                useCovariates = TRUE, 
-                                modelType = "cox",
-                                stratifiedCox = TRUE) 
-outcomeModel
-```
-```{r echo=FALSE,message=FALSE,eval=TRUE}
-data(vignetteOutcomeModel3)
-outcomeModel <- vignetteOutcomeModel3
-outcomeModel
-```
-
-## Inpecting the outcome model
-We can inspect more details of the outcome model:
-
-```{r tidy=TRUE,eval=TRUE}
-summary(outcomeModel)
-coef(outcomeModel)
-confint(outcomeModel)
-```
-
-We can also see the covariates that ended up in the outcome model:
-
-```{r tidy=TRUE,eval=FALSE}
-fullOutcomeModel <- getOutcomeModel(outcomeModel,cohortMethodData)
-head(fullOutcomeModel)
-```
-```{r echo=FALSE,message=FALSE}
-```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignettecohortMethodData")){
-  fullOutcomeModel <- getOutcomeModel(outcomeModel,cohortMethodData)
-  fullOutcomeModel$covariateName <- truncRight(as.character(fullOutcomeModel$covariateName),40)
-  head(fullOutcomeModel)  
+if (file.exists("s:/temp/vignetteSccs")){
+  model <- readRDS("s:/temp/vignetteSccs/simpleModel.rds")
+  summary(model)
 }
 ```
 
-## Kaplan-Meier plot
+This tells us what the estimated relative risk (the incidence rate ratio) is during exposure to diclofenac compared to non-exposed time. Note that we lost some cases due to imposing the 180 day naive period.
 
-We can create the Kaplan-Meier plot:
+## Adding a pre-exposure window
 
-```{r tidy=TRUE,eval=TRUE}
-plotKaplanMeier(outcomeModel, includeZero = FALSE)
+The fact that NSAIDs like diclofenac can cause GI bleeds is well known to doctors, and this knowledge affects prescribing behavior. For example, a patient who has just had a GI bleed is not likely to be prescribed diclofenac. This may lead to underestimation of the rate during unexposed time, because the unexposed time includes time just prior to exposure where observing of the outcome is unlikely because of this behavior. One solution to this problem that is often used is to introduce a separate 'risk window' just prior to exposure, to separate it from the remaining unexposed time. We can add such a 'pre-exposure window' to our analysis:
+
+```{r tidy=FALSE,eval=FALSE}
+  covarPreDiclofenac = createCovariateSettings(label = "Pre-exposure",
+                                               includeCovariateIds = diclofenac,
+                                               start = -60,
+                                               end = -1)
+
+  sccsEraData <- createSccsEraData(sccsData,
+                                   naivePeriod = 180,
+                                   firstOutcomeOnly = FALSE,
+                                   covariateSettings = list(covarDiclofenac,
+                                                            covarPreDiclofenac))
+
+  model <- fitSccsModel(sccsEraData)
 ```
 
-## Attrition diagram
+Here we created a new covariate definition in addition to the first one. We define the risk window to start 60 days prior to exposure, and end on the day just prior to exposure. We combine the two covariate settings in a list for the `createSccsEraData` function. Again, we can take a look at the results:
 
-We can also investigate how we got to the study population by drawing the attrition diagram:
-
-```{r tidy=TRUE,eval=TRUE,fig.width=5,fig.height=6}
-drawAttritionDiagram(outcomeModel)
+```{r tidy=TRUE,eval=FALSE}
+summary(model)
 ```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")){
+  model <- readRDS("s:/temp/vignetteSccs/preExposureModel.rds")
+  summary(model)
+}
+```
+
+Here we indeed see a lower relative risk in the time preceding the exposure, indicating the outcome might be a contra-indication for the drug of interest.
+
+## Splitting risk windows
+
+Often we will want to split the risk windows into smaller parts and compute estimates for each part. This can give us insight into the temporal distribution of the risk. We can add this to the model:
+
+```{r tidy=FALSE,eval=FALSE}
+  covarDiclofenacSplit = createCovariateSettings(label = "Exposure of interest",
+                                                 includeCovariateIds = diclofenac,
+                                                 start = 0,
+                                                 end = 0,
+                                                 addExposedDaysToEnd = TRUE,
+                                                 splitPoints = c(7,14))
+
+  covarPreDiclofenacSplit = createCovariateSettings(label = "Pre-exposure",
+                                                    includeCovariateIds = diclofenac,
+                                                    start = -60,
+                                                    end = -1,
+                                                    splitPoints = c(-30))
+
+  sccsEraData <- createSccsEraData(sccsData,
+                                   naivePeriod = 180,
+                                   firstOutcomeOnly = FALSE,
+                                   covariateSettings = list(covarDiclofenacSplit,
+                                                            covarPreDiclofenacSplit))
+```
+
+Here we've redefined out covariate definitions: We kept the same start and end dates, but enforced split points for the main exposure windows at 7 and 14 days. For the pre-exposure window we divided the window into two, at day 30 before the exposure start. Note that the split point dates indicate the end date of the preceding part, so the exposure is now split into day 0 to (and including) day 7, day 8 to (and including) day 14, and day 15 until the end of exposure. The results are:
+
+```{r tidy=TRUE,eval=FALSE}
+summary(model)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")){
+  model <- readRDS("s:/temp/vignetteSccs/splitModel.rds")
+  summary(model)
+}
+```
+
+We see that the risk for the three exposure windows is more or less the same, suggesting a constant risk. We also see that the period 60 to 30 days prior to exposure does not seem to show a decreased risk, suggesting the effect of the contra-indication does not extend more than 30 days before the exposure.
+
+
+## Including age and seasonality
+
+Often both the rate of exposure and the outcome change with age, and can even depend on the season. This may lead to confounding and may bias our estimates. To correct for this we can include age and/or season into the model. 
+
+For computational reasons we assume the effect of both age and season are constant within each calendar month. We assume that the rate from one month to the next can be different, but we also assume that subsequent months have somewhat similar rates. This is implemented by using cubic spline functions.
+
+![Spline for seasonality](spline.png)
+*Figure 1*. Example of how a spline is used for seasonality: within a month, the risk attributable to seasonality is assumed to be constant, but from month to month the risks are assumed to follow a cyclic cubic spline.
+
+Note that the by default all people that have the outcome will be used to estimate the effect of age and seasonality on the outcome, so not just the people exposed to the drug of interest. We can add age and seasonality like this:
+
+
+```{r tidy=FALSE,eval=FALSE}
+ageSettings <- createAgeSettings(includeAge = TRUE,
+                                 ageKnots = 5)
+  
+seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE,
+                                                 seasonKnots = 5)
+  
+sccsEraData <- createSccsEraData(sccsData,
+                                 naivePeriod = 180,
+                                 firstOutcomeOnly = FALSE,
+                                 covariateSettings = list(covarDiclofenacSplit,
+                                                          covarPreDiclofenacSplit),
+                                 ageSettings = ageSettings,
+                                 seasonalitySettings = seasonalitySettings)
+  
+model <- fitSccsModel(sccsEraData)
+```
+
+Again, we can inspect the model:
+
+```{r tidy=TRUE,eval=FALSE}
+summary(model)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")){
+  model <- readRDS("s:/temp/vignetteSccs/ageAndSeasonModel.rds")
+  summary(model)
+}
+```
+
+We see that our estimates for exposed and pre-exposure  time have not changes much. We can plot the spline curves for age and season to learn more:
+
+```{r tidy=TRUE,eval=FALSE}
+plotAgeEffect(model)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")){
+  plotAgeEffect(model)
+}
+```
+
+```{r tidy=TRUE,eval=FALSE}
+plotSeasonality(model)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")){
+  plotSeasonality(model)
+}
+```
+
+We see a strong effect for age on the outcome, but this effect is spread out over many years and so it less likely to affect the estimates for any individual, since most people are only observed for a few years in the database. We do not see a strong effect for season.
+
+
+## Considering event-dependent observation time
+
+The SCCS method requires that observation periods are independent of outcome times. This requirement is violated when outcomes increase the mortality rate, since censoring of the observation periods is then event-dependent. A modification to the SCCS has been proposed that attempts to correct for this. First, several models are fitted to estimate the amount and shape of the event-dependent censoring, and the best fitting model is selected. Next, this model is used to reweigh various parts of the observation time. This approach is also implemented in this package, and can be turned on using the `eventDependentObservation` argument of the `createSccsEraData` function:
+
+```{r tidy=FALSE,eval=FALSE}
+sccsEraData <- createSccsEraData(sccsData,
+                                 naivePeriod = 180,
+                                 firstOutcomeOnly = FALSE,
+                                 covariateSettings = list(covarDiclofenacSplit,
+                                                          covarPreDiclofenacSplit),
+                                 ageSettings = ageSettings,
+                                 seasonalitySettings = seasonalitySettings,
+                                 eventDependentObservation = TRUE)
+
+model <- fitSccsModel(sccsEraData)
+```
+
+Again, we can inspect the model:
+
+```{r tidy=TRUE,eval=FALSE}
+summary(model)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs/eventDepModel.rds")){
+  model <- readRDS("s:/temp/vignetteSccs/eventDepModel.rds")
+  summary(model)
+}
+```
+
+
+# Studies with more than one drug
+
+Although we are usually interested in the effect of a single drug or drug class, it could be beneficial to add exposure to other drugs to the analysis if we believe those drugs represent time-varying confounders that we wish to correct for.
+
+## Adding a class of drugs
+
+For example, oftentimes diclofenac is co-prescribed with proton-pump inhibitors (PPIs) to mitigate the risk of GI bleeding. We would like our estimate to represent just the effect of the diclofenac, so we need to keep the effect of the PPIs separate. First we have to retrieve the information on PPI exposure from the database:
+
+```{r tidy=FALSE,eval=FALSE}
+diclofenac <- 1124300
+ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
+
+sccsData <- getDbSccsData(connectionDetails = connectionDetails,
+                          cdmDatabaseSchema = cdmDatabaseSchema,
+                          oracleTempSchema = oracleTempSchema,
+                          outcomeDatabaseSchema = cohortDatabaseSchema,
+                          outcomeTable = outcomeTable,
+                          outcomeIds = 1,
+                          exposureDatabaseSchema = cdmDatabaseSchema,
+                          exposureTable = "drug_era",
+                          exposureIds = c(diclofenac, ppis),
+                          cdmVersion = cdmVersion)
+sccsData
+```
+```{r echo=FALSE,message=FALSE,eval=TRUE}
+ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
+if (file.exists("s:/temp/vignetteSccs")){
+  sccsData <- loadSccsData("s:/temp/vignetteSccs/data2")
+} 
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")){
+  sccsData
+}
+```
+
+Once retrieved, we can use the data to build and fit our model:
+
+```{r tidy=FALSE,eval=FALSE}
+covarPpis = createCovariateSettings(label = "PPIs",
+                                    includeCovariateIds = ppis,
+                                    stratifyByID = FALSE,
+                                    start = 1,
+                                    end = 0,
+                                    addExposedDaysToEnd = TRUE)
+
+sccsEraData <- createSccsEraData(sccsData,
+                                 naivePeriod = 180,
+                                 firstOutcomeOnly = FALSE,
+                                 covariateSettings = list(covarDiclofenacSplit,
+                                                          covarPreDiclofenacSplit,
+                                                          covarPpis),
+                                 ageSettings = ageSettings,
+                                 seasonalitySettings = seasonalitySettings,
+                                 eventDependentObservation = TRUE)
+
+model <- fitSccsModel(sccsEraData)
+```
+
+Here, we added a new covariate based on the list of concept IDs for the various PPIs. In this example we set `stratifyByID` to FALSE, meaning that we will estimate a single incidence rate ratio for all PPIs, so one estimate for the entire class of drugs. Note that duplicates will be removed: if a person is exposed to two PPIs on the same day, this will be counted only once when fitting the model. Furthermore, we have set the `start` day to 1 instead of 0. The reason for this is that PPIs will also be used to treat GI bleeds, and are likely to be prescribed on the same day as the event. If we would include day 0, the risk of the outcome would be attributed to the PPI used for treatment, not the other factors that caused the GI bleed such as any exposure to our drug of interest. Again, we can inspect the model:
+
+```{r tidy=TRUE,eval=FALSE}
+summary(model)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs/ppiModel.rds")){
+  model <- readRDS("s:/temp/vignetteSccs/ppiModel.rds")
+  summary(model)
+}
+```
+
+We do see a decrease in risk when people are exposed to PPIs.
+
+## Adding all drugs
+
+Another approach could be to add all drugs into the model. Again, the first step is to get all the relevant data from the database:
+
+```{r tidy=FALSE,eval=FALSE}
+sccsData <- getDbSccsData(connectionDetails = connectionDetails,
+                          cdmDatabaseSchema = cdmDatabaseSchema,
+                          oracleTempSchema = oracleTempSchema,
+                          outcomeDatabaseSchema = cohortDatabaseSchema,
+                          outcomeTable = outcomeTable,
+                          outcomeIds = 1,
+                          exposureDatabaseSchema = cdmDatabaseSchema,
+                          exposureTable = "drug_era",
+                          exposureIds = c(),
+                          cdmVersion = cdmVersion)
+```
+
+Note that the `exposureIds` argument is left empty. This will cause data for all concepts in the exposure table to be retrieved. Next, we simply create a new set of covariates, and fit the model:
+
+```{r tidy=FALSE,eval=FALSE}
+covarAllDrugs = createCovariateSettings(label = "All other exposures",
+                                        excludeCovariateIds = diclofenac,
+                                        stratifyByID = TRUE,
+                                        start = 1,
+                                        end = 0,
+                                        addExposedDaysToEnd = TRUE,
+                                        allowRegularization = TRUE)
+
+sccsEraData <- createSccsEraData(sccsData,
+                                 naivePeriod = 180,
+                                 firstOutcomeOnly = FALSE,
+                                 covariateSettings = list(covarDiclofenacSplit,
+                                                          covarPreDiclofenacSplit,
+                                                          covarAllDrugs),
+                                 ageSettings = ageSettings,
+                                 seasonalitySettings = seasonalitySettings,
+                                 eventDependentObservation = TRUE)
+
+model <- fitSccsModel(sccsEraData)
+```
+
+The first thing to note is that we have defined the new covariates to be all drugs except diclofenac by not specifying the `includeCovariateIds` and setting the `excludeCovariateIds` to the concept ID of diclofenac. Furthermore, we have specified that `stratifyByID` is TRUE, meaning an estimate will be produced for each drug. 
+
+We have set `allowRegularization` to TRUE, meaning we will use regularization for all estimates in this new covariate set. Regularization means we will impose a prior distribution on the effect size, effectually penalizing large estimates. This helps fit the model, for example when some drugs are rare, and when drugs are almost often prescribed together and their individual effects are difficult to untangle.
+
+Because there are now so many estimates, we will not use the `summary()` function but instead export all estimates to a data frame using `getModel()`:
+
+```{r tidy=TRUE,eval=FALSE}
+  estimates <- getModel(model)
+  estimates[estimates$originalCovariateId == diclofenac,]
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs/allDrugsModel.rds")){
+  model <- readRDS("s:/temp/vignetteSccs/allDrugsModel.rds")
+  estimates <- getModel(model)
+  estimates[estimates$originalCovariateId == diclofenac,]
+}
+```
+
+Here we see that despite the extensive adjustments that are made in the model, the effect estimates for diclofenac have remained nearly the same. 
+
+In case we're interested, we can also look at the effect sizes for the PPIs:
+
+```{r tidy=TRUE,eval=FALSE}
+  estimates[estimates$originalCovariateId %in% ppis,]
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs/allDrugsModel.rds")){
+  estimates[estimates$originalCovariateId %in% ppis,]
+}
+```
+
+Note that because we used regularization, we are not able to compute the confidence intervals for these estimates. We do again see that PPIs all have relative risks lower than 1 as we would expects.
 
 # Acknowledgments
 
-Considerable work has been dedicated to provide the `CohortMethod` package.
+Considerable work has been dedicated to provide the `SelfControlledCaseSeries` package.
 
 ```{r tidy=TRUE,eval=TRUE}
-citation("CohortMethod")
+citation("SelfControlledCaseSeries")
 ```
 
-Further, `CohortMethod` makes extensive use of the `Cyclops` package.
+Furthermore, `SelfControlledCaseSeries` makes extensive use of the `Cyclops` package.
 
 ```{r tidy=TRUE,eval=TRUE}
 citation("Cyclops")
 ```
 
+Part of the code (related to event-dependent observation periods) is based on the SCCS package by Yonas Ghebremichael-Weldeselassie, Heather Whitaker, and Paddy Farrington.
+
 This work is supported in part through the National Science Foundation grant IIS 1251151.
-
-
-

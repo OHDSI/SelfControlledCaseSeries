@@ -112,11 +112,11 @@ test_that("Produces same results as SCCS package when using event-dependent obse
                                    naivePeriod = 0,
                                    eventDependentObservation = TRUE)
 
-  expect_equal(sccsEraData$metaData$censorModel$aic, min(x$modelfit[2,]), tolerance = 1E-6)
+  expect_equal(sccsEraData$metaData$censorModel$aic, min(x$modelfit[2,]), tolerance = 1E-4)
 
   fit <- fitSccsModel(sccsEraData)
 
-  expect_equal(x$summary$coefficients[1], as.vector(coef(fit)), tolerance = 1E-6)
+  expect_equal(x$summary$coefficients[1], as.vector(coef(fit)), tolerance = 1E-4)
 })
 
 # exp(x$summary$coefficients[1])

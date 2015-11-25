@@ -29,4 +29,10 @@
     shell("rm extras/SelfControlledCaseSeries.pdf")
     shell("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
   }
+
+  rmarkdown::render("vignettes/SingleStudies.Rmd",
+                    output_file = "../inst/doc/SingleStudies.pdf",
+                    rmarkdown::pdf_document(latex_engine = "pdflatex",
+                                            toc = TRUE,
+                                            number_sections = TRUE))
 }

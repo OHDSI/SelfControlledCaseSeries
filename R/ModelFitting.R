@@ -41,6 +41,7 @@ fitSccsModel <- function(sccsEraData,
                                                  selectorType = "byPid",
                                                  startingVariance = 0.1,
                                                  noiseLevel = "quiet")) {
+  start <- Sys.time()
   # Build list of IDs that should not be regularized, and see if there is anything that needs regularization:
   nonRegularized <- c()
   needRegularization <- FALSE
@@ -109,14 +110,19 @@ fitSccsModel <- function(sccsEraData,
     names(ci)[names(ci) == "97.5 %"] <- "logUb95"
     ci$evaluations <- NULL
     estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
+    estimates$seLogRr <- (estimates$logUb95 - estimates$logRr)/qnorm(0.975)
+    # Remove regularized estimates with logRr = 0:
+    estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr),]
     priorVariance <- fit$variance[1]
   }
   result <- list(estimates = estimates,
                  priorVariance = priorVariance,
                  status = status,
                  metaData = sccsEraData$metaData)
-
+  result$metaData$counts <- summary(sccsEraData)$outcomeCounts
   class(result) <- "sccsModel"
+    delta <- Sys.time() - start
+  writeLines(paste("Fitting the model took", signif(delta, 3), attr(delta, "units")))
   return(result)
 }
 
@@ -124,6 +130,37 @@ fitSccsModel <- function(sccsEraData,
 #' @export
 coef.sccsModel <- function(object, ...) {
   return(object$estimates$logRr)
+}
+
+#' @export
+summary.sccsModel <- function(object, ...) {
+  class(object) <- "summary.sccsModel"
+  return(object)
+}
+
+#' @export
+print.summary.sccsModel <- function(x, ...) {
+  writeLines("sccsModel object summary")
+  writeLines("")
+  writeLines(paste("Outcome ID:", paste(x$metaData$outcomeId, collapse = ",")))
+  writeLines("")
+  writeLines("Outcome count:")
+  outcomeCounts <- x$metaData$counts
+  rownames(outcomeCounts) <- outcomeCounts$outcomeConceptId
+  outcomeCounts$outcomeConceptId <- NULL
+  colnames(outcomeCounts) <- c("Event count", "Case count")
+  printCoefmat(outcomeCounts)
+  writeLines("")
+  writeLines("Estimates:")
+  d <- x$estimates
+  output <- data.frame(d$covariateName, d$covariateId, exp(d$logRr), exp(d$logLb95), exp(d$logUb95), d$logRr, d$seLogRr)
+  colnames(output) <- c("Name", "ID", "Estimate", "lower .95", "upper .95", "logRr", "seLogRr")
+  if (nrow(output) > 100) {
+    print.data.frame(output[1:100,], row.names=F, print.gap=2, quote=F, right=T, digits = 4)
+    writeLines(paste("... (omitting", nrow(output)-100, "rows)"))
+  } else {
+    print.data.frame(output, row.names=F, print.gap=2, quote=F, right=T, digits = 4)
+  }
 }
 
 #' Output the full model
@@ -137,17 +174,11 @@ coef.sccsModel <- function(object, ...) {
 #'
 #' @export
 getModel <- function(sccsModel) {
-  cfs <- sccsModel$coefficients
-  cfs <- data.frame(coefficient = cfs, id = as.numeric(names(cfs)))
-  cfs <- merge(ff::as.ffdf(cfs),
-               sccsEraData$covariateRef,
-               by.x = "id",
-               by.y = "covariateId",
-               all.x = TRUE)
-  cfs <- ff::as.ram(cfs[, c("coefficient", "id", "covariateName")])
-  cfs$conceptName <- as.character(cfs$conceptName)
-  cfs <- cfs[order(-abs(cfs$coefficient)), ]
-  cfs
+  d <- sccsModel$estimates
+  #d$seLogRr <- (d$logUb95 - d$logRr)/qnorm(0.975)
+  output <- data.frame(d$covariateName, d$covariateId, exp(d$logRr), exp(d$logLb95), exp(d$logUb95), d$logRr, d$seLogRr, d$originalCovariateId, d$originalCovariateName)
+  colnames(output) <- c("name", "id", "estimate", "lb95Ci", "ub95Ci", "logRr", "seLogRr", "originalCovariateId", "originalCovariateName")
+  return(output)
 }
 
 #' Plot the age effect
@@ -164,11 +195,10 @@ getModel <- function(sccsModel) {
 #'
 #' @export
 plotAgeEffect <- function(sccsModel, rrLim = c(0.1,10), fileName = NULL){
-  allCoefs <- sccsModel$coefficients
-  coefId <- as.numeric(names(allCoefs))
-  splineCoefs <- allCoefs[coefId >= 100 & coefId < 130]
-  splineCoefs <- c(0, splineCoefs)
-  ageKnots <- sccsModel$ageKnots
+  estimates <- sccsModel$estimates
+  estimates <- estimates[estimates$covariateId >= 100 & estimates$covariateId < 200,]
+  splineCoefs <- c(0, estimates$logRr)
+  ageKnots <- sccsModel$metaData$age$ageKnots
   age <- seq(min(ageKnots), max(ageKnots), length.out = 100)
   ageDesignMatrix <- splines::bs(age, knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
   logRr <- apply(ageDesignMatrix %*% splineCoefs, 1, sum)
@@ -218,17 +248,17 @@ plotAgeEffect <- function(sccsModel, rrLim = c(0.1,10), fileName = NULL){
 #' @export
 
 plotSeasonality <- function(sccsModel, rrLim = c(0.1,10), fileName = NULL){
-  allCoefs <- sccsModel$coefficients
-  coefId <- as.numeric(names(allCoefs))
-  splineCoefs <- allCoefs[coefId >= 200 & coefId < 220]
-  splineCoefs <- c(0, splineCoefs)
-  seasonKnots <- sccsModel$seasonKnots
+  estimates <- sccsModel$estimates
+  estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300,]
+  splineCoefs <- c(0, estimates$logRr)
+  seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
   season <- seq(min(seasonKnots), max(seasonKnots), length.out = 100)
   seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
   logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
   data <- data.frame(season = season, rr = rr)
+
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   seasonBreaks <- 1:12
   theme <- ggplot2::element_text(colour = "#000000", size = 12)

@@ -148,7 +148,7 @@ addAgeSettings <- function(settings, ageSettings, outcomeId, firstOutcomeOnly, n
     ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)], knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$ageDesignMatrix <- ageDesignMatrix[,2:ncol(ageDesignMatrix)]
-    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) -1), covariateName = "Age spline component", originalCovariateId = 0, originalCovariateName = "")
+    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) - 1), covariateName = paste("Age spline component", 1:(length(ageKnots))), originalCovariateId = 0, originalCovariateName = "")
     settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
     age <- list(ageKnots = ageKnots,
                 covariateIds = splineCovariateRef$covariateId,
@@ -171,7 +171,7 @@ addSeasonalitySettings <- function(settings, seasonalitySettings, sccsData) {
     seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$seasonDesignMatrix <- seasonDesignMatrix[,2:ncol(seasonDesignMatrix)]
-    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) - 3), covariateName = "Seasonality spline component", originalCovariateId = 0, originalCovariateName = "")
+    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) - 3), covariateName = paste("Seasonality spline component", 1:(length(seasonKnots) - 2)), originalCovariateId = 0, originalCovariateName = "")
     settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
     seasonality <- list(seasonKnots = seasonKnots,
                         covariateIds = splineCovariateRef$covariateId,
@@ -228,6 +228,9 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
     if (is.null(covariateSettings$includeCovariateIds) ||
         length(covariateSettings$includeCovariateIds) == 0) {
       covariateSettings$covariateIds <- ff::as.ram(sccsData$covariateRef$covariateId)
+      t <- sccsData$eras$eraType == "hoi"
+      t <- ffbase::ffwhich(t, t == FALSE)
+      covariateSettings$covariateIds <- ff::as.ram(ffbase::unique.ff(sccsData$eras$conceptId[t]))
     } else {
       covariateSettings$covariateIds <-covariateSettings$includeCovariateIds
     }
@@ -239,7 +242,7 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
     if (length(covariateSettings$splitPoints) == 0){
       if (!covariateSettings$stratifyByID){
         # Create a single output ID
-        covariateSettings$outputIds <- outputId
+        covariateSettings$outputIds <- as.matrix(outputId)
         newCovariateRef <- data.frame(covariateId = outputId, covariateName = covariateSettings$label, originalCovariateId = 0, originalCovariateName = "")
         settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
         outputId <- outputId + 1
@@ -251,6 +254,8 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         varNames <- covariateRef[covariateRef$covariateId %in% covariateSettings$covariateIds,]
         names(varNames)[names(varNames) == "covariateId"] <- "originalCovariateId"
         names(varNames)[names(varNames) == "covariateName"] <- "originalCovariateName"
+        varNames$originalCovariateName <- as.character(varNames$originalCovariateName)
+        varNames$originalCovariateName[varNames$originalCovariateName == ""] <- varNames$originalCovariateId[varNames$originalCovariateName == ""]
         varNames$covariateName <- paste(covariateSettings$label, varNames$originalCovariateName, sep = ": ")
         newCovariateRef <- data.frame(covariateId = outputIds,
                                       originalCovariateId = covariateSettings$covariateIds)
@@ -264,18 +269,20 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         outputIds <- outputId:(outputId + length(covariateSettings$splitPoints))
         outputId <- outputId + length(covariateSettings$splitPoints) + 1
         names <- rep(covariateSettings$label, length(covariateSettings$splitPoints) + 1)
-        names <- paste(names," day ", startDays,"-", c(endDays[1:length(endDays)-1],"") , sep = "")
+        names <- paste(names," day ", startDays,"-", c(endDays[1:length(endDays)-1],""))
         covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
         newCovariateRef <- data.frame(covariateId = outputIds, covariateName = names, originalCovariateId = 0, originalCovariateName = "")
         settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
       } else {
         outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$covariateIds) - 1)
         outputId <- max(outputIds) + 1
-        names <- paste("Covariate", rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1))
-        names <- paste(names,", day ", startDays,"-", c(endDays[1:length(endDays)-1],"") , sep = "")
         covariateSettings$outputIds <- matrix(outputIds, ncol = length(covariateSettings$splitPoints) + 1, byrow = TRUE)
         originalCovariateId <- rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1)
         originalCovariateName <- covariateRef$covariateName[match(originalCovariateId, covariateRef$covariateId)]
+        originalCovariateName[originalCovariateName == ""] <- originalCovariateId[originalCovariateName == ""]
+        names <- paste(covariateSettings$label, ": ", originalCovariateName, sep = "")
+        names <- paste(names,", day ", startDays,"-", c(endDays[1:length(endDays)-1],"") , sep = "")
+
         newCovariateRef <- data.frame(covariateId = outputIds,
                                       covariateName = names,
                                       originalCovariateId = originalCovariateId,
@@ -467,16 +474,11 @@ print.sccsEraData <- function(x, ...) {
 
 #' @export
 summary.sccsEraData  <- function(object, ...) {
-  caseCount <- length(ffbase::unique.ff(object$outcomes$stratumId))
-  eraCount <- nrow(object$outcomes)
-
   outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
                               eventCount = ffbase::sum.ff(object$outcomes$y),
-                              caseCount = caseCount)
+                              caseCount = length(ffbase::unique.ff(object$outcomes$stratumId)))
 
   result <- list(metaData = object$metaData,
-                 caseCount = caseCount,
-                 eraCount = eraCount,
                  outcomeCounts = outcomeCounts,
                  covariateCount = nrow(object$covariateRef),
                  covariateValueCount = nrow(object$covariates))
@@ -490,9 +492,6 @@ print.summary.sccsEraData <- function(x, ...) {
   writeLines("")
   writeLines(paste("Outcome ID:", paste(x$metaData$outcomeId, collapse = ",")))
   writeLines("")
-  writeLines(paste("Cases:", paste(x$caseCount)))
-  writeLines(paste("Eras:", paste(x$eraCount)))
-  writeLines("")
   writeLines("Outcome count:")
   outcomeCounts <- x$outcomeCounts
   rownames(outcomeCounts) <- outcomeCounts$outcomeConceptId
@@ -502,7 +501,7 @@ print.summary.sccsEraData <- function(x, ...) {
   writeLines("")
   writeLines("Covariates:")
   writeLines(paste("Number of covariates:", x$covariateCount))
-  writeLines(paste("Number of non-zero covariate values:", x$covariateValueCount))
+  writeLines(paste("Number of covariate eras:", x$covariateValueCount))
 }
 
 #' Create a design matrix for a cyclic spline

@@ -110,13 +110,10 @@ getDbSccsData <- function(connectionDetails,
                           customCovariateIds = c(),
                           deleteCovariatesSmallCount = 100,
                           cdmVersion = "4") {
-  if (exposureTable == "drug_era" && length(exposureIds) == 0 && useDrugEraCovariates){
-    useDrugEraCovariates = FALSE
-    warning("Including all drugs in era table as exposures of interest, so using drug era covariates would duplicate all exposures. Setting useDrugEraCovariates to false.")
-  }
   if (useCustomCovariates == TRUE && length(customCovariateIds) == 0) {
     stop("Must provide custom covariate IDs if useCustomCovariates is TRUE")
   }
+  conn <- connect(connectionDetails)
   if (cdmVersion == "4"){
     cohortDefinitionId <- "cohort_concept_id"
   } else {
@@ -129,7 +126,7 @@ getDbSccsData <- function(connectionDetails,
     if (!is.numeric(exposureIds))
       stop("exposureIds must be a (vector of) numeric")
     hasExposureIds <- TRUE
-    DatabaseConnector::insertTable(connection,
+    DatabaseConnector::insertTable(conn,
                                    tableName = "#exposure_ids",
                                    data = data.frame(concept_id = as.integer(exposureIds)),
                                    dropTableIfExists = TRUE,
@@ -144,7 +141,7 @@ getDbSccsData <- function(connectionDetails,
     if (!is.numeric(customCovariateIds))
       stop("customCovariateIds must be a (vector of) numeric")
     hasCustomCovariateIds <- TRUE
-    DatabaseConnector::insertTable(connection,
+    DatabaseConnector::insertTable(conn,
                                    tableName = "#custom_covariate_ids",
                                    data = data.frame(concept_id = as.integer(customCovariateIds)),
                                    dropTableIfExists = TRUE,
@@ -171,7 +168,6 @@ getDbSccsData <- function(connectionDetails,
                                                    delete_covariates_small_count = deleteCovariatesSmallCount,
                                                    cdm_version = cdmVersion,
                                                    cohort_definition_id = cohortDefinitionId)
-  conn <- connect(connectionDetails)
 
   writeLines("Executing multiple queries. This could take a while")
   executeSql(conn, renderedSql)
@@ -327,7 +323,7 @@ summary.sccsData <- function(object, ...) {
   result <- list(metaData = object$metaData,
                  caseCount = caseCount,
                  outcomeCounts = outcomeCounts,
-                 covariateCount = nrow(object$covariateRef),
+                 covariateCount = nrow(object$covariateRef) - length(object$metaData$outcomeIds),
                  covariateValueCount = covariateValueCount)
   class(result) <- "summary.sccsData"
   return(result)
@@ -351,5 +347,5 @@ print.summary.sccsData <- function(x, ...) {
   writeLines("")
   writeLines("Covariates:")
   writeLines(paste("Number of covariates:", x$covariateCount))
-  writeLines(paste("Number of non-zero covariate values:", x$covariateValueCount))
+  writeLines(paste("Number of covariate eras:", x$covariateValueCount))
 }

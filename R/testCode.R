@@ -11,25 +11,35 @@ testcode <- function() {
 
   library(SelfControlledCaseSeries)
   setwd("s:/temp")
-  options(fftempdir = "s:/temp")
+  options(fftempdir = "s:/fftemp")
   settings <- createSccsSimulationSettings()
-  settings <- createSccsSimulationSettings(includeAgeEffect = FALSE, includeSeasonality = FALSE)
+  settings <- createSccsSimulationSettings(includeAgeEffect = TRUE, includeSeasonality = TRUE)
 
   sccsData <- simulateSccsData(1000, settings)
+
+  ageSettings <- createAgeSettings(includeAge = TRUE,
+                                   ageKnots = 5)
+
+  seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE,
+                                                   seasonKnots = 5)
+  covarSettings = createCovariateSettings(label = "Exposure of interest",
+                                   includeCovariateIds = c(1,2),
+                                   start = 0,
+                                   end = 0,
+                                   addExposedDaysToEnd = TRUE)
 
   sccsEraData <- createSccsEraData(sccsData,
                                    naivePeriod = 0,
                                    firstOutcomeOnly = FALSE,
-                                   exposureId = c(1,2),
-                                   includeAgeEffect = TRUE,
-                                   includeSeasonality = TRUE,
-                                   exposureOfInterestSettings = createCovariateSettings(stratifyByID = TRUE,
-                                                                                        start = 0,
-                                                                                        end = 0,
-                                                                                        addExposedDaysToEnd = TRUE,
-                                                                                        splitPoints = c(7)))
+                                   covariateSettings = covarSettings,
+                                   ageSettings = ageSettings,
+                                   seasonalitySettings = seasonalitySettings)
 
-  model <- fitSccsModel(sccsEraData, exposureId = c(1,2), prior = createPrior("none"))
+  model <- fitSccsModel(sccsEraData)
+
+  summary(model)
+plotSeasonality(model)
+plotAgeEffect(model)
   exp(model$coefficients)
   exp(model$treatmentEstimate)
   sccsData$metaData$sccsSimulationSettings$simulationRiskWindows

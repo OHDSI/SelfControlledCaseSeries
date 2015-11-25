@@ -52,7 +52,8 @@ Getting Started
   ```
 
 Getting Involved
-=============
+================
+* Vignette: [Single studies using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/inst/doc/SingleStudies.pdf)
 * Package manual: [SelfControlledCaseSeries.pdf](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/extras/SelfControlledCaseSeries.pdf)
 * Developer questions/comments/feedback: <a href="http://forums.ohdsi.org/c/developers">OHDSI Forum</a>
 * We use the <a href="../../issues">GitHub issue tracker</a> for all bugs/issues/enhancements

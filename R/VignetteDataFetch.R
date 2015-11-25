@@ -39,6 +39,8 @@
                                                                   password = pw,
                                                                   port = port)
 
+  connection <- DatabaseConnector::connect(connectionDetails)
+
   sql <- loadRenderTranslateSql("vignette.sql",
                                 packageName = "SelfControlledCaseSeries",
                                 dbms = dbms,
@@ -46,7 +48,6 @@
                                 cohortDatabaseSchema = cohortDatabaseSchema,
                                 outcomeTable = outcomeTable)
 
-  connection <- DatabaseConnector::connect(connectionDetails)
   DatabaseConnector::executeSql(connection, sql)
 
   # Check number of subjects per cohort:
@@ -77,6 +78,7 @@
                             exposureIds = diclofenac,
                             cdmVersion = cdmVersion)
   saveSccsData(sccsData, "s:/temp/vignetteSccs/data1")
+  #sccsData <- loadSccsData("s:/temp/vignetteSccs/data1")
   covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
                                             includeCovariateIds = diclofenac,
                                             start = 0,
@@ -87,10 +89,13 @@
                                    naivePeriod = 180,
                                    firstOutcomeOnly = FALSE,
                                    covariateSettings = covarDiclofenac)
+  summary(sccsEraData)
 
   model <- fitSccsModel(sccsEraData)
+  saveRDS(model, "s:/temp/vignetteSccs/simpleModel.rds")
 
   coef(model)
+  summary(model)
 
   ### Risk windows: Adding pre-exposure window ###
 
@@ -106,8 +111,9 @@
                                                             covarPreDiclofenac))
 
   model <- fitSccsModel(sccsEraData)
-
+  saveRDS(model, "s:/temp/vignetteSccs/preExposureModel.rds")
   coef(model)
+  summary(model)
   ### Risk windows: Adding window splits ###
 
   covarDiclofenacSplit = createCovariateSettings(label = "Exposure of interest",
@@ -130,9 +136,9 @@
                                                             covarPreDiclofenacSplit))
 
   model <- fitSccsModel(sccsEraData)
-
+  saveRDS(model, "s:/temp/vignetteSccs/splitModel.rds")
   coef(model)
-  model$estimates
+  summary(model)
 
   ### Adding age and seasonality ###
 
@@ -141,8 +147,6 @@
 
   seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE,
                                                    seasonKnots = 5)
-
-  #sccsData <- loadSccsData("s:/temp/vignetteSccsData1")
 
   sccsEraData <- createSccsEraData(sccsData,
                                    naivePeriod = 180,
@@ -153,8 +157,9 @@
                                    seasonalitySettings = seasonalitySettings)
 
   model <- fitSccsModel(sccsEraData)
-
-  model
+  saveRDS(model, "s:/temp/vignetteSccs/ageAndSeasonModel.rds")
+  #model <- readRDS("s:/temp/vignetteSccs/ageAndSeasonModel.rds")
+  summary(model)
 
   plotAgeEffect(model)
 
@@ -170,10 +175,10 @@
                                    ageSettings = ageSettings,
                                    seasonalitySettings = seasonalitySettings,
                                    eventDependentObservation = TRUE)
-
   model <- fitSccsModel(sccsEraData)
+  saveRDS(model, "s:/temp/vignetteSccs/eventDepModel.rds")
 
-  model
+  summary(model)
 
 
   ### Add PPIs ###
@@ -187,11 +192,12 @@
                             exposureTable = "drug_era",
                             exposureIds = c(diclofenac, ppis),
                             cdmVersion = cdmVersion)
-
+  saveSccsData(sccsData, "s:/temp/vignetteSccs/data2")
+  #sccsData <- loadSccsData("s:/temp/vignetteSccs/data2")
   covarPpis = createCovariateSettings(label = "PPIs",
                                       includeCovariateIds = ppis,
                                       stratifyByID = FALSE,
-                                      start = 0,
+                                      start = 1,
                                       end = 0,
                                       addExposedDaysToEnd = TRUE)
 
@@ -206,7 +212,8 @@
                                    eventDependentObservation = TRUE)
 
   model <- fitSccsModel(sccsEraData)
-
+  saveRDS(model, "s:/temp/vignetteSccs/ppiModel.rds")
+  summary(model)
   ### Add all drugs ###
   sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                             cdmDatabaseSchema = cdmDatabaseSchema,
@@ -218,12 +225,13 @@
                             exposureTable = "drug_era",
                             exposureIds = c(),
                             cdmVersion = cdmVersion)
+  saveSccsData(sccsData, "s:/temp/vignetteSccs/data3")
+  #sccsData <- loadSccsData("s:/temp/vignetteSccs/data3")
 
-
-  covarAllDrugs = createCovariateSettings(label = "All other exposures",
+  covarAllDrugs = createCovariateSettings(label = "Other exposures",
                                           excludeCovariateIds = diclofenac,
                                           stratifyByID = TRUE,
-                                          start = 0,
+                                          start = 1,
                                           end = 0,
                                           addExposedDaysToEnd = TRUE,
                                           allowRegularization = TRUE)
@@ -238,6 +246,16 @@
                                    seasonalitySettings = seasonalitySettings,
                                    eventDependentObservation = TRUE)
 
-  model <- fitSccsModel(sccsEraData)
-
+  control = createControl(cvType = "auto",
+                          selectorType = "byPid",
+                          startingVariance = 0.1,
+                          noiseLevel = "quiet",
+                          threads = 10)
+  model <- fitSccsModel(sccsEraData, control = control)
+  saveRDS(model, "s:/temp/vignetteSccs/allDrugsModel.rds")
+  summary(model)
+  estimates <- getModel(model)
+  estimates[estimates$originalCovariateId == diclofenac,]
+  estimates[estimates$originalCovariateId %in% ppis,]
+  grep("diclofenac",as.character(model$estimates$covariateName))
 }
