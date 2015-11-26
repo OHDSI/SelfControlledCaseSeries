@@ -10,12 +10,14 @@ createAgeSettings(includeAge = FALSE, ageKnots = 5,
 \arguments{
 \item{includeAge}{Should age be included in the model?}
 
-\item{ageKnots}{If a single number is provided this is assumed to indicate the number of knots to use for
-the spline, and the knots are automatically spaced according to equal percentiles of the data. If more than one
-numer is provided these are assumed to be the exact location of the knots in age-days}
+\item{ageKnots}{If a single number is provided this is assumed to indicate the number
+of knots to use for the spline, and the knots are automatically spaced
+according to equal percentiles of the data. If more than one numer is
+provided these are assumed to be the exact location of the knots in
+age-days}
 
-\item{allowRegularization}{When fitting the model, should the covariates defined here be allowed to be
-regularized?}
+\item{allowRegularization}{When fitting the model, should the covariates defined here be allowed
+                             to be regularized?}
 }
 \value{
 An object of type \code{ageSettings}.
@@ -25,7 +27,7 @@ Create age settings
 }
 \details{
 Create an object specifing whether and how age should be included in the model. Age can be included
-by splitting patient time into calendar months. During a month, the relative risk attributed to age is
-assumed to be constant, and the risk from month to month is modeled using a cubic spline.
+by splitting patient time into calendar months. During a month, the relative risk attributed to age
+is assumed to be constant, and the risk from month to month is modeled using a cubic spline.
 }
 

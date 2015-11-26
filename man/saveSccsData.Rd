@@ -7,11 +7,10 @@
 saveSccsData(sccsData, folder)
 }
 \arguments{
-\item{sccsData}{An object of type \code{sccsData} as generated using
-\code{\link{getDbSccsData}}.}
+\item{sccsData}{An object of type \code{sccsData} as generated using \code{\link{getDbSccsData}}.}
 
 \item{folder}{The name of the folder where the data will be written. The folder should not yet
-                    exist.}
+                  exist.}
 }
 \description{
 \code{sccsData} saves an object of type sccsData to folder.

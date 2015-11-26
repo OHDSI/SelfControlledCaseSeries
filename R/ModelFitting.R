@@ -112,7 +112,7 @@ fitSccsModel <- function(sccsEraData,
     estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
     estimates$seLogRr <- (estimates$logUb95 - estimates$logRr)/qnorm(0.975)
     # Remove regularized estimates with logRr = 0:
-    estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr),]
+    estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr) | estimates$covariateId < 1000,]
     priorVariance <- fit$variance[1]
   }
   result <- list(estimates = estimates,

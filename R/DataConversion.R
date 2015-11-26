@@ -27,24 +27,31 @@ in.ff <- function(a, b) {
 #'
 #' @details
 #' This function creates covariates based on the data in the \code{sccsData} object, according to the
-#' provided settings. It chops patient time into periods during which all covariates remain constant. The output details
-#' these periods, their durations, and a sparse representation of the covariate values.
+#' provided settings. It chops patient time into periods during which all covariates remain constant.
+#' The output details these periods, their durations, and a sparse representation of the covariate
+#' values.
 #'
-#' @param sccsData  An object of type \code{sccsData} as created using the \code{\link{getDbSccsData}} function.
-#' @param outcomeId  The outcome to create the era data for. If not specified it is assumed to be the one
-#' outcome for which the data was loaded from the database.
-#' @param naivePeriod  The number of days at the start of a patient's observation period that should not be included in the risk
-#' calculations. Note that the naive period can be used to determine current covariate status right after the naive period, and whether
-#' an outcome is the first one.
-#' @param firstOutcomeOnly  Whether only the first occurrence of an outcome should be considered.
-#' @param covariateSettings  Either an object of type \code{covariateSettings} as created using the
-#' \code{\link{createCovariateSettings}} function, or a list of such objects.
-#' @param ageSettings  An object of type \code{ageSettings} as created using the \code{\link{createAgeSettings}}
-#' function.
-#' @param seasonalitySettings  An object of type \code{seasonalitySettings} as created using the \code{\link{createSeasonalitySettings}}
-#' function.
-#' @param eventDependentObservation  Should the extension proposed by Farrington et al. be used to adjust for event-dependent
-#' observation time?
+#' @param sccsData                    An object of type \code{sccsData} as created using the
+#'                                    \code{\link{getDbSccsData}} function.
+#' @param outcomeId                   The outcome to create the era data for. If not specified it is
+#'                                    assumed to be the one outcome for which the data was loaded from
+#'                                    the database.
+#' @param naivePeriod                 The number of days at the start of a patient's observation period
+#'                                    that should not be included in the risk calculations. Note that
+#'                                    the naive period can be used to determine current covariate
+#'                                    status right after the naive period, and whether an outcome is
+#'                                    the first one.
+#' @param firstOutcomeOnly            Whether only the first occurrence of an outcome should be
+#'                                    considered.
+#' @param covariateSettings           Either an object of type \code{covariateSettings} as created
+#'                                    using the \code{\link{createCovariateSettings}} function, or a
+#'                                    list of such objects.
+#' @param ageSettings                 An object of type \code{ageSettings} as created using the
+#'                                    \code{\link{createAgeSettings}} function.
+#' @param seasonalitySettings         An object of type \code{seasonalitySettings} as created using the
+#'                                    \code{\link{createSeasonalitySettings}} function.
+#' @param eventDependentObservation   Should the extension proposed by Farrington et al. be used to
+#'                                    adjust for event-dependent observation time?
 #'
 #' @references
 #' Farrington, C. P., Anaya-Izquierdo, A., Whitaker, H. J., Hocine, M.N., Douglas, I., and Smeeth, L.
@@ -64,13 +71,13 @@ createSccsEraData <- function(sccsData,
                               seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
                               eventDependentObservation = FALSE) {
   start <- Sys.time()
-  if (is.null(outcomeId)){
+  if (is.null(outcomeId)) {
     outcomeId <- sccsData$metaData$outcomeIds
-    if (length(outcomeId) != 1){
+    if (length(outcomeId) != 1) {
       stop("No outcome ID specified, but multiple outcomes found")
     }
   }
-  if (eventDependentObservation){
+  if (eventDependentObservation) {
     sccsData$cases$uncensored <- isUncensored(sccsData)
   } else {
     sccsData$cases$uncensored <- ff::ff(FALSE, nrow(sccsData$cases))
@@ -82,9 +89,18 @@ createSccsEraData <- function(sccsData,
   settings$metaData$eraCall <- match.call()
   settings$metaData$outcomeId <- outcomeId
   settings$covariateRef <- data.frame()
-  settings <- addAgeSettings(settings, ageSettings, outcomeId, firstOutcomeOnly, naivePeriod, sccsData)
+  settings <- addAgeSettings(settings,
+                             ageSettings,
+                             outcomeId,
+                             firstOutcomeOnly,
+                             naivePeriod,
+                             sccsData)
   settings <- addSeasonalitySettings(settings, seasonalitySettings, sccsData)
-  settings <- addEventDependentObservationSettings(settings, eventDependentObservation, outcomeId, naivePeriod, sccsData)
+  settings <- addEventDependentObservationSettings(settings,
+                                                   eventDependentObservation,
+                                                   outcomeId,
+                                                   naivePeriod,
+                                                   sccsData)
   settings <- addCovariateSettings(settings, covariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- settings$covariateSettingsList
 
@@ -120,35 +136,48 @@ createSccsEraData <- function(sccsData,
 isUncensored <- function(sccsData) {
   dates <- as.Date(paste(ff::as.ram(sccsData$cases$observationStartYear),
                          ff::as.ram(sccsData$cases$observationStartMonth),
-                         ff::as.ram(sccsData$cases$observationStartDay), sep="-"), format = "%Y-%m-%d")
+                         ff::as.ram(sccsData$cases$observationStartDay),
+                         sep = "-"), format = "%Y-%m-%d")
   dates <- dates + ff::as.ram(sccsData$cases$observationDays)
   studyEndDate <- max(dates)
   return(ff::as.ff(dates == studyEndDate))
 }
 
-addAgeSettings <- function(settings, ageSettings, outcomeId, firstOutcomeOnly, naivePeriod, sccsData) {
-  if (!ageSettings$includeAge){
+addAgeSettings <- function(settings,
+                           ageSettings,
+                           outcomeId,
+                           firstOutcomeOnly,
+                           naivePeriod,
+                           sccsData) {
+  if (!ageSettings$includeAge) {
     settings$ageOffset <- 0
     settings$ageDesignMatrix <- matrix()
   } else {
-    if (length(ageSettings$ageKnots) == 1){
+    if (length(ageSettings$ageKnots) == 1) {
       # Single number, should interpret as number of knots. Spread out knots to data quantiles:
-      outcomes <- ffbase::subset.ffdf(sccsData$eras, eraType == "hoi" &  conceptId == outcomeId)
-      if (firstOutcomeOnly){
+      outcomes <- ffbase::subset.ffdf(sccsData$eras, eraType == "hoi" & conceptId == outcomeId)
+      if (firstOutcomeOnly) {
         outcomes <- ff::as.ffdf(aggregate(startDay ~ observationPeriodId, outcomes, min))
       }
       outcomes <- ffbase::subset.ffdf(outcomes, startDay >= naivePeriod)
       outcomes <- merge(outcomes, sccsData$cases)
       outcomeAges <- outcomes$startDay + outcomes$ageInDays
-      ageKnots <- ffbase::quantile.ff(outcomeAges, seq(0.01,0.99, length.out = ageSettings$ageKnots))
+      ageKnots <- ffbase::quantile.ff(outcomeAges,
+                                      seq(0.01, 0.99, length.out = ageSettings$ageKnots))
     } else {
       ageKnots <- ageSettings$ageKnots
     }
     settings$ageOffset <- ageKnots[1]
-    ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)], knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
+    ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)],
+                                   knots = ageKnots[2:(length(ageKnots) - 1)],
+                                   Boundary.knots = ageKnots[c(1, length(ageKnots))])
     # Fixing first beta to zero, so dropping first column of design matrix:
-    settings$ageDesignMatrix <- ageDesignMatrix[,2:ncol(ageDesignMatrix)]
-    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) - 1), covariateName = paste("Age spline component", 1:(length(ageKnots))), originalCovariateId = 0, originalCovariateName = "")
+    settings$ageDesignMatrix <- ageDesignMatrix[, 2:ncol(ageDesignMatrix)]
+    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) - 1),
+                                     covariateName = paste("Age spline component",
+                                                           1:(length(ageKnots))),
+                                     originalCovariateId = 0,
+                                     originalCovariateName = "")
     settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
     age <- list(ageKnots = ageKnots,
                 covariateIds = splineCovariateRef$covariateId,
@@ -159,19 +188,23 @@ addAgeSettings <- function(settings, ageSettings, outcomeId, firstOutcomeOnly, n
 }
 
 addSeasonalitySettings <- function(settings, seasonalitySettings, sccsData) {
-  if (!seasonalitySettings$includeSeasonality){
+  if (!seasonalitySettings$includeSeasonality) {
     settings$seasonDesignMatrix <- matrix()
   } else {
-    if (length(seasonalitySettings$seasonKnots) == 1){
+    if (length(seasonalitySettings$seasonKnots) == 1) {
       # Single number, should interpret as number of knots. Spread out knots evenly:
-      seasonKnots <- seq(1,12, length.out = seasonalitySettings$seasonKnots)
+      seasonKnots <- seq(1, 12, length.out = seasonalitySettings$seasonKnots)
     } else {
       seasonKnots <- seasonalitySettings$seasonKnots
     }
     seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
     # Fixing first beta to zero, so dropping first column of design matrix:
-    settings$seasonDesignMatrix <- seasonDesignMatrix[,2:ncol(seasonDesignMatrix)]
-    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) - 3), covariateName = paste("Seasonality spline component", 1:(length(seasonKnots) - 2)), originalCovariateId = 0, originalCovariateName = "")
+    settings$seasonDesignMatrix <- seasonDesignMatrix[, 2:ncol(seasonDesignMatrix)]
+    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) - 3),
+                                     covariateName = paste("Seasonality spline component",
+                                                           1:(length(seasonKnots) - 2)),
+                                     originalCovariateId = 0,
+                                     originalCovariateName = "")
     settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
     seasonality <- list(seasonKnots = seasonKnots,
                         covariateIds = splineCovariateRef$covariateId,
@@ -181,15 +214,23 @@ addSeasonalitySettings <- function(settings, seasonalitySettings, sccsData) {
   return(settings)
 }
 
-addEventDependentObservationSettings <- function(settings, eventDependentObservation, outcomeId, naivePeriod, sccsData){
+addEventDependentObservationSettings <- function(settings,
+                                                 eventDependentObservation,
+                                                 outcomeId,
+                                                 naivePeriod,
+                                                 sccsData) {
   if (eventDependentObservation) {
     # Pick first outcome per person
     t <- sccsData$eras$eraType == "hoi" & sccsData$eras$conceptId == outcomeId
     rownames(sccsData$eras) <- NULL
-    firstOutcomes <- aggregate(startDay ~ observationPeriodId, data = sccsData$eras[ffbase::ffwhich(t, t == TRUE),], min)
+    firstOutcomes <- aggregate(startDay ~ observationPeriodId,
+                               data = sccsData$eras[ffbase::ffwhich(t, t == TRUE),
+                               ],
+                               min)
 
     # See who has first event in remaining observation period after applying naive period
-    firstOutcomes <- firstOutcomes[firstOutcomes$startDay >= naivePeriod,]
+    firstOutcomes <- firstOutcomes[firstOutcomes$startDay >= naivePeriod, ]
+    rownames(sccsData$cases) <- NULL
     t <- in.ff(sccsData$cases$observationPeriodId, ff::as.ff(firstOutcomes$observationPeriodId))
     cases <- ff::as.ram(sccsData$cases[ffbase::ffwhich(t, t == TRUE), ])
     cases <- merge(cases, firstOutcomes)
@@ -199,7 +240,8 @@ addEventDependentObservationSettings <- function(settings, eventDependentObserva
                        aend = cases$ageInDays + cases$observationDays,
                        aevent = cases$ageInDays + cases$startDay + 1,
                        present = cases$uncensored)
-    #data$aend[cases$ageInDays + data$aend == data$aevent] <- data$aend[cases$ageInDays + data$aend == data$aevent] + 0.5
+    # data$aend[cases$ageInDays + data$aend == data$aevent] <- data$aend[cases$ageInDays + data$aend ==
+    # data$aevent] + 0.5
 
     settings$censorModel <- fitModelsAndPickBest(data)
     settings$metaData$censorModel <- settings$censorModel
@@ -210,7 +252,7 @@ addEventDependentObservationSettings <- function(settings, eventDependentObserva
 }
 
 addCovariateSettings <- function(settings, covariateSettings, sccsData) {
-  if (is.list(covariateSettings) && class(covariateSettings) != "covariateSettings"){
+  if (is.list(covariateSettings) && class(covariateSettings) != "covariateSettings") {
     covariateSettingsList <- covariateSettings
   } else {
     covariateSettingsList <- list(covariateSettings)
@@ -219,31 +261,35 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
 
   # Iterate over different covariate settings. Assign unique IDs, and store in covariateRef:
   outputId <- 1000
-  for (i in 1:length(covariateSettingsList)){
+  for (i in 1:length(covariateSettingsList)) {
     covariateSettings <- covariateSettingsList[[i]]
 
-    if (is.null(covariateSettings$label)){
+    if (is.null(covariateSettings$label)) {
       covariateSettings$label <- "Covariate"
     }
-    if (is.null(covariateSettings$includeCovariateIds) ||
-        length(covariateSettings$includeCovariateIds) == 0) {
+    if (is.null(covariateSettings$includeCovariateIds) || length(covariateSettings$includeCovariateIds) ==
+      0) {
       covariateSettings$covariateIds <- ff::as.ram(sccsData$covariateRef$covariateId)
       t <- sccsData$eras$eraType == "hoi"
       t <- ffbase::ffwhich(t, t == FALSE)
       covariateSettings$covariateIds <- ff::as.ram(ffbase::unique.ff(sccsData$eras$conceptId[t]))
     } else {
-      covariateSettings$covariateIds <-covariateSettings$includeCovariateIds
+      covariateSettings$covariateIds <- covariateSettings$includeCovariateIds
     }
-    if (!is.null(covariateSettings$excludeCovariateIds) &&
-        length(covariateSettings$excludeCovariateIds) != 0) {
-      covariateSettings$covariateIds <- covariateSettings$covariateIds[covariateSettings$covariateIds != covariateSettings$excludeCovariateIds]
+    if (!is.null(covariateSettings$excludeCovariateIds) && length(covariateSettings$excludeCovariateIds) !=
+      0) {
+      covariateSettings$covariateIds <- covariateSettings$covariateIds[covariateSettings$covariateIds !=
+        covariateSettings$excludeCovariateIds]
     }
 
-    if (length(covariateSettings$splitPoints) == 0){
-      if (!covariateSettings$stratifyByID){
+    if (length(covariateSettings$splitPoints) == 0) {
+      if (!covariateSettings$stratifyById) {
         # Create a single output ID
         covariateSettings$outputIds <- as.matrix(outputId)
-        newCovariateRef <- data.frame(covariateId = outputId, covariateName = covariateSettings$label, originalCovariateId = 0, originalCovariateName = "")
+        newCovariateRef <- data.frame(covariateId = outputId,
+                                      covariateName = covariateSettings$label,
+                                      originalCovariateId = 0,
+                                      originalCovariateName = "")
         settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
         outputId <- outputId + 1
       } else {
@@ -251,12 +297,15 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         outputIds <- outputId:(outputId + length(covariateSettings$covariateIds) - 1)
         covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
         outputId <- outputId + length(outputIds)
-        varNames <- covariateRef[covariateRef$covariateId %in% covariateSettings$covariateIds,]
+        varNames <- covariateRef[covariateRef$covariateId %in% covariateSettings$covariateIds, ]
         names(varNames)[names(varNames) == "covariateId"] <- "originalCovariateId"
         names(varNames)[names(varNames) == "covariateName"] <- "originalCovariateName"
         varNames$originalCovariateName <- as.character(varNames$originalCovariateName)
-        varNames$originalCovariateName[varNames$originalCovariateName == ""] <- varNames$originalCovariateId[varNames$originalCovariateName == ""]
-        varNames$covariateName <- paste(covariateSettings$label, varNames$originalCovariateName, sep = ": ")
+        varNames$originalCovariateName[varNames$originalCovariateName == ""] <- varNames$originalCovariateId[varNames$originalCovariateName ==
+          ""]
+        varNames$covariateName <- paste(covariateSettings$label,
+                                        varNames$originalCovariateName,
+                                        sep = ": ")
         newCovariateRef <- data.frame(covariateId = outputIds,
                                       originalCovariateId = covariateSettings$covariateIds)
         newCovariateRef <- merge(newCovariateRef, varNames, by = "originalCovariateId")
@@ -265,23 +314,36 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
     } else {
       startDays <- c(covariateSettings$start, covariateSettings$splitPoints + 1)
       endDays <- c(covariateSettings$splitPoints, NA)
-      if (!covariateSettings$stratifyByID){
+      if (!covariateSettings$stratifyById) {
         outputIds <- outputId:(outputId + length(covariateSettings$splitPoints))
         outputId <- outputId + length(covariateSettings$splitPoints) + 1
         names <- rep(covariateSettings$label, length(covariateSettings$splitPoints) + 1)
-        names <- paste(names," day ", startDays,"-", c(endDays[1:length(endDays)-1],""))
+        names <- paste(names, " day ", startDays, "-", c(endDays[1:length(endDays) - 1], ""))
         covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
-        newCovariateRef <- data.frame(covariateId = outputIds, covariateName = names, originalCovariateId = 0, originalCovariateName = "")
+        newCovariateRef <- data.frame(covariateId = outputIds,
+                                      covariateName = names,
+                                      originalCovariateId = 0,
+                                      originalCovariateName = "")
         settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
       } else {
         outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$covariateIds) - 1)
         outputId <- max(outputIds) + 1
-        covariateSettings$outputIds <- matrix(outputIds, ncol = length(covariateSettings$splitPoints) + 1, byrow = TRUE)
-        originalCovariateId <- rep(covariateSettings$covariateIds, each = length(covariateSettings$splitPoints) + 1)
-        originalCovariateName <- covariateRef$covariateName[match(originalCovariateId, covariateRef$covariateId)]
-        originalCovariateName[originalCovariateName == ""] <- originalCovariateId[originalCovariateName == ""]
+        covariateSettings$outputIds <- matrix(outputIds,
+                                              ncol = length(covariateSettings$splitPoints) + 1,
+                                              byrow = TRUE)
+        originalCovariateId <- rep(covariateSettings$covariateIds,
+                                   each = length(covariateSettings$splitPoints) + 1)
+        originalCovariateName <- covariateRef$covariateName[match(originalCovariateId,
+                                                                  covariateRef$covariateId)]
+        originalCovariateName[originalCovariateName == ""] <- originalCovariateId[originalCovariateName ==
+          ""]
         names <- paste(covariateSettings$label, ": ", originalCovariateName, sep = "")
-        names <- paste(names,", day ", startDays,"-", c(endDays[1:length(endDays)-1],"") , sep = "")
+        names <- paste(names,
+                       ", day ",
+                       startDays,
+                       "-",
+                       c(endDays[1:length(endDays) - 1], ""),
+                       sep = "")
 
         newCovariateRef <- data.frame(covariateId = outputIds,
                                       covariateName = names,
@@ -303,25 +365,31 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
 #' @details
 #' Create an object specifying how to create a (set of) covariates.
 #'
-#' @param includeCovariateIds  One or more IDs of variables in the \code{sccsData} object that should
-#' be used to construct this covariate. If no IDs are specified, all variables will be used.
-#' @param excludeCovariateIds  One or more IDs of variables in the \code{sccsData} object that should not
-#' be used to construct this covariate.
-#' @param label  A label used to identify the covariates created using these settings.
-#' @param stratifyByID  Should a single covariate be created for every ID in the \code{sccsData} object,
-#' or should a single covariate be constructed? For example, if the IDs identify exposures to different drugs,
-#' should a covariate be constructed for every drug, or a single covariate for exposure to any of these drugs. Note
-#' that overlap will be considered a single exposure.
-#' @param start   The start of the risk window in days, relative to the exposure start date.
-#' @param addExposedDaysToStart Should the length of exposure be added to the start date?
-#' @param end     The start of the risk window in days, relative to the exposure start date.
-#' @param addExposedDaysToEnd  Should the length of exposure be added to the end date?
-#' @param firstOccurrenceOnly  Should only the first occurrence of the exposure be used?
-#' @param splitPoints  To split the risk window into several smaller windows, specify the end of each sub-
-#' window relative to the start of the main risk window. If addExposedDaysToStart is TRUE, the split points
-#' will be considered to be relative to the end of the main risk window instead.
-#' @param allowRegularization  When fitting the model, should the covariates defined here be allowed to be
-#' regularized?
+#' @param includeCovariateIds     One or more IDs of variables in the \code{sccsData} object that
+#'                                should be used to construct this covariate. If no IDs are specified,
+#'                                all variables will be used.
+#' @param excludeCovariateIds     One or more IDs of variables in the \code{sccsData} object that
+#'                                should not be used to construct this covariate.
+#' @param label                   A label used to identify the covariates created using these settings.
+#' @param stratifyById            Should a single covariate be created for every ID in the
+#'                                \code{sccsData} object, or should a single covariate be constructed?
+#'                                For example, if the IDs identify exposures to different drugs, should
+#'                                a covariate be constructed for every drug, or a single covariate for
+#'                                exposure to any of these drugs. Note that overlap will be considered
+#'                                a single exposure.
+#' @param start                   The start of the risk window in days, relative to the exposure start
+#'                                date.
+#' @param addExposedDaysToStart   Should the length of exposure be added to the start date?
+#' @param end                     The start of the risk window in days, relative to the exposure start
+#'                                date.
+#' @param addExposedDaysToEnd     Should the length of exposure be added to the end date?
+#' @param firstOccurrenceOnly     Should only the first occurrence of the exposure be used?
+#' @param splitPoints             To split the risk window into several smaller windows, specify the
+#'                                end of each sub- window relative to the start of the main risk
+#'                                window. If addExposedDaysToStart is TRUE, the split points will be
+#'                                considered to be relative to the end of the main risk window instead.
+#' @param allowRegularization     When fitting the model, should the covariates defined here be allowed
+#'                                to be regularized?
 #'
 #' @return
 #' An object of type \code{covariateSettings}.
@@ -330,7 +398,7 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
 createCovariateSettings <- function(includeCovariateIds = NULL,
                                     excludeCovariateIds = NULL,
                                     label = "Covariates",
-                                    stratifyByID = TRUE,
+                                    stratifyById = TRUE,
                                     start = 0,
                                     addExposedDaysToStart = FALSE,
                                     end = 0,
@@ -338,53 +406,56 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
                                     firstOccurrenceOnly = FALSE,
                                     splitPoints = c(),
                                     allowRegularization = FALSE) {
-   return(OhdsiRTools::convertArgsToList(match.call(), "covariateSettings"))
+  return(OhdsiRTools::convertArgsToList(match.call(), "covariateSettings"))
 }
 
 #' Create age settings
 #'
 #' @details
 #' Create an object specifing whether and how age should be included in the model. Age can be included
-#' by splitting patient time into calendar months. During a month, the relative risk attributed to age is
-#' assumed to be constant, and the risk from month to month is modeled using a cubic spline.
+#' by splitting patient time into calendar months. During a month, the relative risk attributed to age
+#' is assumed to be constant, and the risk from month to month is modeled using a cubic spline.
 #'
-#' @param includeAge  Should age be included in the model?
-#' @param ageKnots If a single number is provided this is assumed to indicate the number of knots to use for
-#' the spline, and the knots are automatically spaced according to equal percentiles of the data. If more than one
-#' numer is provided these are assumed to be the exact location of the knots in age-days
-#' @param allowRegularization  When fitting the model, should the covariates defined here be allowed to be
-#' regularized?
+#' @param includeAge            Should age be included in the model?
+#' @param ageKnots              If a single number is provided this is assumed to indicate the number
+#'                              of knots to use for the spline, and the knots are automatically spaced
+#'                              according to equal percentiles of the data. If more than one numer is
+#'                              provided these are assumed to be the exact location of the knots in
+#'                              age-days
+#' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
+#'                              to be regularized?
 #'
 #' @return
 #' An object of type \code{ageSettings}.
 #'
 #' @export
-createAgeSettings <- function(includeAge = FALSE,
-                              ageKnots= 5,
-                              allowRegularization = FALSE) {
+createAgeSettings <- function(includeAge = FALSE, ageKnots = 5, allowRegularization = FALSE) {
   return(OhdsiRTools::convertArgsToList(match.call(), "ageSettings"))
 }
 
 #' Create seasonality settings
 #'
 #' @details
-#' Create an object specifing whether and how seasonality should be included in the model. Seasonality can be included
-#' by splitting patient time into calendar months. During a month, the relative risk attributed to season is
-#' assumed to be constant, and the risk from month to month is modeled using a cyclic cubic spline.
+#' Create an object specifing whether and how seasonality should be included in the model. Seasonality
+#' can be included by splitting patient time into calendar months. During a month, the relative risk
+#' attributed to season is assumed to be constant, and the risk from month to month is modeled using a
+#' cyclic cubic spline.
 #'
-#' @param includeSeasonality  Should seasonlaity be included in the model?
-#' @param seasonKnots If a single number is provided this is assumed to indicate the number of knots to use for
-#' the spline, and the knots are automatically equaly spaced across the year. If more than one
-#' numer is provided these are assumed to be the exact location of the knots in days relative to the start of the year.
-#' @param allowRegularization  When fitting the model, should the covariates defined here be allowed to be
-#' regularized?
+#' @param includeSeasonality    Should seasonlaity be included in the model?
+#' @param seasonKnots           If a single number is provided this is assumed to indicate the number
+#'                              of knots to use for the spline, and the knots are automatically equaly
+#'                              spaced across the year. If more than one numer is provided these are
+#'                              assumed to be the exact location of the knots in days relative to the
+#'                              start of the year.
+#' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
+#'                              to be regularized?
 #'
 #' @return
 #' An object of type \code{seasonalitySettings}.
 #'
 #' @export
 createSeasonalitySettings <- function(includeSeasonality = FALSE,
-                                      seasonKnots= 5,
+                                      seasonKnots = 5,
                                       allowRegularization = FALSE) {
   return(OhdsiRTools::convertArgsToList(match.call(), "seasonalitySettings"))
 }
@@ -429,7 +500,7 @@ saveSccsEraData <- function(sccsEraData, folder) {
 #' @description
 #' \code{loadSccsEraData} loads an object of type sccsEraData from a folder in the file system.
 #'
-#' @param folder       The name of the folder containing the data.
+#' @param folder     The name of the folder containing the data.
 #' @param readOnly   If true, the data is opened read only.
 #'
 #' @details
@@ -473,7 +544,7 @@ print.sccsEraData <- function(x, ...) {
 }
 
 #' @export
-summary.sccsEraData  <- function(object, ...) {
+summary.sccsEraData <- function(object, ...) {
   outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
                               eventCount = ffbase::sum.ff(object$outcomes$y),
                               caseCount = length(ffbase::unique.ff(object$outcomes$stratumId)))
@@ -509,12 +580,12 @@ print.summary.sccsEraData <- function(x, ...) {
 #' @details
 #' This function is used by other functions in this package.
 #'
-#' @param x Vector of coordinates of the points to be interpolated.
-#' @param knots  Location of the knots.
-#' @param ord  Order of the spline function.
+#' @param x       Vector of coordinates of the points to be interpolated.
+#' @param knots   Location of the knots.
+#' @param ord     Order of the spline function.
 #'
 #' @export
-cyclicSplineDesign <- function (x, knots, ord = 4) {
+cyclicSplineDesign <- function(x, knots, ord = 4) {
   nk <- length(knots)
   if (ord < 2)
     stop("order too low")
@@ -525,8 +596,7 @@ cyclicSplineDesign <- function (x, knots, ord = 4) {
   if (min(x) < k1 || max(x) > knots[nk])
     stop("x out of range")
   xc <- knots[nk - ord + 1]
-  knots <- c(k1 - (knots[nk] - knots[(nk - ord + 1):(nk - 1)]),
-             knots)
+  knots <- c(k1 - (knots[nk] - knots[(nk - ord + 1):(nk - 1)]), knots)
   ind <- x > xc
   X1 <- splines::splineDesign(knots, x, ord, outer.ok = TRUE)
   x[ind] <- x[ind] - max(knots) + k1

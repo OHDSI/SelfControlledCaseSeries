@@ -251,6 +251,8 @@ simulateSccsData <- function(nCases, settings) {
                                exposureIds = settings$covariateIds,
                                outcomeIds = settings$outcomeId),
                covariateRef = ff::as.ffdf(data.frame(covariateId = settings$covariateIds, covariateName = c(""))))
+  rownames(data$cases) <- NULL
+  rownames(data$eras) <- NULL
   class(data) <- "sccsData"
   return(data)
 }

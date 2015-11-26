@@ -443,7 +443,7 @@ Once retrieved, we can use the data to build and fit our model:
 ```{r tidy=FALSE,eval=FALSE}
 covarPpis = createCovariateSettings(label = "PPIs",
                                     includeCovariateIds = ppis,
-                                    stratifyByID = FALSE,
+                                    stratifyById = FALSE,
                                     start = 1,
                                     end = 0,
                                     addExposedDaysToEnd = TRUE)
@@ -461,7 +461,7 @@ sccsEraData <- createSccsEraData(sccsData,
 model <- fitSccsModel(sccsEraData)
 ```
 
-Here, we added a new covariate based on the list of concept IDs for the various PPIs. In this example we set `stratifyByID` to FALSE, meaning that we will estimate a single incidence rate ratio for all PPIs, so one estimate for the entire class of drugs. Note that duplicates will be removed: if a person is exposed to two PPIs on the same day, this will be counted only once when fitting the model. Furthermore, we have set the `start` day to 1 instead of 0. The reason for this is that PPIs will also be used to treat GI bleeds, and are likely to be prescribed on the same day as the event. If we would include day 0, the risk of the outcome would be attributed to the PPI used for treatment, not the other factors that caused the GI bleed such as any exposure to our drug of interest. Again, we can inspect the model:
+Here, we added a new covariate based on the list of concept IDs for the various PPIs. In this example we set `stratifyById` to FALSE, meaning that we will estimate a single incidence rate ratio for all PPIs, so one estimate for the entire class of drugs. Note that duplicates will be removed: if a person is exposed to two PPIs on the same day, this will be counted only once when fitting the model. Furthermore, we have set the `start` day to 1 instead of 0. The reason for this is that PPIs will also be used to treat GI bleeds, and are likely to be prescribed on the same day as the event. If we would include day 0, the risk of the outcome would be attributed to the PPI used for treatment, not the other factors that caused the GI bleed such as any exposure to our drug of interest. Again, we can inspect the model:
 
 ```{r tidy=TRUE,eval=FALSE}
 summary(model)
@@ -497,7 +497,7 @@ Note that the `exposureIds` argument is left empty. This will cause data for all
 ```{r tidy=FALSE,eval=FALSE}
 covarAllDrugs = createCovariateSettings(label = "All other exposures",
                                         excludeCovariateIds = diclofenac,
-                                        stratifyByID = TRUE,
+                                        stratifyById = TRUE,
                                         start = 1,
                                         end = 0,
                                         addExposedDaysToEnd = TRUE,
@@ -516,7 +516,7 @@ sccsEraData <- createSccsEraData(sccsData,
 model <- fitSccsModel(sccsEraData)
 ```
 
-The first thing to note is that we have defined the new covariates to be all drugs except diclofenac by not specifying the `includeCovariateIds` and setting the `excludeCovariateIds` to the concept ID of diclofenac. Furthermore, we have specified that `stratifyByID` is TRUE, meaning an estimate will be produced for each drug. 
+The first thing to note is that we have defined the new covariates to be all drugs except diclofenac by not specifying the `includeCovariateIds` and setting the `excludeCovariateIds` to the concept ID of diclofenac. Furthermore, we have specified that `stratifyById` is TRUE, meaning an estimate will be produced for each drug. 
 
 We have set `allowRegularization` to TRUE, meaning we will use regularization for all estimates in this new covariate set. Regularization means we will impose a prior distribution on the effect size, effectually penalizing large estimates. This helps fit the model, for example when some drugs are rare, and when drugs are almost often prescribed together and their individual effects are difficult to untangle.
 

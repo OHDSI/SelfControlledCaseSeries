@@ -10,12 +10,14 @@ createSeasonalitySettings(includeSeasonality = FALSE, seasonKnots = 5,
 \arguments{
 \item{includeSeasonality}{Should seasonlaity be included in the model?}
 
-\item{seasonKnots}{If a single number is provided this is assumed to indicate the number of knots to use for
-the spline, and the knots are automatically equaly spaced across the year. If more than one
-numer is provided these are assumed to be the exact location of the knots in days relative to the start of the year.}
+\item{seasonKnots}{If a single number is provided this is assumed to indicate the number
+of knots to use for the spline, and the knots are automatically equaly
+spaced across the year. If more than one numer is provided these are
+assumed to be the exact location of the knots in days relative to the
+start of the year.}
 
-\item{allowRegularization}{When fitting the model, should the covariates defined here be allowed to be
-regularized?}
+\item{allowRegularization}{When fitting the model, should the covariates defined here be allowed
+                             to be regularized?}
 }
 \value{
 An object of type \code{seasonalitySettings}.
@@ -24,8 +26,9 @@ An object of type \code{seasonalitySettings}.
 Create seasonality settings
 }
 \details{
-Create an object specifing whether and how seasonality should be included in the model. Seasonality can be included
-by splitting patient time into calendar months. During a month, the relative risk attributed to season is
-assumed to be constant, and the risk from month to month is modeled using a cyclic cubic spline.
+Create an object specifing whether and how seasonality should be included in the model. Seasonality
+can be included by splitting patient time into calendar months. During a month, the relative risk
+attributed to season is assumed to be constant, and the risk from month to month is modeled using a
+cyclic cubic spline.
 }
 

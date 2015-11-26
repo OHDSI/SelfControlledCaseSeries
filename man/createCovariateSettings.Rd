@@ -5,41 +5,47 @@
 \title{Create covariate settings}
 \usage{
 createCovariateSettings(includeCovariateIds = NULL,
-  excludeCovariateIds = NULL, label = "Covariates", stratifyByID = TRUE,
+  excludeCovariateIds = NULL, label = "Covariates", stratifyById = TRUE,
   start = 0, addExposedDaysToStart = FALSE, end = 0,
   addExposedDaysToEnd = FALSE, firstOccurrenceOnly = FALSE,
   splitPoints = c(), allowRegularization = FALSE)
 }
 \arguments{
-\item{includeCovariateIds}{One or more IDs of variables in the \code{sccsData} object that should
-be used to construct this covariate. If no IDs are specified, all variables will be used.}
+\item{includeCovariateIds}{One or more IDs of variables in the \code{sccsData} object that
+should be used to construct this covariate. If no IDs are specified,
+all variables will be used.}
 
-\item{excludeCovariateIds}{One or more IDs of variables in the \code{sccsData} object that should not
-be used to construct this covariate.}
+\item{excludeCovariateIds}{One or more IDs of variables in the \code{sccsData} object that
+should not be used to construct this covariate.}
 
 \item{label}{A label used to identify the covariates created using these settings.}
 
-\item{stratifyByID}{Should a single covariate be created for every ID in the \code{sccsData} object,
-or should a single covariate be constructed? For example, if the IDs identify exposures to different drugs,
-should a covariate be constructed for every drug, or a single covariate for exposure to any of these drugs. Note
-that overlap will be considered a single exposure.}
+\item{stratifyById}{Should a single covariate be created for every ID in the
+\code{sccsData} object, or should a single covariate be constructed?
+For example, if the IDs identify exposures to different drugs, should
+a covariate be constructed for every drug, or a single covariate for
+exposure to any of these drugs. Note that overlap will be considered
+a single exposure.}
 
-\item{start}{The start of the risk window in days, relative to the exposure start date.}
+\item{start}{The start of the risk window in days, relative to the exposure start
+date.}
 
 \item{addExposedDaysToStart}{Should the length of exposure be added to the start date?}
 
-\item{end}{The start of the risk window in days, relative to the exposure start date.}
+\item{end}{The start of the risk window in days, relative to the exposure start
+date.}
 
 \item{addExposedDaysToEnd}{Should the length of exposure be added to the end date?}
 
 \item{firstOccurrenceOnly}{Should only the first occurrence of the exposure be used?}
 
-\item{splitPoints}{To split the risk window into several smaller windows, specify the end of each sub-
-window relative to the start of the main risk window. If addExposedDaysToStart is TRUE, the split points
-will be considered to be relative to the end of the main risk window instead.}
+\item{splitPoints}{To split the risk window into several smaller windows, specify the
+end of each sub- window relative to the start of the main risk
+window. If addExposedDaysToStart is TRUE, the split points will be
+considered to be relative to the end of the main risk window instead.}
 
-\item{allowRegularization}{When fitting the model, should the covariates defined here be allowed to be
-regularized?}
+\item{allowRegularization}{When fitting the model, should the covariates defined here be allowed
+                               to be regularized?}
 }
 \value{
 An object of type \code{covariateSettings}.

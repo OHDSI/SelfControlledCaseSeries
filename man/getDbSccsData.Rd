@@ -16,14 +16,14 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
   deleteCovariatesSmallCount = 100, cdmVersion = "4")
 }
 \arguments{
-\item{connectionDetails}{An R object of type \code{ConnectionDetails} created using the
-function \code{createConnectionDetails} in the
+\item{connectionDetails}{An R object of type \code{ConnectionDetails} created using
+the function \code{createConnectionDetails} in the
 \code{DatabaseConnector} package.}
 
 \item{cdmDatabaseSchema}{The name of the database schema that contains the OMOP CDM
-instance.  Requires read permissions to this database. On SQL
-Server, this should specifiy both the database and the schema, so
-for example 'cdm_instance.dbo'.}
+instance.  Requires read permissions to this database. On
+SQL Server, this should specifiy both the database and the
+schema, so for example 'cdm_instance.dbo'.}
 
 \item{oracleTempSchema}{A schema where temp tables can be created in Oracle.}
 
@@ -33,8 +33,8 @@ outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
 used.  Requires read permissions to this database.}
 
 \item{outcomeTable}{The tablename that contains the outcome cohorts.  If
-outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA, then expectation is
-outcomeTable has format of COHORT table:
+outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
+then expectation is outcomeTable has format of COHORT table:
 COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
 COHORT_END_DATE.}
 
@@ -49,43 +49,50 @@ field.}
 condition occurrences.  Only applicable if outcomeTable =
 CONDITION_OCCURRENCE.}
 
-\item{exposureDatabaseSchema}{The name of the database schema that is the location where the
-exposure data used to define the exposure cohorts is available.
-If exposureTable = DRUG_ERA, exposureDatabaseSchema is not used
-but assumed to be cdmSchema.  Requires read permissions to this
-database.}
+\item{exposureDatabaseSchema}{The name of the database schema that is the location where
+the exposure data used to define the exposure cohorts is
+available. If exposureTable = DRUG_ERA,
+exposureDatabaseSchema is not used but assumed to be
+cdmSchema.  Requires read permissions to this database.}
 
 \item{exposureTable}{The tablename that contains the exposure cohorts.  If
-exposureTable <> DRUG_ERA, then expectation is exposureTable has
-format of COHORT table: cohort_concept_id, SUBJECT_ID,
+exposureTable <> DRUG_ERA, then expectation is exposureTable
+has format of COHORT table: cohort_concept_id, SUBJECT_ID,
 COHORT_START_DATE, COHORT_END_DATE.}
 
 \item{exposureIds}{A unique identifier to define the exposures of interest.  If
-exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.  If exposureTable <> DRUG_ERA, exposureIds is
-used to select the cohort_concept_id in the cohort-like table. If no exposureIds are provided, all
-drugs or cohorts in the exposureTable are included as exposures.}
+exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
+If exposureTable <> DRUG_ERA, exposureIds is used to select
+the cohort_concept_id in the cohort-like table. If no
+exposureIds are provided, all drugs or cohorts in the
+exposureTable are included as exposures.}
 
 \item{useCustomCovariates}{Create covariates from a custom table?}
 
-\item{customCovariateDatabaseSchema}{The name of the database schema that is the location where the
-custom covariate data is available.}
+\item{customCovariateDatabaseSchema}{The name of the database schema that is the location where
+the custom covariate data is available.}
 
-\item{customCovariateTable}{Name of the table holding the custom covariates. This table should have the same structure as the cohort table.}
+\item{customCovariateTable}{Name of the table holding the custom covariates. This table
+should have the same structure as the cohort table.}
 
-\item{customCovariateIds}{A list of cohort definition IDS identifying the records in the customCovariateTable to use for building custom covariates.}
+\item{customCovariateIds}{A list of cohort definition IDS identifying the records in
+the customCovariateTable to use for building custom
+covariates.}
 
-\item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be kept.}
+\item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to
+be kept.}
 
-\item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and "5".}
+\item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and
+                                        "5".}
 }
 \value{
-Returns an object of type \code{sccsData}, containing information on the cases, their
-outcomes, exposures, and potentially other covariates. Information about multiple outcomes can be captured at once for
-efficiency reasons. This object is a list with the following components: \describe{
-\item{cases}{An ffdf object listing the persons that have the outcome(s), their age, and observation
-time.} \item{eras}{An ffdf object listing the exposures, outcomes and other covariates.}
-\item{covariateRef}{An ffdf object describing the covariates that have been extracted.}
-\item{metaData}{A list of objects with information on how the sccsData object was
+Returns an object of type \code{sccsData}, containing information on the cases, their outcomes,
+exposures, and potentially other covariates. Information about multiple outcomes can be captured at
+once for efficiency reasons. This object is a list with the following components: \describe{
+\item{cases}{An ffdf object listing the persons that have the outcome(s), their age, and
+observation time.} \item{eras}{An ffdf object listing the exposures, outcomes and other
+covariates.} \item{covariateRef}{An ffdf object describing the covariates that have been
+extracted.} \item{metaData}{A list of objects with information on how the sccsData object was
 constructed.} } The generic \code{summary()} function has been implemented for this object.
 }
 \description{
@@ -94,16 +101,17 @@ Load all data needed to perform an SCCS analysis from the database.
 \details{
 This function downloads several types of information:
 \itemize{
-\item{Information on the occurrences of the outcome(s) of interest. Note that
-information for multiple outcomes can be fetched in one go, and later the
-specific outcome can be specified for which we want to build a model.}
-\item{Information on the observation time and age for the people with the outcomes.}
-\item{Information on exposures of interest which we want to include in the model.}
+  \item {Information on the occurrences of the outcome(s) of interest. Note that information for
+        multiple outcomes can be fetched in one go, and later the specific outcome can be specified
+        for which we want to build a model.}
+  \item {Information on the observation time and age for the people with the outcomes.}
+  \item {Information on exposures of interest which we want to include in the model.}
 }
-Four different database schemas can be specified, for four different types of information:
-The \code{cdmDatabaseSchema} is used to extract patient age and observation period. The \code{outcomeDatabaseSchema}
-is used to extract information about the outcomes, the \code{exposureDatabaseSchema} is used to retrieve
-information on exposures, and the \code{customCovariateDatabaseSchema} is optionally used to find additional,
-user-defined covariates. All four locations could point to the same database schema.
+Four different database schemas can be specified, for four different types of information: The
+\code{cdmDatabaseSchema} is used to extract patient age and observation period. The
+\code{outcomeDatabaseSchema} is used to extract information about the outcomes, the
+\code{exposureDatabaseSchema} is used to retrieve information on exposures, and the
+\code{customCovariateDatabaseSchema} is optionally used to find additional, user-defined
+covariates. All four locations could point to the same database schema.
 }
 

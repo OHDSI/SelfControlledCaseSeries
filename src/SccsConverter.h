@@ -31,7 +31,7 @@ namespace ohdsi {
 namespace sccs {
 
 struct CovariateSettings {
-  CovariateSettings(const List& _covariateSettings) : stratifyById(as<bool>(_covariateSettings["stratifyByID"])),
+  CovariateSettings(const List& _covariateSettings) : stratifyById(as<bool>(_covariateSettings["stratifyById"])),
   firstOccurrenceOnly(as<bool>(_covariateSettings["firstOccurrenceOnly"])), covariateIds(as<NumericVector>(_covariateSettings["covariateIds"])),
   outputIds(as<NumericMatrix>(_covariateSettings["outputIds"])), start(as<int>(_covariateSettings["start"])), addExposedDaysToStart(as<bool>(_covariateSettings["addExposedDaysToStart"])), end(as<int>(_covariateSettings["end"])),
   addExposedDaysToEnd(as<bool>(_covariateSettings["addExposedDaysToEnd"])){

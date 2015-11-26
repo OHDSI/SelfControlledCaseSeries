@@ -11,28 +11,34 @@ createSccsEraData(sccsData, outcomeId = NULL, naivePeriod = 0,
   eventDependentObservation = FALSE)
 }
 \arguments{
-\item{sccsData}{An object of type \code{sccsData} as created using the \code{\link{getDbSccsData}} function.}
+\item{sccsData}{An object of type \code{sccsData} as created using the
+\code{\link{getDbSccsData}} function.}
 
-\item{outcomeId}{The outcome to create the era data for. If not specified it is assumed to be the one
-outcome for which the data was loaded from the database.}
+\item{outcomeId}{The outcome to create the era data for. If not specified it is
+assumed to be the one outcome for which the data was loaded from
+the database.}
 
-\item{naivePeriod}{The number of days at the start of a patient's observation period that should not be included in the risk
-calculations. Note that the naive period can be used to determine current covariate status right after the naive period, and whether
-an outcome is the first one.}
+\item{naivePeriod}{The number of days at the start of a patient's observation period
+that should not be included in the risk calculations. Note that
+the naive period can be used to determine current covariate
+status right after the naive period, and whether an outcome is
+the first one.}
 
-\item{firstOutcomeOnly}{Whether only the first occurrence of an outcome should be considered.}
+\item{firstOutcomeOnly}{Whether only the first occurrence of an outcome should be
+considered.}
 
-\item{covariateSettings}{Either an object of type \code{covariateSettings} as created using the
-\code{\link{createCovariateSettings}} function, or a list of such objects.}
+\item{covariateSettings}{Either an object of type \code{covariateSettings} as created
+using the \code{\link{createCovariateSettings}} function, or a
+list of such objects.}
 
-\item{ageSettings}{An object of type \code{ageSettings} as created using the \code{\link{createAgeSettings}}
-function.}
+\item{ageSettings}{An object of type \code{ageSettings} as created using the
+\code{\link{createAgeSettings}} function.}
 
-\item{seasonalitySettings}{An object of type \code{seasonalitySettings} as created using the \code{\link{createSeasonalitySettings}}
-function.}
+\item{seasonalitySettings}{An object of type \code{seasonalitySettings} as created using the
+\code{\link{createSeasonalitySettings}} function.}
 
-\item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to adjust for event-dependent
-observation time?}
+\item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to
+                                   adjust for event-dependent observation time?}
 }
 \value{
 An object of type \code{sccsEraData}.
@@ -42,8 +48,9 @@ Create SCCS era data
 }
 \details{
 This function creates covariates based on the data in the \code{sccsData} object, according to the
-provided settings. It chops patient time into periods during which all covariates remain constant. The output details
-these periods, their durations, and a sparse representation of the covariate values.
+provided settings. It chops patient time into periods during which all covariates remain constant.
+The output details these periods, their durations, and a sparse representation of the covariate
+values.
 }
 \references{
 Farrington, C. P., Anaya-Izquierdo, A., Whitaker, H. J., Hocine, M.N., Douglas, I., and Smeeth, L.

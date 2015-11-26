@@ -196,7 +196,7 @@
   #sccsData <- loadSccsData("s:/temp/vignetteSccs/data2")
   covarPpis = createCovariateSettings(label = "PPIs",
                                       includeCovariateIds = ppis,
-                                      stratifyByID = FALSE,
+                                      stratifyById = FALSE,
                                       start = 1,
                                       end = 0,
                                       addExposedDaysToEnd = TRUE)
@@ -230,7 +230,7 @@
 
   covarAllDrugs = createCovariateSettings(label = "Other exposures",
                                           excludeCovariateIds = diclofenac,
-                                          stratifyByID = TRUE,
+                                          stratifyById = TRUE,
                                           start = 1,
                                           end = 0,
                                           addExposedDaysToEnd = TRUE,
