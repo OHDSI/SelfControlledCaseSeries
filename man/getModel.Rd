@@ -7,8 +7,8 @@
 getModel(sccsModel)
 }
 \arguments{
-\item{sccsModel}{An object of type \code{sccsModel} as created using the \code{\link{fitSccsModel}}
-function.}
+\item{sccsModel}{An object of type \code{sccsModel} as created using the
+                   \code{\link{fitSccsModel}} function.}
 }
 \value{
 A data frame with the coefficients and confidence intervals (when not-regularized) for all

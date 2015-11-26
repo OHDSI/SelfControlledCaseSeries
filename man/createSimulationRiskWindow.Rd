@@ -10,16 +10,18 @@ createSimulationRiskWindow(start = 0, end = 0, addExposedDaysToEnd = TRUE,
 \arguments{
 \item{start}{Start of the risk window relative to exposure start.}
 
-\item{end}{End of risk window relative to exposure start, or if \code{addExposedDaysToEnd} is TRUE,
-relative to the end date.}
+\item{end}{End of risk window relative to exposure start, or if
+\code{addExposedDaysToEnd} is TRUE, relative to the end date.}
 
 \item{addExposedDaysToEnd}{Should the length of exposure be added to the end date? In other words,
-should the exposure end date be used as reference point for the risk window end?}
+should the exposure end date be used as reference point for the risk
+window end?}
 
 \item{splitPoints}{Subdivision of the risk window in to smaller sub-windows.}
 
-\item{relativeRisks}{Either a single number representing the relative risk in the risk window, or when
-splitPoints have been defined a vector of relative risks, one for each sub-window.}
+\item{relativeRisks}{Either a single number representing the relative risk in the risk
+                             window, or when splitPoints have been defined a vector of relative
+                             risks, one for each sub-window.}
 }
 \value{
 An object of type \code{simulationRiskWindow}.

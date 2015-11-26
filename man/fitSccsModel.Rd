@@ -12,22 +12,22 @@ fitSccsModel(sccsEraData, prior = createPrior("laplace", useCrossValidation =
 \item{sccsEraData}{An object of type \code{sccsEraData} as created using the
 \code{\link{createSccsEraData}} function.}
 
-\item{prior}{The prior used to fit the model. See
-\code{\link[Cyclops]{createPrior}} for details.}
+\item{prior}{The prior used to fit the model. See \code{\link[Cyclops]{createPrior}} for
+details.}
 
-\item{control}{The control object used to control the cross-validation used to
-                              determine the hyperparameters of the prior (if applicable). See
-                              \code{\link[Cyclops]{createControl}} for details.}
+\item{control}{The control object used to control the cross-validation used to determine the
+                     hyperparameters of the prior (if applicable). See
+                     \code{\link[Cyclops]{createControl}} for details.}
 }
 \value{
-An object of type \code{sccsModel}. eneric function \code{summary}, \code{coef}, and
-\code{confint} are available.
+An object of type \code{sccsModel}. eneric function \code{summary}, \code{coef}, and \code{confint}
+are available.
 }
 \description{
 Fit the SCCS model
 }
 \details{
-Fits the SCCS model as a conditional Poisson regression. When allowed, coefficients for
-some or all covariates can be regularized.
+Fits the SCCS model as a conditional Poisson regression. When allowed, coefficients for some or all
+covariates can be regularized.
 }
 

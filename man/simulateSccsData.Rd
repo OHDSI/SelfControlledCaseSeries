@@ -10,7 +10,7 @@ simulateSccsData(nCases, settings)
 \item{nCases}{The number of cases to simulate.}
 
 \item{settings}{An object of type \code{sccsSimulationSettings} as created using the \code{
-\link{createSccsSimulationSettings}}.}
+                  \link{createSccsSimulationSettings}}.}
 }
 \value{
 An object of type \code{sccsData}.

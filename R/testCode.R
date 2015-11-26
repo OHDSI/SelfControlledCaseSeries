@@ -4,8 +4,8 @@ testcode <- function() {
   setwd("s:/temp")
   options(fftempdir = "s:/fftemp")
   sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
-  naivePeriod = 180
-  outcomeId = 3
+  naivePeriod <- 180
+  outcomeId <- 3
 
 
 
@@ -17,16 +17,14 @@ testcode <- function() {
 
   sccsData <- simulateSccsData(1000, settings)
 
-  ageSettings <- createAgeSettings(includeAge = TRUE,
-                                   ageKnots = 5)
+  ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
 
-  seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE,
-                                                   seasonKnots = 5)
-  covarSettings = createCovariateSettings(label = "Exposure of interest",
-                                   includeCovariateIds = c(1,2),
-                                   start = 0,
-                                   end = 0,
-                                   addExposedDaysToEnd = TRUE)
+  seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE, seasonKnots = 5)
+  covarSettings <- createCovariateSettings(label = "Exposure of interest",
+                                           includeCovariateIds = c(1, 2),
+                                           start = 0,
+                                           end = 0,
+                                           addExposedDaysToEnd = TRUE)
 
   sccsEraData <- createSccsEraData(sccsData,
                                    naivePeriod = 0,
@@ -38,8 +36,8 @@ testcode <- function() {
   model <- fitSccsModel(sccsEraData)
 
   summary(model)
-plotSeasonality(model)
-plotAgeEffect(model)
+  plotSeasonality(model)
+  plotAgeEffect(model)
   exp(model$coefficients)
   exp(model$treatmentEstimate)
   sccsData$metaData$sccsSimulationSettings$simulationRiskWindows
@@ -52,8 +50,7 @@ plotAgeEffect(model)
 
 
 
-  #plotAgeEffect(model)
- # plotSeasonality(model)
+  # plotAgeEffect(model) plotSeasonality(model)
 
 
   allCoefs <- coef(model)
@@ -62,7 +59,9 @@ plotAgeEffect(model)
   splineCoefs <- c(0, splineCoefs)
   ageKnots <- sccsEraData$metaData$ageKnots
   age <- seq(min(ageKnots), max(ageKnots), length.out = 100)
-  ageDesignMatrix <- splines::bs(age, knots = ageKnots[2:(length(ageKnots)-1)], Boundary.knots = ageKnots[c(1,length(ageKnots))])
+  ageDesignMatrix <- splines::bs(age,
+                                 knots = ageKnots[2:(length(ageKnots) - 1)],
+                                 Boundary.knots = ageKnots[c(1, length(ageKnots))])
   logRr <- apply(ageDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
@@ -70,11 +69,13 @@ plotAgeEffect(model)
   targetLogRr <- targetLogRr - mean(targetLogRr)
   targetRr <- exp(targetLogRr)
 
-  data <- data.frame(age = rep(age,2), rr = c(rr,targetRr), group = rep(c("Estimated","Simulated"),each = length(rr)))
+  data <- data.frame(age = rep(age, 2),
+                     rr = c(rr, targetRr),
+                     group = rep(c("Estimated", "Simulated"), each = length(rr)))
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
-  ageLabels <- floor(min(ageKnots)/365.25) : floor(max(ageKnots)/365.25)
-  if (length(ageLabels) > 10){
-    ageLabels <- 10*(floor(min(ageKnots)/3652.5) : floor(max(ageKnots)/3652.5))
+  ageLabels <- floor(min(ageKnots)/365.25):floor(max(ageKnots)/365.25)
+  if (length(ageLabels) > 10) {
+    ageLabels <- 10 * (floor(min(ageKnots)/3652.5):floor(max(ageKnots)/3652.5))
   }
   ageBreaks <- ageLabels * 365.25
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
@@ -85,18 +86,15 @@ plotAgeEffect(model)
     ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Relative risk", lim = c(0.1,10), trans = "log10", breaks = breaks, labels = breaks) +
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                     panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                     panel.grid.major = ggplot2::element_blank(),
-                     axis.ticks = ggplot2::element_blank(),
-                     axis.text.y = themeRA,
-                     axis.text.x = theme,
-                     strip.text.x = theme,
-                     strip.background = ggplot2::element_blank(),
-                     legend.title = ggplot2::element_blank(),
-                     legend.position = "top")
-
-
-
+                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+                   panel.grid.major = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank(),
+                   axis.text.y = themeRA,
+                   axis.text.x = theme,
+                   strip.text.x = theme,
+                   strip.background = ggplot2::element_blank(),
+                   legend.title = ggplot2::element_blank(),
+                   legend.position = "top")
   allCoefs <- coef(model)
   coefId <- as.numeric(names(allCoefs))
   splineCoefs <- allCoefs[coefId >= 200 & coefId < 220]
@@ -107,13 +105,15 @@ plotAgeEffect(model)
   logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
-  days <- (season*30.5 - 15) %% 365
+  days <- (season * 30.5 - 15)%%365
   targetLogRr <- sccsEraData$metaData$seasonFun(days)
   targetLogRr <- targetLogRr - mean(targetLogRr)
   targetRr <- exp(targetLogRr)
   targetRr <- targetRr - mean(targetRr) + 1
 
-  data <- data.frame(season = rep(season,2), rr = c(rr,targetRr), group = rep(c("Estimated","Simulated"),each = length(rr)))
+  data <- data.frame(season = rep(season, 2),
+                     rr = c(rr, targetRr),
+                     group = rep(c("Estimated", "Simulated"), each = length(rr)))
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   seasonBreaks <- 1:12
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
@@ -134,15 +134,8 @@ plotAgeEffect(model)
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
 
-
-
-
-
-
-
-
   library(SelfControlledCaseSeries)
-  #library(SqlRender)
+  # library(SqlRender)
   setwd("s:/temp")
   options(fftempdir = "s:/fftemp")
 
@@ -151,8 +144,8 @@ plotAgeEffect(model)
   dbms <- "sql server"
   user <- NULL
   server <- "RNDUSRDHIT07"
-  #cdmDatabaseSchema <- "cdm4_sim.dbo"
-  cdmDatabaseSchema <- 'CDM_Truven_MDCd.dbo'
+  # cdmDatabaseSchema <- 'cdm4_sim.dbo'
+  cdmDatabaseSchema <- "CDM_Truven_MDCd.dbo"
   resultsDatabaseSchema <- "scratch.dbo"
   port <- NULL
   cdmVersion <- "4"
@@ -178,9 +171,9 @@ plotAgeEffect(model)
 
   # Settings for OHDSI test environment
   dbms <- "postgresql"
-  server <-  Sys.getenv("CDM5_POSTGRESQL_SERVER")
+  server <- Sys.getenv("CDM5_POSTGRESQL_SERVER")
   user <- Sys.getenv("CDM5_POSTGRESQL_USER")
-  pw <-  URLdecode(Sys.getenv("CDM5_POSTGRESQL_PASSWORD"))
+  pw <- URLdecode(Sys.getenv("CDM5_POSTGRESQL_PASSWORD"))
   cdmDatabaseSchema <- Sys.getenv("CDM5_POSTGRESQL_SCHEMA")
   resultsDatabaseSchema <- "scratch"
   port <- NULL
@@ -210,7 +203,7 @@ plotAgeEffect(model)
 
   sccsData <- getDbSccsData(connectionDetails,
                             cdmDatabaseSchema = cdmDatabaseSchema,
-                            exposureIds = c(1,2),
+                            exposureIds = c(1, 2),
                             outcomeIds = 3,
                             excludeConceptIds = c(),
                             exposureDatabaseSchema = resultsDatabaseSchema,
@@ -231,8 +224,8 @@ plotAgeEffect(model)
 
   summary(sccsData)
 
-  # You can start here if you already saved sccsData:
-  # sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
+  # You can start here if you already saved sccsData: sccsData <-
+  # loadSccsData('s:/temp/sccsDataGiBleed')
 
   sccsEraData <- createSccsEraData(sccsData = sccsData,
                                    naivePeriod = 180,
@@ -245,33 +238,33 @@ plotAgeEffect(model)
                                                                                         end = 0,
                                                                                         addExposedDaysToEnd = TRUE,
                                                                                         mergeErasBeforeSplit = TRUE,
-                                                                                        splitPoints = c(7,15)),
+                                                                                        splitPoints = c(7, 15)),
                                    includePreExposureOfInterest = TRUE,
                                    preExposureOfInterestSetting = createCovariateSettings(stratifyById = TRUE,
                                                                                           mergeErasBeforeSplit = FALSE,
                                                                                           start = -180,
                                                                                           end = -1,
                                                                                           addExposedDaysToEnd = FALSE,
-                                                                                          splitPoints = c(-90,-60,-30)),
+                                                                                          splitPoints = c(-90, -60, -30)),
                                    includeAgeEffect = FALSE,
                                    includeSeasonality = FALSE,
                                    eventDependentObservation = TRUE)
 
   saveSccsEraData(sccsEraData, "s:/temp/sccsEraDataGiBleed")
 
-  # You can start here if you already saved sccsEraData:
-  # sccsEraData <- loadSccsEraData("sccsEraDataGiBleed")
+  # You can start here if you already saved sccsEraData: sccsEraData <-
+  # loadSccsEraData('sccsEraDataGiBleed')
   sccsEraData$covariateRef
 
-outcomes <- ff::as.ram(sccsEraData$outcomes)
-covariates <- ff::as.ram(sccsEraData$covariates)
-eras <- ff::as.ram(sccsData$eras)
+  outcomes <- ff::as.ram(sccsEraData$outcomes)
+  covariates <- ff::as.ram(sccsEraData$covariates)
+  eras <- ff::as.ram(sccsData$eras)
 
-outcomes[outcomes$stratumId == 6700,]
-covariates[covariates$covariateId == 304,]
-eras[eras$observationPeriodId == 6700 & eras$conceptId %in% c(1,3), ]
+  outcomes[outcomes$stratumId == 6700, ]
+  covariates[covariates$covariateId == 304, ]
+  eras[eras$observationPeriodId == 6700 & eras$conceptId %in% c(1, 3), ]
 
-sccsEraData
+  sccsEraData
 
   summary(sccsEraData)
 
@@ -280,7 +273,7 @@ sccsEraData
 
   saveRDS(model, "s:/temp/sccsModel.rds")
   plotSeasonality(model)
-  plotAgeEffect(model, rrLim =c(0.01, 100))
+  plotAgeEffect(model, rrLim = c(0.01, 100))
 
   model <- getModel(fit, sccsEraData)
   head(model)
