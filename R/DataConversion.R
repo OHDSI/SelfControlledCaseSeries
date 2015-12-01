@@ -55,7 +55,7 @@ in.ff <- function(a, b) {
 #'
 #' @references
 #' Farrington, C. P., Anaya-Izquierdo, A., Whitaker, H. J., Hocine, M.N., Douglas, I., and Smeeth, L.
-#' (2011). Self-Controlled case series analysis with event-Dependent observation periods. Journal of
+#' (2011). Self-Controlled case series analysis with event-dependent observation periods. Journal of
 #' the American Statistical Association 106 (494), 417-426
 #'
 #' @return
