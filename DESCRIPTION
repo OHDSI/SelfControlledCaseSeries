@@ -3,9 +3,11 @@ Type: Package
 Title: Self-Controlled Case Series
 Version: 0.0.2
 Date: 2015-11-10
-Author: Martijn Schuemie, Patrick Ryan, Marc Suchard, Trevor Shaddox
+Author: Martijn Schuemie, Patrick Ryan, Trevor Shaddox, Marc A. Suchard
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
-Description: SelfControlledCaseSeries is an R package for performing Self-Controlled Case Series (SCCS) analyses in an observational database in the OMOP Common Data Model.
+Description: SelfControlledCaseSeries is an R package for performing self-
+    controlled case series (SCCS) analyses in an observational database in the OMOP
+    Common Data Model.
 VignetteBuilder: knitr
 Depends:
     R (>= 3.2.2),
@@ -28,3 +30,4 @@ Suggests:
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
+RoxygenNote: 5.0.0
