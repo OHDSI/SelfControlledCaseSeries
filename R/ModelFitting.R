@@ -31,7 +31,7 @@
 #'                      \code{\link[Cyclops]{createControl}} for details.
 #'
 #' @return
-#' An object of type \code{sccsModel}. eneric function \code{summary}, \code{coef}, and \code{confint}
+#' An object of type \code{sccsModel}. Generic functions \code{summary}, \code{coef}, and \code{confint}
 #' are available.
 #'
 #' @references
