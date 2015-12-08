@@ -157,11 +157,12 @@ print.summary.sccsModel <- function(x, ...) {
   d <- x$estimates
   output <- data.frame(d$covariateName,
                        d$covariateId,
-                       exp(d$logRr),
-                       exp(d$logLb95),
-                       exp(d$logUb95),
+                       format(exp(d$logRr), digits = 4, scientific = FALSE),
+                       format(exp(d$logLb95), digits = 4, scientific = FALSE),
+                       format(exp(d$logUb95), digits = 4, scientific = FALSE),
                        d$logRr,
                        d$seLogRr)
+
   colnames(output) <- c("Name", "ID", "Estimate", "lower .95", "upper .95", "logRr", "seLogRr")
   if (nrow(output) > 100) {
     print.data.frame(output[1:100,],

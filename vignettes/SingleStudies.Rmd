@@ -547,7 +547,7 @@ if (file.exists("s:/temp/vignetteSccs/allDrugsModel.rds")){
 }
 ```
 
-Note that because we used regularization, we are not able to compute the confidence intervals for these estimates. We do again see that PPIs all have relative risks lower than 1 as we would expects.
+Note that because we used regularization, we are not able to compute the confidence intervals for these estimates. We do again see that PPIs all have relative risks lower than 1 as we would expect.
 
 # Acknowledgments
 
