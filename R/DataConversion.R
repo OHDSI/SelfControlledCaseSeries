@@ -55,7 +55,7 @@ in.ff <- function(a, b) {
 #'
 #' @references
 #' Farrington, C. P., Anaya-Izquierdo, A., Whitaker, H. J., Hocine, M.N., Douglas, I., and Smeeth, L.
-#' (2011). Self-Controlled case series analysis with event-Dependent observation periods. Journal of
+#' (2011). Self-Controlled case series analysis with event-dependent observation periods. Journal of
 #' the American Statistical Association 106 (494), 417-426
 #'
 #' @return
@@ -419,7 +419,7 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
 #' @param includeAge            Should age be included in the model?
 #' @param ageKnots              If a single number is provided this is assumed to indicate the number
 #'                              of knots to use for the spline, and the knots are automatically spaced
-#'                              according to equal percentiles of the data. If more than one numer is
+#'                              according to equal percentiles of the data. If more than one number is
 #'                              provided these are assumed to be the exact location of the knots in
 #'                              age-days
 #' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
@@ -444,7 +444,7 @@ createAgeSettings <- function(includeAge = FALSE, ageKnots = 5, allowRegularizat
 #' @param includeSeasonality    Should seasonlaity be included in the model?
 #' @param seasonKnots           If a single number is provided this is assumed to indicate the number
 #'                              of knots to use for the spline, and the knots are automatically equaly
-#'                              spaced across the year. If more than one numer is provided these are
+#'                              spaced across the year. If more than one number is provided these are
 #'                              assumed to be the exact location of the knots in days relative to the
 #'                              start of the year.
 #' @param allowRegularization   When fitting the model, should the covariates defined here be allowed

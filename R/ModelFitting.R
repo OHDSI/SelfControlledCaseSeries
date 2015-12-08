@@ -31,8 +31,13 @@
 #'                      \code{\link[Cyclops]{createControl}} for details.
 #'
 #' @return
-#' An object of type \code{sccsModel}. eneric function \code{summary}, \code{coef}, and \code{confint}
+#' An object of type \code{sccsModel}. Generic functions \code{summary}, \code{coef}, and \code{confint}
 #' are available.
+#'
+#' @references
+#' Suchard, M.A., Simpson, S.E., Zorych, I., Ryan, P., and Madigan, D. (2013).
+#' Massive parallelization of serial inference algorithms for complex generalized linear models.
+#' ACM Transactions on Modeling and Computer Simulation 23, 10
 #'
 #' @export
 fitSccsModel <- function(sccsEraData,
