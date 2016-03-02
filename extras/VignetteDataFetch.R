@@ -156,8 +156,11 @@ sccsEraData <- createSccsEraData(sccsData,
                                  ageSettings = ageSettings,
                                  seasonalitySettings = seasonalitySettings)
 
-model <- fitSccsModel(sccsEraData,  control = createControl(cvType = "auto", selectorType = "byPid",
-                                                            startingVariance = 0.1, noiseLevel = "quiet", threads = 30))
+model <- fitSccsModel(sccsEraData, control = createControl(cvType = "auto",
+                                                           selectorType = "byPid",
+                                                           startingVariance = 0.1,
+                                                           noiseLevel = "quiet",
+                                                           threads = 30))
 saveRDS(model, "s:/temp/vignetteSccs/ageAndSeasonModel.rds")
 # model <- readRDS('s:/temp/vignetteSccs/ageAndSeasonModel.rds')
 summary(model)
@@ -176,8 +179,11 @@ sccsEraData <- createSccsEraData(sccsData,
                                  ageSettings = ageSettings,
                                  seasonalitySettings = seasonalitySettings,
                                  eventDependentObservation = TRUE)
-model <- fitSccsModel(sccsEraData,  control = createControl(cvType = "auto", selectorType = "byPid",
-                                                            startingVariance = 0.1, noiseLevel = "quiet", threads = 30))
+model <- fitSccsModel(sccsEraData, control = createControl(cvType = "auto",
+                                                           selectorType = "byPid",
+                                                           startingVariance = 0.1,
+                                                           noiseLevel = "quiet",
+                                                           threads = 30))
 saveRDS(model, "s:/temp/vignetteSccs/eventDepModel.rds")
 
 summary(model)
@@ -213,8 +219,11 @@ sccsEraData <- createSccsEraData(sccsData,
                                  seasonalitySettings = seasonalitySettings,
                                  eventDependentObservation = TRUE)
 
-model <- fitSccsModel(sccsEraData,  control = createControl(cvType = "auto", selectorType = "byPid",
-                                                            startingVariance = 0.1, noiseLevel = "quiet", threads = 30))
+model <- fitSccsModel(sccsEraData, control = createControl(cvType = "auto",
+                                                           selectorType = "byPid",
+                                                           startingVariance = 0.1,
+                                                           noiseLevel = "quiet",
+                                                           threads = 30))
 saveRDS(model, "s:/temp/vignetteSccs/ppiModel.rds")
 summary(model)
 ### Add all drugs ###
@@ -255,7 +264,7 @@ control <- createControl(cvType = "auto",
                          startingVariance = 0.1,
                          noiseLevel = "quiet",
                          threads = 30)
-#variance <- 0.0182739
+# variance <- 0.0182739
 model <- fitSccsModel(sccsEraData, control = control)
 saveRDS(model, "s:/temp/vignetteSccs/allDrugsModel.rds")
 summary(model)

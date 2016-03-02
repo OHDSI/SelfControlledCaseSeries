@@ -339,11 +339,11 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
           ""]
         varNames <- paste(covariateSettings$label, ": ", originalCovariateName, sep = "")
         varNames <- paste(varNames,
-                       ", day ",
-                       startDays,
-                       "-",
-                       c(endDays[1:length(endDays) - 1], ""),
-                       sep = "")
+                          ", day ",
+                          startDays,
+                          "-",
+                          c(endDays[1:length(endDays) - 1], ""),
+                          sep = "")
 
         newCovariateRef <- data.frame(covariateId = outputIds,
                                       covariateName = varNames,
