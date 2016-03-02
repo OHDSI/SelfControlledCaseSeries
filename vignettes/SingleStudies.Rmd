@@ -9,11 +9,11 @@ output:
   html_document:
     number_sections: yes
     toc: yes
+vignette: >
+  %\VignetteIndexEntry{Single studies using SelfControlledCaseSerie}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}      
 ---
-<!--
-%\VignetteEngine{knitr}
-%\VignetteIndexEntry{Single studies using SelfControlledCaseSeries}
--->
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
@@ -69,14 +69,14 @@ connectionDetails <- createConnectionDetails(dbms = "postgresql",
 
 cdmDatabaseSchema <- "my_cdm_data"
 cohortDatabaseSchema <- "my_results"
-cdmVersion <- "4"
+cdmVersion <- "5"
 ```
 
 The last three lines define the `cdmDatabaseSchema` and `cohortDatabaseSchema` variables,as well as the CDM version. We'll use these later to tell R where the data in CDM format live, where we have stored our cohorts of interest, and what version CDM is used. Note that for Microsoft SQL Server, databaseschemas need to specify both the database and the schema, so for example `cdmDatabaseSchema <- "my_cdm_data.dbo"`.
 
 ## Preparing the health outcome of interest
 
-We need to define the outcome for our study. One way to do this is by writing SQL statements against the OMOP CDM that populate a table of events in which we are interested. The resulting table should have the same structure as the `cohort` table in the CDM. For CDM v4, this means it should have the fields `cohort_concept_id`, `cohort_start_date`, `cohort_end_date`, and `subject_id`. For CDM v5, the `cohort_concept_id` field must be called `cohort_definition_id`. 
+We need to define the exposures and outcomes for our study. One way to do this is by writing SQL statements against the OMOP CDM that populate a table of events in which we are interested. The resulting table should have the same structure as the `cohort` table in the CDM. For CDM v5+, this means it should have the fields `cohort_definition_id`, `cohort_start_date`, `cohort_end_date`,and `subject_id`. For CDM v4, the `cohort_definition_id` field must be called `cohort_concept_id`. 
 
 For our example study, we have created a file called *vignette.sql* with the following contents:
 
@@ -88,7 +88,7 @@ File vignette.sql
 IF OBJECT_ID('@cohortDatabaseSchema.@outcomeTable', 'U') IS NOT NULL
   DROP TABLE @cohortDatabaseSchema.@outcomeTable;
 
-SELECT 1 AS cohort_concept_id,
+SELECT 1 AS cohort_definition_id,
 	condition_start_date AS cohort_start_date,
 	condition_end_date AS cohort_end_date,
 	condition_occurrence.person_id AS subject_id
@@ -101,8 +101,9 @@ WHERE condition_concept_id IN (
 		FROM @cdmDatabaseSchema.concept_ancestor
 		WHERE ancestor_concept_id = 192671 -- GI - Gastrointestinal haemorrhage
 		)
-	AND visit_occurrence.place_of_service_concept_id IN (9201, 9203);
+	AND visit_occurrence.visit_concept_id IN (9201, 9203);
 ```
+Note on CDM V4 'visit_concept_id' should be 'place_of_service_concept_id', and 'cohort_definition_id' should be 'cohort_concept_id'.
 
 This is parameterized SQL which can be used by the `SqlRender` package. We use parameterized SQL so we do not have to pre-specify the names of the CDM and cohort schemas. That way, if we want to run the SQL on a different schema, we only need to change the parameter values; we do not have to change the SQL code. By also making use of translation functionality in `SqlRender`, we can make sure the SQL code can be run in many different environments.
 
@@ -124,9 +125,9 @@ In this code, we first read the SQL from the file into memory. In the next line,
 If all went well, we now have a table with the outcome of interest. We can see how many events:
 
 ```{r tidy=FALSE,eval=FALSE}
-sql <- paste("SELECT cohort_concept_id, COUNT(*) AS count",
+sql <- paste("SELECT cohort_definition_id, COUNT(*) AS count",
              "FROM @cohortDatabaseSchema.@outcomeTable",
-             "GROUP BY cohort_concept_id")
+             "GROUP BY cohort_definition_id")
 sql <- renderSql(sql, 
                  cohortDatabaseSchema = cohortDatabaseSchema, 
                  outcomeTable = "my_outcomes")$sql

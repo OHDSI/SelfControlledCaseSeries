@@ -1,6 +1,6 @@
 # @file ModelFitting.R
 #
-# Copyright 2015 Observational Health Data Sciences and Informatics
+# Copyright 2016 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 #
@@ -250,7 +250,7 @@ plotAgeEffect <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = age, y = rr)) +
-          ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, lw = 0.2) +
+          ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
           ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
           ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +
           ggplot2::scale_y_continuous("Relative risk",
@@ -303,7 +303,7 @@ plotSeasonality <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = season, y = rr)) +
-          ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, lw = 0.2) +
+          ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
           ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
           ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
           ggplot2::scale_y_continuous("Relative risk",
