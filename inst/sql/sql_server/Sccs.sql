@@ -33,6 +33,8 @@ limitations under the License.
 {DEFAULT @delete_covariates_small_count = 100}
 {DEFAULT @cdm_version = '4'}
 {DEFAULT @cohort_definition_id = 'cohort_concept_id'} 
+{DEFAULT @study_start_date = '' }
+{DEFAULT @study_end_date = '' }
 
 USE @cdm_database;
 
@@ -54,7 +56,33 @@ SELECT observation_period_id,
 	observation_period_end_date,
 	DATEDIFF(dd, DATEFROMPARTS(year_of_birth, ISNULL(month_of_birth, 1), ISNULL(day_of_birth, 1)), observation_period_start_date) AS age_in_days
 INTO #cases
+FROM (
+	SELECT person_id,
+		observation_period_id,
+{@study_start_date == '' } ? {
+	observation_period_start_date,
+} : {
+		CASE 
+			WHEN observation_period_start_date > CAST('@study_start_date' AS DATE)
+				THEN CAST('@study_start_date' AS DATE)
+			ELSE observation_period_start_date
+			END AS observation_period_start_date,
+} 
+{@study_end_date == '' } ? {
+	observation_period_end_date
+} : {
+		CASE 
+			WHEN observation_period_end_date > CAST('@study_end_date' AS DATE)
+				THEN CAST('@study_end_date' AS DATE)
+			ELSE observation_period_end_date
+			END AS observation_period_end_date
+} 	
 FROM observation_period
+{@study_start_date != '' | @study_end_date != ''} ? {	WHERE}
+{@study_start_date != '' } ? {		observation_period_end_date >= CAST('@study_start_date' AS DATE) } 
+{@study_start_date != '' | @study_end_date != ''} ? {		AND}
+{@study_end_date != '' } ? {		observation_period_start_date < CAST('@study_end_date' AS DATE) }
+) observation_period
 INNER JOIN person
 ON observation_period.person_id = person.person_id
 WHERE EXISTS (

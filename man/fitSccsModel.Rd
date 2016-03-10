@@ -20,8 +20,8 @@ hyperparameters of the prior (if applicable). See
 \code{\link[Cyclops]{createControl}} for details.}
 }
 \value{
-An object of type \code{sccsModel}. Generic functions \code{summary}, \code{coef}, and \code{confint}
-are available.
+An object of type \code{sccsModel}. Generic functions \code{summary}, \code{coef}, and
+\code{confint} are available.
 }
 \description{
 Fit the SCCS model
@@ -31,8 +31,8 @@ Fits the SCCS model as a conditional Poisson regression. When allowed, coefficie
 covariates can be regularized.
 }
 \references{
-Suchard, M.A., Simpson, S.E., Zorych, I., Ryan, P., and Madigan, D. (2013).
-Massive parallelization of serial inference algorithms for complex generalized linear models.
-ACM Transactions on Modeling and Computer Simulation 23, 10
+Suchard, M.A., Simpson, S.E., Zorych, I., Ryan, P., and Madigan, D. (2013). Massive parallelization
+of serial inference algorithms for complex generalized linear models. ACM Transactions on Modeling
+and Computer Simulation 23, 10
 }
 

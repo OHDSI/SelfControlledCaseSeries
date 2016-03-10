@@ -13,7 +13,8 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
   exposureIds = c(), useCustomCovariates = FALSE,
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort", customCovariateIds = c(),
-  deleteCovariatesSmallCount = 100, cdmVersion = "4")
+  deleteCovariatesSmallCount = 100, studyStartDate = "",
+  studyEndDate = "", cdmVersion = "4")
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using
@@ -81,6 +82,12 @@ covariates.}
 
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to
 be kept.}
+
+\item{studyStartDate}{A calendar date specifying the minimum date where data is used.
+Date format is 'yyyymmdd'.}
+
+\item{studyEndDate}{A calendar date specifying the maximum date where data is used.
+Date format is 'yyyymmdd'.}
 
 \item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and
 "5".}

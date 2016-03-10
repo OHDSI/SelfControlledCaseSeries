@@ -98,6 +98,10 @@
 #'                                         covariates.
 #' @param deleteCovariatesSmallCount       The minimum count for a covariate to appear in the data to
 #'                                         be kept.
+#' @param studyStartDate                   A calendar date specifying the minimum date where data is used.
+#'                                         Date format is 'yyyymmdd'.
+#' @param studyEndDate                     A calendar date specifying the maximum date where data is used.
+#'                                         Date format is 'yyyymmdd'.
 #' @param cdmVersion                       Define the OMOP CDM version used: currently support "4" and
 #'                                         "5".
 #'
@@ -117,10 +121,19 @@ getDbSccsData <- function(connectionDetails,
                           customCovariateTable = "cohort",
                           customCovariateIds = c(),
                           deleteCovariatesSmallCount = 100,
+                          studyStartDate = "",
+                          studyEndDate = "",
                           cdmVersion = "4") {
   if (useCustomCovariates == TRUE && length(customCovariateIds) == 0) {
     stop("Must provide custom covariate IDs if useCustomCovariates is TRUE")
   }
+  if (studyStartDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
+    stop("Study start date must have format YYYYMMDD")
+  }
+  if (studyEndDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyEndDate) == -1) {
+    stop("Study end date must have format YYYYMMDD")
+  }
+
   conn <- connect(connectionDetails)
   if (cdmVersion == "4") {
     cohortDefinitionId <- "cohort_concept_id"
@@ -174,6 +187,8 @@ getDbSccsData <- function(connectionDetails,
                                                    has_exposure_ids = hasExposureIds,
                                                    has_custom_covariate_ids = hasCustomCovariateIds,
                                                    delete_covariates_small_count = deleteCovariatesSmallCount,
+                                                   study_start_date = studyStartDate,
+                                                   study_end_date = studyEndDate,
                                                    cdm_version = cdmVersion,
                                                    cohort_definition_id = cohortDefinitionId)
 
