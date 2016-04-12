@@ -1,7 +1,7 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 0.0.2
+Version: 1.0.0
 Date: 2015-11-10
 Author: Martijn Schuemie, Patrick Ryan, Trevor Shaddox, Marc A. Suchard
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>

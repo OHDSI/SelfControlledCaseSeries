@@ -15,10 +15,36 @@ Features
 - Options for constructing different types of covariates and risk windows, including pre-exposure windows (to capture contra-indications).
 - Optionally use regularization on all covariates except the outcome of interest.
 
-Screenshots
+Example
 ===========
-To do
-
+```r
+sccsData <- getDbSccsData(connectionDetails = connectionDetails,
+                          cdmDatabaseSchema = cdmDatabaseSchema,
+                          outcomeIds = 192671,
+                          exposureIds = 1124300)
+covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
+                                          includeCovariateIds = 1124300,
+                                          start = 0,
+                                          end = 0,
+                                          addExposedDaysToEnd = TRUE)
+sccsEraData <- createSccsEraData(sccsData,
+                                 naivePeriod = 180,
+                                 firstOutcomeOnly = FALSE,
+                                 covariateSettings = covarDiclofenac)
+model <- fitSccsModel(sccsEraData)
+summary(model)
+# sccsModel object summary
+# 
+# Outcome ID: 192671
+# 
+# Outcome count:
+#        Event count Case count
+# 192671      433433     137888
+# 
+# Estimates:
+#                               Name    ID  Estimate  lower .95  upper .95   logRr  seLogRr
+#   Exposure of interest: Diclofenac  1000     1.274      1.213      1.336  0.2421  0.02431
+```
 Technology
 ==========
 SelfControlledCaseSeries is an R package, with some functions implemented in C++.
@@ -70,7 +96,7 @@ SelfControlledCaseSeries is being developed in R Studio.
 [![Build Status](https://travis-ci.org/OHDSI/SelfControlledCaseSeries.svg?branch=master)](https://travis-ci.org/OHDSI/SelfControlledCaseSeries)
 [![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=master)
 
-Under development. Do not use.
+Beta
 
 # Acknowledgements
 - This project is supported in part through the National Science Foundation grant IIS 1251151.

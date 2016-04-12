@@ -1,51 +1,39 @@
-
 library(SelfControlledCaseSeries)
 setwd("s:/temp")
 options(fftempdir = "s:/fftemp")
-sccsData <- loadSccsData("s:/temp/sccsDataGiBleed")
-naivePeriod <- 180
-outcomeId <- 3
+pw <- NULL
+dbms <- "sql server"
+user <- NULL
+server <- "RNDUSRDHIT07"
+# cdmDatabaseSchema <- 'cdm4_sim.dbo'
+cdmDatabaseSchema <- "CDM_Truven_MDCd.dbo"
+resultsDatabaseSchema <- "scratch.dbo"
+port <- NULL
+cdmVersion <- "4"
 
-
-
-library(SelfControlledCaseSeries)
-setwd("s:/temp")
-options(fftempdir = "s:/fftemp")
-settings <- createSccsSimulationSettings()
-settings <- createSccsSimulationSettings(includeAgeEffect = TRUE, includeSeasonality = TRUE)
-
-sccsData <- simulateSccsData(1000, settings)
-
-ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
-
-seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE, seasonKnots = 5)
-covarSettings <- createCovariateSettings(label = "Exposure of interest",
-                                         includeCovariateIds = c(1, 2),
-                                         start = 0,
-                                         end = 0,
-                                         addExposedDaysToEnd = TRUE)
-
+connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
+                                                                server = server,
+                                                                user = user,
+                                                                password = pw,
+                                                                schema = cdmDatabaseSchema,
+                                                                port = port)
+sccsData <- getDbSccsData(connectionDetails = connectionDetails,
+                          cdmDatabaseSchema = cdmDatabaseSchema,
+                          outcomeIds = 192671,
+                          exposureIds = 1124300)
+covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
+                                          includeCovariateIds = 1124300,
+                                          start = 0,
+                                          end = 0,
+                                          addExposedDaysToEnd = TRUE)
 sccsEraData <- createSccsEraData(sccsData,
-                                 naivePeriod = 0,
+                                 naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,
-                                 covariateSettings = covarSettings,
-                                 ageSettings = ageSettings,
-                                 seasonalitySettings = seasonalitySettings)
-
+                                 covariateSettings = covarDiclofenac)
 model <- fitSccsModel(sccsEraData)
-
 summary(model)
-plotSeasonality(model)
-plotAgeEffect(model)
-exp(model$coefficients)
-exp(model$treatmentEstimate)
-sccsData$metaData$sccsSimulationSettings$simulationRiskWindows
 
 
-sccsEraData$covariates
-
-sccsEraData$outcomes
-sccsEraData$metaData
 
 
 
