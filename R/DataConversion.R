@@ -406,7 +406,19 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
                                     firstOccurrenceOnly = FALSE,
                                     splitPoints = c(),
                                     allowRegularization = FALSE) {
-  return(OhdsiRTools::convertArgsToList(match.call(), "covariateSettings"))
+  # First: get default values:
+  analysis <- list()
+  for (name in names(formals(createCovariateSettings))) {
+    analysis[[name]] <- get(name)
+  }
+  # Second: overwrite defaults with actual values:
+  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
+  for (name in names(values)) {
+    if (name %in% names(analysis))
+      analysis[[name]] <- values[[name]]
+  }
+  class(analysis) <- "covariateSettings"
+  return(analysis)
 }
 
 #' Create age settings
@@ -430,7 +442,19 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
 #'
 #' @export
 createAgeSettings <- function(includeAge = FALSE, ageKnots = 5, allowRegularization = FALSE) {
-  return(OhdsiRTools::convertArgsToList(match.call(), "ageSettings"))
+  # First: get default values:
+  analysis <- list()
+  for (name in names(formals(createAgeSettings))) {
+    analysis[[name]] <- get(name)
+  }
+  # Second: overwrite defaults with actual values:
+  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
+  for (name in names(values)) {
+    if (name %in% names(analysis))
+      analysis[[name]] <- values[[name]]
+  }
+  class(analysis) <- "ageSettings"
+  return(analysis)
 }
 
 #' Create seasonality settings
@@ -457,7 +481,19 @@ createAgeSettings <- function(includeAge = FALSE, ageKnots = 5, allowRegularizat
 createSeasonalitySettings <- function(includeSeasonality = FALSE,
                                       seasonKnots = 5,
                                       allowRegularization = FALSE) {
-  return(OhdsiRTools::convertArgsToList(match.call(), "seasonalitySettings"))
+  # First: get default values:
+  analysis <- list()
+  for (name in names(formals(createSeasonalitySettings))) {
+    analysis[[name]] <- get(name)
+  }
+  # Second: overwrite defaults with actual values:
+  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
+  for (name in names(values)) {
+    if (name %in% names(analysis))
+      analysis[[name]] <- values[[name]]
+  }
+  class(analysis) <- "seasonalitySettings"
+  return(analysis)
 }
 
 #' Save the SCCS era data to folder

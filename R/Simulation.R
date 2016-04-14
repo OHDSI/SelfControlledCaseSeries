@@ -38,7 +38,19 @@ createSimulationRiskWindow <- function(start = 0,
                                        addExposedDaysToEnd = TRUE,
                                        splitPoints = c(),
                                        relativeRisks = c(0)) {
-  OhdsiRTools::convertArgsToList(match.call(), "simulationRiskWindow")
+  # First: get default values:
+  analysis <- list()
+  for (name in names(formals(createSimulationRiskWindow))) {
+    analysis[[name]] <- get(name)
+  }
+  # Second: overwrite defaults with actual values:
+  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
+  for (name in names(values)) {
+    if (name %in% names(analysis))
+      analysis[[name]] <- values[[name]]
+  }
+  class(analysis) <- "simulationRiskWindow"
+  return(analysis)
 }
 
 #' Create SCCS simulation settings
@@ -89,7 +101,19 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          includeSeasonality = TRUE,
                                          seasonKnots = 5,
                                          outcomeId = 10) {
-  return(OhdsiRTools::convertArgsToList(match.call(), "sccsSimulationSettings"))
+  # First: get default values:
+  analysis <- list()
+  for (name in names(formals(createSccsSimulationSettings))) {
+    analysis[[name]] <- get(name)
+  }
+  # Second: overwrite defaults with actual values:
+  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
+  for (name in names(values)) {
+    if (name %in% names(analysis))
+      analysis[[name]] <- values[[name]]
+  }
+  class(analysis) <- "sccsSimulationSettings"
+  return(analysis)
 }
 
 simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
