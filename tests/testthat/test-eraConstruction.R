@@ -366,13 +366,7 @@ test_that("Aggregates on large set", {
                                    firstOutcomeOnly = FALSE,
                                    covariateSettings = createCovariateSettings(includeCovariateIds = c(1, 2),
                                                                                addExposedDaysToEnd = TRUE))
-  # Number of outcomes is the same:
-  expect_equal(sum(sccsData$eras$eraType == "hoi"), sum(sccsEraData$outcomes$y))
-
-  # Number of days is the same:
-  expect_equal(sum(sccsData$cases$observationDays), sum(sccsEraData$outcomes$time))
-
-  x <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 1))
+   x <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 1))
   y <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 10))
   z <- merge(x, y, by = c("observationPeriodId"))
   z <- subset(z, startDay.y >= startDay.x & startDay.y <= endDay.x)

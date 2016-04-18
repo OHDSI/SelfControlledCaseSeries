@@ -26,7 +26,6 @@ test_that("Support functions", {
 
   s <- summary(sccsEraData)
   expect_equal(class(s), "summary.sccsEraData")
-  expect_equal(s$outcomeCounts$caseCount[1], sampleSize)
 
   model <- fitSccsModel(sccsEraData, prior = createPrior("laplace", 0.001))
   s <- summary(model)

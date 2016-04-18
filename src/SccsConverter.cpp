@@ -430,6 +430,9 @@ void SccsConverter::processPerson(PersonData& personData) {
     addMonthEras(outputEras, startDay, endDay, personData);
   }
   std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, startDay, endDay);
+  if (concomitantEras.size() == 1) { // Not informative
+    return;
+  }
   if (eventDependentObservation) {
     computeEventDepObsWeights(concomitantEras, personData);
   }
