@@ -218,6 +218,7 @@ private:
   void addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData);
   void addCovariateEra(std::vector<Era>& outputEras, int start, int end, int leftCensor, int rightCensor, int covariateIdRow, const CovariateSettings& covariateSettings);
   void addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings);
+  bool isNan(const double x);
 
   PersonDataIterator personDataIterator;
   ResultStruct resultStruct;

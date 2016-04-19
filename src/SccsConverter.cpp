@@ -206,6 +206,9 @@ void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, st
     addToResult(*previousPattern, outcomeCount, duration, observationPeriodId);
   }
 }
+bool SccsConverter::isNan(const double x) {
+  return ((x < 0) == (x >= 0));
+}
 
 void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData) {
   double astart = (personData.ageInDays + naivePeriod) / 365.25;
@@ -216,10 +219,27 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
     double start = (personData.ageInDays + era->start) / 365.25;
     double end = (personData.ageInDays + era->end + 1) / 365.25;
-    if (end == aend) {
-      end -= 1.490116e-08; // weight function can be unstable at the end, stay epsilon away
+    double weight;
+    if (end == aend && isNan(weightFunction->getValue(end))) {
+      // Very rare case:
+      // Weight function can be problematic to compute due to numeric issues near the end of the integral
+      // We'll walk backwards to find last computable point, and assume constant value after that as approximation
+      double step = 1.490116e-08;
+      double lastComputable = end - step;
+      double value = weightFunction->getValue(lastComputable);
+      while (lastComputable > start && isNan(value)) {
+        step *= 2;
+        lastComputable -= step;
+        value = weightFunction->getValue(lastComputable);
+      }
+      if (lastComputable <= start)
+        throw "Unable to compute weight";
+      std::cout << "\nCannot compute full weight function for observation period " << personData.observationPeriodId << ", assuming constant weight for last " << ((end-lastComputable)*365.25) << " days";
+      weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, lastComputable, 1.490116e-08);
+      weight += (end-lastComputable) * value;
+    } else {
+      weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, end, 1.490116e-08);
     }
-    double weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, end, 1.490116e-08);
     era->weight = weight * 365.25;
     //std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << ", weight:" << weight*365.25 << "\n";
   }
