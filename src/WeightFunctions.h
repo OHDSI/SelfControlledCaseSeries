@@ -40,7 +40,7 @@ public:
     aend = _aend;
   }
 protected:
-  static double pgamma(const double x, const double shape, const double rate);
+  static double pgamma(const double x, const double shape, const double rate, const bool noZero);
   static double dgamma(const double x, const double shape, const double rate);
 
   std::vector<double> p;

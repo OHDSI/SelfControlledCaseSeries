@@ -30,21 +30,16 @@ namespace ohdsi {
 namespace sccs {
 
 
-double WeightFunction::pgamma(const double x, const double shape, const double rate) {
+double WeightFunction::pgamma(const double x, const double shape, const double rate, const bool noZero) {
   double result = R::pgamma(x,shape,1/rate,0,0);
-  if (result == 0) {
+  if (noZero && result == 0) {
     return 0.000000001;
   } else {
     return result;
   }
 }
 double WeightFunction::dgamma(const double x, const double shape, const double rate) {
-  double result = R::dgamma(x,shape,1/rate,0);
-  if (result == 0) {
-    return 0.000000001;
-  } else {
-    return result;
-  }
+  return R::dgamma(x,shape,1/rate,0);
 }
 
 
@@ -102,9 +97,9 @@ double WsmallEgad2::getValue(const double x) {
   double rate0 = nu0*lamB;
 
   double val = ((1-present)*log(pi0*lamA*exp(-lamA*(aend-x))+
-                (1-pi0)*dgamma(aend,nu0,rate0)/pgamma(x,nu0,rate0)) +
+                (1-pi0)*dgamma(aend,nu0,rate0)/pgamma(x,nu0,rate0,true)) +
                 present *log(pi0*exp(-lamA*(aend-x))+
-                (1-pi0)*pgamma(aend,nu0,rate0)/pgamma(x,nu0,rate0)));
+                (1-pi0)*pgamma(aend,nu0,rate0,false)/pgamma(x,nu0,rate0,true)));
   return exp(val);
 }
 
@@ -127,7 +122,7 @@ double WsmallEgid2::getValue(const double x) {
   double val = ((1-present)*log(pi0*lamA*exp(-lamA*i)+
                 (1-pi0)*dgamma(i,nu0,rate0)) +
                 present *log(pi0*exp(-lamA*i)+
-                (1-pi0)*pgamma(i,nu0,rate0)));
+                (1-pi0)*pgamma(i,nu0,rate0,false)));
   return exp(val);
 }
 

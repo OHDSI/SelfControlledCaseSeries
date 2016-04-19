@@ -215,10 +215,10 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
   double aend = (personData.ageInDays + personData.daysOfObservation) / 365.25;
   double present = personData.uncensored?1.0:0;
   weightFunction->set(present, astart, aend);
-
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
     double start = (personData.ageInDays + era->start) / 365.25;
     double end = (personData.ageInDays + era->end + 1) / 365.25;
+    // std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << "\n";
     double weight;
     if (end == aend && isNan(weightFunction->getValue(end))) {
       // Very rare case:
