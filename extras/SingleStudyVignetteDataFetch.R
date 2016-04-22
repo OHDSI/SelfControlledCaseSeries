@@ -1,4 +1,4 @@
-# @file VignetteDataFetch.R
+# @file SingleStudyVignetteDataFetch.R
 #
 # Copyright 2016 Observational Health Data Sciences and Informatics
 #

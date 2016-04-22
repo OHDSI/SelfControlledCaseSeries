@@ -6,11 +6,10 @@
 \usage{
 getDbSccsData(connectionDetails, cdmDatabaseSchema,
   oracleTempSchema = cdmDatabaseSchema,
-  outcomeDatabaseSchema = cdmDatabaseSchema,
-  outcomeTable = "condition_occurrence", outcomeIds,
-  outcomeConditionTypeConceptIds = c(),
-  exposureDatabaseSchema = cdmDatabaseSchema, exposureTable = "drug_era",
-  exposureIds = c(), useCustomCovariates = FALSE,
+  outcomeDatabaseSchema = cdmDatabaseSchema, outcomeTable = "condition_era",
+  outcomeIds, exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era", exposureIds = c(),
+  useCustomCovariates = FALSE,
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort", customCovariateIds = c(),
   deleteCovariatesSmallCount = 100, studyStartDate = "",
@@ -46,10 +45,6 @@ will be selected.  If outcomeTable <> CONDITION_OCCURRENCE,
 the list contains records found in COHORT_DEFINITION_ID
 field.}
 
-\item{outcomeConditionTypeConceptIds}{A list of TYPE_CONCEPT_ID values that will restrict
-condition occurrences.  Only applicable if outcomeTable =
-CONDITION_OCCURRENCE.}
-
 \item{exposureDatabaseSchema}{The name of the database schema that is the location where
 the exposure data used to define the exposure cohorts is
 available. If exposureTable = DRUG_ERA,
@@ -61,7 +56,7 @@ exposureTable <> DRUG_ERA, then expectation is exposureTable
 has format of COHORT table: cohort_concept_id, SUBJECT_ID,
 COHORT_START_DATE, COHORT_END_DATE.}
 
-\item{exposureIds}{A unique identifier to define the exposures of interest.  If
+\item{exposureIds}{A list of identifiers to define the exposures of interest.  If
 exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
 If exposureTable <> DRUG_ERA, exposureIds is used to select
 the cohort_concept_id in the cohort-like table. If no

@@ -20,7 +20,7 @@ Imports:
     ff,
     ffbase (>= 0.12.1),
     Rcpp (>= 0.11.2),
-    OhdsiRTools (>= 1.0.1),
+    OhdsiRTools (>= 1.1.1),
     splines,
     ggplot2
 Suggests:

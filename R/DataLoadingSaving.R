@@ -70,9 +70,6 @@
 #'                                         will be selected.  If outcomeTable <> CONDITION_OCCURRENCE,
 #'                                         the list contains records found in COHORT_DEFINITION_ID
 #'                                         field.
-#' @param outcomeConditionTypeConceptIds   A list of TYPE_CONCEPT_ID values that will restrict
-#'                                         condition occurrences.  Only applicable if outcomeTable =
-#'                                         CONDITION_OCCURRENCE.
 #' @param exposureDatabaseSchema           The name of the database schema that is the location where
 #'                                         the exposure data used to define the exposure cohorts is
 #'                                         available. If exposureTable = DRUG_ERA,
@@ -82,7 +79,7 @@
 #'                                         exposureTable <> DRUG_ERA, then expectation is exposureTable
 #'                                         has format of COHORT table: cohort_concept_id, SUBJECT_ID,
 #'                                         COHORT_START_DATE, COHORT_END_DATE.
-#' @param exposureIds                      A unique identifier to define the exposures of interest.  If
+#' @param exposureIds                      A list of identifiers to define the exposures of interest.  If
 #'                                         exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
 #'                                         If exposureTable <> DRUG_ERA, exposureIds is used to select
 #'                                         the cohort_concept_id in the cohort-like table. If no
@@ -110,9 +107,8 @@ getDbSccsData <- function(connectionDetails,
                           cdmDatabaseSchema,
                           oracleTempSchema = cdmDatabaseSchema,
                           outcomeDatabaseSchema = cdmDatabaseSchema,
-                          outcomeTable = "condition_occurrence",
+                          outcomeTable = "condition_era",
                           outcomeIds,
-                          outcomeConditionTypeConceptIds = c(),
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
                           exposureIds = c(),
@@ -178,7 +174,6 @@ getDbSccsData <- function(connectionDetails,
                                                    outcome_database_schema = outcomeDatabaseSchema,
                                                    outcome_table = outcomeTable,
                                                    outcome_concept_ids = outcomeIds,
-                                                   outcome_condition_type_concept_ids = outcomeConditionTypeConceptIds,
                                                    exposure_database_schema = exposureDatabaseSchema,
                                                    exposure_table = exposureTable,
                                                    use_custom_covariates = useCustomCovariates,

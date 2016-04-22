@@ -22,7 +22,6 @@ limitations under the License.
 {DEFAULT @outcome_database_schema = 'cdm4_sim'} 
 {DEFAULT @outcome_table = 'condition_occurrence'} 
 {DEFAULT @outcome_concept_ids = ''}
-{DEFAULT @outcome_condition_type_concept_ids = ''}  
 {DEFAULT @exposure_database_schema = 'cdm4_sim.dbo'} 
 {DEFAULT @exposure_table = 'drug_era'} 
 {DEFAULT @use_custom_covariates = FALSE}
@@ -92,10 +91,7 @@ WHERE EXISTS (
 		WHERE outcome.person_id = observation_period.person_id
 			AND	condition_start_date <= observation_period_end_date
 			AND	condition_start_date >= observation_period_start_date	
-			AND	condition_concept_id IN (@outcome_concept_ids)
-	{@outcome_condition_type_concept_ids != ''} ? {
-			AND condition_type_concept_id IN (@outcome_condition_type_concept_ids)
-	} 			
+			AND	condition_concept_id IN (@outcome_concept_ids)		
 } : { 
 	{@outcome_table == 'condition_era'} ? {
 		SELECT *
@@ -181,10 +177,7 @@ ON condition_occurrence.person_id = cases.person_id
 	AND condition_start_date >= observation_period_start_date
 	AND condition_start_date <= observation_period_end_date
 WHERE
-	condition_concept_id IN (@outcome_concept_ids)
-	{@outcome_condition_type_concept_ids != ''} ? {
-	AND condition_type_concept_id IN (@outcome_condition_type_concept_ids)
-	} 			
+	condition_concept_id IN (@outcome_concept_ids)		
 ;  	
 } : { 
 	{@outcome_table == 'condition_era'} ? {
