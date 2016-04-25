@@ -21,8 +21,8 @@ the function \code{createConnectionDetails} in the
 \code{DatabaseConnector} package.}
 
 \item{cdmDatabaseSchema}{The name of the database schema that contains the OMOP CDM
-instance.  Requires read permissions to this database. On
-SQL Server, this should specifiy both the database and the
+instance.  Requires read permissions to this database. On SQL
+Server, this should specifiy both the database and the
 schema, so for example 'cdm_instance.dbo'.}
 
 \item{oracleTempSchema}{A schema where temp tables can be created in Oracle.}
@@ -56,7 +56,7 @@ exposureTable <> DRUG_ERA, then expectation is exposureTable
 has format of COHORT table: cohort_concept_id, SUBJECT_ID,
 COHORT_START_DATE, COHORT_END_DATE.}
 
-\item{exposureIds}{A list of identifiers to define the exposures of interest.  If
+\item{exposureIds}{A list of identifiers to define the exposures of interest. If
 exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
 If exposureTable <> DRUG_ERA, exposureIds is used to select
 the cohort_concept_id in the cohort-like table. If no
@@ -75,14 +75,14 @@ should have the same structure as the cohort table.}
 the customCovariateTable to use for building custom
 covariates.}
 
-\item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to
-be kept.}
+\item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be
+kept.}
 
-\item{studyStartDate}{A calendar date specifying the minimum date where data is used.
-Date format is 'yyyymmdd'.}
+\item{studyStartDate}{A calendar date specifying the minimum date where data is
+used. Date format is 'yyyymmdd'.}
 
-\item{studyEndDate}{A calendar date specifying the maximum date where data is used.
-Date format is 'yyyymmdd'.}
+\item{studyEndDate}{A calendar date specifying the maximum date where data is
+used. Date format is 'yyyymmdd'.}
 
 \item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and
 "5".}

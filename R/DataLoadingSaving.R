@@ -47,60 +47,60 @@
 #' extracted.} \item{metaData}{A list of objects with information on how the sccsData object was
 #' constructed.} } The generic \code{summary()} function has been implemented for this object.
 #'
-#' @param connectionDetails                An R object of type \code{ConnectionDetails} created using
-#'                                         the function \code{createConnectionDetails} in the
-#'                                         \code{DatabaseConnector} package.
-#' @param cdmDatabaseSchema                The name of the database schema that contains the OMOP CDM
-#'                                         instance.  Requires read permissions to this database. On
-#'                                         SQL Server, this should specifiy both the database and the
-#'                                         schema, so for example 'cdm_instance.dbo'.
-#' @param oracleTempSchema                 A schema where temp tables can be created in Oracle.
-#' @param outcomeDatabaseSchema            The name of the database schema that is the location where
-#'                                         the data used to define the outcome cohorts is available. If
-#'                                         outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
-#'                                         used.  Requires read permissions to this database.
-#' @param outcomeTable                     The tablename that contains the outcome cohorts.  If
-#'                                         outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
-#'                                         then expectation is outcomeTable has format of COHORT table:
-#'                                         COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
-#'                                         COHORT_END_DATE.
-#' @param outcomeIds                       A list of ids used to define outcomes.  If outcomeTable =
-#'                                         CONDITION_OCCURRENCE, the list is a set of ancestor
-#'                                         CONCEPT_IDs, and all occurrences of all descendant concepts
-#'                                         will be selected.  If outcomeTable <> CONDITION_OCCURRENCE,
-#'                                         the list contains records found in COHORT_DEFINITION_ID
-#'                                         field.
-#' @param exposureDatabaseSchema           The name of the database schema that is the location where
-#'                                         the exposure data used to define the exposure cohorts is
-#'                                         available. If exposureTable = DRUG_ERA,
-#'                                         exposureDatabaseSchema is not used but assumed to be
-#'                                         cdmSchema.  Requires read permissions to this database.
-#' @param exposureTable                    The tablename that contains the exposure cohorts.  If
-#'                                         exposureTable <> DRUG_ERA, then expectation is exposureTable
-#'                                         has format of COHORT table: cohort_concept_id, SUBJECT_ID,
-#'                                         COHORT_START_DATE, COHORT_END_DATE.
-#' @param exposureIds                      A list of identifiers to define the exposures of interest.  If
-#'                                         exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
-#'                                         If exposureTable <> DRUG_ERA, exposureIds is used to select
-#'                                         the cohort_concept_id in the cohort-like table. If no
-#'                                         exposureIds are provided, all drugs or cohorts in the
-#'                                         exposureTable are included as exposures.
-#' @param useCustomCovariates              Create covariates from a custom table?
-#' @param customCovariateDatabaseSchema    The name of the database schema that is the location where
-#'                                         the custom covariate data is available.
-#' @param customCovariateTable             Name of the table holding the custom covariates. This table
-#'                                         should have the same structure as the cohort table.
-#' @param customCovariateIds               A list of cohort definition IDS identifying the records in
-#'                                         the customCovariateTable to use for building custom
-#'                                         covariates.
-#' @param deleteCovariatesSmallCount       The minimum count for a covariate to appear in the data to
-#'                                         be kept.
-#' @param studyStartDate                   A calendar date specifying the minimum date where data is used.
-#'                                         Date format is 'yyyymmdd'.
-#' @param studyEndDate                     A calendar date specifying the maximum date where data is used.
-#'                                         Date format is 'yyyymmdd'.
-#' @param cdmVersion                       Define the OMOP CDM version used: currently support "4" and
-#'                                         "5".
+#' @param connectionDetails               An R object of type \code{ConnectionDetails} created using
+#'                                        the function \code{createConnectionDetails} in the
+#'                                        \code{DatabaseConnector} package.
+#' @param cdmDatabaseSchema               The name of the database schema that contains the OMOP CDM
+#'                                        instance.  Requires read permissions to this database. On SQL
+#'                                        Server, this should specifiy both the database and the
+#'                                        schema, so for example 'cdm_instance.dbo'.
+#' @param oracleTempSchema                A schema where temp tables can be created in Oracle.
+#' @param outcomeDatabaseSchema           The name of the database schema that is the location where
+#'                                        the data used to define the outcome cohorts is available. If
+#'                                        outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
+#'                                        used.  Requires read permissions to this database.
+#' @param outcomeTable                    The tablename that contains the outcome cohorts.  If
+#'                                        outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
+#'                                        then expectation is outcomeTable has format of COHORT table:
+#'                                        COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
+#'                                        COHORT_END_DATE.
+#' @param outcomeIds                      A list of ids used to define outcomes.  If outcomeTable =
+#'                                        CONDITION_OCCURRENCE, the list is a set of ancestor
+#'                                        CONCEPT_IDs, and all occurrences of all descendant concepts
+#'                                        will be selected.  If outcomeTable <> CONDITION_OCCURRENCE,
+#'                                        the list contains records found in COHORT_DEFINITION_ID
+#'                                        field.
+#' @param exposureDatabaseSchema          The name of the database schema that is the location where
+#'                                        the exposure data used to define the exposure cohorts is
+#'                                        available. If exposureTable = DRUG_ERA,
+#'                                        exposureDatabaseSchema is not used but assumed to be
+#'                                        cdmSchema.  Requires read permissions to this database.
+#' @param exposureTable                   The tablename that contains the exposure cohorts.  If
+#'                                        exposureTable <> DRUG_ERA, then expectation is exposureTable
+#'                                        has format of COHORT table: cohort_concept_id, SUBJECT_ID,
+#'                                        COHORT_START_DATE, COHORT_END_DATE.
+#' @param exposureIds                     A list of identifiers to define the exposures of interest. If
+#'                                        exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
+#'                                        If exposureTable <> DRUG_ERA, exposureIds is used to select
+#'                                        the cohort_concept_id in the cohort-like table. If no
+#'                                        exposureIds are provided, all drugs or cohorts in the
+#'                                        exposureTable are included as exposures.
+#' @param useCustomCovariates             Create covariates from a custom table?
+#' @param customCovariateDatabaseSchema   The name of the database schema that is the location where
+#'                                        the custom covariate data is available.
+#' @param customCovariateTable            Name of the table holding the custom covariates. This table
+#'                                        should have the same structure as the cohort table.
+#' @param customCovariateIds              A list of cohort definition IDS identifying the records in
+#'                                        the customCovariateTable to use for building custom
+#'                                        covariates.
+#' @param deleteCovariatesSmallCount      The minimum count for a covariate to appear in the data to be
+#'                                        kept.
+#' @param studyStartDate                  A calendar date specifying the minimum date where data is
+#'                                        used. Date format is 'yyyymmdd'.
+#' @param studyEndDate                    A calendar date specifying the maximum date where data is
+#'                                        used. Date format is 'yyyymmdd'.
+#' @param cdmVersion                      Define the OMOP CDM version used: currently support "4" and
+#'                                        "5".
 #'
 #' @export
 getDbSccsData <- function(connectionDetails,

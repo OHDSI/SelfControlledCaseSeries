@@ -21,11 +21,11 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           outcomeIds = 192671,
                           exposureIds = 1124300)
-covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
-                                          includeCovariateIds = 1124300,
-                                          start = 0,
-                                          end = 0,
-                                          addExposedDaysToEnd = TRUE)
+covarDiclofenac <- createCovariateSettings(label = "Exposure of interest",
+                                           includeCovariateIds = 1124300,
+                                           start = 0,
+                                           end = 0,
+                                           addExposedDaysToEnd = TRUE)
 sccsEraData <- createSccsEraData(sccsData,
                                  naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,

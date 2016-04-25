@@ -9,27 +9,27 @@ createSccsAnalysis(analysisId = 1, description = "", exposureType = NULL,
   fitSccsModelArgs)
 }
 \arguments{
-\item{analysisId}{An integer that will be used later to refer to this specific
-set of analysis choices.}
+\item{analysisId}{An integer that will be used later to refer to this specific set of
+analysis choices.}
 
 \item{description}{A short description of the analysis.}
 
-\item{exposureType}{If more than one exposure is provided for each
-exposureOutcome, this field should be used to select
-the specific exposure to use in this analysis.}
+\item{exposureType}{If more than one exposure is provided for each exposureOutcome, this
+field should be used to select the specific exposure to use in this
+analysis.}
 
-\item{outcomeType}{If more than one outcome is provided for each
-exposureOutcome, this field should be used to select
-the specific outcome to use in this analysis.}
+\item{outcomeType}{If more than one outcome is provided for each exposureOutcome, this
+field should be used to select the specific outcome to use in this
+analysis.}
 
-\item{getDbSccsDataArgs}{An object representing the arguments to be used when calling
-the \code{\link{getDbSccsData}} function.}
+\item{getDbSccsDataArgs}{An object representing the arguments to be used when calling the
+\code{\link{getDbSccsData}} function.}
 
-\item{createSccsEraDataArgs}{An object representing the arguments to be used when calling
-the \code{\link{createSccsEraData}} function.}
+\item{createSccsEraDataArgs}{An object representing the arguments to be used when calling the
+\code{\link{createSccsEraData}} function.}
 
-\item{fitSccsModelArgs}{An object representing the arguments to be used when calling
-the \code{\link{fitSccsModel}} function.}
+\item{fitSccsModelArgs}{An object representing the arguments to be used when calling the
+\code{\link{fitSccsModel}} function.}
 }
 \description{
 Create a SelfControlledCaseSeries analysis specification

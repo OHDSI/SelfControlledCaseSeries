@@ -60,38 +60,32 @@
 #'                                         should have the same structure as the cohort table.
 #' @param cdmVersion                       Define the OMOP CDM version used: currently support "4" and
 #'                                         "5".
-#' @param sccsAnalysisList                    A list of objects of type \code{sccsAnalysis} as created
-#'                                              using the \code{\link{createSccsAnalysis}} function.
-#' @param exposureOutcomeList            A list of objects of type \code{exposureOutcome}
-#'                                              as created using the
-#'                                              \code{\link{createExposureOutcome}} function.
-#' @param outputFolder                          Name of the folder where all the outputs will written
-#'                                              to.
-#' @param combineDataFetchAcrossOutcomes   Should fetching data from the database be done one outcome at a time, or for all outcomes
-#'                                         in one fetch? Combining fetches will be more efficient if there is large overlap in the subjects
-#'                                        that have the different outcomes.
+#' @param sccsAnalysisList                 A list of objects of type \code{sccsAnalysis} as created
+#'                                         using the \code{\link{createSccsAnalysis}} function.
+#' @param exposureOutcomeList              A list of objects of type \code{exposureOutcome} as created
+#'                                         using the \code{\link{createExposureOutcome}} function.
+#' @param outputFolder                     Name of the folder where all the outputs will written to.
+#' @param combineDataFetchAcrossOutcomes   Should fetching data from the database be done one outcome
+#'                                         at a time, or for all outcomes in one fetch? Combining
+#'                                         fetches will be more efficient if there is large overlap in
+#'                                         the subjects that have the different outcomes.
 #' @param getDbSccsDataThreads             The number of parallel threads to use for building the
-#'                                              sccsData objects.
+#'                                         sccsData objects.
 #' @param createSccsEraDataThreads         The number of parallel threads to use for building the
-#'                                              sccsEraData objects.
+#'                                         sccsEraData objects.
 #' @param fitSccsModelThreads              The number of parallel threads to use for fitting the
-#'                                              models.
-#' @param cvThreads                      The number of parallel threads to use for the cross-
-#'                                              validation when estimating the hyperparameter for the
-#'                                              outcome model. Note that the total number of CV threads
-#'                                              at one time could be `fitSccsModelThreads *
-#'                                              cvThreads`.
+#'                                         models.
+#' @param cvThreads                        The number of parallel threads to use for the cross-
+#'                                         validation when estimating the hyperparameter for the
+#'                                         outcome model. Note that the total number of CV threads at
+#'                                         one time could be `fitSccsModelThreads * cvThreads`.
 #'
 #' @return
-#' A data frame with the following columns:
-#' \tabular{ll}{
-#' \verb{analysisId} \tab The unique identifier for a set of analysis choices.\cr
-#' \verb{exposureId} \tab The ID of the target drug.\cr
-#' \verb{outcomeId} \tab The ID of the outcome.\cr
-#' \verb{sccsDataFolder} \tab The folder where the sccsData object is stored.\cr
-#' \verb{sccsEraDataFolder} \tab The folder where the sccsEraData object is stored.\cr
-#' \verb{sccsModelFile} \tab The file where the fitted SCCS model is stored.\cr
-#' }
+#' A data frame with the following columns: \tabular{ll}{ \verb{analysisId} \tab The unique identifier
+#' for a set of analysis choices.\cr \verb{exposureId} \tab The ID of the target drug.\cr
+#' \verb{outcomeId} \tab The ID of the outcome.\cr \verb{sccsDataFolder} \tab The folder where the
+#' sccsData object is stored.\cr \verb{sccsEraDataFolder} \tab The folder where the sccsEraData object
+#' is stored.\cr \verb{sccsModelFile} \tab The file where the fitted SCCS model is stored.\cr }
 #'
 #' @export
 runSccsAnalyses <- function(connectionDetails,
@@ -112,13 +106,10 @@ runSccsAnalyses <- function(connectionDetails,
                             createSccsEraDataThreads = 1,
                             fitSccsModelThreads = 1,
                             cvThreads = 1) {
-  for (exposureOutcome in exposureOutcomeList)
-    stopifnot(class(exposureOutcome) == "exposureOutcome")
-  for (sccsAnalysis in sccsAnalysisList)
-    stopifnot(class(sccsAnalysis) == "sccsAnalysis")
+  for (exposureOutcome in exposureOutcomeList) stopifnot(class(exposureOutcome) == "exposureOutcome")
+  for (sccsAnalysis in sccsAnalysisList) stopifnot(class(sccsAnalysis) == "sccsAnalysis")
   uniqueExposureOutcomeList <- unique(OhdsiRTools::selectFromList(exposureOutcomeList,
-                                                                  c("exposureId",
-                                                                    "outcomeId")))
+                                                                  c("exposureId", "outcomeId")))
   if (length(uniqueExposureOutcomeList) != length(exposureOutcomeList))
     stop("Duplicate exposure-outcomes pairs are not allowed")
   uniqueAnalysisIds <- unlist(unique(OhdsiRTools::selectFromList(sccsAnalysisList, "analysisId")))
@@ -135,9 +126,7 @@ runSccsAnalyses <- function(connectionDetails,
     for (exposureOutcome in exposureOutcomeList) {
       exposureId <- .selectByType(sccsAnalysis$exposureType, exposureOutcome$exposureId, "exposure")
       outcomeId <- .selectByType(sccsAnalysis$outcomeType, exposureOutcome$outcomeId, "outcome")
-      row <- data.frame(exposureId = exposureId,
-                        outcomeId = outcomeId,
-                        analysisId = analysisId)
+      row <- data.frame(exposureId = exposureId, outcomeId = outcomeId, analysisId = analysisId)
       outcomeReference <- rbind(outcomeReference, row)
     }
   }
@@ -156,7 +145,7 @@ runSccsAnalyses <- function(connectionDetails,
         for (exposureId in sccsAnalysis$getDbSccsDataArgs$exposureIds) {
           if (is.character(exposureId)) {
             if (is.null(exposureOutcome[[exposureId]]))
-              stop(paste("Variable", exposureId," not found in exposure-outcome pair"))
+              stop(paste("Variable", exposureId, " not found in exposure-outcome pair"))
             if (exposureId == "exposureId") {
               exposureId <- .selectByType(exposureId, exposureOutcome$exposureId, "exposure")
               exposureIds <- c(exposureIds, exposureId)
@@ -177,7 +166,7 @@ runSccsAnalyses <- function(connectionDetails,
           for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
             if (is.character(customCovariateId)) {
               if (is.null(exposureOutcome[[customCovariateId]]))
-                stop(paste("Variable", customCovariateId," not found in exposure-outcome pair"))
+                stop(paste("Variable", customCovariateId, " not found in exposure-outcome pair"))
               exposureIds <- c(exposureIds, exposureOutcome[[exposureId]])
             } else {
               exposureIds <- c(exposureIds, exposureId)
@@ -198,16 +187,16 @@ runSccsAnalyses <- function(connectionDetails,
   }
   # Step 2: group loads where possible
   if (combineDataFetchAcrossOutcomes) {
-    uniqueLoads <-unique(OhdsiRTools::selectFromList(conceptsPerLoad,
-                                                     c("deleteCovariatesSmallCount",
-                                                       "studyStartDate",
-                                                       "studyEndDate")))
+    uniqueLoads <- unique(OhdsiRTools::selectFromList(conceptsPerLoad,
+                                                      c("deleteCovariatesSmallCount",
+                                                        "studyStartDate",
+                                                        "studyEndDate")))
   } else {
-    uniqueLoads <-unique(OhdsiRTools::selectFromList(conceptsPerLoad,
-                                                     c("deleteCovariatesSmallCount",
-                                                       "studyStartDate",
-                                                       "studyEndDate",
-                                                       "outcomeId")))
+    uniqueLoads <- unique(OhdsiRTools::selectFromList(conceptsPerLoad,
+                                                      c("deleteCovariatesSmallCount",
+                                                        "studyStartDate",
+                                                        "studyEndDate",
+                                                        "outcomeId")))
   }
   # Step 3: Compute unions of concept sets, and generate loading arguments and file names
   outcomeReference$sccsDataFolder <- ""
@@ -223,14 +212,14 @@ runSccsAnalyses <- function(connectionDetails,
       outcomeIds <- c(outcomeIds, groupable$outcomeId)
       if (!(length(exposureIds) == 1 && exposureIds[1] == "all")) {
         if (groupable$exposureIds == "all") {
-          exposureIds = "all"
+          exposureIds <- "all"
         } else {
           exposureIds <- c(exposureIds, groupable$exposureIds)
         }
       }
       if (!(length(customCovariateIds) == 1 && customCovariateIds[1] == "all")) {
         if ((length(groupable$customCovariateIds) == 1 && groupable$customCovariateIds == "all")) {
-          customCovariateIds = "all"
+          customCovariateIds <- "all"
         } else {
           customCovariateIds <- c(customCovariateIds, groupable$customCovariateIds)
         }
@@ -274,8 +263,7 @@ runSccsAnalyses <- function(connectionDetails,
   sccsEraDataObjectsToCreate <- list()
   outcomeReference$sccsEraDataFolder <- ""
   for (sccsAnalysis in sccsAnalysisList) {
-    analysisFolder <- file.path(outputFolder,
-                                paste("Analysis_", sccsAnalysis$analysisId, sep = ""))
+    analysisFolder <- file.path(outputFolder, paste("Analysis_", sccsAnalysis$analysisId, sep = ""))
     if (!file.exists(analysisFolder))
       dir.create(analysisFolder)
     for (exposureOutcome in exposureOutcomeList) {
@@ -296,7 +284,7 @@ runSccsAnalyses <- function(connectionDetails,
             for (includeCovariateId in settings$includeCovariateIds) {
               if (is.character(includeCovariateId)) {
                 if (is.null(exposureOutcome[[includeCovariateId]]))
-                  stop(paste("Variable", includeCovariateId," not found in exposure-outcome pair"))
+                  stop(paste("Variable", includeCovariateId, " not found in exposure-outcome pair"))
                 includeCovariateIds <- c(includeCovariateIds, exposureOutcome[[includeCovariateId]])
               } else {
                 includeCovariateIds <- c(includeCovariateIds, includeCovariateId)
@@ -308,7 +296,7 @@ runSccsAnalyses <- function(connectionDetails,
             for (excludeCovariateId in settings$excludeCovariateIds) {
               if (is.character(excludeCovariateId)) {
                 if (is.null(exposureOutcome[[excludeCovariateId]]))
-                  stop(paste("Variable", excludeCovariateId," not found in exposure-outcome pair"))
+                  stop(paste("Variable", excludeCovariateId, " not found in exposure-outcome pair"))
                 excludeCovariateIds <- c(excludeCovariateIds, exposureOutcome[[excludeCovariateId]])
               } else {
                 excludeCovariateIds <- c(excludeCovariateIds, excludeCovariateId)
@@ -335,8 +323,7 @@ runSccsAnalyses <- function(connectionDetails,
   sccsModelObjectsToCreate <- list()
   outcomeReference$sccsModelFile <- ""
   for (sccsAnalysis in sccsAnalysisList) {
-    analysisFolder <- file.path(outputFolder,
-                                paste("Analysis_", sccsAnalysis$analysisId, sep = ""))
+    analysisFolder <- file.path(outputFolder, paste("Analysis_", sccsAnalysis$analysisId, sep = ""))
     for (exposureOutcome in exposureOutcomeList) {
       sccsModelFileName <- .createSccsModelFileName(analysisFolder,
                                                     outcomeReference$exposureId[rowId],
@@ -344,7 +331,7 @@ runSccsAnalyses <- function(connectionDetails,
       outcomeReference$sccsModelFile[rowId] <- sccsModelFileName
       if (!file.exists(sccsModelFileName)) {
         args <- sccsAnalysis$fitSccsModelArgs
-        args$control$threads = cvThreads
+        args$control$threads <- cvThreads
         sccsEraDataFileName <- outcomeReference$sccsEraDataFolder[rowId]
 
         sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(args = args,
@@ -401,22 +388,17 @@ runSccsAnalyses <- function(connectionDetails,
   invisible(outcomeReference)
 }
 
-.createSccsDataFileName <- function(folder,
-                                    loadId) {
+.createSccsDataFileName <- function(folder, loadId) {
   name <- paste("SccsData_l", loadId, sep = "")
   return(file.path(folder, name))
 }
 
-.createSccsEraDataFileName <- function(folder,
-                                       exposureId,
-                                       outcomeId) {
+.createSccsEraDataFileName <- function(folder, exposureId, outcomeId) {
   name <- paste("SccsEraData_e", exposureId, "_o", outcomeId, sep = "")
   return(file.path(folder, name))
 }
 
-.createSccsModelFileName <- function(folder,
-                                     exposureId,
-                                     outcomeId) {
+.createSccsModelFileName <- function(folder, exposureId, outcomeId) {
   name <- paste("SccsModel_e", exposureId, "_o", outcomeId, ".rds", sep = "")
   return(file.path(folder, name))
 }
@@ -443,24 +425,19 @@ runSccsAnalyses <- function(connectionDetails,
 #' @param outcomeReference   A data.frame as created by the \code{\link{runSccsAnalyses}} function.
 #'
 #' @return
-#' A data frame with the following columns:
-#' \tabular{ll}{
-#' \verb{analysisId} \tab The unique identifier for a set of analysis choices.\cr
-#' \verb{targetId} \tab The ID of the target drug.\cr
-#' \verb{comparatorId} \tab The ID of the comparator group.\cr
-#' \verb{indicationConceptIds} \tab The ID(s) of indications in which to nest to study. \cr
-#' \verb{outcomeId} \tab The ID of the outcome.\cr
-#' \verb{rr} \tab The estimated effect size.\cr
-#' \verb{ci95lb} \tab The lower bound of the 95 percent confidence interval.\cr
-#' \verb{ci95ub} \tab The upper bound of the 95 percent confidence interval.\cr
-#' \verb{treated} \tab The number of subjects in the treated group (after any trimming and matching).\cr
-#' \verb{comparator} \tab The number of subjects in the comparator group (after any trimming and matching).\cr
-#' \verb{eventsTreated} \tab The number of outcomes in the treated group (after any trimming and matching).\cr
-#' \verb{eventsComparator} \tab The number of outcomes in the comparator group (after any trimming and \cr
-#' \tab matching).\cr
-#' \verb{logRr} \tab The log of the estimated relative risk.\cr
-#' \verb{seLogRr} \tab The standard error of the log of the estimated relative risk.\cr
-#' }
+#' A data frame with the following columns: \tabular{ll}{ \verb{analysisId} \tab The unique identifier
+#' for a set of analysis choices.\cr \verb{targetId} \tab The ID of the target drug.\cr
+#' \verb{comparatorId} \tab The ID of the comparator group.\cr \verb{indicationConceptIds} \tab The
+#' ID(s) of indications in which to nest to study. \cr \verb{outcomeId} \tab The ID of the outcome.\cr
+#' \verb{rr} \tab The estimated effect size.\cr \verb{ci95lb} \tab The lower bound of the 95 percent
+#' confidence interval.\cr \verb{ci95ub} \tab The upper bound of the 95 percent confidence
+#' interval.\cr \verb{treated} \tab The number of subjects in the treated group (after any trimming
+#' and matching).\cr \verb{comparator} \tab The number of subjects in the comparator group (after any
+#' trimming and matching).\cr \verb{eventsTreated} \tab The number of outcomes in the treated group
+#' (after any trimming and matching).\cr \verb{eventsComparator} \tab The number of outcomes in the
+#' comparator group (after any trimming and \cr \tab matching).\cr \verb{logRr} \tab The log of the
+#' estimated relative risk.\cr \verb{seLogRr} \tab The standard error of the log of the estimated
+#' relative risk.\cr }
 #'
 #' @export
 summarizeSccsAnalyses <- function(outcomeReference) {
@@ -476,15 +453,18 @@ summarizeSccsAnalyses <- function(outcomeReference) {
     result$eventCount[i] <- s$outcomeCounts$eventCount
     sccsModel <- readRDS(outcomeReference$sccsModelFile[i])
 
-    estimates <- sccsModel$estimates[sccsModel$estimates$originalCovariateId == outcomeReference$exposureId[i],]
+    estimates <- sccsModel$estimates[sccsModel$estimates$originalCovariateId == outcomeReference$exposureId[i], ]
     for (j in nrow(estimates)) {
       estimatesToInsert <- c(rr = exp(estimates$logRr[j]),
                              ci95lb = exp(estimates$logLb95[j]),
                              ci95ub = exp(estimates$logUb95[j]),
                              logRr = estimates$logRr[j],
                              seLogRr = estimates$seLogRr[j])
-      names(estimatesToInsert) <- paste0(names(estimatesToInsert), "(", sub(":.*$", "", estimates$covariateName[j]), ")")
-      for (colName in names(estimatesToInsert)){
+      names(estimatesToInsert) <- paste0(names(estimatesToInsert),
+                                         "(",
+                                         sub(":.*$", "", estimates$covariateName[j]),
+                                         ")")
+      for (colName in names(estimatesToInsert)) {
         if (!(colName %in% colnames(result))) {
           result$newVar <- NA
           colnames(result)[colnames(result) == "newVar"] <- colName

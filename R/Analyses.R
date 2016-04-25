@@ -21,29 +21,29 @@
 #' @details
 #' Create a set of analysis choices, to be used with the \code{\link{runSccsAnalyses}} function.
 #'
-#' @param analysisId                      An integer that will be used later to refer to this specific
-#'                                        set of analysis choices.
-#' @param description                     A short description of the analysis.
-#' @param exposureType                    If more than one exposure is provided for each
-#'                                        exposureOutcome, this field should be used to select
-#'                                        the specific exposure to use in this analysis.
-#' @param outcomeType                     If more than one outcome is provided for each
-#'                                        exposureOutcome, this field should be used to select
-#'                                        the specific outcome to use in this analysis.
-#' @param getDbSccsDataArgs               An object representing the arguments to be used when calling
-#'                                        the \code{\link{getDbSccsData}} function.
-#' @param createSccsEraDataArgs           An object representing the arguments to be used when calling
-#'                                        the \code{\link{createSccsEraData}} function.
-#' @param fitSccsModelArgs                An object representing the arguments to be used when calling
-#'                                        the \code{\link{fitSccsModel}} function.
+#' @param analysisId              An integer that will be used later to refer to this specific set of
+#'                                analysis choices.
+#' @param description             A short description of the analysis.
+#' @param exposureType            If more than one exposure is provided for each exposureOutcome, this
+#'                                field should be used to select the specific exposure to use in this
+#'                                analysis.
+#' @param outcomeType             If more than one outcome is provided for each exposureOutcome, this
+#'                                field should be used to select the specific outcome to use in this
+#'                                analysis.
+#' @param getDbSccsDataArgs       An object representing the arguments to be used when calling the
+#'                                \code{\link{getDbSccsData}} function.
+#' @param createSccsEraDataArgs   An object representing the arguments to be used when calling the
+#'                                \code{\link{createSccsEraData}} function.
+#' @param fitSccsModelArgs        An object representing the arguments to be used when calling the
+#'                                \code{\link{fitSccsModel}} function.
 #' @export
 createSccsAnalysis <- function(analysisId = 1,
-                             description = "",
-                             exposureType = NULL,
-                             outcomeType = NULL,
-                             getDbSccsDataArgs,
-                             createSccsEraDataArgs,
-                             fitSccsModelArgs) {
+                               description = "",
+                               exposureType = NULL,
+                               outcomeType = NULL,
+                               getDbSccsDataArgs,
+                               createSccsEraDataArgs,
+                               fitSccsModelArgs) {
   # First: get the default values:
   analysis <- list()
   for (name in names(formals(createSccsAnalysis))) {
@@ -68,7 +68,7 @@ createSccsAnalysis <- function(analysisId = 1,
 #' Write a list of objects of type \code{sccsAnalysis} to file. The file is in JSON format.
 #'
 #' @param sccsAnalysisList   The sccsAnalysis list to be written to file
-#' @param file             The name of the file where the results will be written
+#' @param file               The name of the file where the results will be written
 #'
 #' @export
 saveSccsAnalysisList <- function(sccsAnalysisList, file) {
@@ -101,19 +101,16 @@ loadSccsAnalysisList <- function(file) {
 #' @details
 #' Create a set of hypotheses of interest, to be used with the \code{\link{runSccsAnalyses}} function.
 #'
-#' @param exposureId                    A concept ID indentifying the target drug in the exposure
-#'                                      table. If multiple strategies for picking the exposure will be
-#'                                      tested in the analysis, a named list of numbers can be provided
-#'                                      instead. In the analysis, the name of the number to be used can
-#'                                      be specified using the #' \code{exposureType} parameter in the
-#'                                      \code{\link{createSccsAnalysis}} function.
-#' @param outcomeId                     A concept ID indentifying the outcome in the outcome table.
-#' @param ...                           Custom variables, to be used in the analyses.
+#' @param exposureId   A concept ID indentifying the target drug in the exposure table. If multiple
+#'                     strategies for picking the exposure will be tested in the analysis, a named list
+#'                     of numbers can be provided instead. In the analysis, the name of the number to
+#'                     be used can be specified using the #' \code{exposureType} parameter in the
+#'                     \code{\link{createSccsAnalysis}} function.
+#' @param outcomeId    A concept ID indentifying the outcome in the outcome table.
+#' @param ...          Custom variables, to be used in the analyses.
 #'
 #' @export
-createExposureOutcome <- function(exposureId,
-                                   outcomeId,
-                                   ...) {
+createExposureOutcome <- function(exposureId, outcomeId, ...) {
 
   exposureOutcome <- list(...)
   exposureOutcome$exposureId <- exposureId
@@ -128,7 +125,7 @@ createExposureOutcome <- function(exposureId,
 #' Write a list of objects of type \code{exposureOutcome} to file. The file is in JSON format.
 #'
 #' @param exposureOutcomeList   The exposureOutcome list to be written to file
-#' @param file                         The name of the file where the results will be written
+#' @param file                  The name of the file where the results will be written
 #'
 #' @export
 saveExposureOutcomeList <- function(exposureOutcomeList, file) {

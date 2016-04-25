@@ -57,19 +57,18 @@ should have the same structure as the cohort table.}
 \item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and
 "5".}
 
-\item{outputFolder}{Name of the folder where all the outputs will written
-to.}
+\item{outputFolder}{Name of the folder where all the outputs will written to.}
 
 \item{sccsAnalysisList}{A list of objects of type \code{sccsAnalysis} as created
 using the \code{\link{createSccsAnalysis}} function.}
 
-\item{exposureOutcomeList}{A list of objects of type \code{exposureOutcome}
-as created using the
-\code{\link{createExposureOutcome}} function.}
+\item{exposureOutcomeList}{A list of objects of type \code{exposureOutcome} as created
+using the \code{\link{createExposureOutcome}} function.}
 
-\item{combineDataFetchAcrossOutcomes}{Should fetching data from the database be done one outcome at a time, or for all outcomes
- in one fetch? Combining fetches will be more efficient if there is large overlap in the subjects
-that have the different outcomes.}
+\item{combineDataFetchAcrossOutcomes}{Should fetching data from the database be done one outcome
+at a time, or for all outcomes in one fetch? Combining
+fetches will be more efficient if there is large overlap in
+the subjects that have the different outcomes.}
 
 \item{getDbSccsDataThreads}{The number of parallel threads to use for building the
 sccsData objects.}
@@ -82,20 +81,15 @@ models.}
 
 \item{cvThreads}{The number of parallel threads to use for the cross-
 validation when estimating the hyperparameter for the
-outcome model. Note that the total number of CV threads
-at one time could be `fitSccsModelThreads *
-cvThreads`.}
+outcome model. Note that the total number of CV threads at
+one time could be `fitSccsModelThreads * cvThreads`.}
 }
 \value{
-A data frame with the following columns:
-\tabular{ll}{
-\verb{analysisId} \tab The unique identifier for a set of analysis choices.\cr
-\verb{exposureId} \tab The ID of the target drug.\cr
-\verb{outcomeId} \tab The ID of the outcome.\cr
-\verb{sccsDataFolder} \tab The folder where the sccsData object is stored.\cr
-\verb{sccsEraDataFolder} \tab The folder where the sccsEraData object is stored.\cr
-\verb{sccsModelFile} \tab The file where the fitted SCCS model is stored.\cr
-}
+A data frame with the following columns: \tabular{ll}{ \verb{analysisId} \tab The unique identifier
+for a set of analysis choices.\cr \verb{exposureId} \tab The ID of the target drug.\cr
+\verb{outcomeId} \tab The ID of the outcome.\cr \verb{sccsDataFolder} \tab The folder where the
+sccsData object is stored.\cr \verb{sccsEraDataFolder} \tab The folder where the sccsEraData object
+is stored.\cr \verb{sccsModelFile} \tab The file where the fitted SCCS model is stored.\cr }
 }
 \description{
 Run a list of analyses

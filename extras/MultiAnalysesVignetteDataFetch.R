@@ -66,12 +66,35 @@ sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
 ppis <- DatabaseConnector::querySql(connection, sql)
 ppis <- ppis$CONCEPT_ID
 
-negativeControls <- c(705178, 705944, 710650, 714785, 719174, 719311, 735340, 742185, 780369, 781182, 924724, 990760, 1110942, 1111706, 1136601, 1317967, 1501309, 1505346, 1551673, 1560278, 1584910, 19010309, 19044727, 40163731)
+negativeControls <- c(705178,
+                      705944,
+                      710650,
+                      714785,
+                      719174,
+                      719311,
+                      735340,
+                      742185,
+                      780369,
+                      781182,
+                      924724,
+                      990760,
+                      1110942,
+                      1111706,
+                      1136601,
+                      1317967,
+                      1501309,
+                      1505346,
+                      1551673,
+                      1560278,
+                      1584910,
+                      19010309,
+                      19044727,
+                      40163731)
 diclofenac <- 1124300
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
 
 exposureOutcomeList <- list()
-for (exposureId in c(diclofenac, negativeControls)){
+for (exposureId in c(diclofenac, negativeControls)) {
   exposureOutcome <- createExposureOutcome(exposureId = exposureId,
                                            outcomeId = 1,
                                            prophylactics = ppis)
@@ -110,7 +133,8 @@ covarProphylactics <- createCovariateSettings(label = "Prophylactics",
 
 createSccsEraDataArgs2 <- createCreateSccsEraDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
-                                                      covariateSettings = list(covarExposureOfInt, covarProphylactics))
+                                                      covariateSettings = list(covarExposureOfInt,
+                                                                               covarProphylactics))
 
 sccsAnalysis2 <- createSccsAnalysis(analysisId = 2,
                                     description = "Including prophylactics",
@@ -124,7 +148,8 @@ seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE, seas
 
 createSccsEraDataArgs3 <- createCreateSccsEraDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
-                                                      covariateSettings = list(covarExposureOfInt, covarProphylactics),
+                                                      covariateSettings = list(covarExposureOfInt,
+                                                                               covarProphylactics),
                                                       ageSettings = ageSettings,
                                                       seasonalitySettings = seasonalitySettings,
                                                       eventDependentObservation = TRUE)
@@ -145,7 +170,8 @@ covarAllDrugs <- createCovariateSettings(label = "Other exposures",
 
 createSccsEraDataArgs4 <- createCreateSccsEraDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
-                                                      covariateSettings = list(covarExposureOfInt, covarAllDrugs))
+                                                      covariateSettings = list(covarExposureOfInt,
+                                                                               covarAllDrugs))
 
 sccsAnalysis4 <- createSccsAnalysis(analysisId = 4,
                                     description = "Including all other drugs",
@@ -158,8 +184,8 @@ sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalys
 saveExposureOutcomeList(exposureOutcomeList, "s:/temp/sccsVignette2/exposureOutcomeList.txt")
 saveSccsAnalysisList(sccsAnalysisList, "s:/temp/sccsVignette2/sccsAnalysisList.txt")
 
-# exposureOutcomeList <- loadExposureOutcomeList("s:/temp/sccsVignette2/exposureOutcomeList.txt")
-# sccsAnalysisList <- loadSccsAnalysisList("s:/temp/sccsVignette2/sccsAnalysisList.txt")
+# exposureOutcomeList <- loadExposureOutcomeList('s:/temp/sccsVignette2/exposureOutcomeList.txt')
+# sccsAnalysisList <- loadSccsAnalysisList('s:/temp/sccsVignette2/sccsAnalysisList.txt')
 
 result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
@@ -178,7 +204,7 @@ result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           fitSccsModelThreads = 3,
                           cvThreads = 10)
 
-# result <- readRDS("s:/temp/sccsVignette2/outcomeModelReference.rds")
+# result <- readRDS('s:/temp/sccsVignette2/outcomeModelReference.rds')
 
 analysisSum <- summarizeSccsAnalyses(result)
 saveRDS(analysisSum, "s:/temp/sccsVignette2/analysisSummary.rds")
