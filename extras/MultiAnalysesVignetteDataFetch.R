@@ -66,7 +66,7 @@ sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
 ppis <- DatabaseConnector::querySql(connection, sql)
 ppis <- ppis$CONCEPT_ID
 
-negativeControls <- c(705178, 705944, 710650, 714785, 719174, 719311, 735340, 742185, 780369, 781182, 836208, 924724, 990760, 1110942, 1111706, 1136601, 1317967, 1501309, 1505346, 1551673, 1560278, 1584910, 19010309, 19044727, 40163731)
+negativeControls <- c(705178, 705944, 710650, 714785, 719174, 719311, 735340, 742185, 780369, 781182, 924724, 990760, 1110942, 1111706, 1136601, 1317967, 1501309, 1505346, 1551673, 1560278, 1584910, 19010309, 19044727, 40163731)
 diclofenac <- 1124300
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
 
@@ -161,16 +161,25 @@ saveSccsAnalysisList(sccsAnalysisList, "s:/temp/sccsVignette2/sccsAnalysisList.t
 # exposureOutcomeList <- loadExposureOutcomeList("s:/temp/sccsVignette2/exposureOutcomeList.txt")
 # sccsAnalysisList <- loadSccsAnalysisList("s:/temp/sccsVignette2/sccsAnalysisList.txt")
 
+result <- runSccsAnalyses(connectionDetails = connectionDetails,
+                          cdmDatabaseSchema = cdmDatabaseSchema,
+                          oracleTempSchema = cdmDatabaseSchema,
+                          exposureDatabaseSchema = cdmDatabaseSchema,
+                          exposureTable = "drug_era",
+                          outcomeDatabaseSchema = cohortDatabaseSchema,
+                          outcomeTable = outcomeTable,
+                          cdmVersion = cdmVersion,
+                          outputFolder = "s:/temp/sccsVignette2",
+                          combineDataFetchAcrossOutcomes = TRUE,
+                          exposureOutcomeList = exposureOutcomeList,
+                          sccsAnalysisList = sccsAnalysisList,
+                          getDbSccsDataThreads = 1,
+                          createSccsEraDataThreads = 5,
+                          fitSccsModelThreads = 3,
+                          cvThreads = 10)
 
-oracleTempSchema = cdmDatabaseSchema
-exposureDatabaseSchema = cdmDatabaseSchema
-exposureTable = "drug_era"
-outcomeDatabaseSchema = cohortDatabaseSchema
-outcomeTable = outcomeTable
-customCovariateDatabaseSchema = cdmDatabaseSchema
-customCovariateTable = "cohort"
-outputFolder = "s:/temp/sccsVignette2"
-combineDataFetchAcrossOutcomes = TRUE
-getDbSccsDataThreads = 1
-createSccsEraDataThreads = 1
-fitSccsModelThreads = 1
+# result <- readRDS("s:/temp/sccsVignette2/outcomeModelReference.rds")
+
+analysisSum <- summarizeSccsAnalyses(result)
+saveRDS(analysisSum, "s:/temp/sccsVignette2/analysisSummary.rds")
+

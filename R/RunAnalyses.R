@@ -28,95 +28,69 @@
 #' function will extract the data and fit the propensity model only once, and re-use this in all the
 #' analysis.
 #'
-#' @param connectionDetails                     An R object of type \code{connectionDetails} created
-#'                                              using the function \code{createConnectionDetails} in
-#'                                              the \code{DatabaseConnector} package.
-#' @param cdmDatabaseSchema                     The name of the database schema that contains the OMOP
-#'                                              CDM instance. Requires read permissions to this
-#'                                              database. On SQL Server, this should specifiy both the
-#'                                              database and the schema, so for example
-#'                                              'cdm_instance.dbo'.
-#' @param cdmVersion                            Define the OMOP CDM version used: currently support "4" and "5".
-#' @param oracleTempSchema                      For Oracle only: the name of the database schema where
-#'                                              you want all temporary tables to be managed. Requires
-#'                                              create/insert permissions to this database.
-#' @param exposureDatabaseSchema                The name of the database schema that is the location
-#'                                              where the exposure data used to define the exposure
-#'                                              cohorts is available. If exposureTable = DRUG_ERA,
-#'                                              exposureDatabaseSchema is not used by assumed to be
-#'                                              cdmSchema.  Requires read permissions to this database.
-#' @param exposureTable                         The tablename that contains the exposure cohorts.  If
-#'                                              exposureTable <> DRUG_ERA, then expectation is
-#'                                              exposureTable has format of COHORT table:
-#'                                              COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
-#'                                              COHORT_END_DATE.
-#' @param outcomeDatabaseSchema                 The name of the database schema that is the location
-#'                                              where the data used to define the outcome cohorts is
-#'                                              available. If exposureTable = CONDITION_ERA,
-#'                                              exposureDatabaseSchema is not used by assumed to be
-#'                                              cdmSchema.  Requires read permissions to this database.
-#' @param outcomeTable                          The tablename that contains the outcome cohorts.  If
-#'                                              outcomeTable <> CONDITION_OCCURRENCE, then expectation
-#'                                              is outcomeTable has format of COHORT table:
-#'                                              COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
-#'                                              COHORT_END_DATE.
+#' @param connectionDetails                An R object of type \code{ConnectionDetails} created using
+#'                                         the function \code{createConnectionDetails} in the
+#'                                         \code{DatabaseConnector} package.
+#' @param cdmDatabaseSchema                The name of the database schema that contains the OMOP CDM
+#'                                         instance.  Requires read permissions to this database. On
+#'                                         SQL Server, this should specifiy both the database and the
+#'                                         schema, so for example 'cdm_instance.dbo'.
+#' @param oracleTempSchema                 A schema where temp tables can be created in Oracle.
+#' @param outcomeDatabaseSchema            The name of the database schema that is the location where
+#'                                         the data used to define the outcome cohorts is available. If
+#'                                         outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
+#'                                         used.  Requires read permissions to this database.
+#' @param outcomeTable                     The tablename that contains the outcome cohorts.  If
+#'                                         outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
+#'                                         then expectation is outcomeTable has format of COHORT table:
+#'                                         COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
+#'                                         COHORT_END_DATE.
+#' @param exposureDatabaseSchema           The name of the database schema that is the location where
+#'                                         the exposure data used to define the exposure cohorts is
+#'                                         available. If exposureTable = DRUG_ERA,
+#'                                         exposureDatabaseSchema is not used but assumed to be
+#'                                         cdmSchema.  Requires read permissions to this database.
+#' @param exposureTable                    The tablename that contains the exposure cohorts.  If
+#'                                         exposureTable <> DRUG_ERA, then expectation is exposureTable
+#'                                         has format of COHORT table: cohort_concept_id, SUBJECT_ID,
+#'                                         COHORT_START_DATE, COHORT_END_DATE.
+#' @param customCovariateDatabaseSchema    The name of the database schema that is the location where
+#'                                         the custom covariate data is available.
+#' @param customCovariateTable             Name of the table holding the custom covariates. This table
+#'                                         should have the same structure as the cohort table.
+#' @param cdmVersion                       Define the OMOP CDM version used: currently support "4" and
+#'                                         "5".
+#' @param sccsAnalysisList                    A list of objects of type \code{sccsAnalysis} as created
+#'                                              using the \code{\link{createSccsAnalysis}} function.
+#' @param exposureOutcomeList            A list of objects of type \code{exposureOutcome}
+#'                                              as created using the
+#'                                              \code{\link{createExposureOutcome}} function.
 #' @param outputFolder                          Name of the folder where all the outputs will written
 #'                                              to.
-#' @param cmAnalysisList                        A list of objects of type \code{cmAnalysis} as created
-#'                                              using the \code{\link{createCmAnalysis}} function.
-#' @param drugComparatorOutcomesList            A list of objects of type \code{drugComparatorOutcomes}
-#'                                              as created using the
-#'                                              \code{\link{createDrugComparatorOutcomes}} function.
-#' @param refitPsForEveryOutcome                Should the propensity model be fitted for every outcome
-#'                                              (i.e. after people who already had the outcome are
-#'                                              removed)? If false, a single propensity model will be
-#'                                              fitted, and people who had the outcome previously will
-#'                                              be removed afterwards.
-#' @param getDbCohortMethodDataThreads          The number of parallel threads to use for building the
-#'                                              cohortMethod data objects.
-#' @param createPsThreads                       The number of parallel threads to use for fitting the
-#'                                              propensity models.
-#' @param psCvThreads                           The number of parallel threads to use for the cross-
-#'                                              validation when estimating the hyperparameter for the
-#'                                              propensity model. Note that the total number of CV
-#'                                              threads at one time could be `createPsThreads *
-#'                                              psCvThreads`.
-#' @param createStudyPopThreads                 The number of parallel threads to use for creating the
-#'                                              study population.
-#' @param computeCovarBalThreads                The number of parallel threads to use for computing the
-#'                                              covariate balance.
-#' @param trimMatchStratifyThreads              The number of parallel threads to use for trimming,
-#'                                              matching and stratifying.
-#' @param fitOutcomeModelThreads                The number of parallel threads to use for fitting the
-#'                                              outcome models.
-#' @param outcomeCvThreads                      The number of parallel threads to use for the cross-
+#' @param combineDataFetchAcrossOutcomes   Should fetching data from the database be done one outcome at a time, or for all outcomes
+#'                                         in one fetch? Combining fetches will be more efficient if there is large overlap in the subjects
+#'                                        that have the different outcomes.
+#' @param getDbSccsDataThreads             The number of parallel threads to use for building the
+#'                                              sccsData objects.
+#' @param createSccsEraDataThreads         The number of parallel threads to use for building the
+#'                                              sccsEraData objects.
+#' @param fitSccsModelThreads              The number of parallel threads to use for fitting the
+#'                                              models.
+#' @param cvThreads                      The number of parallel threads to use for the cross-
 #'                                              validation when estimating the hyperparameter for the
 #'                                              outcome model. Note that the total number of CV threads
-#'                                              at one time could be `fitOutcomeModelThreads *
-#'                                              outcomeCvThreads`.
+#'                                              at one time could be `fitSccsModelThreads *
+#'                                              cvThreads`.
 #'
 #' @return
 #' A data frame with the following columns:
 #' \tabular{ll}{
 #' \verb{analysisId} \tab The unique identifier for a set of analysis choices.\cr
-#' \verb{targetId} \tab The ID of the target drug.\cr
-#' \verb{comparatorId} \tab The ID of the comparator group.\cr
-#' \verb{excludedCovariateConceptIds} \tab The ID(s) of concepts that cannot be used to construct covariates. \cr
-#' \verb{includedCovariateConceptIds} \tab The ID(s) of concepts that should be used to construct covariates. \cr
-#' \verb{outcomeId} \tab The ID of the outcome \cr
-#' \verb{cohortMethodDataFolder} \tab The ID of the outcome.\cr
-#' \verb{sharedPsFile}                \tab The name of the file containing the propensity scores of the shared \cr
-#'                                    \tab propensity model. This model is used to create the outcome-specific \cr
-#'                                    \tab propensity scores by removing people with prior outcomes.\cr
-#' \verb{studyPopFile                 \tab The name of the file containing the study population (prior\cr
-#'                                    \tab and trimming, matching, or stratification on the PS.\cr
-#' \verb{psFile}                      \tab The name of file containing the propensity scores for a specific \cr
-#'                                    \tab outcomes (ie after people with prior outcomes have been removed).\cr
-#' \verb{strataFile}                  \tab The name of the file containing the identifiers of the population \cr
-#'                                    \tab after any trimming, matching or stratifying, including their strata.\cr
-#' \verb{covariateBalanceFile}        \tab The name of the file containing the covariate balance (ie. the \cr
-#'                                    \tab output of the \code{computeCovariateBalance} function.\cr
-#' \verb{outcomeModelFile} \tab The name of the file containing the outcome model.\cr
+#' \verb{exposureId} \tab The ID of the target drug.\cr
+#' \verb{outcomeId} \tab The ID of the outcome.\cr
+#' \verb{sccsDataFolder} \tab The folder where the sccsData object is stored.\cr
+#' \verb{sccsEraDataFolder} \tab The folder where the sccsEraData object is stored.\cr
+#' \verb{sccsModelFile} \tab The file where the fitted SCCS model is stored.\cr
 #' }
 #'
 #' @export
@@ -136,7 +110,8 @@ runSccsAnalyses <- function(connectionDetails,
                             combineDataFetchAcrossOutcomes = TRUE,
                             getDbSccsDataThreads = 1,
                             createSccsEraDataThreads = 1,
-                            fitSccsModelThreads = 1 ) {
+                            fitSccsModelThreads = 1,
+                            cvThreads = 1) {
   for (exposureOutcome in exposureOutcomeList)
     stopifnot(class(exposureOutcome) == "exposureOutcome")
   for (sccsAnalysis in sccsAnalysisList)
@@ -369,6 +344,7 @@ runSccsAnalyses <- function(connectionDetails,
       outcomeReference$sccsModelFile[rowId] <- sccsModelFileName
       if (!file.exists(sccsModelFileName)) {
         args <- sccsAnalysis$fitSccsModelArgs
+        args$control$threads = cvThreads
         sccsEraDataFileName <- outcomeReference$sccsEraDataFolder[rowId]
 
         sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(args = args,
@@ -382,6 +358,7 @@ runSccsAnalyses <- function(connectionDetails,
 
   ### Actual construction of objects ###
 
+  writeLines("*** Creating sccsData objects ***")
   createSccsDataObject <- function(params) {
     sccsData <- do.call("getDbSccsData", params$args)
     saveSccsData(sccsData, params$sccsDataFileName)
@@ -393,6 +370,7 @@ runSccsAnalyses <- function(connectionDetails,
     OhdsiRTools::stopCluster(cluster)
   }
 
+  writeLines("*** Creating sccsEraData objects ***")
   createSccsEraDataObject <- function(params) {
     sccsData <- loadSccsData(params$sccsDataFileName, readOnly = TRUE)
     params$args$sccsData <- sccsData
@@ -406,6 +384,7 @@ runSccsAnalyses <- function(connectionDetails,
     OhdsiRTools::stopCluster(cluster)
   }
 
+  writeLines("*** Fitting models ***")
   createSccsModelObject <- function(params) {
     sccsEraData <- loadSccsEraData(params$sccsEraDataFileName, readOnly = TRUE)
     params$args$sccsEraData <- sccsEraData
@@ -461,7 +440,7 @@ runSccsAnalyses <- function(connectionDetails,
 
 #' Create a summary report of the analyses
 #'
-#' @param outcomeReference   A data.frame as created by the \code{\link{runCmAnalyses}} function.
+#' @param outcomeReference   A data.frame as created by the \code{\link{runSccsAnalyses}} function.
 #'
 #' @return
 #' A data frame with the following columns:
@@ -485,59 +464,34 @@ runSccsAnalyses <- function(connectionDetails,
 #'
 #' @export
 summarizeSccsAnalyses <- function(outcomeReference) {
-  columns <- c("analysisId", "targetId", "comparatorId", "outcomeId")
+  columns <- c("analysisId", "exposureId", "outcomeId")
   result <- outcomeReference[, columns]
-  result$rr <- 0
-  result$ci95lb <- 0
-  result$ci95ub <- 0
-  result$p <- 1
-  result$treated <- 0
-  result$comparator <- 0
-  result$treatedDays <- NA
-  result$comparatorDays <- NA
-  result$eventsTreated <- 0
-  result$eventsComparator <- 0
-  result$logRr <- 0
-  result$seLogRr <- 0
+  result$caseCount <- 0
+  result$eventCount <- 0
+
   for (i in 1:nrow(outcomeReference)) {
-    outcomeModel <- readRDS(outcomeReference$outcomeModelFile[i])
-    if (outcomeReference$strataFile[i] == "") {
-      studyPop <- readRDS(outcomeReference$studyPopFile[i])
-    } else {
-      studyPop <- readRDS(outcomeReference$strataFile[i])
+    sccsEraData <- loadSccsEraData(outcomeReference$sccsEraDataFolder[i])
+    s <- summary(sccsEraData)
+    result$caseCount[i] <- s$outcomeCounts$caseCount
+    result$eventCount[i] <- s$outcomeCounts$eventCount
+    sccsModel <- readRDS(outcomeReference$sccsModelFile[i])
+
+    estimates <- sccsModel$estimates[sccsModel$estimates$originalCovariateId == outcomeReference$exposureId[i],]
+    for (j in nrow(estimates)) {
+      estimatesToInsert <- c(rr = exp(estimates$logRr[j]),
+                             ci95lb = exp(estimates$logLb95[j]),
+                             ci95ub = exp(estimates$logUb95[j]),
+                             logRr = estimates$logRr[j],
+                             seLogRr = estimates$seLogRr[j])
+      names(estimatesToInsert) <- paste0(names(estimatesToInsert), "(", sub(":.*$", "", estimates$covariateName[j]), ")")
+      for (colName in names(estimatesToInsert)){
+        if (!(colName %in% colnames(result))) {
+          result$newVar <- NA
+          colnames(result)[colnames(result) == "newVar"] <- colName
+        }
+      }
+      result[i, names(estimatesToInsert)] <- estimatesToInsert
     }
-    result$rr[i] <- if (is.null(coef(outcomeModel)))
-      NA else exp(coef(outcomeModel))
-    result$ci95lb[i] <- if (is.null(coef(outcomeModel)))
-      NA else exp(confint(outcomeModel)[1])
-    result$ci95ub[i] <- if (is.null(coef(outcomeModel)))
-      NA else exp(confint(outcomeModel)[2])
-    if (is.null(coef(outcomeModel))) {
-      result$p[i] <- NA
-    } else {
-      z <- coef(outcomeModel)/ outcomeModel$outcomeModelTreatmentEstimate$seLogRr
-      result$p[i] <- 2 * pmin(pnorm(z), 1 - pnorm(z))
-    }
-    result$treated[i] <- sum(studyPop$treatment == 1)
-    result$comparator[i] <- sum(studyPop$treatment == 0)
-    if (outcomeModel$outcomeModelType == "cox") {
-      result$treatedDays[i] <- sum(studyPop$survivalTime[studyPop$treatment == 1])
-      result$comparatorDays[i] <- sum(studyPop$survivalTime[studyPop$treatment == 0])
-    } else if (outcomeModel$outcomeModelType == "poisson") {
-      result$treatedDays[i] <- sum(studyPop$timeAtRisk[studyPop$treatment == 1])
-      result$comparatorDays[i] <- sum(studyPop$timeAtRisk[studyPop$treatment == 0])
-    }
-    if (outcomeModel$outcomeModelType == "cox" || outcomeModel$outcomeModelType == "logistic") {
-      result$eventsTreated[i] <- sum(studyPop$outcomeCount[studyPop$treatment == 1] != 0)
-      result$eventsComparator[i] <- sum(studyPop$outcomeCount[studyPop$treatment == 0] != 0)
-    } else {
-      result$eventsTreated[i] <- sum(studyPop$outcomeCount[studyPop$treatment == 1])
-      result$eventsComparator[i] <- sum(studyPop$outcomeCount[studyPop$treatment == 0])
-    }
-    result$logRr[i] <- if (is.null(coef(outcomeModel)))
-      NA else coef(outcomeModel)
-    result$seLogRr[i] <- if (is.null(coef(outcomeModel)))
-      NA else outcomeModel$outcomeModelTreatmentEstimate$seLogRr
   }
   return(result)
 }

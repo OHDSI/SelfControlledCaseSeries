@@ -106,14 +106,8 @@ loadSccsAnalysisList <- function(file) {
 #'                                      tested in the analysis, a named list of numbers can be provided
 #'                                      instead. In the analysis, the name of the number to be used can
 #'                                      be specified using the #' \code{exposureType} parameter in the
-#'                                      \code{\link{createCmAnalysis}} function.
+#'                                      \code{\link{createSccsAnalysis}} function.
 #' @param outcomeId                     A concept ID indentifying the outcome in the outcome table.
-#' @param excludedCovariateConceptIds   A list of concept IDs that cannot be used to construct
-#'                                      covariates. This argument is to be used only for exclusion
-#'                                      concepts that are specific to the drug-comparator combination.
-#' @param includedCovariateConceptIds   A list of concept IDs that must be used to construct
-#'                                      covariates. This argument is to be used only for inclusion
-#'                                      concepts that are specific to the drug-comparator combination.
 #' @param ...                           Custom variables, to be used in the analyses.
 #'
 #' @export

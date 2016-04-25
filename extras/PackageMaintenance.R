@@ -36,6 +36,12 @@ rmarkdown::render("vignettes/SingleStudies.Rmd",
                                           toc = TRUE,
                                           number_sections = TRUE))
 
+rmarkdown::render("vignettes/MultipleAnalyses.Rmd",
+                  output_file = "../inst/doc/MultipleAnalyses.pdf",
+                  rmarkdown::pdf_document(latex_engine = "pdflatex",
+                                          toc = TRUE,
+                                          number_sections = TRUE))
+
 
 # Create arg functions:
 library(SelfControlledCaseSeries)

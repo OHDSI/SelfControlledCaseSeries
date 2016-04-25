@@ -12,19 +12,11 @@ table. If multiple strategies for picking the exposure will be
 tested in the analysis, a named list of numbers can be provided
 instead. In the analysis, the name of the number to be used can
 be specified using the #' \code{exposureType} parameter in the
-\code{\link{createCmAnalysis}} function.}
+\code{\link{createSccsAnalysis}} function.}
 
 \item{outcomeId}{A concept ID indentifying the outcome in the outcome table.}
 
 \item{...}{Custom variables, to be used in the analyses.}
-
-\item{excludedCovariateConceptIds}{A list of concept IDs that cannot be used to construct
-covariates. This argument is to be used only for exclusion
-concepts that are specific to the drug-comparator combination.}
-
-\item{includedCovariateConceptIds}{A list of concept IDs that must be used to construct
-covariates. This argument is to be used only for inclusion
-concepts that are specific to the drug-comparator combination.}
 }
 \description{
 Create a exposure-outcome combination.

@@ -7,7 +7,7 @@
 summarizeSccsAnalyses(outcomeReference)
 }
 \arguments{
-\item{outcomeReference}{A data.frame as created by the \code{\link{runCmAnalyses}} function.}
+\item{outcomeReference}{A data.frame as created by the \code{\link{runSccsAnalyses}} function.}
 }
 \value{
 A data frame with the following columns:
