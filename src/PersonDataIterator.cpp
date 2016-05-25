@@ -73,7 +73,7 @@ PersonData PersonDataIterator::next() {
     loadNextCases();
     casesCursor = 0;
   }
-  while (erasObservationPeriodId[erasCursor] == observationPeriodId) {
+  while (erasCursor < erasObservationPeriodId.length() && erasObservationPeriodId[erasCursor] == observationPeriodId) {
     Era era(erasStartDay[erasCursor], erasEndDay[erasCursor], erasConceptId[erasCursor], erasValue[erasCursor], erasEraType[erasCursor] == "hoi");
     nextPerson.eras->push_back(era);
     erasCursor++;

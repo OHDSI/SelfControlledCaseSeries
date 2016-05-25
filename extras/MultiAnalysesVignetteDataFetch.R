@@ -146,16 +146,22 @@ ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
 
 seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE, seasonKnots = 5)
 
+covarPreExp <- createCovariateSettings(label = "Pre-exposure",
+                                       includeCovariateIds = "exposureId",
+                                       start = -30,
+                                       end = -1)
+
 createSccsEraDataArgs3 <- createCreateSccsEraDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
                                                       covariateSettings = list(covarExposureOfInt,
+                                                                               covarPreExp,
                                                                                covarProphylactics),
                                                       ageSettings = ageSettings,
                                                       seasonalitySettings = seasonalitySettings,
                                                       eventDependentObservation = TRUE)
 
 sccsAnalysis3 <- createSccsAnalysis(analysisId = 3,
-                                    description = "Including prophylactics, age, season, and censoring",
+                                    description = "Including prophylactics, age, season, pre-exposure, and censoring",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
                                     createSccsEraDataArgs = createSccsEraDataArgs3,
                                     fitSccsModelArgs = fitSccsModelArgs)
@@ -171,7 +177,11 @@ covarAllDrugs <- createCovariateSettings(label = "Other exposures",
 createSccsEraDataArgs4 <- createCreateSccsEraDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
                                                       covariateSettings = list(covarExposureOfInt,
-                                                                               covarAllDrugs))
+                                                                               covarPreExp,
+                                                                               covarAllDrugs),
+                                                      ageSettings = ageSettings,
+                                                      seasonalitySettings = seasonalitySettings,
+                                                      eventDependentObservation = TRUE)
 
 sccsAnalysis4 <- createSccsAnalysis(analysisId = 4,
                                     description = "Including all other drugs",
@@ -201,8 +211,8 @@ result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           sccsAnalysisList = sccsAnalysisList,
                           getDbSccsDataThreads = 1,
                           createSccsEraDataThreads = 5,
-                          fitSccsModelThreads = 3,
-                          cvThreads = 10)
+                          fitSccsModelThreads = 8,
+                          cvThreads = 4)
 
 # result <- readRDS('s:/temp/sccsVignette2/outcomeModelReference.rds')
 

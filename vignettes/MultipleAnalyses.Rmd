@@ -149,7 +149,7 @@ getDbSccsDataArgs1 <- createGetDbSccsDataArgs(useCustomCovariates = FALSE,
                                               studyEndDate = "",
                                               exposureIds = c())
 
-covarExposureOfInt <- createCovariateSettings(label = "Exposure of interest",
+covarEoi <- createCovariateSettings(label = "Exposure of interest",
                                               includeCovariateIds = "exposureId",
                                               start = 0,
                                               end = 0,
@@ -157,7 +157,7 @@ covarExposureOfInt <- createCovariateSettings(label = "Exposure of interest",
 
 createEraDataArgs1 <- createCreateSccsEraDataArgs(naivePeriod = 180,
                                                   firstOutcomeOnly = FALSE,
-                                                  covariateSettings = covarExposureOfInt)
+                                                  covariateSettings = covarEoi)
 
 fitSccsModelArgs <- createFitSccsModelArgs()
 ```
@@ -179,39 +179,45 @@ Note that we have assigned an analysis ID (1) to this set of arguments. We can u
 We can easily create more analyses, for example by incuding adjustments for age and seasonality, or for including other drugs in the model:
 
 ```{r tidy=FALSE,eval=TRUE}
-covarProphylactics <- createCovariateSettings(label = "Prophylactics",
+covarProp <- createCovariateSettings(label = "Prophylactics",
                                               includeCovariateIds = "prophylactics",
                                               start = 0,
                                               end = 0,
                                               addExposedDaysToEnd = TRUE)
 
-createEraDataArgs2 <- createCreateSccsEraDataArgs(naivePeriod = 180,
-                                                  firstOutcomeOnly = FALSE,
-                                                  covariateSettings = list(covarExposureOfInt, 
-                                                                           covarProphylactics))
+createSccsEraDataArgs2 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+                                                      firstOutcomeOnly = FALSE,
+                                                      covariateSettings = list(covarEoi,
+                                                                               covarProp))
 
 sccsAnalysis2 <- createSccsAnalysis(analysisId = 2,
                                     description = "Including prophylactics",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createEraDataArgs2,
+                                    createSccsEraDataArgs = createSccsEraDataArgs2,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
 
-seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE, seasonKnots = 5)
+seasonSettings <- createSeasonalitySettings(includeSeasonality = TRUE, seasonKnots = 5)
 
-createEraDataArgs3 <- createCreateSccsEraDataArgs(naivePeriod = 180,
-                                                  firstOutcomeOnly = FALSE,
-                                                  covariateSettings = list(covarExposureOfInt, 
-                                                                           covarProphylactics),
-                                                  ageSettings = ageSettings,
-                                                  seasonalitySettings = seasonalitySettings,
-                                                  eventDependentObservation = TRUE)
+covarPreExp <- createCovariateSettings(label = "Pre-exposure",
+                                       includeCovariateIds = "exposureId",
+                                       start = -30,
+                                       end = -1)
+
+createSccsEraDataArgs3 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+                                                      firstOutcomeOnly = FALSE,
+                                                      covariateSettings = list(covarEoi,
+                                                                               covarPreExp,
+                                                                               covarProp),
+                                                      ageSettings = ageSettings,
+                                                      seasonalitySettings = seasonSettings,
+                                                      eventDependentObservation = TRUE)
 
 sccsAnalysis3 <- createSccsAnalysis(analysisId = 3,
-                                    description = "Including prophylactics, age, season, and censoring",
+                                    description = "Inc. prop., age, season, pre-exp., censor.",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createEraDataArgs3,
+                                    createSccsEraDataArgs = createSccsEraDataArgs3,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 covarAllDrugs <- createCovariateSettings(label = "Other exposures",
@@ -222,15 +228,19 @@ covarAllDrugs <- createCovariateSettings(label = "Other exposures",
                                          addExposedDaysToEnd = TRUE,
                                          allowRegularization = TRUE)
 
-createEraDataArgs4 <- createCreateSccsEraDataArgs(naivePeriod = 180,
-                                                  firstOutcomeOnly = FALSE,
-                                                  covariateSettings = list(covarExposureOfInt, 
-                                                                           covarAllDrugs))
+createSccsEraDataArgs4 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+                                                      firstOutcomeOnly = FALSE,
+                                                      covariateSettings = list(covarEoi,
+                                                                               covarPreExp,
+                                                                               covarAllDrugs),
+                                                      ageSettings = ageSettings,
+                                                      seasonalitySettings = seasonSettings,
+                                                      eventDependentObservation = TRUE)
 
 sccsAnalysis4 <- createSccsAnalysis(analysisId = 4,
                                     description = "Including all other drugs",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createEraDataArgs4,
+                                    createSccsEraDataArgs = createSccsEraDataArgs4,
                                     fitSccsModelArgs = fitSccsModelArgs)
 ```
 
@@ -260,14 +270,14 @@ When we specify an analysis, we can then refer to one definition or the other:
 
 ```{r tidy=FALSE,eval=TRUE}
 sccsAnalysisA <- createSccsAnalysis(analysisId = 1,
-                                    description = "Simplest model, using narrow definition",
+                                    description = "Simplest model, using narrow def.",
                                     outcomeType = "narrowDefinition",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
                                     createSccsEraDataArgs = createEraDataArgs1,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 sccsAnalysisB <- createSccsAnalysis(analysisId = 2,
-                                    description = "Simplest model, using broad definition",
+                                    description = "Simplest model, using broad def.",
                                     outcomeType = "broadDefinition",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
                                     createSccsEraDataArgs = createEraDataArgs1,
@@ -408,7 +418,7 @@ plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`,
 ```
 
 ```{r tidy=FALSE,eval=FALSE}
-# Analysis 3: Including prophylactics, age, season, and censoring
+# Analysis 3: Including prophylactics, age, season, pre-exposure, and censoring
 negCons <- analysisSum[analysisSum$analysisId == 3 & analysisSum$exposureId != 1124300, ]
 ei <-  analysisSum[analysisSum$analysisId == 3 & analysisSum$exposureId == 1124300, ]
 null <- fitNull(negCons$`logRr(Exposure of interest)`, 
@@ -434,7 +444,8 @@ plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`,
 ```
 
 ```{r tidy=FALSE,eval=FALSE}
-# Analysis 4: Including all other drugs
+# Analysis 4: Including all other drugs (as well as prophylactics, age, season, pre-
+# exposure, and censoring)
 negCons <- analysisSum[analysisSum$analysisId == 4 & analysisSum$exposureId != 1124300, ]
 ei <-  analysisSum[analysisSum$analysisId == 4 & analysisSum$exposureId == 1124300, ]
 null <- fitNull(negCons$`logRr(Exposure of interest)`, 
