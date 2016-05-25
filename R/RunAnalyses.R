@@ -239,6 +239,7 @@ runSccsAnalyses <- function(connectionDetails,
       customCovariateIds <- unique(customCovariateIds)
       args <- list(connectionDetails = connectionDetails,
                    cdmDatabaseSchema = cdmDatabaseSchema,
+                   oracleTempSchema = oracleTempSchema,
                    exposureDatabaseSchema = exposureDatabaseSchema,
                    exposureTable = exposureTable,
                    outcomeDatabaseSchema = outcomeDatabaseSchema,
@@ -375,7 +376,10 @@ runSccsAnalyses <- function(connectionDetails,
   createSccsModelObject <- function(params) {
     sccsEraData <- loadSccsEraData(params$sccsEraDataFileName, readOnly = TRUE)
     params$args$sccsEraData <- sccsEraData
-    sccsModel <- do.call("fitSccsModel", params$args)
+    # sccsModel <- do.call("fitSccsModel", params$args)
+    sccsModel <- fitSccsModel(sccsEraData = sccsEraData,
+                              prior = args$prior,
+                              control = args$control)
     saveRDS(sccsModel, params$sccsModelFileName)
   }
   if (length(sccsModelObjectsToCreate) != 0) {
@@ -454,7 +458,7 @@ summarizeSccsAnalyses <- function(outcomeReference) {
     sccsModel <- readRDS(outcomeReference$sccsModelFile[i])
 
     estimates <- sccsModel$estimates[sccsModel$estimates$originalCovariateId == outcomeReference$exposureId[i], ]
-    for (j in nrow(estimates)) {
+    for (j in 1:nrow(estimates)) {
       estimatesToInsert <- c(rr = exp(estimates$logRr[j]),
                              ci95lb = exp(estimates$logLb95[j]),
                              ci95ub = exp(estimates$logUb95[j]),
