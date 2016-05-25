@@ -26,7 +26,8 @@ Imports:
 Suggests:
     testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    EmpiricalCalibration
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes

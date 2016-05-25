@@ -38,6 +38,7 @@ install:
   - Rscript -e 'if(!"ff" %in% rownames(installed.packages())) { install.packages("ff", dependencies = TRUE) }'
   - Rscript -e 'if(!"ffbase" %in% rownames(installed.packages())) { install.packages("ffbase", dependencies = TRUE) }'
   - Rscript -e 'if(!"splines" %in% rownames(installed.packages())) { install.packages("splines", dependencies = TRUE) }'
+  - Rscript -e 'if(!"EmpiricalCalibration" %in% rownames(installed.packages())) { install.packages("EmpiricalCalibration", dependencies = TRUE) }'
 
   # Install OHDSI dependencies
   - Rscript -e 'devtools::install_github("OHDSI/SqlRender")'
