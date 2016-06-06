@@ -309,7 +309,7 @@ runSccsAnalyses <- function(connectionDetails,
           instantiatedSettings[[length(instantiatedSettings) + 1]] <- settings
         }
         args$covariateSettings <- instantiatedSettings
-
+        args$outcomeId <- outcomeReference$outcomeId[rowId]
         sccsDataFileName <- outcomeReference$sccsDataFolder[rowId]
         sccsEraDataObjectsToCreate[[length(sccsEraDataObjectsToCreate) + 1]] <- list(args = args,
                                                                                      sccsDataFileName = sccsDataFileName,
