@@ -206,8 +206,8 @@ void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, st
     addToResult(*previousPattern, outcomeCount, duration, observationPeriodId);
   }
 }
-bool SccsConverter::isNan(const double x) {
-  return ((x < 0) == (x >= 0));
+bool SccsConverter::isNanOrInf(const double x) {
+  return ((x < 0) == (x >= 0)) || !(x <= DBL_MAX && x >= -DBL_MAX);
 }
 
 void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData) {
@@ -220,14 +220,14 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
     double end = (personData.ageInDays + era->end + 1) / 365.25;
     // std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << "\n";
     double weight;
-    if (end == aend && isNan(weightFunction->getValue(end))) {
+    if (end == aend && isNanOrInf(weightFunction->getValue(end))) {
       // Very rare case:
       // Weight function can be problematic to compute due to numeric issues near the end of the integral
       // We'll walk backwards to find last computable point, and assume constant value after that as approximation
       double step = 1.490116e-08;
       double lastComputable = end - step;
       double value = weightFunction->getValue(lastComputable);
-      while (lastComputable > start && isNan(value)) {
+      while (lastComputable > start && isNanOrInf(value)) {
         step *= 2;
         lastComputable -= step;
         value = weightFunction->getValue(lastComputable);

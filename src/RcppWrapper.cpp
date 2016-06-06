@@ -81,11 +81,40 @@ double testEgad(std::vector<double> p, double present, double astart, double aen
   return ohdsi::sccs::NumericIntegration::integrate(fun, start, end, 1.490116e-08);
 }
 
+bool isNanOrInf(const double x) {
+  return ((x < 0) == (x >= 0)) || !(x <= DBL_MAX && x >= -DBL_MAX);
+}
+
 // [[Rcpp::export]]
 double testEgid(std::vector<double> p, double present, double astart, double aend, double start, double end) {
   ohdsi::sccs::WsmallEgid2 fun(p);
   fun.set(present, astart, aend);
-  return ohdsi::sccs::NumericIntegration::integrate(fun, start, end, 1.490116e-08);
+  double weight;
+  std::cout << "end: " << end << ", aend: " << aend << ", value: " << fun.getValue(end) << "\n";
+  if (end == aend && isNanOrInf(fun.getValue(end))) {
+    std::cout << "Problem detected\n";
+    // Very rare case:
+    // Weight function can be problematic to compute due to numeric issues near the end of the integral
+    // We'll walk backwards to find last computable point, and assume constant value after that as approximation
+    double step = 1.490116e-08;
+    double lastComputable = end - step;
+    double value = fun.getValue(lastComputable);
+    std::cout << "value at " << lastComputable << " = " << value << "\n";
+    while (lastComputable > start && isNanOrInf(value)) {
+      step *= 2;
+      lastComputable -= step;
+      value = fun.getValue(lastComputable);
+      std::cout << "value at " << lastComputable << " = " << value << "\n";
+    }
+    if (lastComputable <= start)
+      throw "Unable to compute weight";
+    weight = ohdsi::sccs::NumericIntegration::integrate(fun, start, lastComputable, 1.490116e-08);
+    std::cout << "integral" << weight << "\n";
+    weight += (end-lastComputable) * value;
+  } else {
+    weight = ohdsi::sccs::NumericIntegration::integrate(fun, start, end, 1.490116e-08);
+  }
+  return weight;
 }
 
 #endif // __RcppWrapper_cpp__
