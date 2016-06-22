@@ -136,7 +136,6 @@ getDbSccsData <- function(connectionDetails,
   } else {
     cohortDefinitionId <- "cohort_definition_id"
   }
-  cdmDatabase <- strsplit(cdmDatabaseSchema, "\\.")[[1]][1]
   if (is.null(exposureIds) || length(exposureIds) == 0) {
     hasExposureIds <- FALSE
   } else {
@@ -170,7 +169,7 @@ getDbSccsData <- function(connectionDetails,
                                                    packageName = "SelfControlledCaseSeries",
                                                    dbms = connectionDetails$dbms,
                                                    oracleTempSchema = oracleTempSchema,
-                                                   cdm_database = cdmDatabase,
+                                                   cdm_database_schema = cdmDatabaseSchema,
                                                    outcome_database_schema = outcomeDatabaseSchema,
                                                    outcome_table = outcomeTable,
                                                    outcome_concept_ids = outcomeIds,

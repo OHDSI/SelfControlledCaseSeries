@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ***********************************************************************/
 
-{DEFAULT @cdm_database = 'cdm4_sim.dbo'}
+{DEFAULT @cdm_database_schema = 'cdm4_sim.dbo'}
 {DEFAULT @outcome_database_schema = 'cdm4_sim'} 
 {DEFAULT @outcome_table = 'condition_occurrence'} 
 {DEFAULT @outcome_concept_ids = ''}
@@ -34,8 +34,6 @@ limitations under the License.
 {DEFAULT @cohort_definition_id = 'cohort_concept_id'} 
 {DEFAULT @study_start_date = '' }
 {DEFAULT @study_end_date = '' }
-
-USE @cdm_database;
 
 IF OBJECT_ID('tempdb..#cases', 'U') IS NOT NULL
 	DROP TABLE #cases;
@@ -76,13 +74,13 @@ FROM (
 			ELSE observation_period_end_date
 			END AS observation_period_end_date
 } 	
-FROM observation_period
+FROM @cdm_database_schema.observation_period
 {@study_start_date != '' | @study_end_date != ''} ? {	WHERE}
 {@study_start_date != '' } ? {		observation_period_end_date >= CAST('@study_start_date' AS DATE) } 
 {@study_start_date != '' | @study_end_date != ''} ? {		AND}
 {@study_end_date != '' } ? {		observation_period_start_date < CAST('@study_end_date' AS DATE) }
 ) observation_period
-INNER JOIN person
+INNER JOIN @cdm_database_schema.person
 ON observation_period.person_id = person.person_id
 WHERE EXISTS (
 {@outcome_table == 'condition_occurrence'} ? {	
@@ -254,11 +252,11 @@ WHERE concept_id IN (
 /**********************************************************************
 					Create covariate ref table
 ***********************************************************************/
-SELECT concept.concept_id AS covariate_id,
-	concept_name AS covariate_name
+SELECT eras.concept_id AS covariate_id,
+	CASE WHEN concept_name IS NULL THEN 'Concept ' + CAST(eras.concept_id AS VARCHAR) ELSE concept_name END AS covariate_name
 INTO #covariate_ref
-FROM concept
-INNER JOIN (
+FROM @cdm_database_schema.concept
+RIGHT JOIN (
 	SELECT DISTINCT concept_id
 	FROM #eras
 	) eras
