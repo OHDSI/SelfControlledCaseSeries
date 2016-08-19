@@ -21,6 +21,8 @@
 #ifndef SCCSSIMULTATOR_H_
 #define SCCSSIMULTATOR_H_
 
+#include <random>
+
 #include <Rcpp.h>
 using namespace Rcpp;
 
