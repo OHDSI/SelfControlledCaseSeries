@@ -63,6 +63,30 @@ test_that("Simple era construction", {
   expect_equal(result$covariates$covariateId, c(1000))
 })
 
+test_that("Age restriction", {
+  cases <- data.frame(observationPeriodId = 1,
+                      personId = 1,
+                      observationDays = 10000,
+                      ageInDays = 365,
+                      observationStartYear = 2000,
+                      observationStartMonth = 5,
+                      observationStartDay = 1)
+  eras <- data.frame(eraType = c("hoi", "hei"),
+                     observationPeriodId = c(1, 1),
+                     conceptId = c(10, 11),
+                     value = c(1, 1),
+                     startDay = c(500, 525),
+                     endDay = c(500, 575))
+  result <- convertToSccsDataWrapper(cases, eras, exposureId = 11, ageSettings = createAgeSettings(includeAge = FALSE, minAge = 2, maxAge = 3))
+  expect_equal(result$outcomes$rowId, c(0, 1))
+  expect_equal(result$outcomes$stratumId, c(1, 1))
+  expect_equal(result$outcomes$time, c(681, 51))
+  expect_equal(result$outcomes$y, c(1, 0))
+  expect_equal(result$covariates$rowId, c(1))
+  expect_equal(result$covariates$stratumId, c(1))
+  expect_equal(result$covariates$covariateId, c(1000))
+})
+
 test_that("Outcome on boundary", {
   cases <- data.frame(observationPeriodId = 1,
                       personId = 1,

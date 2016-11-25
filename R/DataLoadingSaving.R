@@ -120,9 +120,6 @@ getDbSccsData <- function(connectionDetails,
                           studyStartDate = "",
                           studyEndDate = "",
                           cdmVersion = "4") {
-  if (useCustomCovariates == TRUE && length(customCovariateIds) == 0) {
-    stop("Must provide custom covariate IDs if useCustomCovariates is TRUE")
-  }
   if (studyStartDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
     stop("Study start date must have format YYYYMMDD")
   }

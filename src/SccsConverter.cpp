@@ -33,10 +33,10 @@ namespace ohdsi {
 namespace sccs {
 
 SccsConverter::SccsConverter(const List& _cases, const List& _eras, const int64_t _outcomeId, const int _naivePeriod,
-                             bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const bool _includeSeason,
+                             bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const double _minAge, const double _maxAge, const bool _includeSeason,
                              const NumericMatrix& _seasonDesignMatrix, const List& _covariateSettingsList, const bool _eventDependentObservation,const List& _censorModel) : personDataIterator(_cases, _eras),
                              outcomeId(_outcomeId), naivePeriod(_naivePeriod),
-                             firstOutcomeOnly(_firstOutcomeOnly), includeAge(_includeAge), ageOffset(_ageOffset), includeSeason(_includeSeason), eventDependentObservation(_eventDependentObservation) {
+                             firstOutcomeOnly(_firstOutcomeOnly), includeAge(_includeAge), ageOffset(_ageOffset), minAge(_minAge), maxAge(_maxAge), includeSeason(_includeSeason), eventDependentObservation(_eventDependentObservation) {
                                ageDesignMatrix = _ageDesignMatrix;
                                seasonDesignMatrix = _seasonDesignMatrix;
                                for (int i = 0; i < _covariateSettingsList.size(); i++) {
@@ -432,8 +432,12 @@ void SccsConverter::processPerson(PersonData& personData) {
     removeAllButFirstOutcome(outcomes);
   }
   int startDay = naivePeriod;
+  if (personData.ageInDays + startDay < minAge)
+    startDay = minAge - personData.ageInDays;
   int endDay = personData.daysOfObservation - 1;
-  if (startDay > endDay) {// Days of observation is less than the naive period
+  if (maxAge > 0 && personData.ageInDays + endDay > maxAge)
+    endDay = maxAge - personData.ageInDays;
+  if (startDay > endDay) {// No more days of observation
     return;
   }
   clipEras(outcomes, startDay, endDay);

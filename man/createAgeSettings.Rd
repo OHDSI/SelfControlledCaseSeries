@@ -5,7 +5,7 @@
 \title{Create age settings}
 \usage{
 createAgeSettings(includeAge = FALSE, ageKnots = 5,
-  allowRegularization = FALSE)
+  allowRegularization = FALSE, minAge = NULL, maxAge = NULL)
 }
 \arguments{
 \item{includeAge}{Should age be included in the model?}
@@ -18,6 +18,18 @@ age-days}
 
 \item{allowRegularization}{When fitting the model, should the covariates defined here be allowed
 to be regularized?}
+
+\item{minAge}{Minimum age at which patient time will be included in the analysis. Note
+that information prior to the min age is still used to determine exposure
+status after the minimum age (e.g. when a prescription was started just prior
+to reaching the minimum age). Also, outcomes occurring before the minimum age
+is reached will be considered as prior outcomes when using first outcomes only.
+Age should be specified in years, but non-integer values are allowed. If not
+specified, no age restriction will be applied.}
+
+\item{maxAge}{Maximum age at which patient time will be included in the analysis. Age should
+be specified in years, but non-integer values are allowed. If not
+specified, no age restriction will be applied.}
 }
 \value{
 An object of type \code{ageSettings}.

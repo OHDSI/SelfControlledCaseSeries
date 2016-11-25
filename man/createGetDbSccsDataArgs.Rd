@@ -11,14 +11,14 @@ createGetDbSccsDataArgs(useCustomCovariates = FALSE,
 \arguments{
 \item{useCustomCovariates}{Create covariates from a custom table?}
 
-\item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data tobe
-kept.}
+\item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to
+bekept.}
 
-\item{studyStartDate}{A calendar date specifying the minimum date where data is
-used.Date format is 'yyyymmdd'.}
+\item{studyStartDate}{A calendar date specifying the minimum date where data isused.
+Date format is 'yyyymmdd'.}
 
-\item{studyEndDate}{A calendar date specifying the maximum date where data is
-used.Date format is 'yyyymmdd'.}
+\item{studyEndDate}{A calendar date specifying the maximum date where data isused.
+Date format is 'yyyymmdd'.}
 
 \item{exposureIds}{A list of identifiers to define the exposures of interest.
 IfexposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.If

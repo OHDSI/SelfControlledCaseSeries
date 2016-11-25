@@ -29,12 +29,12 @@
 using namespace Rcpp;
 
 // [[Rcpp::export(".convertToSccs")]]
-List convertToSccs(const List& cases, const List& eras, double outcomeId, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, bool includeSeason, NumericMatrix seasonDesignMatrix, List& covariateSettingsList, bool eventDependentObservation, List& censorModel) {
+List convertToSccs(const List& cases, const List& eras, double outcomeId, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, double minAge, double maxAge, bool includeSeason, NumericMatrix seasonDesignMatrix, List& covariateSettingsList, bool eventDependentObservation, List& censorModel) {
 
 	using namespace ohdsi::sccs;
 
 	try {
-	  SccsConverter sccsConverter(cases, eras, outcomeId, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix, covariateSettingsList, eventDependentObservation, censorModel);
+	  SccsConverter sccsConverter(cases, eras, outcomeId, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix, minAge, maxAge, includeSeason, seasonDesignMatrix, covariateSettingsList, eventDependentObservation, censorModel);
 		return (sccsConverter.convertToSccs());
 	} catch (std::exception &e) {
 		forward_exception_to_r(e);

@@ -6,12 +6,12 @@
 #' Create an object defining the parameter values.
 #'
 #' @param useCustomCovariates          Create covariates from a custom table?
-#' @param deleteCovariatesSmallCount   The minimum count for a covariate to appear in the data tobe
-#'                                     kept.
-#' @param studyStartDate               A calendar date specifying the minimum date where data is
-#'                                     used.Date format is 'yyyymmdd'.
-#' @param studyEndDate                 A calendar date specifying the maximum date where data is
-#'                                     used.Date format is 'yyyymmdd'.
+#' @param deleteCovariatesSmallCount   The minimum count for a covariate to appear in the data to
+#'                                     bekept.
+#' @param studyStartDate               A calendar date specifying the minimum date where data isused.
+#'                                     Date format is 'yyyymmdd'.
+#' @param studyEndDate                 A calendar date specifying the maximum date where data isused.
+#'                                     Date format is 'yyyymmdd'.
 #' @param exposureIds                  A list of identifiers to define the exposures of interest.
 #'                                     IfexposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.If
 #'                                     exposureTable <> DRUG_ERA, exposureIds is used to selectthe

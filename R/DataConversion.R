@@ -113,6 +113,8 @@ createSccsEraData <- function(sccsData,
                          ageSettings$includeAge,
                          settings$ageOffset,
                          settings$ageDesignMatrix,
+                         settings$minAge,
+                         settings$maxAge,
                          seasonalitySettings$includeSeasonality,
                          settings$seasonDesignMatrix,
                          settings$covariateSettingsList,
@@ -149,6 +151,16 @@ addAgeSettings <- function(settings,
                            firstOutcomeOnly,
                            naivePeriod,
                            sccsData) {
+  if (is.null(ageSettings$minAge)) {
+    settings$minAge <- -1
+  } else {
+    settings$minAge <- ageSettings$minAge * 365.25
+  }
+  if (is.null(ageSettings$maxAge)) {
+    settings$maxAge <- -1
+  } else {
+    settings$maxAge <- (ageSettings$maxAge + 1) * 365.25
+  }
   if (!ageSettings$includeAge) {
     settings$ageOffset <- 0
     settings$ageDesignMatrix <- matrix()
@@ -436,12 +448,26 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
 #'                              age-days
 #' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
 #'                              to be regularized?
+#' @param minAge                Minimum age at which patient time will be included in the analysis. Note
+#'                              that information prior to the min age is still used to determine exposure
+#'                              status after the minimum age (e.g. when a prescription was started just prior
+#'                              to reaching the minimum age). Also, outcomes occurring before the minimum age
+#'                              is reached will be considered as prior outcomes when using first outcomes only.
+#'                              Age should be specified in years, but non-integer values are allowed. If not
+#'                              specified, no age restriction will be applied.
+#' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
+#'                              be specified in years, but non-integer values are allowed. If not
+#'                              specified, no age restriction will be applied.
 #'
 #' @return
 #' An object of type \code{ageSettings}.
 #'
 #' @export
-createAgeSettings <- function(includeAge = FALSE, ageKnots = 5, allowRegularization = FALSE) {
+createAgeSettings <- function(includeAge = FALSE,
+                              ageKnots = 5,
+                              allowRegularization = FALSE,
+                              minAge = NULL,
+                              maxAge = NULL) {
   # First: get default values:
   analysis <- list()
   for (name in names(formals(createAgeSettings))) {
