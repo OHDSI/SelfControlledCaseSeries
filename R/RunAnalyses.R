@@ -143,17 +143,12 @@ runSccsAnalyses <- function(connectionDetails,
         exposureIds <- "all"
       } else {
         for (exposureId in sccsAnalysis$getDbSccsDataArgs$exposureIds) {
-          if (is.character(exposureId)) {
+          if (is.na(as.numeric(exposureId))) {
             if (is.null(exposureOutcome[[exposureId]]))
               stop(paste("Variable", exposureId, " not found in exposure-outcome pair"))
-            if (exposureId == "exposureId") {
-              exposureId <- .selectByType(exposureId, exposureOutcome$exposureId, "exposure")
-              exposureIds <- c(exposureIds, exposureId)
-            } else {
-              exposureIds <- c(exposureIds, exposureOutcome[[exposureId]])
-            }
+            exposureIds <- c(exposureIds, exposureOutcome[[exposureId]])
           } else {
-            exposureIds <- c(exposureIds, exposureId)
+            exposureIds <- c(exposureIds, as.numeric(exposureId))
           }
         }
       }
