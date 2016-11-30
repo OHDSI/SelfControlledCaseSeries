@@ -77,6 +77,14 @@ createSccsEraData <- function(sccsData,
       stop("No outcome ID specified, but multiple outcomes found")
     }
   }
+  if (sum(sccsData$eras$eraType == "hoi" & sccsData$eras$conceptId == outcomeId) == 0) {
+    sccsData$metaData$error <- "Error: No cases left"
+    sccsData$metaData$outcomeId <- outcomeId
+    result <- list(metaData = sccsData$metaData)
+    class(result) <- "sccsEraData"
+    return(result)
+  }
+
   if (eventDependentObservation) {
     sccsData$cases$uncensored <- isUncensored(sccsData)
   } else {
@@ -174,6 +182,12 @@ addAgeSettings <- function(settings,
       outcomes <- ffbase::subset.ffdf(outcomes, startDay >= naivePeriod)
       outcomes <- merge(outcomes, sccsData$cases)
       outcomeAges <- outcomes$startDay + outcomes$ageInDays
+      if (settings$minAge != -1) {
+        outcomeAges <- outcomeAges[outcomeAges >= settings$minAge]
+      }
+      if (settings$maxAge != -1) {
+        outcomeAges <- outcomeAges[outcomeAges <= settings$maxAge]
+      }
       ageKnots <- ffbase::quantile.ff(outcomeAges,
                                       seq(0.01, 0.99, length.out = ageSettings$ageKnots))
     } else {
@@ -237,7 +251,7 @@ addEventDependentObservationSettings <- function(settings,
     rownames(sccsData$eras) <- NULL
     firstOutcomes <- aggregate(startDay ~ observationPeriodId,
                                data = sccsData$eras[ffbase::ffwhich(t, t == TRUE),
-                               ],
+                                                    ],
                                min)
 
     # See who has first event in remaining observation period after applying naive period
@@ -280,7 +294,7 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
       covariateSettings$label <- "Covariate"
     }
     if (is.null(covariateSettings$includeCovariateIds) || length(covariateSettings$includeCovariateIds) ==
-      0) {
+        0) {
       covariateSettings$covariateIds <- ff::as.ram(sccsData$covariateRef$covariateId)
       t <- sccsData$eras$eraType == "hoi"
       t <- ffbase::ffwhich(t, t == FALSE)
@@ -289,9 +303,9 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
       covariateSettings$covariateIds <- covariateSettings$includeCovariateIds
     }
     if (!is.null(covariateSettings$excludeCovariateIds) && length(covariateSettings$excludeCovariateIds) !=
-      0) {
+        0) {
       covariateSettings$covariateIds <- covariateSettings$covariateIds[covariateSettings$covariateIds !=
-        covariateSettings$excludeCovariateIds]
+                                                                         covariateSettings$excludeCovariateIds]
     }
 
     if (length(covariateSettings$splitPoints) == 0) {
@@ -314,7 +328,7 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         names(varNames)[names(varNames) == "covariateName"] <- "originalCovariateName"
         varNames$originalCovariateName <- as.character(varNames$originalCovariateName)
         varNames$originalCovariateName[varNames$originalCovariateName == ""] <- varNames$originalCovariateId[varNames$originalCovariateName ==
-          ""]
+                                                                                                               ""]
         varNames$covariateName <- paste(covariateSettings$label,
                                         varNames$originalCovariateName,
                                         sep = ": ")
@@ -348,7 +362,7 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         originalCovariateName <- covariateRef$covariateName[match(originalCovariateId,
                                                                   covariateRef$covariateId)]
         originalCovariateName[originalCovariateName == ""] <- originalCovariateId[originalCovariateName ==
-          ""]
+                                                                                    ""]
         varNames <- paste(covariateSettings$label, ": ", originalCovariateName, sep = "")
         varNames <- paste(varNames,
                           ", day ",
@@ -544,16 +558,24 @@ saveSccsEraData <- function(sccsEraData, folder) {
   if (class(sccsEraData) != "sccsEraData")
     stop("Data not of class sccsEraData")
 
-  outcomes <- sccsEraData$outcomes
-  covariates <- sccsEraData$covariates
-  covariateRef <- sccsEraData$covariateRef
+  if (is.null(sccsEraData$outcomes)) {
+    outcomes <- ff::as.ffdf(data.frame(error = 1))
+    covariates <- ff::as.ffdf(data.frame(error = 1))
+    covariateRef <- ff::as.ffdf(data.frame(error = 1))
+  } else {
+    outcomes <- sccsEraData$outcomes
+    covariates <- sccsEraData$covariates
+    covariateRef <- sccsEraData$covariateRef
+  }
   ffbase::save.ffdf(outcomes, covariates, covariateRef, dir = folder)
   metaData <- sccsEraData$metaData
   save(metaData, file = file.path(folder, "metaData.Rdata"))
   # Open all ffdfs to prevent annoying messages later:
-  open(sccsEraData$outcomes)
-  open(sccsEraData$covariates)
-  open(sccsEraData$covariateRef)
+  if (!is.null(sccsEraData$outcomes)) {
+    open(sccsEraData$outcomes)
+    open(sccsEraData$covariates)
+    open(sccsEraData$covariateRef)
+  }
   invisible(TRUE)
 }
 
@@ -592,7 +614,11 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
   open(result$outcomes, readonly = readOnly)
   open(result$covariates, readonly = readOnly)
   open(result$covariateRef, readonly = readOnly)
-
+  if (!is.null(result$outcomes$error)) {
+    result$outcomes <- NULL
+    result$covariates <- NULL
+    result$covariateRef <- NULL
+  }
   class(result) <- "sccsEraData"
   rm(e)
   return(result)
@@ -607,14 +633,27 @@ print.sccsEraData <- function(x, ...) {
 
 #' @export
 summary.sccsEraData <- function(object, ...) {
-  outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
-                              eventCount = ffbase::sum.ff(object$outcomes$y),
-                              caseCount = length(ffbase::unique.ff(object$outcomes$stratumId)))
+  if (is.null(object$outcomes)) {
+    outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
+                                eventCount = 0,
+                                caseCount = 0)
 
-  result <- list(metaData = object$metaData,
-                 outcomeCounts = outcomeCounts,
-                 covariateCount = nrow(object$covariateRef),
-                 covariateValueCount = nrow(object$covariates))
+    result <- list(metaData = object$metaData,
+                   outcomeCounts = outcomeCounts,
+                   covariateCount = 0,
+                   covariateValueCount = 0)
+  } else {
+    outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
+                                eventCount = ffbase::sum.ff(object$outcomes$y),
+                                caseCount = length(ffbase::unique.ff(object$outcomes$stratumId)))
+
+    result <- list(metaData = object$metaData,
+                   outcomeCounts = outcomeCounts,
+                   covariateCount = nrow(object$covariateRef),
+                   covariateValueCount = nrow(object$covariates))
+
+  }
+
   class(result) <- "summary.sccsEraData"
   return(result)
 }

@@ -453,23 +453,25 @@ summarizeSccsAnalyses <- function(outcomeReference) {
     sccsModel <- readRDS(outcomeReference$sccsModelFile[i])
 
     estimates <- sccsModel$estimates[sccsModel$estimates$originalCovariateId == outcomeReference$exposureId[i], ]
-    for (j in 1:nrow(estimates)) {
-      estimatesToInsert <- c(rr = exp(estimates$logRr[j]),
-                             ci95lb = exp(estimates$logLb95[j]),
-                             ci95ub = exp(estimates$logUb95[j]),
-                             logRr = estimates$logRr[j],
-                             seLogRr = estimates$seLogRr[j])
-      names(estimatesToInsert) <- paste0(names(estimatesToInsert),
-                                         "(",
-                                         sub(":.*$", "", estimates$covariateName[j]),
-                                         ")")
-      for (colName in names(estimatesToInsert)) {
-        if (!(colName %in% colnames(result))) {
-          result$newVar <- NA
-          colnames(result)[colnames(result) == "newVar"] <- colName
+    if (!is.null(estimates) && nrow(estimates) != 0) {
+      for (j in 1:nrow(estimates)) {
+        estimatesToInsert <- c(rr = exp(estimates$logRr[j]),
+                               ci95lb = exp(estimates$logLb95[j]),
+                               ci95ub = exp(estimates$logUb95[j]),
+                               logRr = estimates$logRr[j],
+                               seLogRr = estimates$seLogRr[j])
+        names(estimatesToInsert) <- paste0(names(estimatesToInsert),
+                                           "(",
+                                           sub(":.*$", "", estimates$covariateName[j]),
+                                           ")")
+        for (colName in names(estimatesToInsert)) {
+          if (!(colName %in% colnames(result))) {
+            result$newVar <- NA
+            colnames(result)[colnames(result) == "newVar"] <- colName
+          }
         }
+        result[i, names(estimatesToInsert)] <- estimatesToInsert
       }
-      result[i, names(estimatesToInsert)] <- estimatesToInsert
     }
   }
   return(result)

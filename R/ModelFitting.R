@@ -46,6 +46,12 @@ fitSccsModel <- function(sccsEraData,
                                                  selectorType = "byPid",
                                                  startingVariance = 0.1,
                                                  noiseLevel = "quiet")) {
+  if (!is.null(sccsEraData$metaData$error)) {
+    result <- list(status = sccsEraData$metaData$error,
+                   metaData = sccsEraData$metaData)
+    class(result) <- "sccsModel"
+    return(result)
+  }
   start <- Sys.time()
   # Build list of IDs that should not be regularized, and see if there is anything that needs
   # regularization:
@@ -92,12 +98,11 @@ fitSccsModel <- function(sccsEraData,
   })
   if (is.character(fit)) {
     coefficients <- c(0)
-    treatmentEstimate <- data.frame(logRr = 0, logLb95 = -Inf, logUb95 = Inf, seLogRr = Inf)
-    priorVariance <- 0
+    estimates <- NULL
     status <- fit
   } else if (fit$return_flag == "ILLCONDITIONED") {
     coefficients <- c(0)
-    treatmentEstimate <- data.frame(logRr = 0, logLb95 = -Inf, logUb95 = Inf, seLogRr = Inf)
+    estimates <- NULL
     priorVariance <- 0
     status <- "ILL CONDITIONED, CANNOT FIT"
   } else {
@@ -106,7 +111,9 @@ fitSccsModel <- function(sccsEraData,
     estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
     estimates <- merge(estimates, ff::as.ram(sccsEraData$covariateRef), all.x = TRUE)
     tryCatch({
-      ci <- as.data.frame(confint(fit, parm = nonRegularized, includePenalty = TRUE))
+      ci <- confint(fit, parm = nonRegularized[nonRegularized %in% estimates$covariateId], includePenalty = TRUE)
+      attr(ci, "dimnames")[[1]] <- 1:length(attr(ci, "dimnames")[[1]])
+      ci <- as.data.frame(ci)
       rownames(ci) <- NULL
     }, error = function(e) {
       missing(e)  # suppresses R CMD check note
@@ -116,10 +123,10 @@ fitSccsModel <- function(sccsEraData,
     names(ci)[names(ci) == "97.5 %"] <- "logUb95"
     ci$evaluations <- NULL
     estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
-    estimates$seLogRr <- (estimates$logUb95 - estimates$logRr)/qnorm(0.975)
+    estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
     # Remove regularized estimates with logRr = 0:
     estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr) | estimates$covariateId <
-      1000, ]
+                           1000, ]
     priorVariance <- fit$variance[1]
   }
   result <- list(estimates = estimates,
@@ -250,24 +257,24 @@ plotAgeEffect <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = age, y = rr)) +
-          ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
-          ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
-          ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +
-          ggplot2::scale_y_continuous("Relative risk",
-                                      lim = rrLim,
-                                      trans = "log10",
-                                      breaks = breaks,
-                                      labels = breaks) +
-          ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                         panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                         panel.grid.major = ggplot2::element_blank(),
-                         axis.ticks = ggplot2::element_blank(),
-                         axis.text.y = themeRA,
-                         axis.text.x = theme,
-                         strip.text.x = theme,
-                         strip.background = ggplot2::element_blank(),
-                         legend.title = ggplot2::element_blank(),
-                         legend.position = "top")
+    ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
+    ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
+    ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +
+    ggplot2::scale_y_continuous("Relative risk",
+                                lim = rrLim,
+                                trans = "log10",
+                                breaks = breaks,
+                                labels = breaks) +
+    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+                   panel.grid.major = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank(),
+                   axis.text.y = themeRA,
+                   axis.text.x = theme,
+                   strip.text.x = theme,
+                   strip.background = ggplot2::element_blank(),
+                   legend.title = ggplot2::element_blank(),
+                   legend.position = "top")
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
@@ -303,24 +310,24 @@ plotSeasonality <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = season, y = rr)) +
-          ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
-          ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
-          ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
-          ggplot2::scale_y_continuous("Relative risk",
-                                      lim = rrLim,
-                                      trans = "log10",
-                                      breaks = breaks,
-                                      labels = breaks) +
-          ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                         panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                         panel.grid.major = ggplot2::element_blank(),
-                         axis.ticks = ggplot2::element_blank(),
-                         axis.text.y = themeRA,
-                         axis.text.x = theme,
-                         strip.text.x = theme,
-                         strip.background = ggplot2::element_blank(),
-                         legend.title = ggplot2::element_blank(),
-                         legend.position = "top")
+    ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
+    ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
+    ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
+    ggplot2::scale_y_continuous("Relative risk",
+                                lim = rrLim,
+                                trans = "log10",
+                                breaks = breaks,
+                                labels = breaks) +
+    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+                   panel.grid.major = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank(),
+                   axis.text.y = themeRA,
+                   axis.text.x = theme,
+                   strip.text.x = theme,
+                   strip.background = ggplot2::element_blank(),
+                   legend.title = ggplot2::element_blank(),
+                   legend.position = "top")
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
