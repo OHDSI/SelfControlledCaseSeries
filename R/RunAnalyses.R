@@ -143,7 +143,7 @@ runSccsAnalyses <- function(connectionDetails,
         exposureIds <- "all"
       } else {
         for (exposureId in sccsAnalysis$getDbSccsDataArgs$exposureIds) {
-          if (is.na(as.numeric(exposureId))) {
+          if (suppressWarnings(is.na(as.numeric(exposureId)))) {
             if (is.null(exposureOutcome[[exposureId]]))
               stop(paste("Variable", exposureId, " not found in exposure-outcome pair"))
             exposureIds <- c(exposureIds, exposureOutcome[[exposureId]])
@@ -180,6 +180,7 @@ runSccsAnalyses <- function(connectionDetails,
       rowId <- rowId + 1
     }
   }
+
   # Step 2: group loads where possible
   if (combineDataFetchAcrossOutcomes) {
     uniqueLoads <- unique(OhdsiRTools::selectFromList(conceptsPerLoad,
@@ -206,14 +207,14 @@ runSccsAnalyses <- function(connectionDetails,
     for (groupable in groupables) {
       outcomeIds <- c(outcomeIds, groupable$outcomeId)
       if (!(length(exposureIds) == 1 && exposureIds[1] == "all")) {
-        if (groupable$exposureIds == "all") {
+        if (groupable$exposureIds[1] == "all") {
           exposureIds <- "all"
         } else {
           exposureIds <- c(exposureIds, groupable$exposureIds)
         }
       }
       if (!(length(customCovariateIds) == 1 && customCovariateIds[1] == "all")) {
-        if ((length(groupable$customCovariateIds) == 1 && groupable$customCovariateIds == "all")) {
+        if ((length(groupable$customCovariateIds) == 1 && groupable$customCovariateIds[1] == "all")) {
           customCovariateIds <- "all"
         } else {
           customCovariateIds <- c(customCovariateIds, groupable$customCovariateIds)
