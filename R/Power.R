@@ -86,11 +86,11 @@ computeMdrr <- function(sccsEraData,
   {
     computePower <- function(p, z, r, n, alpha)
     {
-      pi = p*r/(p*r + 1 - r)
-      tAlt = asin(sqrt(pi))
-      tNull = asin(sqrt(r))
-      zb = sqrt(n * 4 * (tAlt - tNull)^2) - z
-      power = pnorm(zb)
+      pi <- p*r/(p*r + 1 - r)
+      tAlt <- asin(sqrt(pi))
+      tNull <- asin(sqrt(r))
+      zb <- sqrt(n * 4 * (tAlt - tNull)^2) - z
+      power <- pnorm(zb)
       if (power < alpha | n < 1)
         power <- alpha
       return(power)
