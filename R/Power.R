@@ -55,8 +55,8 @@ computeMdrr <- function(sccsEraData,
   heiCovariateIds <- sccsEraData$covariateRef[ffbase::`%in%`(sccsEraData$covariateRef$originalCovariateId, heiConceptId), ]$covariateId
   mapping <- ffbase::ffmatch(ffbase::unique.ff(sccsEraData$covariates$rowId[ffbase::`%in%`(sccsEraData$covariates$covariateId, heiCovariateIds)]), sccsEraData$outcomes$rowId)
   tExp <- ffbase::sum.ff(sccsEraData$outcomes$time[mapping]) # exposed time
-  tAll <- sum(sccsEraData$outcomes$time)                     # total time
-  r <- tExp / tAll                                           # exposed time / total time
+  tTot <- sum(sccsEraData$outcomes$time)                     # total time
+  r <- tExp / tTot                                           # exposed time / total time
   if (twoSided) {
     alpha <- alpha / 2                                       # alpha
   }
@@ -84,7 +84,17 @@ computeMdrr <- function(sccsEraData,
 
   if (method == "binomial")
   {
-    stop("Binomial method not currently supported")
+    computePower <- function(p, z, r, n, alpha)
+    {
+      pi = p*r/(p*r + 1 - r)
+      tAlt = asin(sqrt(pi))
+      tNull = asin(sqrt(r))
+      zb = sqrt(n * 4 * (tAlt - tNull)^2) - z
+      power = pnorm(zb)
+      if (power < alpha | n < 1)
+        power <- alpha
+      return(power)
+    }
   }
 
   if (method == "SRL")
@@ -121,7 +131,7 @@ computeMdrr <- function(sccsEraData,
   mdrr <- exp(mdLogRr)
 
   result <- data.frame(exposedTime = tExp,
-                       totalTime = tAll,
+                       totalTime = tTot,
                        exposedProportion = r,
                        events = n,
                        mdrr = mdrr)
