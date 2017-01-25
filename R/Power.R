@@ -54,14 +54,17 @@ computeMdrr <- function(sccsEraData,
 
   heiCovariateIds <- sccsEraData$covariateRef[ffbase::`%in%`(sccsEraData$covariateRef$originalCovariateId, heiConceptId), ]$covariateId
   mapping <- ffbase::ffmatch(ffbase::unique.ff(sccsEraData$covariates$rowId[ffbase::`%in%`(sccsEraData$covariates$covariateId, heiCovariateIds)]), sccsEraData$outcomes$rowId)
-  timeExposed <- ffbase::sum.ff(sccsEraData$outcomes$time[mapping]) # exposed time
-  timeTotal <- sum(sccsEraData$outcomes$time)                       # total time
-  r <- timeExposed / timeTotal                                      # exposed time / total time
+  timeExposed <- ffbase::sum.ff(sccsEraData$outcomes$time[mapping])   # exposed time
+  timeTotal <- sum(sccsEraData$outcomes$time)                         # total time
+  r <- timeExposed / timeTotal                                        # exposed time / total time
+  nExposed <- length(unique(sccsEraData$outcomes$stratumId[mapping])) # n exposed
+  nTotal <- length(unique(sccsEraData$outcomes$stratumId))            # n total
+  pr <- nExposed / nTotal                                             # proportion of population exposed
+  n <- ffbase::sum.ff(sccsEraData$outcomes$y)                         # number of events
   if (twoSided) {
-    alpha <- alpha / 2                                              # alpha
+    alpha <- alpha / 2                                                # alpha
   }
-  z <- qnorm(1-alpha)                                               # z alpha
-  n <- ffbase::sum.ff(sccsEraData$outcomes$y)                       # number of events
+  z <- qnorm(1-alpha)                                                 # z alpha
 
   if (method != "distribution" && method != "binomial" && method != "SRL1" && method != "SRL2" && method != "ageEffects")
     stop(paste0("Unknown method '",
@@ -113,9 +116,6 @@ computeMdrr <- function(sccsEraData,
 
   if (method == "SRL2") # expression 8
   {
-    nExposed <- length(unique(sccsEraData$outcomes$stratumId))
-    nTotal <- length(unique(sccsEraData$outcomes$stratumId[mapping]))
-    pr <- nExposed / nTotal # proportion of population exposed
     computePower <- function(b, z, r, n, alpha)
     {
       A = 2 * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
@@ -163,7 +163,8 @@ computeMdrr <- function(sccsEraData,
 
   result <- data.frame(timeExposed = timeExposed,
                        timeTotal = timeTotal,
-                       exposedProportion = r,
+                       propTimeExposed = r,
+                       propPopExposued = pr,
                        events = n,
                        mdrr = mdrr)
   return(result)
