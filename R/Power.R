@@ -54,17 +54,17 @@ computeMdrr <- function(sccsEraData,
 
   heiCovariateIds <- sccsEraData$covariateRef[ffbase::`%in%`(sccsEraData$covariateRef$originalCovariateId, heiConceptId), ]$covariateId
   mapping <- ffbase::ffmatch(ffbase::unique.ff(sccsEraData$covariates$rowId[ffbase::`%in%`(sccsEraData$covariates$covariateId, heiCovariateIds)]), sccsEraData$outcomes$rowId)
-  timeExposed <- ffbase::sum.ff(sccsEraData$outcomes$time[mapping])   # exposed time
-  timeTotal <- sum(sccsEraData$outcomes$time)                         # total time
-  r <- timeExposed / timeTotal                                        # exposed time / total time
-  nExposed <- length(unique(sccsEraData$outcomes$stratumId[mapping])) # n exposed
-  nTotal <- length(unique(sccsEraData$outcomes$stratumId))            # n total
-  pr <- nExposed / nTotal                                             # proportion of population exposed
-  n <- ffbase::sum.ff(sccsEraData$outcomes$y)                         # number of events
+  timeExposed <- ffbase::sum.ff(sccsEraData$outcomes$time[mapping])              # exposed time
+  timeTotal <- ffbase::sum.ff(sccsEraData$outcomes$time)                         # total time
+  r <- timeExposed / timeTotal                                                   # exposed time / total time
+  nExposed <- length(ffbase::unique.ff(sccsEraData$outcomes$stratumId[mapping])) # n exposed
+  nTotal <- length(ffbase::unique.ff(sccsEraData$outcomes$stratumId))            # n total
+  pr <- nExposed / nTotal                                                        # proportion of population exposed
+  n <- ffbase::sum.ff(sccsEraData$outcomes$y)                                    # number of events
   if (twoSided) {
-    alpha <- alpha / 2                                                # alpha
+    alpha <- alpha / 2                                                           # alpha
   }
-  z <- qnorm(1-alpha)                                                 # z alpha
+  z <- qnorm(1-alpha)                                                            # z alpha
 
   if (method != "distribution" && method != "binomial" && method != "SRL1" && method != "SRL2" && method != "ageEffects")
     stop(paste0("Unknown method '",
@@ -163,9 +163,9 @@ computeMdrr <- function(sccsEraData,
 
   result <- data.frame(timeExposed = timeExposed,
                        timeTotal = timeTotal,
-                       propTimeExposed = r,
-                       propPopExposued = pr,
+                       propTimeExposed = round(r, 4),
+                       propPopExposued = round(pr, 4),
                        events = n,
-                       mdrr = mdrr)
+                       mdrr = round(mdrr, 4))
   return(result)
 }
