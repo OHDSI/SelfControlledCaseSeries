@@ -24,16 +24,16 @@
 #' sampling proportion, binomial proportion, 2 signed root likelihood ratio methods, and likelihood extension for
 #' age effects. The expressions by Musonda (2006) are used.
 #'
-#' @param sccsEraData  An object containing study population observation time, outcomesa and covariates as created
-#'                     using the \code{\link{createSccsEraData}} function. This should include the following dataframes:
-#'                     outcomes, covariates, and covariateRef.
-#' @param heiConceptId ConceptId for the health exposure of interest.
-#' @param alpha        Type I error.
-#' @param power        1 - beta, where beta is the type II error.
-#' @param twoSided     Consider a two-sided test?
-#' @param method       The type of sample size formula that will be used. Allowable values are
-#'                     "proportion", "binomial", "SRL1", "SRL2", or "ageEffects". Currently "ageEffects"
-#'                     is not supported.
+#' @param sccsEraData       An object containing study population observation time, outcomesa and covariates as created
+#'                          using the \code{\link{createSccsEraData}} function. This should include the following dataframes:
+#'                          outcomes, covariates, and covariateRef.
+#' @param exposureConceptId ConceptId for the health exposure of interest.
+#' @param alpha             Type I error.
+#' @param power             1 - beta, where beta is the type II error.
+#' @param twoSided          Consider a two-sided test?
+#' @param method            The type of sample size formula that will be used. Allowable values are
+#'                          "proportion", "binomial", "SRL1", "SRL2", or "ageEffects". Currently "ageEffects"
+#'                          is not supported.
 #'
 #' @references
 #' Musonda P, Farrington CP, Whitaker HJ (2006) Samples sizes for self-controlled case series studies,
@@ -43,17 +43,17 @@
 #' A data frame with the MDRR, number of events, time at risk, and total time.
 #'
 #' @export
-
 computeMdrr <- function(sccsEraData,
-                        heiConceptId,
+                        exposureCovariateId,
                         alpha = 0.05,
                         power = 0.8,
                         twoSided = TRUE,
                         method = "binomial") # distribution, binomial, SRL1, SRL2, ageEffects
 {
 
-  heiCovariateIds <- sccsEraData$covariateRef[ffbase::`%in%`(sccsEraData$covariateRef$originalCovariateId, heiConceptId), ]$covariateId
-  mapping <- ffbase::ffmatch(ffbase::unique.ff(sccsEraData$covariates$rowId[ffbase::`%in%`(sccsEraData$covariates$covariateId, heiCovariateIds)]), sccsEraData$outcomes$rowId)
+  #gets all covariateIds associated with conceptId for exposure of interest - wrong
+  #exposureCovariateIds <- sccsEraData$covariateRef[ffbase::`%in%`(sccsEraData$covariateRef$originalCovariateId, exposureConceptId), ]$covariateId
+  mapping <- ffbase::ffmatch(ffbase::unique.ff(sccsEraData$covariates$rowId[ffbase::`%in%`(sccsEraData$covariates$covariateId, exposureCovariateId)]), sccsEraData$outcomes$rowId)
   timeExposed <- ffbase::sum.ff(sccsEraData$outcomes$time[mapping])              # exposed time
   timeTotal <- ffbase::sum.ff(sccsEraData$outcomes$time)                         # total time
   r <- timeExposed / timeTotal                                                   # exposed time / total time
@@ -104,8 +104,8 @@ computeMdrr <- function(sccsEraData,
   {
     computePower <- function(b, z, r, n, alpha)
     {
-      A = 2 * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
-      B = b^2 / A * exp(b) * r * (1 - r) / (exp(b) * r + 1 - r)^2
+      A <- 2 * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
+      B <- b^2 / A * exp(b) * r * (1 - r) / (exp(b) * r + 1 - r)^2
       zb <- (sqrt(n * A) - z) / sqrt(B)
       power <- pnorm(zb)
       if (power < alpha | n < 1)
@@ -118,8 +118,8 @@ computeMdrr <- function(sccsEraData,
   {
     computePower <- function(b, z, r, n, alpha)
     {
-      A = 2 * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
-      B = b^2 / A * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * exp(b) * r * (1-r) / (exp(b) * r + 1 - r)^2
+      A <- 2 * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
+      B <- b^2 / A * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * exp(b) * r * (1-r) / (exp(b) * r + 1 - r)^2
       zb <- (sqrt(n * A) - z) / sqrt(B)
       power <- pnorm(zb)
       if (power < alpha | n < 1)
