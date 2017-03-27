@@ -116,4 +116,3 @@ Four different database schemas can be specified, for four different types of in
 \code{customCovariateDatabaseSchema} is optionally used to find additional, user-defined
 covariates. All four locations could point to the same database schema.
 }
-

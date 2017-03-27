@@ -57,4 +57,3 @@ Farrington, C. P., Anaya-Izquierdo, A., Whitaker, H. J., Hocine, M.N., Douglas, 
 (2011). Self-Controlled case series analysis with event-dependent observation periods. Journal of
 the American Statistical Association 106 (494), 417-426
 }
-

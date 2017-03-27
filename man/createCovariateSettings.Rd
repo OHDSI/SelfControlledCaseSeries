@@ -56,4 +56,3 @@ Create covariate settings
 \details{
 Create an object specifying how to create a (set of) covariates.
 }
-

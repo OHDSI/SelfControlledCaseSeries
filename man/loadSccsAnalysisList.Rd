@@ -15,4 +15,3 @@ A list of objects of type \code{sccsAnalysis}.
 \description{
 Load a list of objects of type \code{sccsAnalysis} from file. The file is in JSON format.
 }
-

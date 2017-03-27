@@ -61,4 +61,3 @@ Create SCCS simulation settings
 \details{
 Create an object of settings for an SCCS simulation.
 }
-

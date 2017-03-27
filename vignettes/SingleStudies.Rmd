@@ -136,7 +136,7 @@ sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
 querySql(connection, sql)
 ```
 ```{r echo=FALSE,message=FALSE}
-data.frame(cohort_concept_id = c(1),count=c(422274))
+data.frame(cohort_concept_id = c(1),count=c(635684))
 ```
 
 ## Extracting the data from the server

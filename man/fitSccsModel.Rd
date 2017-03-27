@@ -35,4 +35,3 @@ Suchard, M.A., Simpson, S.E., Zorych, I., Ryan, P., and Madigan, D. (2013). Mass
 of serial inference algorithms for complex generalized linear models. ACM Transactions on Modeling
 and Computer Simulation 23, 10
 }
-

@@ -18,4 +18,3 @@ An object of type \code{sccsData}.
 \description{
 Simulate SCCS data
 }
-

@@ -1,8 +1,8 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 1.0.1
-Date: 2015-11-10
+Version: 1.1.0
+Date: 2017-03-23
 Author: Martijn Schuemie, Patrick Ryan, Trevor Shaddox, Marc A. Suchard
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
 Description: SelfControlledCaseSeries is an R package for performing self-
@@ -31,4 +31,4 @@ Suggests:
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

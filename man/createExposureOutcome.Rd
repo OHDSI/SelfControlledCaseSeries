@@ -23,4 +23,3 @@ Create a exposure-outcome combination.
 \details{
 Create a set of hypotheses of interest, to be used with the \code{\link{runSccsAnalyses}} function.
 }
-

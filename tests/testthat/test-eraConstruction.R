@@ -44,9 +44,10 @@ test_that("Simple era construction", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -68,9 +69,10 @@ test_that("Age restriction", {
                       personId = 1,
                       observationDays = 10000,
                       ageInDays = 365,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -92,9 +94,10 @@ test_that("Outcome on boundary", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -116,9 +119,10 @@ test_that("Outcome on boundary", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -140,9 +144,10 @@ test_that("Outcome on boundary", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -165,9 +170,10 @@ test_that("Outcome on boundary", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -189,9 +195,10 @@ test_that("One day era", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -213,9 +220,10 @@ test_that("Merging overlapping eras", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei", "hei"),
                      observationPeriodId = c(1, 1, 1),
                      conceptId = c(10, 11, 11),
@@ -237,9 +245,10 @@ test_that("Merging overlapping eras with same start date", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei", "hei"),
                      observationPeriodId = c(1, 1, 1),
                      conceptId = c(10, 11, 11),
@@ -262,9 +271,10 @@ test_that("Concomitant drug use", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei", "hei"),
                      observationPeriodId = c(1, 1, 1),
                      conceptId = c(10, 11, 12),
@@ -286,9 +296,10 @@ test_that("Concomitant drug use (3 drugs)", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hoi", "hei", "hei", "hei"),
                      observationPeriodId = c(1, 1, 1, 1, 1),
                      conceptId = c(10, 10, 11, 12, 13),
@@ -310,9 +321,10 @@ test_that("Start risk window at day 1 not 0", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -339,9 +351,10 @@ test_that("Two HOIs, keeping both", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hoi", "hei"),
                      observationPeriodId = c(1, 1, 1),
                      conceptId = c(10, 10, 11),
@@ -363,9 +376,10 @@ test_that("Two HOIs, keeping first", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hoi", "hei"),
                      observationPeriodId = c(1, 1, 1),
                      conceptId = c(10, 10, 11),
@@ -428,9 +442,10 @@ test_that("Exposure splitting", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -458,9 +473,10 @@ test_that("Exposure splitting twice", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -489,9 +505,10 @@ test_that("Pre-exposure window", {
                       personId = 1,
                       observationDays = 100,
                       ageInDays = 0,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   eras <- data.frame(eraType = c("hoi", "hei"),
                      observationPeriodId = c(1, 1),
                      conceptId = c(10, 11),
@@ -515,7 +532,7 @@ test_that("Pre-exposure window", {
 })
 
 # test_that('Age', { cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays =
-# 100, ageInDays = 0, observationStartYear = 2000, observationStartMonth = 5, observationStartDay =
+# 100, ageInDays = 0, startYear = 2000, startMonth = 5, startDay =
 # 1) eras <- data.frame(eraType = c('hoi', 'hoi', 'hei'), observationPeriodId = c(1, 1, 1), conceptId
 # = c(10, 10, 11), value = c(1,1,1), startDay = c(25, 50,30), endDay = c(25, 50, 60)) result <-
 # convertToSccsDataWrapper(cases, eras, exposureId = c(11), ageEffectSettings =

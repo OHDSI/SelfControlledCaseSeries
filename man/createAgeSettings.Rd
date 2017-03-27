@@ -42,4 +42,3 @@ Create an object specifing whether and how age should be included in the model. 
 by splitting patient time into calendar months. During a month, the relative risk attributed to age
 is assumed to be constant, and the risk from month to month is modeled using a cubic spline.
 }
-

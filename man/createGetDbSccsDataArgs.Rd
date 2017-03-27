@@ -36,4 +36,3 @@ Create a parameter object for the function getDbSccsData
 \details{
 Create an object defining the parameter values.
 }
-

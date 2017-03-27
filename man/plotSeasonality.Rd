@@ -21,4 +21,3 @@ Plot the seasonality effect
 \details{
 Plot the spline curve of the seasonality effect.
 }
-

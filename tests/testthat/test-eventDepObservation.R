@@ -90,9 +90,10 @@ test_that("Produces same results as SCCS package when using event-dependent obse
                       personId = data$personId,
                       observationDays = data$censorDate - data$observationStartDate + 1,
                       ageInDays = data$ageInDays,
-                      observationStartYear = 2000,
-                      observationStartMonth = 5,
-                      observationStartDay = 1)
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
   heiEras <- data.frame(eraType = "hei",
                         observationPeriodId = data$personId,
                         conceptId = 1,

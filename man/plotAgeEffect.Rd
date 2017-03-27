@@ -21,4 +21,3 @@ Plot the age effect
 \details{
 Plot the spline curve of the age effect.
 }
-

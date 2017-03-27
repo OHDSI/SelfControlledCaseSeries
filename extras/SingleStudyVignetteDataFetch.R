@@ -27,7 +27,7 @@ pw <- NULL
 dbms <- "pdw"
 user <- NULL
 server <- "JRDUSAPSCTL01"
-cdmDatabaseSchema <- "cdm_truven_mdcd_v5.dbo"
+cdmDatabaseSchema <- "cdm_truven_mdcd_v521.dbo"
 cohortDatabaseSchema <- "scratch.dbo"
 oracleTempSchema <- NULL
 outcomeTable <- "mschuemi_sccs_vignette"
@@ -259,12 +259,13 @@ sccsEraData <- createSccsEraData(sccsData,
                                  eventDependentObservation = TRUE)
 
 saveSccsEraData(sccsEraData, "s:/temp/vignetteSccs/sccsEraDataAllDrugs")
+#sccsEraData <- loadSccsEraData("s:/temp/vignetteSccs/sccsEraDataAllDrugs")
 control <- createControl(cvType = "auto",
                          selectorType = "byPid",
                          startingVariance = 0.1,
                          noiseLevel = "quiet",
                          threads = 30)
-# variance <- 0.0182739
+# variance <- 0.0105176
 model <- fitSccsModel(sccsEraData, control = control)
 saveRDS(model, "s:/temp/vignetteSccs/allDrugsModel.rds")
 summary(model)

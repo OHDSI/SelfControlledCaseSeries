@@ -14,4 +14,3 @@ saveExposureOutcomeList(exposureOutcomeList, file)
 \description{
 Write a list of objects of type \code{exposureOutcome} to file. The file is in JSON format.
 }
-

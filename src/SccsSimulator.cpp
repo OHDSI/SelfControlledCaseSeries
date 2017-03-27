@@ -36,9 +36,9 @@ baselineRates(_baselineRates), includeAge(_includeAge), ageOffset(_ageOffset), a
   casesObservationPeriodId = _cases["observationPeriodId"];
   casesObservationDays = _cases["observationDays"];
   casesAgeInDays = _cases["ageInDays"];
-  casesObservationStartYear = _cases["observationStartYear"];
-  casesObservationStartMonth = _cases["observationStartMonth"];
-  casesObservationStartDay = _cases["observationStartDay"];
+  casesStartYear = _cases["startYear"];
+  casesStartMonth = _cases["startMonth"];
+  casesStartDay = _cases["startDay"];
   erasObservationPeriodId = _eras["observationPeriodId"];
   erasConceptId = _eras["conceptId"];
   erasStartDay = _eras["startDay"];
@@ -54,9 +54,9 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
   double baselineRate = baselineRates[caseIndex];
   int ageAtStart = casesAgeInDays[caseIndex];
   struct tm startDate = {0, 0, 12};
-  startDate.tm_year = casesObservationStartYear[caseIndex] - 1900;
-  startDate.tm_mon = casesObservationStartMonth[caseIndex] - 1;
-  startDate.tm_mday = casesObservationStartDay[caseIndex];
+  startDate.tm_year = casesStartYear[caseIndex] - 1900;
+  startDate.tm_mon = casesStartMonth[caseIndex] - 1;
+  startDate.tm_mday = casesStartDay[caseIndex];
   struct tm startOfYear(startDate);
   startOfYear.tm_mon = 0;
   startOfYear.tm_mday = 1;

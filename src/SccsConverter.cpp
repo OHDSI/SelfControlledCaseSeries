@@ -265,9 +265,9 @@ int SccsConverter::dateDifference(struct tm &date1, struct tm &date2) {
 
 void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData){
   struct tm startDate = {0, 0, 12};
-  startDate.tm_year = personData.observationStartYear - 1900;
-  startDate.tm_mon = personData.observationStartMonth - 1;
-  startDate.tm_mday = personData.observationStartDay + startDay;
+  startDate.tm_year = personData.startYear - 1900;
+  startDate.tm_mon = personData.startMonth - 1;
+  startDate.tm_mday = personData.startDay + startDay;
   mktime(&startDate); //Normalize after adding days
   struct tm startOfMonth(startDate);
   startOfMonth.tm_mday = 1;
@@ -431,16 +431,20 @@ void SccsConverter::processPerson(PersonData& personData) {
   if (firstOutcomeOnly) {
     removeAllButFirstOutcome(outcomes);
   }
-  int startDay = naivePeriod;
+  //Naive period can use censored days (ie days prior to study start date):
+  int startDay = std::max(0, naivePeriod - personData.censoredDays);
   if (personData.ageInDays + startDay < minAge)
     startDay = minAge - personData.ageInDays;
   int endDay = personData.daysOfObservation - 1;
   if (maxAge > 0 && personData.ageInDays + endDay > maxAge)
     endDay = maxAge - personData.ageInDays;
+  //std::cout << "startDay:" << startDay << "endDay:" << endDay << "\n";
   if (startDay > endDay) {// No more days of observation
     return;
   }
+  //std::cout << "outcome day:" << outcomes[0].start << "\n";
   clipEras(outcomes, startDay, endDay);
+  //std::cout << "outcomes:" << outcomes.size() << "\n";
   if (outcomes.size() == 0) {// We lost all outcomes in the clipping
     return;
   }
@@ -464,6 +468,7 @@ void SccsConverter::processPerson(PersonData& personData) {
 }
 
 List SccsConverter::convertToSccs() {
+  //std::cout << "check1\n";
   while (personDataIterator.hasNext()) {
     PersonData personData = personDataIterator.next();
     processPerson(personData);

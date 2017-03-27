@@ -14,4 +14,3 @@ saveSccsAnalysisList(sccsAnalysisList, file)
 \description{
 Write a list of objects of type \code{sccsAnalysis} to file. The file is in JSON format.
 }
-

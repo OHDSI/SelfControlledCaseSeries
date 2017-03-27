@@ -29,4 +29,3 @@ An object of type \code{simulationRiskWindow}.
 \description{
 Create a risk window definition for simulation
 }
-

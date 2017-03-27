@@ -17,4 +17,3 @@ covariates in the model.
 \description{
 Output the full model
 }
-

@@ -144,9 +144,9 @@ createSccsEraData <- function(sccsData,
 }
 
 isUncensored <- function(sccsData) {
-  dates <- as.Date(paste(ff::as.ram(sccsData$cases$observationStartYear),
-                         ff::as.ram(sccsData$cases$observationStartMonth),
-                         ff::as.ram(sccsData$cases$observationStartDay),
+  dates <- as.Date(paste(ff::as.ram(sccsData$cases$startYear),
+                         ff::as.ram(sccsData$cases$startMonth),
+                         ff::as.ram(sccsData$cases$startDay),
                          sep = "-"), format = "%Y-%m-%d")
   dates <- dates + ff::as.ram(sccsData$cases$observationDays)
   studyEndDate <- max(dates)
@@ -179,9 +179,10 @@ addAgeSettings <- function(settings,
       if (firstOutcomeOnly) {
         outcomes <- ff::as.ffdf(aggregate(startDay ~ observationPeriodId, outcomes, min))
       }
-      outcomes <- ffbase::subset.ffdf(outcomes, startDay >= naivePeriod)
+      colnames(outcomes)[colnames(outcomes) == "startDay"] <- "outcomeDay"
       outcomes <- merge(outcomes, sccsData$cases)
-      outcomeAges <- outcomes$startDay + outcomes$ageInDays
+      outcomes <- ffbase::subset.ffdf(outcomes, outcomeDay >= naivePeriod - censoredDays & outcomeDay >= 0)
+      outcomeAges <- outcomes$outcomeDay + outcomes$ageInDays
       if (settings$minAge != -1) {
         outcomeAges <- outcomeAges[outcomeAges >= settings$minAge]
       }
@@ -250,12 +251,14 @@ addEventDependentObservationSettings <- function(settings,
     t <- sccsData$eras$eraType == "hoi" & sccsData$eras$conceptId == outcomeId
     rownames(sccsData$eras) <- NULL
     firstOutcomes <- aggregate(startDay ~ observationPeriodId,
-                               data = sccsData$eras[ffbase::ffwhich(t, t == TRUE),
-                                                    ],
+                               data = sccsData$eras[ffbase::ffwhich(t, t == TRUE), ],
                                min)
+    colnames(firstOutcomes)[colnames(firstOutcomes) == "startDay"] <- "outcomeDay"
+    m <- ffbase::ffmatch(ff::as.ff(firstOutcomes$observationPeriodId), sccsData$cases$observationPeriodId)
+    firstOutcomes$censoredDays <- ff::as.ram(sccsData$cases$censoredDays[m])
 
     # See who has first event in remaining observation period after applying naive period
-    firstOutcomes <- firstOutcomes[firstOutcomes$startDay >= naivePeriod, ]
+    firstOutcomes <- firstOutcomes[firstOutcomes$outcomeDay >= (naivePeriod - firstOutcomes$censoredDays) & firstOutcomes$outcomeDay >= 0, ]
     rownames(sccsData$cases) <- NULL
     t <- in.ff(sccsData$cases$observationPeriodId, ff::as.ff(firstOutcomes$observationPeriodId))
     cases <- ff::as.ram(sccsData$cases[ffbase::ffwhich(t, t == TRUE), ])
@@ -264,7 +267,7 @@ addEventDependentObservationSettings <- function(settings,
     # Fit censoring models
     data <- data.frame(astart = cases$ageInDays + naivePeriod,
                        aend = cases$ageInDays + cases$observationDays,
-                       aevent = cases$ageInDays + cases$startDay + 1,
+                       aevent = cases$ageInDays + cases$outcomeDay + 1,
                        present = cases$uncensored)
     # data$aend[cases$ageInDays + data$aend == data$aevent] <- data$aend[cases$ageInDays + data$aend ==
     # data$aevent] + 0.5

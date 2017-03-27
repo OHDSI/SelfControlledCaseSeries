@@ -8,4 +8,3 @@
 \description{
 SelfControlledCaseSeries
 }
-

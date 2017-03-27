@@ -45,9 +45,9 @@ struct Era {
 };
 
 struct PersonData {
-  PersonData(int64_t _personId, int64_t _observationPeriodId, int _daysOfObservation, int _ageInDays, int _observationStartYear, int _observationStartMonth, int _observationStartDay, bool _uncensored) :
-  personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation), ageInDays(_ageInDays), observationStartYear(_observationStartYear), observationStartMonth(_observationStartMonth),
-  observationStartDay(_observationStartDay), uncensored(_uncensored) {
+  PersonData(int64_t _personId, int64_t _observationPeriodId, int _daysOfObservation, int _ageInDays, int _startYear, int _startMonth, int _startDay, bool _uncensored, int _censoredDays) :
+  personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation), ageInDays(_ageInDays), startYear(_startYear), startMonth(_startMonth),
+  startDay(_startDay), uncensored(_uncensored), censoredDays(_censoredDays) {
     eras = new std::vector<Era>;
   }
 
@@ -60,10 +60,11 @@ struct PersonData {
   int64_t observationPeriodId;
   int daysOfObservation;
   int ageInDays;
-  int observationStartYear;
-  int observationStartMonth;
-  int observationStartDay;
+  int startYear;
+  int startMonth;
+  int startDay;
   bool uncensored;
+  int censoredDays;
 };
 
 class PersonDataIterator {
@@ -77,10 +78,11 @@ private:
   NumericVector casesPersonId;
   NumericVector casesObservationPeriodId;
   NumericVector casesObservationDays;
+  NumericVector casesCensoredDays;
   NumericVector casesAgeInDays;
-  NumericVector casesObservationStartYear;
-  NumericVector casesObservationStartMonth;
-  NumericVector casesObservationStartDay;
+  NumericVector casesStartYear;
+  NumericVector casesStartMonth;
+  NumericVector casesStartDay;
   LogicalVector casesUncensored;
   NumericVector erasObservationPeriodId;
   NumericVector erasStartDay;

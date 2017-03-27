@@ -15,4 +15,3 @@ A list of objects of type \code{exposureOutcome}.
 \description{
 Load a list of objects of type \code{exposureOutcome} from file. The file is in JSON format.
 }
-

@@ -31,4 +31,3 @@ can be included by splitting patient time into calendar months. During a month, 
 attributed to season is assumed to be constant, and the risk from month to month is modeled using a
 cyclic cubic spline.
 }
-

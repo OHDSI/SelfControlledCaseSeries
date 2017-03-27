@@ -38,9 +38,9 @@ private:
   NumericVector casesObservationPeriodId;
   NumericVector casesObservationDays;
   NumericVector casesAgeInDays;
-  NumericVector casesObservationStartYear;
-  NumericVector casesObservationStartMonth;
-  NumericVector casesObservationStartDay;
+  NumericVector casesStartYear;
+  NumericVector casesStartMonth;
+  NumericVector casesStartDay;
   NumericVector erasObservationPeriodId;
   NumericVector erasConceptId;
   NumericVector erasStartDay;

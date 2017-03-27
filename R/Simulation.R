@@ -126,16 +126,17 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
   observationDays[observationDays < 1] <- 1
   observationDays[observationDays > settings$maxAge - settings$minAge] <- settings$maxAge - settings$minAge
   ageInDays <- round(runif(n, settings$minAge, settings$maxAge - observationDays))
-  observationStartYear <- round(runif(n, 2000, 2010))
-  observationStartMonth <- round(runif(n, 1, 12))
-  observationStartDay <- round(runif(n, 1, 28))
+  startYear <- round(runif(n, 2000, 2010))
+  startMonth <- round(runif(n, 1, 12))
+  startDay <- round(runif(n, 1, 28))
   cases <- data.frame(observationPeriodId = 1:n,
                       personId = 1:n,
                       observationDays = observationDays,
                       ageInDays = ageInDays,
-                      observationStartYear = observationStartYear,
-                      observationStartMonth = observationStartMonth,
-                      observationStartDay = observationStartDay)
+                      startYear = startYear,
+                      startMonth = startMonth,
+                      startDay = startDay,
+                      censoredDays = 0)
 
   ### Generate eras ###
   eras <- data.frame()

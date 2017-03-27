@@ -19,4 +19,3 @@ Create a design matrix for a cyclic spline
 \details{
 This function is used by other functions in this package.
 }
-
