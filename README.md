@@ -93,7 +93,7 @@ Development
 ===========
 SelfControlledCaseSeries is being developed in R Studio.
 
-###Development status
+### Development status
 [![Build Status](https://travis-ci.org/OHDSI/SelfControlledCaseSeries.svg?branch=master)](https://travis-ci.org/OHDSI/SelfControlledCaseSeries)
 [![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=master)
 
