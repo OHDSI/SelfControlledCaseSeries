@@ -71,7 +71,3 @@ after_success:
   - Rscript -e 'library(covr);codecov()'
   - curl --data "build=true" -X POST https://registry.hub.docker.com/u/ohdsi/broadsea-methodslibrary/trigger/f0b51cec-4027-4781-9383-4b38b42dd4f5/
   - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && bash deploy.sh
-
-env:
-  global:
-    secure: gyqW6XLVvi8daJwVFbPGlIyquYhfj7s3HlheNWh1hB825xWDKjP7g/Z5s72HUGvJpQCrsIpzCCVsUJS4kfTsTaW1lor6cs5ii4dwgfIgT5Jc76bxH2dejDTIZrS+FfJsgMSV7LGFzuaRZdtFdiN+tDby7ka6EDGIo0ObR9fpLTc=
