@@ -156,14 +156,14 @@ struct ResultStruct {
   List convertToRList() {
     flushOutcomesToFfdf();
     flushErasToFfdf();
-    return List::create(Named("outcomes") = outcomesBuiler.getFfdf(), Named("covariates") = erasBuiler.getFfdf());
+    return List::create(Named("outcomes") = outcomesBuilder.getFfdf(), Named("covariates") = erasBuilder.getFfdf());
   }
 private:
   void flushOutcomesToFfdf(){
     if (outcomeRowId->size() > 0){
       List outcomes = List::create(Named("rowId") = wrap(*outcomeRowId), Named("stratumId") = wrap(*outcomeStratumId),
                                    Named("time") = wrap(*outcomeTime), Named("y") = wrap(*outcomeY));
-      outcomesBuiler.append(outcomes);
+      outcomesBuilder.append(outcomes);
       outcomeRowId->clear();
       outcomeStratumId->clear();
       outcomeY->clear();
@@ -174,7 +174,7 @@ private:
     if (eraRowId->size() > 0){
       List covariates = List::create(Named("rowId") = wrap(*eraRowId), Named("stratumId") = wrap(*eraStratumId), Named("covariateId") =
         wrap(*eraCovariateId), Named("covariateValue") = wrap(*eraCovariateValue));
-      erasBuiler.append(covariates);
+      erasBuilder.append(covariates);
       eraRowId->clear();
       eraStratumId->clear();
       eraCovariateId->clear();
@@ -182,8 +182,8 @@ private:
     }
   }
 
-  FfdfBuilder outcomesBuiler;
-  FfdfBuilder erasBuiler;
+  FfdfBuilder outcomesBuilder;
+  FfdfBuilder erasBuilder;
   std::vector<int64_t>* outcomeRowId;
   std::vector<int64_t>* outcomeStratumId;
   std::vector<int64_t>* outcomeY;

@@ -198,9 +198,9 @@ saveSccsData(sccsData, "diclofenacAndGiBleed")
 
 We can use the `loadSccsData()` function to load the data in a future session.
 
-## Using a simple model
+## Defining a simple model
 
-Next, we can use the data to specify a simple model which we can fit:
+Next, we can use the data to specify a simple model to fit:
 
 ```{r tidy=FALSE,eval=FALSE}
 covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
@@ -214,14 +214,53 @@ sccsEraData <- createSccsEraData(sccsData,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarDiclofenac)
 
-model <- fitSccsModel(sccsEraData)
+summary(sccsEraData)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")){
+  sccsEraData <- loadSccsEraData("s:/temp/vignetteSccs/eraData1")
+  summary(sccsEraData)
+}
 ```
 
 In this example, we use the `createCovariateSettings` to define a single covariate: exposure to diclofenac. We specify that the risk window is from start of exposure to the end by setting start and end to 0, and requiring that the length of exposure is added to the end date. 
 
 We then use the covariate definition in the `createSccsEraData`, and also specify that the first 180 days of observation of every person, the so-called 'naive period', will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person. 
 
-The `fitSccsModel` function is used to fit the model. We can inspect the resulting model:
+## Power calculations
+
+Before we start fitting an outcome model, we might be interested to know whether we have sufficient power to detect a particular effect size. It makes sense to perform these power calculations once the study population has been fully defined, so taking into account loss to the various inclusion and exclusion criteria. This means we will use the sccsEraData object we've just created as the basis for our power calculations. Since the sample size is fixed in retrospective studies (the data has already been collected), and the true effect size is unknown, the SelfControlledCaseSeries package provides a function to compute the minimum detectable relative risk (MDRR) instead:
+
+```{r tidy=TRUE,eval=FALSE}
+computeMdrr(sccsEraData,
+            exposureCovariateId = 1000,
+            alpha = 0.05,
+            power = 0.8,
+            twoSided = TRUE,
+            method = "binomial")
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")){
+  computeMdrr(sccsEraData,
+              exposureCovariateId = 1000,
+              alpha = 0.05,
+              power = 0.8,
+              twoSided = TRUE,
+              method = "binomial")
+}
+```
+
+Note that we have to provide the covariate ID of the exposure of interest, which we learned by calling `summary` on sccsEraData earlier. This is because we may have many covariates in our model, but will likely only be interested in the MDRR of one.
+
+## Model fitting
+
+The `fitSccsModel` function is used to fit the model:
+
+```{r tidy=FALSE,eval=FALSE}
+model <- fitSccsModel(sccsEraData)
+```
+
+We can inspect the resulting model:
 
 ```{r tidy=TRUE,eval=FALSE}
 summary(model)

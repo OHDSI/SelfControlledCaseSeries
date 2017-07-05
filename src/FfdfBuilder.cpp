@@ -52,6 +52,9 @@ void FfdfBuilder::append(const List& listOfVectors){
 }
 
 List FfdfBuilder::getFfdf(){
+  if (uninitialized) {
+    return List();
+  }
   Environment base = Environment::namespace_env("base");
   Function doCall = base["do.call"];
   List ffdf = doCall("ffdf", ffs, false, Environment::namespace_env("ff"));

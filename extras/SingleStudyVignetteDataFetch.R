@@ -92,6 +92,7 @@ sccsEraData <- createSccsEraData(sccsData,
                                  naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarDiclofenac)
+saveSccsEraData(sccsEraData, "s:/temp/vignetteSccs/eraData1")
 summary(sccsEraData)
 
 model <- fitSccsModel(sccsEraData, control = createControl(threads = 10))
@@ -265,7 +266,7 @@ control <- createControl(cvType = "auto",
                          startingVariance = 0.1,
                          noiseLevel = "quiet",
                          threads = 30)
-# variance <- 0.0105176
+# variance <- 0.0120081
 model <- fitSccsModel(sccsEraData, control = control)
 saveRDS(model, "s:/temp/vignetteSccs/allDrugsModel.rds")
 summary(model)

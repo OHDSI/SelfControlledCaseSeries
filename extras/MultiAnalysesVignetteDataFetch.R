@@ -27,7 +27,7 @@ pw <- NULL
 dbms <- "pdw"
 user <- NULL
 server <- "JRDUSAPSCTL01"
-cdmDatabaseSchema <- "cdm_truven_mdcd_v5.dbo"
+cdmDatabaseSchema <- "cdm_truven_mdcd_v569.dbo"
 cohortDatabaseSchema <- "scratch.dbo"
 oracleTempSchema <- NULL
 outcomeTable <- "mschuemi_sccs_vignette"
@@ -219,3 +219,6 @@ result <- runSccsAnalyses(connectionDetails = connectionDetails,
 analysisSum <- summarizeSccsAnalyses(result)
 saveRDS(analysisSum, "s:/temp/sccsVignette2/analysisSummary.rds")
 
+
+sccsData <- loadSccsData(result$sccsDataFolder[1])
+summary(sccsData)

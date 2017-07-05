@@ -127,7 +127,7 @@ getDbSccsData <- function(connectionDetails,
     stop("Study end date must have format YYYYMMDD")
   }
 
-  conn <- connect(connectionDetails)
+  conn <- DatabaseConnector::connect(connectionDetails)
   if (cdmVersion == "4") {
     cohortDefinitionId <- "cohort_concept_id"
   } else {
@@ -184,7 +184,7 @@ getDbSccsData <- function(connectionDetails,
                                                    cohort_definition_id = cohortDefinitionId)
 
   writeLines("Executing multiple queries. This could take a while")
-  executeSql(conn, renderedSql)
+  DatabaseConnector::executeSql(conn, renderedSql)
 
   writeLines("Fetching data from server")
   start <- Sys.time()
@@ -192,15 +192,15 @@ getDbSccsData <- function(connectionDetails,
                                                    packageName = "SelfControlledCaseSeries",
                                                    dbms = connectionDetails$dbms,
 												   oracleTempSchema = oracleTempSchema)
-  cases <- querySql.ffdf(conn, renderedSql)
+  cases <- DatabaseConnector::querySql.ffdf(conn, renderedSql)
 
   renderedSql <- "SELECT era_type, observation_period_id, concept_id, era_value AS value, start_day, end_day FROM #eras ORDER BY observation_period_id"
   renderedSql <- SqlRender::translateSql(sql = renderedSql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)$sql
-  eras <- querySql.ffdf(conn, renderedSql)
+  eras <- DatabaseConnector::querySql.ffdf(conn, renderedSql)
 
   renderedSql <- "SELECT covariate_id, covariate_name FROM #covariate_ref"
   renderedSql <- SqlRender::translateSql(sql = renderedSql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)$sql
-  covariateRef <- querySql.ffdf(conn, renderedSql)
+  covariateRef <- DatabaseConnector::querySql.ffdf(conn, renderedSql)
 
   delta <- Sys.time() - start
   writeLines(paste("Loading took", signif(delta, 3), attr(delta, "units")))
@@ -212,7 +212,7 @@ getDbSccsData <- function(connectionDetails,
 													 oracleTempSchema = oracleTempSchema)
     DatabaseConnector::executeSql(conn, renderedSql, progressBar = FALSE, reportOverallTime = FALSE)
   }
-  dbDisconnect(conn)
+  DatabaseConnector::disconnect(conn)
 
   colnames(cases) <- SqlRender::snakeCaseToCamelCase(colnames(cases))
   colnames(eras) <- SqlRender::snakeCaseToCamelCase(colnames(eras))

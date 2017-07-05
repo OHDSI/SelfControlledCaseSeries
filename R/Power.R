@@ -27,7 +27,7 @@
 #' @param sccsEraData       An object containing study population observation time, outcomesa and covariates as created
 #'                          using the \code{\link{createSccsEraData}} function. This should include the following dataframes:
 #'                          outcomes, covariates, and covariateRef.
-#' @param exposureConceptId ConceptId for the health exposure of interest.
+#' @param exposureCovariateId Covariate Id for the health exposure of interest.
 #' @param alpha             Type I error.
 #' @param power             1 - beta, where beta is the type II error.
 #' @param twoSided          Consider a two-sided test?

@@ -327,18 +327,22 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
         outputId <- outputId + length(outputIds)
         varNames <- covariateRef[covariateRef$covariateId %in% covariateSettings$covariateIds, ]
-        names(varNames)[names(varNames) == "covariateId"] <- "originalCovariateId"
-        names(varNames)[names(varNames) == "covariateName"] <- "originalCovariateName"
-        varNames$originalCovariateName <- as.character(varNames$originalCovariateName)
-        varNames$originalCovariateName[varNames$originalCovariateName == ""] <- varNames$originalCovariateId[varNames$originalCovariateName ==
-                                                                                                               ""]
-        varNames$covariateName <- paste(covariateSettings$label,
-                                        varNames$originalCovariateName,
-                                        sep = ": ")
-        newCovariateRef <- data.frame(covariateId = outputIds,
-                                      originalCovariateId = covariateSettings$covariateIds)
-        newCovariateRef <- merge(newCovariateRef, varNames, by = "originalCovariateId")
-        settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
+        if (nrow(varNames) == 0) {
+          warning(paste0("Could not find covariate with ID ", covariateSettings$covariateIds, " in data"))
+        } else {
+          names(varNames)[names(varNames) == "covariateId"] <- "originalCovariateId"
+          names(varNames)[names(varNames) == "covariateName"] <- "originalCovariateName"
+          varNames$originalCovariateName <- as.character(varNames$originalCovariateName)
+          varNames$originalCovariateName[varNames$originalCovariateName == ""] <- varNames$originalCovariateId[varNames$originalCovariateName ==
+                                                                                                                 ""]
+          varNames$covariateName <- paste(covariateSettings$label,
+                                          varNames$originalCovariateName,
+                                          sep = ": ")
+          newCovariateRef <- data.frame(covariateId = outputIds,
+                                        originalCovariateId = covariateSettings$covariateIds)
+          newCovariateRef <- merge(newCovariateRef, varNames, by = "originalCovariateId")
+          settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
+        }
       }
     } else {
       startDays <- c(covariateSettings$start, covariateSettings$splitPoints + 1)
@@ -644,7 +648,8 @@ summary.sccsEraData <- function(object, ...) {
     result <- list(metaData = object$metaData,
                    outcomeCounts = outcomeCounts,
                    covariateCount = 0,
-                   covariateValueCount = 0)
+                   covariateValueCount = 0,
+                   covariateRef = ff::as.ram(object$covariateRef))
   } else {
     outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
                                 eventCount = ffbase::sum.ff(object$outcomes$y),
@@ -653,7 +658,8 @@ summary.sccsEraData <- function(object, ...) {
     result <- list(metaData = object$metaData,
                    outcomeCounts = outcomeCounts,
                    covariateCount = nrow(object$covariateRef),
-                   covariateValueCount = nrow(object$covariates))
+                   covariateValueCount = nrow(object$covariates),
+                   covariateRef = ff::as.ram(object$covariateRef))
 
   }
 
@@ -677,6 +683,15 @@ print.summary.sccsEraData <- function(x, ...) {
   writeLines("Covariates:")
   writeLines(paste("Number of covariates:", x$covariateCount))
   writeLines(paste("Number of covariate eras:", x$covariateValueCount))
+  writeLines("")
+  covariateRef <- x$covariateRef
+  if (nrow(covariateRef) > 10)
+    covariateRef <- covariateRef[1:10, ]
+  rownames(covariateRef) <- as.character(covariateRef$covariateName)
+  covariateRef$covariateName <- NULL
+  covariateRef$originalCovariateName <- NULL
+  colnames(covariateRef) <- c("Original covariate ID", "Current covariate ID")
+  printCoefmat(covariateRef)
 }
 
 #' Create a design matrix for a cyclic spline
