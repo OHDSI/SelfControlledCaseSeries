@@ -99,6 +99,7 @@ fitSccsModel <- function(sccsEraData,
   if (is.character(fit)) {
     coefficients <- c(0)
     estimates <- NULL
+    priorVariance <- 0
     status <- fit
   } else if (fit$return_flag == "ILLCONDITIONED") {
     coefficients <- c(0)
