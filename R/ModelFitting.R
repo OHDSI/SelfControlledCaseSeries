@@ -53,82 +53,89 @@ fitSccsModel <- function(sccsEraData,
     return(result)
   }
   start <- Sys.time()
-  # Build list of IDs that should not be regularized, and see if there is anything that needs
-  # regularization:
-  nonRegularized <- c()
-  needRegularization <- FALSE
-  covariateSettingsList <- sccsEraData$metaData$covariateSettingsList
-  for (i in 1:length(covariateSettingsList)) {
-    if (covariateSettingsList[[i]]$allowRegularization) {
-      needRegularization <- TRUE
-    } else {
-      nonRegularized <- c(nonRegularized, covariateSettingsList[[i]]$outputIds)
+  if (is.null(sccsEraData$outcomes)) {
+    coefficients <- c(0)
+    estimates <- NULL
+    priorVariance <- 0
+    status <- "Could not estimate because there was no data"
+  } else {
+    # Build list of IDs that should not be regularized, and see if there is anything that needs
+    # regularization:
+    nonRegularized <- c()
+    needRegularization <- FALSE
+    covariateSettingsList <- sccsEraData$metaData$covariateSettingsList
+    for (i in 1:length(covariateSettingsList)) {
+      if (covariateSettingsList[[i]]$allowRegularization) {
+        needRegularization <- TRUE
+      } else {
+        nonRegularized <- c(nonRegularized, covariateSettingsList[[i]]$outputIds)
+      }
     }
-  }
-  if (!is.null(sccsEraData$metaData$age)) {
-    if (sccsEraData$metaData$age$allowRegularization) {
-      needRegularization <- TRUE
-    } else {
-      nonRegularized <- c(nonRegularized, sccsEraData$metaData$age$covariateIds)
+    if (!is.null(sccsEraData$metaData$age)) {
+      if (sccsEraData$metaData$age$allowRegularization) {
+        needRegularization <- TRUE
+      } else {
+        nonRegularized <- c(nonRegularized, sccsEraData$metaData$age$covariateIds)
+      }
     }
-  }
-  if (!is.null(sccsEraData$metaData$seasonality)) {
-    if (sccsEraData$metaData$seasonality$allowRegularization) {
-      needRegularization <- TRUE
-    } else {
-      nonRegularized <- c(nonRegularized, sccsEraData$metaData$seasonality$covariateIds)
+    if (!is.null(sccsEraData$metaData$seasonality)) {
+      if (sccsEraData$metaData$seasonality$allowRegularization) {
+        needRegularization <- TRUE
+      } else {
+        nonRegularized <- c(nonRegularized, sccsEraData$metaData$seasonality$covariateIds)
+      }
     }
-  }
 
-  if (!needRegularization) {
-    prior <- createPrior("none")
-  } else {
-    prior$exclude <- nonRegularized
-  }
-  cyclopsData <- Cyclops::convertToCyclopsData(sccsEraData$outcomes,
-                                               sccsEraData$covariates,
-                                               modelType = "cpr",
-                                               addIntercept = FALSE,
-                                               checkRowIds = FALSE,
-                                               quiet = TRUE)
-  fit <- tryCatch({
-    Cyclops::fitCyclopsModel(cyclopsData, prior = prior, control = control)
-  }, error = function(e) {
-    e$message
-  })
-  if (is.character(fit)) {
-    coefficients <- c(0)
-    estimates <- NULL
-    priorVariance <- 0
-    status <- fit
-  } else if (fit$return_flag == "ILLCONDITIONED") {
-    coefficients <- c(0)
-    estimates <- NULL
-    priorVariance <- 0
-    status <- "ILL CONDITIONED, CANNOT FIT"
-  } else {
-    status <- "OK"
-    estimates <- coef(fit)
-    estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
-    estimates <- merge(estimates, ff::as.ram(sccsEraData$covariateRef), all.x = TRUE)
-    tryCatch({
-      ci <- confint(fit, parm = nonRegularized[nonRegularized %in% estimates$covariateId], includePenalty = TRUE)
-      attr(ci, "dimnames")[[1]] <- 1:length(attr(ci, "dimnames")[[1]])
-      ci <- as.data.frame(ci)
-      rownames(ci) <- NULL
+    if (!needRegularization) {
+      prior <- createPrior("none")
+    } else {
+      prior$exclude <- nonRegularized
+    }
+    cyclopsData <- Cyclops::convertToCyclopsData(sccsEraData$outcomes,
+                                                 sccsEraData$covariates,
+                                                 modelType = "cpr",
+                                                 addIntercept = FALSE,
+                                                 checkRowIds = FALSE,
+                                                 quiet = TRUE)
+    fit <- tryCatch({
+      Cyclops::fitCyclopsModel(cyclopsData, prior = prior, control = control)
     }, error = function(e) {
-      missing(e)  # suppresses R CMD check note
-      ci <- data.frame(covariateId = 0, logLb95 = 0, logUb95 = 0)
+      e$message
     })
-    names(ci)[names(ci) == "2.5 %"] <- "logLb95"
-    names(ci)[names(ci) == "97.5 %"] <- "logUb95"
-    ci$evaluations <- NULL
-    estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
-    estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
-    # Remove regularized estimates with logRr = 0:
-    estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr) | estimates$covariateId <
-                           1000, ]
-    priorVariance <- fit$variance[1]
+    if (is.character(fit)) {
+      coefficients <- c(0)
+      estimates <- NULL
+      priorVariance <- 0
+      status <- fit
+    } else if (fit$return_flag == "ILLCONDITIONED") {
+      coefficients <- c(0)
+      estimates <- NULL
+      priorVariance <- 0
+      status <- "ILL CONDITIONED, CANNOT FIT"
+    } else {
+      status <- "OK"
+      estimates <- coef(fit)
+      estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
+      estimates <- merge(estimates, ff::as.ram(sccsEraData$covariateRef), all.x = TRUE)
+      tryCatch({
+        ci <- confint(fit, parm = nonRegularized[nonRegularized %in% estimates$covariateId], includePenalty = TRUE)
+        attr(ci, "dimnames")[[1]] <- 1:length(attr(ci, "dimnames")[[1]])
+        ci <- as.data.frame(ci)
+        rownames(ci) <- NULL
+      }, error = function(e) {
+        missing(e)  # suppresses R CMD check note
+        ci <- data.frame(covariateId = 0, logLb95 = 0, logUb95 = 0)
+      })
+      names(ci)[names(ci) == "2.5 %"] <- "logLb95"
+      names(ci)[names(ci) == "97.5 %"] <- "logUb95"
+      ci$evaluations <- NULL
+      estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
+      estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
+      # Remove regularized estimates with logRr = 0:
+      estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr) | estimates$covariateId <
+                               1000, ]
+      priorVariance <- fit$variance[1]
+    }
   }
   result <- list(estimates = estimates,
                  priorVariance = priorVariance,

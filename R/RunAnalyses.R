@@ -447,11 +447,11 @@ summarizeSccsAnalyses <- function(outcomeReference) {
   result$eventCount <- 0
 
   for (i in 1:nrow(outcomeReference)) {
-    sccsEraData <- loadSccsEraData(outcomeReference$sccsEraDataFolder[i])
+    sccsEraData <- loadSccsEraData(as.character(outcomeReference$sccsEraDataFolder[i]))
     s <- summary(sccsEraData)
     result$caseCount[i] <- s$outcomeCounts$caseCount
     result$eventCount[i] <- s$outcomeCounts$eventCount
-    sccsModel <- readRDS(outcomeReference$sccsModelFile[i])
+    sccsModel <- readRDS(as.character(outcomeReference$sccsModelFile[i]))
 
     estimates <- sccsModel$estimates[sccsModel$estimates$originalCovariateId == outcomeReference$exposureId[i], ]
     if (!is.null(estimates) && nrow(estimates) != 0) {

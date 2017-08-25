@@ -128,15 +128,21 @@ createSccsEraData <- function(sccsData,
                          settings$covariateSettingsList,
                          eventDependentObservation,
                          settings$censorModel)
-
-  result <- list(outcomes = data$outcomes,
-                 covariates = data$covariates,
-                 covariateRef = ff::as.ffdf(settings$covariateRef),
-                 metaData = settings$metaData)
-
-  open(result$outcomes)
-  open(result$covariates)
-  open(result$covariateRef)
+  if (length(data$outcomes) == 0) {
+    warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
+    result <- list(outcomes = NULL,
+                   covariates = NULL,
+                   covariateRef = NULL,
+                   metaData = settings$metaData)
+  } else {
+    result <- list(outcomes = data$outcomes,
+                   covariates = data$covariates,
+                   covariateRef = ff::as.ffdf(settings$covariateRef),
+                   metaData = settings$metaData)
+    open(result$outcomes)
+    open(result$covariates)
+    open(result$covariateRef)
+  }
   class(result) <- "sccsEraData"
   delta <- Sys.time() - start
   writeLines(paste("Analysis took", signif(delta, 3), attr(delta, "units")))
@@ -439,6 +445,9 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
                                     firstOccurrenceOnly = FALSE,
                                     splitPoints = c(),
                                     allowRegularization = FALSE) {
+  if (end < start && addExposedDaysToEnd)
+    stop("End day always precedes start day. Either pick a later end day, or set addExposedDaysToEnd to TRUE.")
+
   # First: get default values:
   analysis <- list()
   for (name in names(formals(createCovariateSettings))) {
