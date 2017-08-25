@@ -445,7 +445,7 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
                                     firstOccurrenceOnly = FALSE,
                                     splitPoints = c(),
                                     allowRegularization = FALSE) {
-  if (end < start && addExposedDaysToEnd)
+  if (end < start && !addExposedDaysToEnd)
     stop("End day always precedes start day. Either pick a later end day, or set addExposedDaysToEnd to TRUE.")
 
   # First: get default values:
