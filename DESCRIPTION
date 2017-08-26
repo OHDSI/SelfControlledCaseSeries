@@ -12,9 +12,8 @@ VignetteBuilder: knitr
 Depends:
     R (>= 3.2.2),
     Cyclops (>= 1.2.0),
-    DatabaseConnector (>= 1.11.4)
+    DatabaseConnector (>= 2.0.0)
 Imports:
-    RJDBC,
     SqlRender (>= 1.1.1),
     bit,
     ff,

@@ -113,21 +113,21 @@ createSccsEraData <- function(sccsData,
   settings$metaData$covariateSettingsList <- settings$covariateSettingsList
 
   writeLines("Converting person data to SCCS eras. This might take a while.")
-  data <- .convertToSccs(sccsData$cases,
-                         sccsData$eras,
-                         outcomeId,
-                         naivePeriod,
-                         firstOutcomeOnly,
-                         ageSettings$includeAge,
-                         settings$ageOffset,
-                         settings$ageDesignMatrix,
-                         settings$minAge,
-                         settings$maxAge,
-                         seasonalitySettings$includeSeasonality,
-                         settings$seasonDesignMatrix,
-                         settings$covariateSettingsList,
-                         eventDependentObservation,
-                         settings$censorModel)
+  data <- convertToSccs(sccsData$cases,
+                        sccsData$eras,
+                        outcomeId,
+                        naivePeriod,
+                        firstOutcomeOnly,
+                        ageSettings$includeAge,
+                        settings$ageOffset,
+                        settings$ageDesignMatrix,
+                        settings$minAge,
+                        settings$maxAge,
+                        seasonalitySettings$includeSeasonality,
+                        settings$seasonDesignMatrix,
+                        settings$covariateSettingsList,
+                        eventDependentObservation,
+                        settings$censorModel)
   if (length(data$outcomes) == 0) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
     result <- list(outcomes = NULL,
