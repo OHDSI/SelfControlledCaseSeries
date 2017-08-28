@@ -358,7 +358,10 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         outputId <- outputId + length(covariateSettings$splitPoints) + 1
         varNames <- rep(covariateSettings$label, length(covariateSettings$splitPoints) + 1)
         varNames <- paste(varNames, " day ", startDays, "-", c(endDays[1:length(endDays) - 1], ""))
-        covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
+        # covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
+        covariateSettings$outputIds <- matrix(outputIds,
+                                              ncol = length(covariateSettings$splitPoints) + 1,
+                                              byrow = TRUE)
         newCovariateRef <- data.frame(covariateId = outputIds,
                                       covariateName = varNames,
                                       originalCovariateId = 0,
