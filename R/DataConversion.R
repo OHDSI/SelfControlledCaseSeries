@@ -113,21 +113,21 @@ createSccsEraData <- function(sccsData,
   settings$metaData$covariateSettingsList <- settings$covariateSettingsList
 
   writeLines("Converting person data to SCCS eras. This might take a while.")
-  data <- .convertToSccs(sccsData$cases,
-                         sccsData$eras,
-                         outcomeId,
-                         naivePeriod,
-                         firstOutcomeOnly,
-                         ageSettings$includeAge,
-                         settings$ageOffset,
-                         settings$ageDesignMatrix,
-                         settings$minAge,
-                         settings$maxAge,
-                         seasonalitySettings$includeSeasonality,
-                         settings$seasonDesignMatrix,
-                         settings$covariateSettingsList,
-                         eventDependentObservation,
-                         settings$censorModel)
+  data <- convertToSccs(sccsData$cases,
+                        sccsData$eras,
+                        outcomeId,
+                        naivePeriod,
+                        firstOutcomeOnly,
+                        ageSettings$includeAge,
+                        settings$ageOffset,
+                        settings$ageDesignMatrix,
+                        settings$minAge,
+                        settings$maxAge,
+                        seasonalitySettings$includeSeasonality,
+                        settings$seasonDesignMatrix,
+                        settings$covariateSettingsList,
+                        eventDependentObservation,
+                        settings$censorModel)
   if (length(data$outcomes) == 0) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
     result <- list(outcomes = NULL,
@@ -358,7 +358,10 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         outputId <- outputId + length(covariateSettings$splitPoints) + 1
         varNames <- rep(covariateSettings$label, length(covariateSettings$splitPoints) + 1)
         varNames <- paste(varNames, " day ", startDays, "-", c(endDays[1:length(endDays) - 1], ""))
-        covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
+        # covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
+        covariateSettings$outputIds <- matrix(outputIds,
+                                              ncol = length(covariateSettings$splitPoints) + 1,
+                                              byrow = TRUE)
         newCovariateRef <- data.frame(covariateId = outputIds,
                                       covariateName = varNames,
                                       originalCovariateId = 0,

@@ -1,7 +1,7 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 1.1.2
+Version: 1.1.3
 Date: 2017-09-05
 Author: Martijn Schuemie, Patrick Ryan, Trevor Shaddox, Marc A. Suchard
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
@@ -12,9 +12,8 @@ VignetteBuilder: knitr
 Depends:
     R (>= 3.2.2),
     Cyclops (>= 1.2.0),
-    DatabaseConnector (>= 1.11.4)
+    DatabaseConnector (>= 2.0.0)
 Imports:
-    RJDBC,
     SqlRender (>= 1.1.1),
     bit,
     ff,

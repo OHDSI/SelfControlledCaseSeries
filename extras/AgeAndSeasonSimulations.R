@@ -1,6 +1,5 @@
 library(SelfControlledCaseSeries)
-setwd("s:/temp")
-options(fftempdir = "s:/fftemp")
+options(fftempdir = "c:/fftemp")
 settings <- createSccsSimulationSettings(includeAgeEffect = TRUE, includeSeasonality = TRUE)
 
 sccsData <- simulateSccsData(1000, settings)

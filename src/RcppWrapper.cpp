@@ -28,7 +28,7 @@
 
 using namespace Rcpp;
 
-// [[Rcpp::export(".convertToSccs")]]
+// [[Rcpp::export]]
 List convertToSccs(const List& cases, const List& eras, double outcomeId, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, double minAge, double maxAge, bool includeSeason, NumericMatrix seasonDesignMatrix, List& covariateSettingsList, bool eventDependentObservation, List& censorModel) {
 
 	using namespace ohdsi::sccs;
@@ -44,7 +44,7 @@ List convertToSccs(const List& cases, const List& eras, double outcomeId, int na
 	return List::create();
 }
 
-// [[Rcpp::export(".simulateSccsOutcomes")]]
+// [[Rcpp::export]]
 List simulateSccsOutcomes(const List& cases, const List& eras,  const std::vector<double>& baselineRates, const List& eraRrs, bool includeAge, int ageOffset, std::vector<double> ageRrs, bool includeSeasonality, std::vector<double> seasonRrs) {
 
   using namespace ohdsi::sccs;

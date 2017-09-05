@@ -156,7 +156,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
     duration[duration < 1] <- 1
     endDay <- startDay + duration
     endDay[endDay > cases$observationDays[observationPeriodId]] <- cases$observationDays[observationPeriodId][endDay >
-      cases$observationDays[observationPeriodId]]
+                                                                                                                cases$observationDays[observationPeriodId]]
     newEras <- data.frame(eraType = "hei",
                           observationPeriodId = observationPeriodId,
                           conceptId = settings$covariateIds[i],
@@ -216,17 +216,15 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
   }
   newEras <- newEras[order(newEras$observationPeriodId, newEras$conceptId), ]
   eraRrs <- data.frame(conceptId = conceptIds, rr = rrs)
-  outcomes <- .Call("SelfControlledCaseSeries_simulateSccsOutcomes",
-                    PACKAGE = "SelfControlledCaseSeries",
-                    cases,
-                    newEras,
-                    baselineRates,
-                    eraRrs,
-                    settings$includeAge,
-                    settings$minAge,
-                    ageRrs,
-                    settings$includeSeasonality,
-                    seasonRrs)
+  outcomes <- simulateSccsOutcomes(cases,
+                                   newEras,
+                                   baselineRates,
+                                   eraRrs,
+                                   settings$includeAge,
+                                   settings$minAge,
+                                   ageRrs,
+                                   settings$includeSeasonality,
+                                   seasonRrs)
   outcomes <- data.frame(eraType = "hoi",
                          observationPeriodId = outcomes$observationPeriodId,
                          conceptId = settings$outcomeId,

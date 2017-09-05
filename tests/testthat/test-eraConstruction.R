@@ -500,6 +500,70 @@ test_that("Exposure splitting twice", {
   expect_equal(result$covariates$covariateId, c(1000, 1001, 1002))
 })
 
+test_that("Merging exposures (stratifyById=FALSE)", {
+  cases <- data.frame(observationPeriodId = 1,
+                      personId = 1,
+                      observationDays = 100,
+                      ageInDays = 0,
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
+  eras <- data.frame(eraType = c("hoi", "hei", "hei"),
+                     observationPeriodId = c(1, 1, 1),
+                     conceptId = c(10, 11, 12),
+                     value = c(1, 1, 1),
+                     startDay = c(50, 25, 70),
+                     endDay = c(50, 75, 100))
+  result <- convertToSccsDataWrapper(cases,
+                                     eras,
+                                     covariateSettings = createCovariateSettings(includeCovariateIds = c(11,12),
+                                                                                 stratifyById = FALSE,
+                                                                                 start = 0,
+                                                                                 end = 0,
+                                                                                 addExposedDaysToEnd = TRUE))
+  expect_equal(result$outcomes$rowId, c(0, 1))
+  expect_equal(result$outcomes$stratumId, c(1, 1))
+  expect_equal(result$outcomes$time, c(25, 75))
+  expect_equal(result$outcomes$y, c(0, 1))
+  expect_equal(result$covariates$rowId, c(1))
+  expect_equal(result$covariates$stratumId, c(1))
+  expect_equal(result$covariates$covariateId, c(1000))
+})
+
+
+test_that("Exposure splitting without stratifyById", {
+  cases <- data.frame(observationPeriodId = 1,
+                      personId = 1,
+                      observationDays = 100,
+                      ageInDays = 0,
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
+  eras <- data.frame(eraType = c("hoi", "hei", "hei"),
+                     observationPeriodId = c(1, 1, 1),
+                     conceptId = c(10, 11, 12),
+                     value = c(1, 1, 1),
+                     startDay = c(50, 25, 70),
+                     endDay = c(50, 75, 100))
+  result <- convertToSccsDataWrapper(cases,
+                                     eras,
+                                     covariateSettings = createCovariateSettings(includeCovariateIds = c(11,12),
+                                                                                 stratifyById = FALSE,
+                                                                                 start = 0,
+                                                                                 end = 0,
+                                                                                 addExposedDaysToEnd = TRUE,
+                                                                                 splitPoints = c(50)))
+  expect_equal(result$outcomes$rowId, c(0, 1, 2))
+  expect_equal(result$outcomes$stratumId, c(1, 1, 1))
+  expect_equal(result$outcomes$time, c(25,51, 24))
+  expect_equal(result$outcomes$y, c(0, 1, 0))
+  expect_equal(result$covariates$rowId, c(1, 2))
+  expect_equal(result$covariates$stratumId, c(1, 1))
+  expect_equal(result$covariates$covariateId, c(1000, 1001))
+})
+
 test_that("Pre-exposure window", {
   cases <- data.frame(observationPeriodId = 1,
                       personId = 1,
