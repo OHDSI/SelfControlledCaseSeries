@@ -574,6 +574,8 @@ saveSccsEraData <- function(sccsEraData, folder) {
   if (class(sccsEraData) != "sccsEraData")
     stop("Data not of class sccsEraData")
 
+  dir.create(folder)
+
   if (is.null(sccsEraData$outcomes)) {
     outcomes <- ff::as.ffdf(data.frame(error = 1))
     covariates <- ff::as.ffdf(data.frame(error = 1))
@@ -583,15 +585,19 @@ saveSccsEraData <- function(sccsEraData, folder) {
     covariates <- sccsEraData$covariates
     covariateRef <- sccsEraData$covariateRef
   }
-  ffbase::save.ffdf(outcomes, covariates, covariateRef, dir = folder)
+  ff::ffsave(outcomes, file = file.path(folder, "outcomes"), compress = TRUE)
+  ff::ffsave(covariates, file = file.path(folder, "covariates"), compress = TRUE)
+  ff::ffsave(covariateRef, file = file.path(folder, "covariateRef"), compress = TRUE)
+
+  # ffbase::save.ffdf(outcomes, covariates, covariateRef, dir = folder)
   metaData <- sccsEraData$metaData
   save(metaData, file = file.path(folder, "metaData.Rdata"))
   # Open all ffdfs to prevent annoying messages later:
-  if (!is.null(sccsEraData$outcomes)) {
-    open(sccsEraData$outcomes)
-    open(sccsEraData$covariates)
-    open(sccsEraData$covariateRef)
-  }
+  # if (!is.null(sccsEraData$outcomes)) {
+  #   open(sccsEraData$outcomes)
+  #   open(sccsEraData$covariates)
+  #   open(sccsEraData$covariateRef)
+  # }
   invisible(TRUE)
 }
 
@@ -620,7 +626,13 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
   absolutePath <- setwd(temp)
 
   e <- new.env()
-  ffbase::load.ffdf(absolutePath, e)
+  if (file.exists(file.path(absolutePath, "outcomes.ffData"))) {
+    ff::ffload(file.path(absolutePath, "outcomes"), envir = e)
+    ff::ffload(file.path(absolutePath, "covariates"), envir = e)
+    ff::ffload(file.path(absolutePath, "covariateRef"), envir = e)
+  } else {
+    ffbase::load.ffdf(absolutePath, e)
+  }
   load(file.path(absolutePath, "metaData.Rdata"), e)
   result <- list(outcomes = get("outcomes", envir = e),
                  covariates = get("covariates", envir = e),
