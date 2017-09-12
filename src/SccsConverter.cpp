@@ -232,11 +232,15 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
         lastComputable -= step;
         value = weightFunction->getValue(lastComputable);
       }
-      if (lastComputable <= start)
-        throw "Unable to compute weight";
-      std::cout << "\nCannot compute full weight function for observation period " << personData.observationPeriodId << ", assuming constant weight for last " << ((end-lastComputable)*365.25) << " days";
-      weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, lastComputable, 1.490116e-08);
-      weight += (end-lastComputable) * value;
+      Environment base = Environment::namespace_env("base");
+      Function warning = base["warning"];
+      if (lastComputable <= start) {
+        warning("\nCannot compute weight function for entire observation period " + std::to_string(personData.observationPeriodId) + ". Removing from analysis", Named("call.", false));
+      } else {
+        warning("\nCannot compute full weight function for observation period " + std::to_string(personData.observationPeriodId) + ", assuming constant weight for last " + std::to_string((end-lastComputable)*365.25) + " days", Named("call.", false));
+        weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, lastComputable, 1.490116e-08);
+        weight += (end-lastComputable) * value;
+      }
     } else {
       weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, end, 1.490116e-08);
     }

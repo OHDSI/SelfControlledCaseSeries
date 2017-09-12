@@ -373,25 +373,26 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         covariateSettings$outputIds <- matrix(outputIds,
                                               ncol = length(covariateSettings$splitPoints) + 1,
                                               byrow = TRUE)
-        originalCovariateId <- rep(covariateSettings$covariateIds,
-                                   each = length(covariateSettings$splitPoints) + 1)
-        originalCovariateName <- covariateRef$covariateName[match(originalCovariateId,
-                                                                  covariateRef$covariateId)]
-        originalCovariateName[originalCovariateName == ""] <- originalCovariateId[originalCovariateName ==
-                                                                                    ""]
-        varNames <- paste(covariateSettings$label, ": ", originalCovariateName, sep = "")
-        varNames <- paste(varNames,
-                          ", day ",
-                          startDays,
-                          "-",
-                          c(endDays[1:length(endDays) - 1], ""),
-                          sep = "")
+        if (any(covariateSettings$covariateIds %in% covariateRef$covariateId)) {
+          originalCovariateId <- rep(covariateSettings$covariateIds,
+                                     each = length(covariateSettings$splitPoints) + 1)
+          originalCovariateName <- covariateRef$covariateName[match(originalCovariateId,
+                                                                    covariateRef$covariateId)]
+          originalCovariateName[originalCovariateName == ""] <- originalCovariateId[originalCovariateName == ""]
+          varNames <- paste(covariateSettings$label, ": ", originalCovariateName, sep = "")
+          varNames <- paste(varNames,
+                            ", day ",
+                            startDays,
+                            "-",
+                            c(endDays[1:length(endDays) - 1], ""),
+                            sep = "")
 
-        newCovariateRef <- data.frame(covariateId = outputIds,
-                                      covariateName = varNames,
-                                      originalCovariateId = originalCovariateId,
-                                      originalCovariateName = originalCovariateName)
-        settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
+          newCovariateRef <- data.frame(covariateId = outputIds,
+                                        covariateName = varNames,
+                                        originalCovariateId = originalCovariateId,
+                                        originalCovariateName = originalCovariateName)
+          settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
+        }
       }
     }
     covariateSettingsList[[i]] <- covariateSettings
