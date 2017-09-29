@@ -630,10 +630,11 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
   absolutePath <- setwd(temp)
 
   e <- new.env()
+  newRoot <- ff::fftempfile("toBeDel")
   if (file.exists(file.path(absolutePath, "outcomes.ffData"))) {
-    ff::ffload(file.path(absolutePath, "outcomes"), envir = e)
-    ff::ffload(file.path(absolutePath, "covariates"), envir = e)
-    ff::ffload(file.path(absolutePath, "covariateRef"), envir = e)
+    ff::ffload(file.path(absolutePath, "outcomes"), envir = e, rootpath = newRoot)
+    ff::ffload(file.path(absolutePath, "covariates"), envir = e, rootpath = newRoot)
+    ff::ffload(file.path(absolutePath, "covariateRef"), envir = e, rootpath = newRoot)
   } else {
     ffbase::load.ffdf(absolutePath, e)
   }
@@ -642,6 +643,7 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
                  covariates = get("covariates", envir = e),
                  covariateRef = get("covariateRef", envir = e),
                  metaData = get("metaData", envir = e))
+
   # Open all ffdfs to prevent annoying messages later:
   open(result$outcomes, readonly = readOnly)
   open(result$covariates, readonly = readOnly)
@@ -654,6 +656,55 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
   class(result) <- "sccsEraData"
   rm(e)
   return(result)
+}
+
+# #' @export
+# close.sccsEraData <- function(con, ...) {
+#   if (!is.null(con$outcomes)) {
+#     print("Closing")
+#     ff::close.ffdf(con$outcomes)
+#     ff::close.ffdf(con$covariates)
+#     ff::close.ffdf(con$covariateRef)
+#   }
+#   invisible(TRUE)
+# }
+
+#' Delete an sccsEraData object from disk.
+#'
+#' @param sccsEraData          The object to delete.
+#' @param fromCompressedOnly   When TRUE, a warning will be thrown when attempting to delete an object that did not
+#'                             originate from a compressed file, and the delete is canceled.
+#'
+#' @details
+#' When an object is loaded from a compressed file it is effectively copied. The copy has a tendency to persist.
+#' This function can be used to delete the copy from disk.
+#'
+#' @export
+deleteSccsEraData <- function(sccsEraData, fromCompressedOnly = TRUE) {
+  if (!is.null(sccsEraData$outcomes)) {
+    path <- dirname(ff::physical.ff(sccsEraData$covariates$rowId)$filename)
+    if (fromCompressedOnly) {
+      if (!grepl("toBeDel[0-9a-z]+\\.ff", path)) {
+        warning("Attempt to delete sccsEraData object that didn't originate from a compressed file")
+        invisible(TRUE)
+      }
+    }
+    ff::delete.ffdf(sccsEraData$outcomes)
+    ff::delete.ffdf(sccsEraData$covariates)
+    ff::delete.ffdf(sccsEraData$covariateRef)
+    sccsEraData$outcomes <- NULL
+    sccsEraData$covariates <- NULL
+    sccsEraData$covariateRef <- NULL
+    if (grepl("toBeDel[0-9a-z]+\\.ff", path)) {
+      while(nchar(path) > 1 && !grepl("^toBeDel[0-9a-z]+\\.ff$", basename(path))) {
+        path <- dirname(path)
+      }
+      if (nchar(path) > 1) {
+        unlink(path, recursive = TRUE)
+      }
+    }
+  }
+  invisible(TRUE)
 }
 
 #' @export

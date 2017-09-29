@@ -377,6 +377,7 @@ runSccsAnalyses <- function(connectionDetails,
                               prior = args$prior,
                               control = args$control)
     saveRDS(sccsModel, params$sccsModelFileName)
+    deleteSccsEraData(sccsEraData)
   }
   if (length(sccsModelObjectsToCreate) != 0) {
     cluster <- OhdsiRTools::makeCluster(fitSccsModelThreads)
@@ -447,12 +448,13 @@ summarizeSccsAnalyses <- function(outcomeReference) {
   result$eventCount <- 0
 
   for (i in 1:nrow(outcomeReference)) {
-    sccsEraData <- loadSccsEraData(as.character(outcomeReference$sccsEraDataFolder[i]))
-    s <- summary(sccsEraData)
-    result$caseCount[i] <- s$outcomeCounts$caseCount
-    result$eventCount[i] <- s$outcomeCounts$eventCount
+    # sccsEraData <- loadSccsEraData(as.character(outcomeReference$sccsEraDataFolder[i]))
+    # s <- summary(sccsEraData)
+    # result$caseCount[i] <- s$outcomeCounts$caseCount
+    # result$eventCount[i] <- s$outcomeCounts$eventCount
     sccsModel <- readRDS(as.character(outcomeReference$sccsModelFile[i]))
-
+    result$caseCount[i] <- sccsModel$metaData$counts$caseCount
+    result$eventCount[i] <- sccsModel$metaData$counts$eventCount
     estimates <- sccsModel$estimates[sccsModel$estimates$originalCovariateId == outcomeReference$exposureId[i], ]
     if (!is.null(estimates) && nrow(estimates) != 0) {
       for (j in 1:nrow(estimates)) {

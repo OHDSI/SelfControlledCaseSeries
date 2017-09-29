@@ -22,7 +22,8 @@ library(DatabaseConnector)
 library(SelfControlledCaseSeries)
 setwd("s:/temp")
 options(fftempdir = "s:/fftemp")
-
+folder <- "s:/temp/vignetteSccs/eraData1b"
+readOnly <- TRUE
 pw <- NULL
 dbms <- "pdw"
 user <- NULL
@@ -93,6 +94,7 @@ sccsEraData <- createSccsEraData(sccsData,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarDiclofenac)
 saveSccsEraData(sccsEraData, "s:/temp/vignetteSccs/eraData1")
+
 summary(sccsEraData)
 
 model <- fitSccsModel(sccsEraData, control = createControl(threads = 10))
