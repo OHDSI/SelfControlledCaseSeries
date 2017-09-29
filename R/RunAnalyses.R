@@ -69,6 +69,8 @@
 #'                                         at a time, or for all outcomes in one fetch? Combining
 #'                                         fetches will be more efficient if there is large overlap in
 #'                                         the subjects that have the different outcomes.
+#' @param compressSccsEraDataFiles         Should compression be used when saving? IF TRUE, the zip
+#'                                         program needs to be available on the command prompt.
 #' @param getDbSccsDataThreads             The number of parallel threads to use for building the
 #'                                         sccsData objects.
 #' @param createSccsEraDataThreads         The number of parallel threads to use for building the
@@ -102,6 +104,7 @@ runSccsAnalyses <- function(connectionDetails,
                             sccsAnalysisList,
                             exposureOutcomeList,
                             combineDataFetchAcrossOutcomes = TRUE,
+                            compressSccsEraDataFiles = FALSE,
                             getDbSccsDataThreads = 1,
                             createSccsEraDataThreads = 1,
                             fitSccsModelThreads = 1,
@@ -308,6 +311,7 @@ runSccsAnalyses <- function(connectionDetails,
         args$outcomeId <- outcomeReference$outcomeId[rowId]
         sccsDataFileName <- outcomeReference$sccsDataFolder[rowId]
         sccsEraDataObjectsToCreate[[length(sccsEraDataObjectsToCreate) + 1]] <- list(args = args,
+                                                                                     compressSccsEraDataFiles = compressSccsEraDataFiles,
                                                                                      sccsDataFileName = sccsDataFileName,
                                                                                      sccsEraDataFileName = sccsEraDataFileName)
       }
@@ -315,7 +319,7 @@ runSccsAnalyses <- function(connectionDetails,
     }
   }
 
-  ### Creation of era data objects ###
+  ### Creation of model objects ###
   rowId <- 1
   sccsModelObjectsToCreate <- list()
   outcomeReference$sccsModelFile <- ""
@@ -359,7 +363,9 @@ runSccsAnalyses <- function(connectionDetails,
     sccsData <- loadSccsData(params$sccsDataFileName, readOnly = TRUE)
     params$args$sccsData <- sccsData
     sccsEraData <- do.call("createSccsEraData", params$args)
-    saveSccsEraData(sccsEraData, params$sccsEraDataFileName)
+    saveSccsEraData(sccsEraData = sccsEraData,
+                    folder = params$sccsEraDataFileName,
+                    compress = params$compressSccsEraDataFiles)
   }
   if (length(sccsEraDataObjectsToCreate) != 0) {
     cluster <- OhdsiRTools::makeCluster(createSccsEraDataThreads)
@@ -377,7 +383,6 @@ runSccsAnalyses <- function(connectionDetails,
                               prior = args$prior,
                               control = args$control)
     saveRDS(sccsModel, params$sccsModelFileName)
-    deleteSccsEraData(sccsEraData)
   }
   if (length(sccsModelObjectsToCreate) != 0) {
     cluster <- OhdsiRTools::makeCluster(fitSccsModelThreads)

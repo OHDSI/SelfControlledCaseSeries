@@ -22,7 +22,8 @@ Imports:
     OhdsiRTools (>= 1.1.1),
     splines,
     ggplot2,
-    methods
+    methods,
+    zip
 Suggests:
     testthat,
     knitr,

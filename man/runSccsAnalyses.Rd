@@ -11,8 +11,9 @@ runSccsAnalyses(connectionDetails, cdmDatabaseSchema,
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort", cdmVersion = 5,
   outputFolder = "./SccsOutput", sccsAnalysisList, exposureOutcomeList,
-  combineDataFetchAcrossOutcomes = TRUE, getDbSccsDataThreads = 1,
-  createSccsEraDataThreads = 1, fitSccsModelThreads = 1, cvThreads = 1)
+  combineDataFetchAcrossOutcomes = TRUE, compressSccsEraDataFiles = FALSE,
+  getDbSccsDataThreads = 1, createSccsEraDataThreads = 1,
+  fitSccsModelThreads = 1, cvThreads = 1)
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using
@@ -69,6 +70,9 @@ using the \code{\link{createExposureOutcome}} function.}
 at a time, or for all outcomes in one fetch? Combining
 fetches will be more efficient if there is large overlap in
 the subjects that have the different outcomes.}
+
+\item{compressSccsEraDataFiles}{Should compression be used when saving? IF TRUE, the zip
+program needs to be available on the command prompt.}
 
 \item{getDbSccsDataThreads}{The number of parallel threads to use for building the
 sccsData objects.}
