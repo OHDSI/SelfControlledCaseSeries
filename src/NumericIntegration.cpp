@@ -34,6 +34,8 @@ double NumericIntegration::integrate(IntegrableFunction& f, const double start, 
   const double fStart = f.getValue(start);
   const double fEnd = f.getValue(end);
   const double fMiddle = f.getValue((start+end)/2.0);
+  if (isNanOrInf(fStart) || isNanOrInf(fMiddle) || isNanOrInf(fEnd))
+    return std::nan("0");
   double is = delta/8.0 * (fStart+fEnd+fMiddle+f.getValue(start + 0.9501*delta) + f.getValue(start + 0.2311*delta) + f.getValue(start + 0.6068*delta) + f.getValue(start + 0.4860*delta) + f.getValue(start + 0.8913*delta));
   if(is == 0) {
     is = delta;
@@ -47,6 +49,8 @@ double NumericIntegration::recursiveIntegerate(IntegrableFunction& f, const doub
   double quart = (end - start)/4.0;
   double fMidL = f.getValue(start + quart);
   double fMidR = f.getValue(end - quart);
+  if (isNanOrInf(fMidL) || isNanOrInf(fMidR))
+    return std::nan("0");
   double i1 = quart/1.5*(fStart+4.0*fMiddle+fEnd);
   double i2 = quart/3.0*(fStart+4.0*(fMidL+fMidR)+2.0*fMiddle+fEnd);
   i1 = (16.0 * i2 - i1) / 15.0;
@@ -59,6 +63,10 @@ double NumericIntegration::recursiveIntegerate(IntegrableFunction& f, const doub
     }
   }
   return q;
+}
+
+bool NumericIntegration::isNanOrInf(const double x) {
+  return ((x < 0) == (x >= 0)) || !(x <= DBL_MAX && x >= -DBL_MAX);
 }
 }
 }

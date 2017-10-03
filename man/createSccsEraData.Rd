@@ -8,7 +8,7 @@ createSccsEraData(sccsData, outcomeId = NULL, naivePeriod = 0,
   firstOutcomeOnly = FALSE, covariateSettings,
   ageSettings = createAgeSettings(includeAge = FALSE),
   seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
-  eventDependentObservation = FALSE)
+  minCasesForAgeSeason = 10000, eventDependentObservation = FALSE)
 }
 \arguments{
 \item{sccsData}{An object of type \code{sccsData} as created using the
@@ -36,6 +36,9 @@ list of such objects.}
 
 \item{seasonalitySettings}{An object of type \code{seasonalitySettings} as created using the
 \code{\link{createSeasonalitySettings}} function.}
+
+\item{minCasesForAgeSeason}{Minimum number of cases to use to fit age and season splines. IF
+needed (and available), cases that are not exposed will be included.#'}
 
 \item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to
 adjust for event-dependent observation time?}

@@ -34,6 +34,7 @@ public:
   static double integrate(IntegrableFunction& f, const double start, const double end, const double tolerance);
 private:
   static double recursiveIntegerate(IntegrableFunction& f, const double start, const double end, const double fStart, const double fMiddle, const double fEnd, const double is, const int count);
+  static bool isNanOrInf(const double x);
 };
 }
 }

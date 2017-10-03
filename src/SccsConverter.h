@@ -199,7 +199,7 @@ class SccsConverter {
 public:
   SccsConverter(const List& _cases, const List& _eras, const int64_t _outcomeId, const int _naivePeriod,
                 bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const double m_inAge, const double _maxAge,
-                const bool _includeSeason, const NumericMatrix& _seasonDesignMatrix, const List& _covariateSettingsList, const bool _eventDependentObservation,const List& _censorModel);
+                const bool _includeSeason, const NumericMatrix& _seasonDesignMatrix, const NumericVector _ageSeasonsCases, const List& _covariateSettingsList, const bool _eventDependentObservation,const List& _censorModel);
   List convertToSccs();
   static const int ageIdOffset = 100;
   static const int seasonIdOffset = 200;
@@ -235,6 +235,8 @@ private:
   std::vector<CovariateSettings> covariateSettingsVector;
   bool eventDependentObservation;
   WeightFunction* weightFunction;
+  bool hasAgeSeasonsCases;
+  std::set<int64_t> ageSeasonsCases;
 };
 }
 }

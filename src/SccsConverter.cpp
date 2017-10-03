@@ -34,7 +34,7 @@ namespace sccs {
 
 SccsConverter::SccsConverter(const List& _cases, const List& _eras, const int64_t _outcomeId, const int _naivePeriod,
                              bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const double _minAge, const double _maxAge, const bool _includeSeason,
-                             const NumericMatrix& _seasonDesignMatrix, const List& _covariateSettingsList, const bool _eventDependentObservation,const List& _censorModel) : personDataIterator(_cases, _eras),
+                             const NumericMatrix& _seasonDesignMatrix, const NumericVector _ageSeasonsCases, const List& _covariateSettingsList, const bool _eventDependentObservation,const List& _censorModel) : personDataIterator(_cases, _eras),
                              outcomeId(_outcomeId), naivePeriod(_naivePeriod),
                              firstOutcomeOnly(_firstOutcomeOnly), includeAge(_includeAge), ageOffset(_ageOffset), minAge(_minAge), maxAge(_maxAge), includeSeason(_includeSeason), eventDependentObservation(_eventDependentObservation) {
                                ageDesignMatrix = _ageDesignMatrix;
@@ -56,6 +56,13 @@ SccsConverter::SccsConverter(const List& _cases, const List& _eras, const int64_
                                    weightFunction = new WsmallEgid2(p);
                                  }
                                }
+                               if (_ageSeasonsCases.size() != 0) {
+                                 hasAgeSeasonsCases = true;
+                                 for (int i = 0; i < _ageSeasonsCases.size(); i++) {
+                                   ageSeasonsCases.insert(_ageSeasonsCases[i]);
+                                 }
+                               } else
+                                 hasAgeSeasonsCases = false;
                              }
 
 std::vector<Era> SccsConverter::extractOutcomes(std::vector<Era>& eras) {
@@ -219,8 +226,8 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
     double start = (personData.ageInDays + era->start) / 365.25;
     double end = (personData.ageInDays + era->end + 1) / 365.25;
     // std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << "\n";
-    double weight;
-    if (end == aend && isNanOrInf(weightFunction->getValue(end))) {
+    double weight = 0;
+    if (isNanOrInf(weightFunction->getValue(end))) {
       // Very rare case:
       // Weight function can be problematic to compute due to numeric issues near the end of the integral
       // We'll walk backwards to find last computable point, and assume constant value after that as approximation
@@ -236,6 +243,8 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
       Function warning = base["warning"];
       if (lastComputable <= start) {
         warning("\nCannot compute weight function for entire observation period " + std::to_string(personData.observationPeriodId) + ". Removing from analysis", Named("call.", false));
+        concomitantEras.clear();
+        break;
       } else {
         warning("\nCannot compute full weight function for observation period " + std::to_string(personData.observationPeriodId) + ", assuming constant weight for last " + std::to_string((end-lastComputable)*365.25) + " days", Named("call.", false));
         weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, lastComputable, 1.490116e-08);
@@ -243,9 +252,16 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
       }
     } else {
       weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, end, 1.490116e-08);
+      if (isNanOrInf(weight)) {
+        Environment base = Environment::namespace_env("base");
+        Function warning = base["warning"];
+        warning("\nCannot compute weight function for entire observation period " + std::to_string(personData.observationPeriodId) + ". Removing from analysis", Named("call.", false));
+        concomitantEras.clear();
+        break;
+      }
     }
     era->weight = weight * 365.25;
-    //std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << ", weight:" << weight*365.25 << "\n";
+    // std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << ", weight:" << weight*365.25 << "\n";
   }
 }
 
@@ -458,7 +474,10 @@ void SccsConverter::processPerson(PersonData& personData) {
   }
   clipEras(outputEras, startDay, endDay);
   outputEras = mergeOverlapping(outputEras);
-  if (includeAge || includeSeason){
+  if (includeAge || includeSeason) {
+    if (outputEras.size() == 0)  // No exposures: still use to fit age and/or season splines?
+      if (hasAgeSeasonsCases && ageSeasonsCases.find(personData.observationPeriodId) == ageSeasonsCases.end())
+        return;
     addMonthEras(outputEras, startDay, endDay, personData);
   }
   std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, startDay, endDay);

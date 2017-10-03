@@ -1,5 +1,5 @@
 library(SelfControlledCaseSeries)
-options(fftempdir = "c:/fftemp")
+options(fftempdir = "s:/fftemp")
 settings <- createSccsSimulationSettings(includeAgeEffect = TRUE, includeSeasonality = TRUE)
 
 sccsData <- simulateSccsData(1000, settings)
@@ -18,7 +18,10 @@ sccsEraData <- createSccsEraData(sccsData,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarSettings,
                                  ageSettings = ageSettings,
-                                 seasonalitySettings = seasonalitySettings)
+                                 seasonalitySettings = seasonalitySettings,
+                                 minCasesForAgeSeason = 500)
+
+length(unique(sccsEraData$outcomes$stratumId))
 
 model <- fitSccsModel(sccsEraData, control = createControl(cvType = "auto",
                                                            selectorType = "byPid",

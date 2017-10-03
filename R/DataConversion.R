@@ -50,6 +50,8 @@ in.ff <- function(a, b) {
 #'                                    \code{\link{createAgeSettings}} function.
 #' @param seasonalitySettings         An object of type \code{seasonalitySettings} as created using the
 #'                                    \code{\link{createSeasonalitySettings}} function.
+#' @param minCasesForAgeSeason        Minimum number of cases to use to fit age and season splines. IF
+#'                                    needed (and available), cases that are not exposed will be included.#'
 #' @param eventDependentObservation   Should the extension proposed by Farrington et al. be used to
 #'                                    adjust for event-dependent observation time?
 #'
@@ -69,6 +71,7 @@ createSccsEraData <- function(sccsData,
                               covariateSettings,
                               ageSettings = createAgeSettings(includeAge = FALSE),
                               seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
+                              minCasesForAgeSeason = 10000,
                               eventDependentObservation = FALSE) {
   start <- Sys.time()
   if (is.null(outcomeId)) {
@@ -97,12 +100,17 @@ createSccsEraData <- function(sccsData,
   settings$metaData$eraCall <- match.call()
   settings$metaData$outcomeId <- outcomeId
   settings$covariateRef <- data.frame()
+  ageSeasonsCases <- numeric(0)
+  if (ageSettings$includeAge || seasonalitySettings$includeSeasonality) {
+    includedOutcomes <- findIncludedOutcomes(sccsData, outcomeId, firstOutcomeOnly, naivePeriod, ageSettings)
+    if (nrow(includedOutcomes) > minCasesForAgeSeason) {
+      set.seed(0)
+      ageSeasonsCases <- sample(includedOutcomes$observationPeriodId, minCasesForAgeSeason, replace = FALSE)
+    }
+  }
   settings <- addAgeSettings(settings,
                              ageSettings,
-                             outcomeId,
-                             firstOutcomeOnly,
-                             naivePeriod,
-                             sccsData)
+                             includedOutcomes)
   settings <- addSeasonalitySettings(settings, seasonalitySettings, sccsData)
   settings <- addEventDependentObservationSettings(settings,
                                                    eventDependentObservation,
@@ -125,6 +133,7 @@ createSccsEraData <- function(sccsData,
                         settings$maxAge,
                         seasonalitySettings$includeSeasonality,
                         settings$seasonDesignMatrix,
+                        ageSeasonsCases,
                         settings$covariateSettingsList,
                         eventDependentObservation,
                         settings$censorModel)
@@ -149,6 +158,36 @@ createSccsEraData <- function(sccsData,
   return(result)
 }
 
+findIncludedOutcomes <- function(sccsData, outcomeId, firstOutcomeOnly, naivePeriod, ageSettings) {
+  outcomes <- ffbase::subset.ffdf(sccsData$eras, eraType == "hoi" & conceptId == outcomeId)
+  if (firstOutcomeOnly) {
+    outcomes <- ff::as.ffdf(aggregate(startDay ~ observationPeriodId, outcomes, min))
+  }
+  colnames(outcomes)[colnames(outcomes) == "startDay"] <- "outcomeDay"
+  outcomes <- merge(outcomes, sccsData$cases)
+  outcomes <- ffbase::subset.ffdf(outcomes, outcomeDay >= naivePeriod - censoredDays & outcomeDay >= 0)
+  outcomes$outcomeAges <- outcomes$outcomeDay + outcomes$ageInDays
+  if (ageSettings$includeAge) {
+    if (is.null(ageSettings$minAge)) {
+      minAge <- -1
+    } else {
+      minAge <- ageSettings$minAge * 365.25
+    }
+    if (is.null(ageSettings$maxAge)) {
+      maxAge <- -1
+    } else {
+      maxAge <- (ageSettings$maxAge + 1) * 365.25
+    }
+    if (minAge != -1) {
+      outcomes <- outcomes[outcomes$outcomeAges >= minAge, ]
+    }
+    if (maxAge != -1) {
+      outcomes <- outcomes[outcomes$outcomeAges <= maxAge, ]
+    }
+  }
+  return(outcomes)
+}
+
 isUncensored <- function(sccsData) {
   dates <- as.Date(paste(ff::as.ram(sccsData$cases$startYear),
                          ff::as.ram(sccsData$cases$startMonth),
@@ -161,10 +200,7 @@ isUncensored <- function(sccsData) {
 
 addAgeSettings <- function(settings,
                            ageSettings,
-                           outcomeId,
-                           firstOutcomeOnly,
-                           naivePeriod,
-                           sccsData) {
+                           includedOutcomes) {
   if (is.null(ageSettings$minAge)) {
     settings$minAge <- -1
   } else {
@@ -180,22 +216,7 @@ addAgeSettings <- function(settings,
     settings$ageDesignMatrix <- matrix()
   } else {
     if (length(ageSettings$ageKnots) == 1) {
-      # Single number, should interpret as number of knots. Spread out knots to data quantiles:
-      outcomes <- ffbase::subset.ffdf(sccsData$eras, eraType == "hoi" & conceptId == outcomeId)
-      if (firstOutcomeOnly) {
-        outcomes <- ff::as.ffdf(aggregate(startDay ~ observationPeriodId, outcomes, min))
-      }
-      colnames(outcomes)[colnames(outcomes) == "startDay"] <- "outcomeDay"
-      outcomes <- merge(outcomes, sccsData$cases)
-      outcomes <- ffbase::subset.ffdf(outcomes, outcomeDay >= naivePeriod - censoredDays & outcomeDay >= 0)
-      outcomeAges <- outcomes$outcomeDay + outcomes$ageInDays
-      if (settings$minAge != -1) {
-        outcomeAges <- outcomeAges[outcomeAges >= settings$minAge]
-      }
-      if (settings$maxAge != -1) {
-        outcomeAges <- outcomeAges[outcomeAges <= settings$maxAge]
-      }
-      ageKnots <- ffbase::quantile.ff(outcomeAges,
+      ageKnots <- ffbase::quantile.ff(includedOutcomes$outcomeAges,
                                       seq(0.01, 0.99, length.out = ageSettings$ageKnots))
     } else {
       ageKnots <- ageSettings$ageKnots
@@ -646,11 +667,12 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
                  covariates = get("covariates", envir = e),
                  covariateRef = get("covariateRef", envir = e),
                  metaData = get("metaData", envir = e))
-
-  # Open all ffdfs to prevent annoying messages later:
-  open(result$outcomes, readonly = readOnly)
-  open(result$covariates, readonly = readOnly)
-  open(result$covariateRef, readonly = readOnly)
+  if (!file.exists(file.path(absolutePath, "outcomes.zip"))) {
+    # Open all ffdfs to prevent annoying messages later:
+    open(result$outcomes, readonly = readOnly)
+    open(result$covariates, readonly = readOnly)
+    open(result$covariateRef, readonly = readOnly)
+  }
   if (!is.null(result$outcomes$error)) {
     result$outcomes <- NULL
     result$covariates <- NULL

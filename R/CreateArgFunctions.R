@@ -61,6 +61,9 @@ createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
 #'                                    thecreateAgeSettings function.
 #' @param seasonalitySettings         An object of type seasonalitySettings as created using
 #'                                    thecreateSeasonalitySettings function.
+#' @param minCasesForAgeSeason        Minimum number of cases to use to fit age and season splines.
+#'                                    IFneeded (and available), cases that are not exposed will be
+#'                                    included.#'
 #' @param eventDependentObservation   Should the extension proposed by Farrington et al. be used
 #'                                    toadjust for event-dependent observation time?
 #'
@@ -70,6 +73,7 @@ createCreateSccsEraDataArgs <- function(naivePeriod = 0,
                                         covariateSettings,
                                         ageSettings = createAgeSettings(includeAge = FALSE),
                                         seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
+                                        minCasesForAgeSeason = 10000,
                                         eventDependentObservation = FALSE) {
   # First: get default values:
   analysis <- list()
