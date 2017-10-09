@@ -5,7 +5,8 @@
 \title{Create age settings}
 \usage{
 createAgeSettings(includeAge = FALSE, ageKnots = 5,
-  allowRegularization = FALSE, minAge = NULL, maxAge = NULL)
+  allowRegularization = FALSE, computeConfidenceIntervals = FALSE,
+  minAge = NULL, maxAge = NULL)
 }
 \arguments{
 \item{includeAge}{Should age be included in the model?}
@@ -18,6 +19,10 @@ age-days}
 
 \item{allowRegularization}{When fitting the model, should the covariates defined here be allowed
 to be regularized?}
+
+\item{computeConfidenceIntervals}{Should confidence intervals be computed for the covariates defined
+here? Setting this to FALSE might save computing time when fitting the
+model. Will be turned to FALSE  automaticaly when \code{allowRegularization = TRUE}.}
 
 \item{minAge}{Minimum age at which patient time will be included in the analysis. Note
 that information prior to the min age is still used to determine exposure

@@ -347,10 +347,6 @@ runSccsAnalyses <- function(connectionDetails,
   ### Actual construction of objects ###
 
   writeLines("*** Creating sccsData objects ***")
-  createSccsDataObject <- function(params) {
-    sccsData <- do.call("getDbSccsData", params$args)
-    saveSccsData(sccsData, params$sccsDataFileName)
-  }
   if (length(sccsDataObjectsToCreate) != 0) {
     cluster <- OhdsiRTools::makeCluster(getDbSccsDataThreads)
     OhdsiRTools::clusterRequire(cluster, "SelfControlledCaseSeries")
@@ -359,14 +355,6 @@ runSccsAnalyses <- function(connectionDetails,
   }
 
   writeLines("*** Creating sccsEraData objects ***")
-  createSccsEraDataObject <- function(params) {
-    sccsData <- loadSccsData(params$sccsDataFileName, readOnly = TRUE)
-    params$args$sccsData <- sccsData
-    sccsEraData <- do.call("createSccsEraData", params$args)
-    saveSccsEraData(sccsEraData = sccsEraData,
-                    folder = params$sccsEraDataFileName,
-                    compress = params$compressSccsEraDataFiles)
-  }
   if (length(sccsEraDataObjectsToCreate) != 0) {
     cluster <- OhdsiRTools::makeCluster(createSccsEraDataThreads)
     OhdsiRTools::clusterRequire(cluster, "SelfControlledCaseSeries")
@@ -375,15 +363,6 @@ runSccsAnalyses <- function(connectionDetails,
   }
 
   writeLines("*** Fitting models ***")
-  createSccsModelObject <- function(params) {
-    sccsEraData <- loadSccsEraData(params$sccsEraDataFileName, readOnly = TRUE)
-    params$args$sccsEraData <- sccsEraData
-    # sccsModel <- do.call("fitSccsModel", params$args)
-    sccsModel <- fitSccsModel(sccsEraData = sccsEraData,
-                              prior = args$prior,
-                              control = args$control)
-    saveRDS(sccsModel, params$sccsModelFileName)
-  }
   if (length(sccsModelObjectsToCreate) != 0) {
     cluster <- OhdsiRTools::makeCluster(fitSccsModelThreads)
     OhdsiRTools::clusterRequire(cluster, "SelfControlledCaseSeries")
@@ -392,6 +371,41 @@ runSccsAnalyses <- function(connectionDetails,
   }
 
   invisible(outcomeReference)
+}
+
+getSccsData <- function(sccsDataFolder) {
+  if (mget("sccsDataFolder", envir = globalenv(), ifnotfound = "") == sccsDataFolder) {
+    sccsData <- get("sccsData", envir = globalenv())
+  } else {
+    sccsData <- loadSccsData(sccsDataFolder, readOnly = TRUE)
+    assign("sccsData", sccsData, envir = globalenv())
+    assign("sccsDataFolder", sccsDataFolder, envir = globalenv())
+  }
+  return(sccsData)
+}
+
+createSccsDataObject <- function(params) {
+  sccsData <- do.call("getDbSccsData", params$args)
+  saveSccsData(sccsData, params$sccsDataFileName)
+}
+
+createSccsEraDataObject <- function(params) {
+  sccsData <- getSccsData(params$sccsDataFileName)
+  params$args$sccsData <- sccsData
+  sccsEraData <- do.call("createSccsEraData", params$args)
+  saveSccsEraData(sccsEraData = sccsEraData,
+                  folder = params$sccsEraDataFileName,
+                  compress = params$compressSccsEraDataFiles)
+}
+
+createSccsModelObject <- function(params) {
+  sccsEraData <- loadSccsEraData(params$sccsEraDataFileName, readOnly = TRUE)
+  params$args$sccsEraData <- sccsEraData
+  # sccsModel <- do.call("fitSccsModel", params$args)
+  sccsModel <- fitSccsModel(sccsEraData = sccsEraData,
+                            prior = params$args$prior,
+                            control = params$args$control)
+  saveRDS(sccsModel, params$sccsModelFileName)
 }
 
 .createSccsDataFileName <- function(folder, loadId) {

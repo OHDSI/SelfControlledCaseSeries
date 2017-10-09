@@ -5,7 +5,7 @@
 \title{Create seasonality settings}
 \usage{
 createSeasonalitySettings(includeSeasonality = FALSE, seasonKnots = 5,
-  allowRegularization = FALSE)
+  allowRegularization = FALSE, computeConfidenceIntervals = FALSE)
 }
 \arguments{
 \item{includeSeasonality}{Should seasonlaity be included in the model?}
@@ -18,6 +18,10 @@ start of the year.}
 
 \item{allowRegularization}{When fitting the model, should the covariates defined here be allowed
 to be regularized?}
+
+\item{computeConfidenceIntervals}{Should confidence intervals be computed for the covariates defined
+here? Setting this to FALSE might save computing time when fitting the
+model. Will be turned to FALSE  automaticaly when \code{allowRegularization = TRUE}.}
 }
 \value{
 An object of type \code{seasonalitySettings}.

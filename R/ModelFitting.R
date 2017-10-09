@@ -63,12 +63,14 @@ fitSccsModel <- function(sccsEraData,
     # regularization:
     nonRegularized <- c()
     needRegularization <- FALSE
+    needCi <- c()
     covariateSettingsList <- sccsEraData$metaData$covariateSettingsList
     for (i in 1:length(covariateSettingsList)) {
       if (covariateSettingsList[[i]]$allowRegularization) {
         needRegularization <- TRUE
       } else {
         nonRegularized <- c(nonRegularized, covariateSettingsList[[i]]$outputIds)
+        needCi <- c(needCi, covariateSettingsList[[i]]$outputIds)
       }
     }
     if (!is.null(sccsEraData$metaData$age)) {
@@ -76,6 +78,9 @@ fitSccsModel <- function(sccsEraData,
         needRegularization <- TRUE
       } else {
         nonRegularized <- c(nonRegularized, sccsEraData$metaData$age$covariateIds)
+        if (sccsEraData$metaData$age$computeConfidenceIntervals) {
+          needCi <- c(needCi, sccsEraData$metaData$age$covariateIds)
+        }
       }
     }
     if (!is.null(sccsEraData$metaData$seasonality)) {
@@ -83,6 +88,9 @@ fitSccsModel <- function(sccsEraData,
         needRegularization <- TRUE
       } else {
         nonRegularized <- c(nonRegularized, sccsEraData$metaData$seasonality$covariateIds)
+        if (sccsEraData$metaData$seasonality$computeConfidenceIntervals) {
+          needCi <- c(needCi, sccsEraData$metaData$seasonality$covariateIds)
+        }
       }
     }
 
@@ -118,7 +126,8 @@ fitSccsModel <- function(sccsEraData,
       estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
       estimates <- merge(estimates, ff::as.ram(sccsEraData$covariateRef), all.x = TRUE)
       tryCatch({
-        ci <- confint(fit, parm = nonRegularized[nonRegularized %in% estimates$covariateId], includePenalty = TRUE)
+        # ci <- confint(fit, parm = nonRegularized[nonRegularized %in% estimates$covariateId], includePenalty = TRUE)
+        ci <- confint(fit, parm = needCi, includePenalty = TRUE)
         attr(ci, "dimnames")[[1]] <- 1:length(attr(ci, "dimnames")[[1]])
         ci <- as.data.frame(ci)
         rownames(ci) <- NULL

@@ -235,7 +235,8 @@ addAgeSettings <- function(settings,
     settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
     age <- list(ageKnots = ageKnots,
                 covariateIds = splineCovariateRef$covariateId,
-                allowRegularization = ageSettings$allowRegularization)
+                allowRegularization = ageSettings$allowRegularization,
+                computeConfidenceIntervals = ageSettings$computeConfidenceIntervals)
     settings$metaData$age <- age
   }
   return(settings)
@@ -262,7 +263,8 @@ addSeasonalitySettings <- function(settings, seasonalitySettings, sccsData) {
     settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
     seasonality <- list(seasonKnots = seasonKnots,
                         covariateIds = splineCovariateRef$covariateId,
-                        allowRegularization = seasonalitySettings$allowRegularization)
+                        allowRegularization = seasonalitySettings$allowRegularization,
+                        computeConfidenceIntervals = seasonalitySettings$computeConfidenceIntervals)
     settings$metaData$seasonality <- seasonality
   }
   return(settings)
@@ -503,6 +505,9 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
 #'                              age-days
 #' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
 #'                              to be regularized?
+#' @param computeConfidenceIntervals  Should confidence intervals be computed for the covariates defined
+#'                                    here? Setting this to FALSE might save computing time when fitting the
+#'                                    model. Will be turned to FALSE  automaticaly when \code{allowRegularization = TRUE}.
 #' @param minAge                Minimum age at which patient time will be included in the analysis. Note
 #'                              that information prior to the min age is still used to determine exposure
 #'                              status after the minimum age (e.g. when a prescription was started just prior
@@ -521,8 +526,13 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
 createAgeSettings <- function(includeAge = FALSE,
                               ageKnots = 5,
                               allowRegularization = FALSE,
+                              computeConfidenceIntervals = FALSE,
                               minAge = NULL,
                               maxAge = NULL) {
+  if (computeConfidenceIntervals && allowRegularization) {
+    computeConfidenceIntervals <- FALSE
+    warning("computeConfidenceIntervals is set to FALSE because allowRegularization is TRUE")
+  }
   # First: get default values:
   analysis <- list()
   for (name in names(formals(createAgeSettings))) {
@@ -554,6 +564,9 @@ createAgeSettings <- function(includeAge = FALSE,
 #'                              start of the year.
 #' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
 #'                              to be regularized?
+#' @param computeConfidenceIntervals  Should confidence intervals be computed for the covariates defined
+#'                                    here? Setting this to FALSE might save computing time when fitting the
+#'                                    model. Will be turned to FALSE  automaticaly when \code{allowRegularization = TRUE}.
 #'
 #' @return
 #' An object of type \code{seasonalitySettings}.
@@ -561,7 +574,12 @@ createAgeSettings <- function(includeAge = FALSE,
 #' @export
 createSeasonalitySettings <- function(includeSeasonality = FALSE,
                                       seasonKnots = 5,
-                                      allowRegularization = FALSE) {
+                                      allowRegularization = FALSE,
+                                      computeConfidenceIntervals = FALSE) {
+  if (computeConfidenceIntervals && allowRegularization) {
+    computeConfidenceIntervals <- FALSE
+    warning("computeConfidenceIntervals is set to FALSE because allowRegularization is TRUE")
+  }
   # First: get default values:
   analysis <- list()
   for (name in names(formals(createSeasonalitySettings))) {
