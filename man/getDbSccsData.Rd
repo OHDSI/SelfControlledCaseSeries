@@ -13,7 +13,7 @@ getDbSccsData(connectionDetails, cdmDatabaseSchema,
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort", customCovariateIds = c(),
   deleteCovariatesSmallCount = 100, studyStartDate = "",
-  studyEndDate = "", cdmVersion = "4")
+  studyEndDate = "", cdmVersion = "5", maxCasesPerOutcome = 0)
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using
@@ -86,6 +86,10 @@ used. Date format is 'yyyymmdd'.}
 
 \item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and
 "5".}
+
+\item{maxCasesPerOutcome}{If there are more than this number of cases for a single
+outcome cases will be sampled to this size. \code{maxCasesPerOutcome = 0}
+indicates no maximum size.}
 }
 \value{
 Returns an object of type \code{sccsData}, containing information on the cases, their outcomes,

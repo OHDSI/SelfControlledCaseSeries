@@ -1,5 +1,5 @@
 /**********************************************************************
-@file QueryCases.sql
+@file SampleCases.sql
 
 Copyright 2017 Observational Health Data Sciences and Informatics
 
@@ -18,17 +18,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ***********************************************************************/
 
-{DEFAULT @cases_table = #cases}
+{DEFAULT @max_cases_per_outcome = 1000000}
 
-SELECT
-	observation_period_id,
-	person_id,
-	DATEDIFF(DAY, start_date, end_date) + 1 AS observation_days,
-	YEAR(start_date) AS start_year,
-	MONTH(start_date) AS start_month,
-	DAY(start_date) AS start_day,
-	age_in_days,
-	DATEDIFF(DAY, observation_period_start_date, start_date) AS censored_days
-FROM @cases_table
-ORDER BY
-	observation_period_id;
+IF OBJECT_ID('tempdb..#sampled_cases', 'U') IS NOT NULL
+	DROP TABLE #sampled_cases;
+	
+SELECT cases.observation_period_id,
+	cases.person_id,
+	cases.observation_period_start_date,
+	cases.start_date,
+	cases.end_date,
+	cases.age_in_days
+INTO #sampled_cases
+FROM (
+	SELECT DISTINCT observation_period_id
+	FROM (
+		SELECT observation_period_id,
+		ROW_NUMBER() OVER (PARTITION BY outcome_id ORDER BY random_id) AS rn 
+		FROM #cases_per_outcome 
+		) temp
+	WHERE rn <= @max_cases_per_outcome
+	) sampled_ids
+INNER JOIN #cases cases
+	ON cases.observation_period_id = sampled_ids.observation_period_id;

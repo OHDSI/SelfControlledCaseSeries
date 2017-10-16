@@ -6,3 +6,13 @@ DROP TABLE #eras;
 
 TRUNCATE TABLE #covariate_ref;
 DROP TABLE #covariate_ref;
+
+{@cases_per_outcome} ? {
+TRUNCATE TABLE #cases_per_outcome;
+DROP TABLE #cases_per_outcome;
+}
+
+{@sampled_cases} ? {
+TRUNCATE TABLE #sampled_cases;
+DROP TABLE #sampled_cases;
+}

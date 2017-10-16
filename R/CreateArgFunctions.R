@@ -12,6 +12,9 @@
 #'                                     Date format is 'yyyymmdd'.
 #' @param studyEndDate                 A calendar date specifying the maximum date where data isused.
 #'                                     Date format is 'yyyymmdd'.
+#' @param maxCasesPerOutcome           If there are more than this number of cases for a singleoutcome
+#'                                     cases will be sampled to this size. maxCasesPerOutcome =
+#'                                     0indicates no maximum size.
 #' @param exposureIds                  A list of identifiers to define the exposures of interest.
 #'                                     IfexposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.If
 #'                                     exposureTable <> DRUG_ERA, exposureIds is used to selectthe
@@ -26,6 +29,7 @@ createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
                                     deleteCovariatesSmallCount = 100,
                                     studyStartDate = "",
                                     studyEndDate = "",
+                                    maxCasesPerOutcome = 0,
                                     exposureIds = "exposureId",
                                     customCovariateIds = "") {
   # First: get default values:

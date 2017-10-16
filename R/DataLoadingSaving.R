@@ -101,6 +101,9 @@
 #'                                        used. Date format is 'yyyymmdd'.
 #' @param cdmVersion                      Define the OMOP CDM version used: currently support "4" and
 #'                                        "5".
+#' @param maxCasesPerOutcome              If there are more than this number of cases for a single
+#'                                        outcome cases will be sampled to this size. \code{maxCasesPerOutcome = 0}
+#'                                        indicates no maximum size.
 #'
 #' @export
 getDbSccsData <- function(connectionDetails,
@@ -119,7 +122,8 @@ getDbSccsData <- function(connectionDetails,
                           deleteCovariatesSmallCount = 100,
                           studyStartDate = "",
                           studyEndDate = "",
-                          cdmVersion = "4") {
+                          cdmVersion = "5",
+                          maxCasesPerOutcome = 0) {
   if (studyStartDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
     stop("Study start date must have format YYYYMMDD")
   }
@@ -162,61 +166,119 @@ getDbSccsData <- function(connectionDetails,
                                    tempTable = TRUE,
                                    oracleTempSchema = oracleTempSchema)
   }
-  renderedSql <- SqlRender::loadRenderTranslateSql("Sccs.sql",
-                                                   packageName = "SelfControlledCaseSeries",
-                                                   dbms = connectionDetails$dbms,
-                                                   oracleTempSchema = oracleTempSchema,
-                                                   cdm_database_schema = cdmDatabaseSchema,
-                                                   outcome_database_schema = outcomeDatabaseSchema,
-                                                   outcome_table = outcomeTable,
-                                                   outcome_concept_ids = outcomeIds,
-                                                   exposure_database_schema = exposureDatabaseSchema,
-                                                   exposure_table = exposureTable,
-                                                   use_custom_covariates = useCustomCovariates,
-                                                   custom_covariate_database_schema = customCovariateDatabaseSchema,
-                                                   custom_covariate_table = customCovariateTable,
-                                                   has_exposure_ids = hasExposureIds,
-                                                   has_custom_covariate_ids = hasCustomCovariateIds,
-                                                   delete_covariates_small_count = deleteCovariatesSmallCount,
-                                                   study_start_date = studyStartDate,
-                                                   study_end_date = studyEndDate,
-                                                   cdm_version = cdmVersion,
-                                                   cohort_definition_id = cohortDefinitionId)
+  writeLines("Creating cases")
+  sql <- SqlRender::loadRenderTranslateSql("CreateCases.sql",
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           oracleTempSchema = oracleTempSchema,
+                                           cdm_database_schema = cdmDatabaseSchema,
+                                           outcome_database_schema = outcomeDatabaseSchema,
+                                           outcome_table = outcomeTable,
+                                           outcome_concept_ids = outcomeIds,
+                                           study_start_date = studyStartDate,
+                                           study_end_date = studyEndDate,
+                                           cohort_definition_id = cohortDefinitionId)
+  DatabaseConnector::executeSql(conn, sql)
 
-  writeLines("Executing multiple queries. This could take a while")
-  DatabaseConnector::executeSql(conn, renderedSql)
+  sampledCases <- FALSE
+  casesPerOutcome <- FALSE
+  casesTable <- "#cases"
+  if (maxCasesPerOutcome != 0) {
+    casesPerOutcome <- TRUE
+    writeLines("Counting cases per outcome")
+    sql <- SqlRender::loadRenderTranslateSql("CasesPerOutcome.sql",
+                                             packageName = "SelfControlledCaseSeries",
+                                             dbms = connectionDetails$dbms,
+                                             oracleTempSchema = oracleTempSchema,
+                                             outcome_database_schema = outcomeDatabaseSchema,
+                                             outcome_table = outcomeTable,
+                                             outcome_concept_ids = outcomeIds,
+                                             cohort_definition_id = cohortDefinitionId)
+    DatabaseConnector::executeSql(conn, sql)
+
+    sql <- "SELECT outcome_id, COUNT(*) AS case_count FROM #cases_per_outcome GROUP BY outcome_id"
+    sql <- SqlRender::translateSql(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)$sql
+    caseCounts <- DatabaseConnector::querySql(conn, sql)
+    colnames(caseCounts) <- SqlRender::snakeCaseToCamelCase(colnames(caseCounts))
+
+    for (i in 1:nrow(caseCounts)) {
+      if (caseCounts$caseCount[i] > maxCasesPerOutcome) {
+        writeLines(paste0("Downsampling cases for outcome ", caseCounts$outcomeId[i], " from ", caseCounts$caseCount[i], " to ", maxCasesPerOutcome))
+        sampledCases <- TRUE
+      }
+    }
+    if (sampledCases) {
+      sql <- SqlRender::loadRenderTranslateSql("SampleCases.sql",
+                                               packageName = "SelfControlledCaseSeries",
+                                               dbms = connectionDetails$dbms,
+                                               oracleTempSchema = oracleTempSchema,
+                                               max_cases_per_outcome = maxCasesPerOutcome)
+      DatabaseConnector::executeSql(conn, sql)
+      casesTable <- "#sampled_cases"
+    }
+  }
+
+  sql <- SqlRender::loadRenderTranslateSql("CreateEras.sql",
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           oracleTempSchema = oracleTempSchema,
+                                           cdm_database_schema = cdmDatabaseSchema,
+                                           outcome_database_schema = outcomeDatabaseSchema,
+                                           outcome_table = outcomeTable,
+                                           outcome_concept_ids = outcomeIds,
+                                           exposure_database_schema = exposureDatabaseSchema,
+                                           exposure_table = exposureTable,
+                                           use_custom_covariates = useCustomCovariates,
+                                           custom_covariate_database_schema = customCovariateDatabaseSchema,
+                                           custom_covariate_table = customCovariateTable,
+                                           has_exposure_ids = hasExposureIds,
+                                           has_custom_covariate_ids = hasCustomCovariateIds,
+                                           delete_covariates_small_count = deleteCovariatesSmallCount,
+                                           study_start_date = studyStartDate,
+                                           study_end_date = studyEndDate,
+                                           cdm_version = cdmVersion,
+                                           cohort_definition_id = cohortDefinitionId,
+                                           cases_table = casesTable)
+
+  writeLines("Creating eras")
+  DatabaseConnector::executeSql(conn, sql)
 
   writeLines("Fetching data from server")
   start <- Sys.time()
-  renderedSql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
-                                                   packageName = "SelfControlledCaseSeries",
-                                                   dbms = connectionDetails$dbms,
-												   oracleTempSchema = oracleTempSchema)
-  cases <- DatabaseConnector::querySql.ffdf(conn, renderedSql)
+  sql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           oracleTempSchema = oracleTempSchema,
+                                           cases_table = casesTable)
+  cases <- DatabaseConnector::querySql.ffdf(conn, sql)
+  colnames(cases) <- SqlRender::snakeCaseToCamelCase(colnames(cases))
 
-  renderedSql <- "SELECT era_type, observation_period_id, concept_id, era_value AS value, start_day, end_day FROM #eras ORDER BY observation_period_id"
-  renderedSql <- SqlRender::translateSql(sql = renderedSql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)$sql
-  eras <- DatabaseConnector::querySql.ffdf(conn, renderedSql)
+  sql <- SqlRender::loadRenderTranslateSql("QueryEras.sql",
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           oracleTempSchema = oracleTempSchema)
+  eras <- DatabaseConnector::querySql.ffdf(conn, sql)
+  colnames(eras) <- SqlRender::snakeCaseToCamelCase(colnames(eras))
 
-  renderedSql <- "SELECT covariate_id, covariate_name FROM #covariate_ref"
-  renderedSql <- SqlRender::translateSql(sql = renderedSql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)$sql
-  covariateRef <- DatabaseConnector::querySql.ffdf(conn, renderedSql)
+  sql <- "SELECT covariate_id, covariate_name FROM #covariate_ref"
+  sql <- SqlRender::translateSql(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)$sql
+  covariateRef <- DatabaseConnector::querySql.ffdf(conn, sql)
+  colnames(covariateRef) <- SqlRender::snakeCaseToCamelCase(colnames(covariateRef))
 
   delta <- Sys.time() - start
   writeLines(paste("Loading took", signif(delta, 3), attr(delta, "units")))
 
-  if (connectionDetails$dbms == "oracle") {
-    renderedSql <- SqlRender::loadRenderTranslateSql("RemoveTempTables.sql",
-                                                     packageName = "SelfControlledCaseSeries",
-                                                     dbms = connectionDetails$dbms,
-													 oracleTempSchema = oracleTempSchema)
-    DatabaseConnector::executeSql(conn, renderedSql, progressBar = FALSE, reportOverallTime = FALSE)
-  }
+  # Delete temp tables
+  sql <- SqlRender::loadRenderTranslateSql("RemoveTempTables.sql",
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           oracleTempSchema = oracleTempSchema,
+                                           cases_per_outcome = casesPerOutcome,
+                                           sampled_cases = sampledCases)
+  DatabaseConnector::executeSql(conn, sql, progressBar = FALSE, reportOverallTime = FALSE)
+
   DatabaseConnector::disconnect(conn)
 
-  colnames(cases) <- SqlRender::snakeCaseToCamelCase(colnames(cases))
-  colnames(eras) <- SqlRender::snakeCaseToCamelCase(colnames(eras))
-  colnames(covariateRef) <- SqlRender::snakeCaseToCamelCase(colnames(covariateRef))
   metaData <- list(exposureIds = exposureIds, outcomeIds = outcomeIds, call = match.call())
   result <- list(cases = cases, eras = eras, covariateRef = covariateRef, metaData = metaData)
 

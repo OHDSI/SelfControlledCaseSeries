@@ -6,7 +6,8 @@
 \usage{
 createGetDbSccsDataArgs(useCustomCovariates = FALSE,
   deleteCovariatesSmallCount = 100, studyStartDate = "",
-  studyEndDate = "", exposureIds = "exposureId", customCovariateIds = "")
+  studyEndDate = "", maxCasesPerOutcome = 0, exposureIds = "exposureId",
+  customCovariateIds = "")
 }
 \arguments{
 \item{useCustomCovariates}{Create covariates from a custom table?}
@@ -19,6 +20,10 @@ Date format is 'yyyymmdd'.}
 
 \item{studyEndDate}{A calendar date specifying the maximum date where data isused.
 Date format is 'yyyymmdd'.}
+
+\item{maxCasesPerOutcome}{If there are more than this number of cases for a singleoutcome
+cases will be sampled to this size. maxCasesPerOutcome =
+0indicates no maximum size.}
 
 \item{exposureIds}{A list of identifiers to define the exposures of interest.
 IfexposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.If

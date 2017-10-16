@@ -21,7 +21,7 @@ library(SqlRender)
 library(DatabaseConnector)
 library(SelfControlledCaseSeries)
 setwd("s:/temp")
-options(fftempdir = "s:/fftemp")
+options(fftempdir = "c:/fftemp")
 folder <- "s:/temp/vignetteSccs/eraData1b"
 readOnly <- TRUE
 pw <- NULL
@@ -67,6 +67,8 @@ sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
 ppis <- DatabaseConnector::querySql(connection, sql)
 ppis <- ppis$CONCEPT_ID
 
+DatabaseConnector::disconnect(connection)
+
 diclofenac <- 1124300
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
 
@@ -80,7 +82,8 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
                           exposureIds = diclofenac,
-                          cdmVersion = cdmVersion)
+                          cdmVersion = cdmVersion,
+                          maxCasesPerOutcome = 1000)
 saveSccsData(sccsData, "s:/temp/vignetteSccs/data1")
 # sccsData <- loadSccsData('s:/temp/vignetteSccs/data1')
 covarDiclofenac <- createCovariateSettings(label = "Exposure of interest",
