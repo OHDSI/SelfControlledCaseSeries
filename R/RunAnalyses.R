@@ -178,6 +178,7 @@ runSccsAnalyses <- function(connectionDetails,
                   deleteCovariatesSmallCount = sccsAnalysis$getDbSccsDataArgs$deleteCovariatesSmallCount,
                   studyStartDate = sccsAnalysis$getDbSccsDataArgs$studyStartDate,
                   studyEndDate = sccsAnalysis$getDbSccsDataArgs$studyEndDate,
+                  maxCasesPerOutcome = sccsAnalysis$getDbSccsDataArgs$maxCasesPerOutcome,
                   rowId = rowId)
       conceptsPerLoad[[length(conceptsPerLoad) + 1]] <- row
       rowId <- rowId + 1
@@ -189,12 +190,14 @@ runSccsAnalyses <- function(connectionDetails,
     uniqueLoads <- unique(OhdsiRTools::selectFromList(conceptsPerLoad,
                                                       c("deleteCovariatesSmallCount",
                                                         "studyStartDate",
-                                                        "studyEndDate")))
+                                                        "studyEndDate",
+                                                        "maxCasesPerOutcome")))
   } else {
     uniqueLoads <- unique(OhdsiRTools::selectFromList(conceptsPerLoad,
                                                       c("deleteCovariatesSmallCount",
                                                         "studyStartDate",
                                                         "studyEndDate",
+                                                        "maxCasesPerOutcome",
                                                         "outcomeId")))
   }
   # Step 3: Compute unions of concept sets, and generate loading arguments and file names
@@ -252,7 +255,8 @@ runSccsAnalyses <- function(connectionDetails,
                    customCovariateIds = customCovariateIds,
                    deleteCovariatesSmallCount = groupables[[1]]$deleteCovariatesSmallCount,
                    studyStartDate = groupables[[1]]$studyStartDate,
-                   studyEndDate = groupables[[1]]$studyEndDate)
+                   studyEndDate = groupables[[1]]$studyEndDate,
+                   maxCasesPerOutcome = groupables[[1]]$maxCasesPerOutcome)
       sccsDataObjectsToCreate[[length(sccsDataObjectsToCreate) + 1]] <- list(args = args,
                                                                              sccsDataFileName = sccsDataFileName)
     }
