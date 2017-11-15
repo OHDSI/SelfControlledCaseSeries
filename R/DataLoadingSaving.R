@@ -30,12 +30,16 @@
 #'   \item {Information on the observation time and age for the people with the outcomes.}
 #'   \item {Information on exposures of interest which we want to include in the model.}
 #' }
-#' Four different database schemas can be specified, for four different types of information: The
+#' Five different database schemas can be specified, for five different types of information: The
 #' \code{cdmDatabaseSchema} is used to extract patient age and observation period. The
 #' \code{outcomeDatabaseSchema} is used to extract information about the outcomes, the
 #' \code{exposureDatabaseSchema} is used to retrieve information on exposures, and the
 #' \code{customCovariateDatabaseSchema} is optionally used to find additional, user-defined
 #' covariates. All four locations could point to the same database schema.
+#' \code{nestingCohortDatabaseSchema} is optionally used to define a cohort in which the analysis is nested,
+#' for example a cohort of diabetics patients.
+#'
+#' All five locations could point to the same database schema.
 #'
 #' @return
 #' Returns an object of type \code{sccsData}, containing information on the cases, their outcomes,
@@ -93,6 +97,15 @@
 #' @param customCovariateIds              A list of cohort definition IDS identifying the records in
 #'                                        the customCovariateTable to use for building custom
 #'                                        covariates.
+#' @param useNestingCohort                    Should the study be nested in a cohort (e.g. people with
+#'                                            a specific indication)? If not, the study will be nested
+#'                                            in the general population.
+#' @param nestingCohortDatabaseSchema         The name of the database schema that is the location
+#'                                            where the nesting cohort is defined.
+#' @param nestingCohortTable                  Name of the table holding the nesting cohort. This table
+#'                                            should have the same structure as the cohort table.
+#' @param nestingCohortId                     A cohort definition ID identifying the records in the
+#'                                            nestingCohortTable to use as nesting cohort.
 #' @param deleteCovariatesSmallCount      The minimum count for a covariate to appear in the data to be
 #'                                        kept.
 #' @param studyStartDate                  A calendar date specifying the minimum date where data is
@@ -119,6 +132,10 @@ getDbSccsData <- function(connectionDetails,
                           customCovariateDatabaseSchema = cdmDatabaseSchema,
                           customCovariateTable = "cohort",
                           customCovariateIds = c(),
+                          useNestingCohort = FALSE,
+                          nestingCohortDatabaseSchema = cdmDatabaseSchema,
+                          nestingCohortTable = "cohort",
+                          nestingCohortId = NULL,
                           deleteCovariatesSmallCount = 100,
                           studyStartDate = "",
                           studyEndDate = "",
@@ -175,6 +192,10 @@ getDbSccsData <- function(connectionDetails,
                                            outcome_database_schema = outcomeDatabaseSchema,
                                            outcome_table = outcomeTable,
                                            outcome_concept_ids = outcomeIds,
+                                           use_nesting_cohort = useNestingCohort,
+                                           nesting_cohort_database_schema = nestingCohortDatabaseSchema,
+                                           nesting_cohort_table = nestingCohortTable,
+                                           nesting_cohort_id = nestingCohortId,
                                            study_start_date = studyStartDate,
                                            study_end_date = studyEndDate,
                                            cohort_definition_id = cohortDefinitionId)
