@@ -165,7 +165,7 @@ plotEventObservationDependence <- function(sccsData,
       stop("No outcome ID specified, but multiple outcomes found")
     }
   }
-  data <- SelfControlledCaseSeries:::findIncludedOutcomes(sccsData = sccsData,
+  data <- findIncludedOutcomes(sccsData = sccsData,
                                outcomeId = outcomeId,
                                firstOutcomeOnly = TRUE,
                                naivePeriod = naivePeriod,
@@ -206,7 +206,7 @@ plotEventObservationDependence <- function(sccsData,
   return(plot)
 }
 
-#'
+#' Plot information centered around the start of exposure
 #'
 #' @param sccsData                    An object of type \code{sccsData} as created using the
 #'                                    \code{\link{getDbSccsData}} function.
