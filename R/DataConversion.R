@@ -89,7 +89,7 @@ createSccsEraData <- function(sccsData,
   }
 
   if (eventDependentObservation) {
-    sccsData$cases$uncensored <- isUncensored(sccsData)
+    sccsData$cases$uncensored <- isUncensored(sccsData, ageSettings$maxAge)
   } else {
     sccsData$cases$uncensored <- ff::ff(FALSE, nrow(sccsData$cases))
   }
@@ -102,7 +102,7 @@ createSccsEraData <- function(sccsData,
   settings$covariateRef <- data.frame()
   ageSeasonsCases <- numeric(0)
   if (ageSettings$includeAge || seasonalitySettings$includeSeasonality) {
-    includedOutcomes <- findIncludedOutcomes(sccsData, outcomeId, firstOutcomeOnly, naivePeriod, ageSettings)
+    includedOutcomes <- findIncludedOutcomes(sccsData, outcomeId, firstOutcomeOnly, naivePeriod, ageSettings$minAge, ageSettings$maxAge)$outcomes
     if (nrow(includedOutcomes) > minCasesForAgeSeason) {
       set.seed(0)
       ageSeasonsCases <- sample(includedOutcomes$observationPeriodId, minCasesForAgeSeason, replace = FALSE)
@@ -158,44 +158,49 @@ createSccsEraData <- function(sccsData,
   return(result)
 }
 
-findIncludedOutcomes <- function(sccsData, outcomeId, firstOutcomeOnly, naivePeriod, ageSettings) {
+findIncludedOutcomes <- function(sccsData, outcomeId, firstOutcomeOnly, naivePeriod, minAge, maxAge) {
   outcomes <- ffbase::subset.ffdf(sccsData$eras, eraType == "hoi" & conceptId == outcomeId)
   if (firstOutcomeOnly) {
     outcomes <- ff::as.ffdf(aggregate(startDay ~ observationPeriodId, outcomes, min))
   }
   colnames(outcomes)[colnames(outcomes) == "startDay"] <- "outcomeDay"
-  outcomes <- merge(outcomes, sccsData$cases)
-  outcomes <- ffbase::subset.ffdf(outcomes, outcomeDay >= naivePeriod - censoredDays & outcomeDay >= 0)
-  outcomes$outcomeAges <- outcomes$outcomeDay + outcomes$ageInDays
-  if (ageSettings$includeAge) {
-    if (is.null(ageSettings$minAge)) {
-      minAge <- -1
-    } else {
-      minAge <- ageSettings$minAge * 365.25
-    }
-    if (is.null(ageSettings$maxAge)) {
-      maxAge <- -1
-    } else {
-      maxAge <- (ageSettings$maxAge + 1) * 365.25
-    }
-    if (minAge != -1) {
-      outcomes <- outcomes[outcomes$outcomeAges >= minAge, ]
-    }
-    if (maxAge != -1) {
-      outcomes <- outcomes[outcomes$outcomeAges <= maxAge, ]
-    }
+  cases <- sccsData$cases
+  cases$trueStartAge <- ff::clone.ff(cases$ageInDays)
+  idx <- naivePeriod > cases$censoredDays
+  cases$trueStartAge[idx] <- cases$trueStartAge[idx] + (naivePeriod - cases$censoredDays[idx])
+  cases$trueEndAge <- cases$ageInDays + cases$observationDays
+  if (!is.null(minAge)) {
+    minAgeDays <- minAge * 365.25
+    idx <- cases$trueStartAge < minAgeDays
+    cases$trueStartAge[idx] <- ff::ff(minAgeDays, ffbase::sum.ff(idx))
   }
-  return(outcomes)
+  if (!is.null(maxAge)) {
+    maxAgeDays <- (maxAge + 1) * 365.25
+    idx <- cases$trueEndAge > maxAgeDays
+    cases$trueEndAge[idx] <- ff::ff(maxAgeDays, ffbase::sum.ff(idx))
+  }
+  cases <- cases[cases$trueStartAge <= cases$trueEndAge, ]
+  outcomes <- merge(outcomes, ffbase::subset.ffdf(cases, select = c("observationPeriodId", "ageInDays", "trueStartAge", "trueEndAge")))
+  outcomes$outcomeAge <- outcomes$outcomeDay + outcomes$ageInDays
+  outcomes <- outcomes[outcomes$outcomeAge >= outcomes$trueStartAge & outcomes$outcomeAge <= outcomes$trueEndAge, ]
+  cases <- cases[ffbase::`%in%`(cases$observationPeriodId, outcomes$observationPeriodId), ]
+  return(list(outcomes = outcomes, cases = cases))
 }
 
-isUncensored <- function(sccsData) {
+isUncensored <- function(sccsData, maxAge) {
   dates <- as.Date(paste(ff::as.ram(sccsData$cases$startYear),
                          ff::as.ram(sccsData$cases$startMonth),
                          ff::as.ram(sccsData$cases$startDay),
                          sep = "-"), format = "%Y-%m-%d")
   dates <- dates + ff::as.ram(sccsData$cases$observationDays)
   studyEndDate <- max(dates)
-  return(ff::as.ff(dates == studyEndDate))
+  result <- ff::as.ff(dates == studyEndDate)
+  if (!is.null(maxAge)) {
+    maxAgeDays <- (maxAge + 1) * 365.25
+    truncatedByMaxAge <- sccsData$cases$ageInDays + sccsData$cases$observationDays > maxAgeDays
+    result <- result | truncatedByMaxAge
+  }
+  return(result)
 }
 
 addAgeSettings <- function(settings,
@@ -216,7 +221,7 @@ addAgeSettings <- function(settings,
     settings$ageDesignMatrix <- matrix()
   } else {
     if (length(ageSettings$ageKnots) == 1) {
-      ageKnots <- ffbase::quantile.ff(includedOutcomes$outcomeAges,
+      ageKnots <- ffbase::quantile.ff(includedOutcomes$outcomeAge,
                                       seq(0.01, 0.99, length.out = ageSettings$ageKnots))
     } else {
       ageKnots <- ageSettings$ageKnots
