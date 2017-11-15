@@ -20,18 +20,17 @@
 library(SqlRender)
 library(DatabaseConnector)
 library(SelfControlledCaseSeries)
-setwd("s:/temp")
 options(fftempdir = "s:/fftemp")
 
 pw <- NULL
 dbms <- "pdw"
 user <- NULL
-server <- "JRDUSAPSCTL01"
+server <- Sys.getenv("PDW_SERVER")
 cdmDatabaseSchema <- "cdm_truven_mdcd_v569.dbo"
 cohortDatabaseSchema <- "scratch.dbo"
 oracleTempSchema <- NULL
 outcomeTable <- "mschuemi_sccs_vignette"
-port <- 17001
+port <- Sys.getenv("PDW_PORT")
 cdmVersion <- "5"
 
 connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
