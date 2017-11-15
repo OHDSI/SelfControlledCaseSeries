@@ -21,7 +21,7 @@ library(SqlRender)
 library(DatabaseConnector)
 library(SelfControlledCaseSeries)
 setwd("s:/temp")
-options(fftempdir = "c:/fftemp")
+options(fftempdir = "s:/fftemp")
 folder <- "s:/temp/vignetteSccs/eraData1b"
 readOnly <- TRUE
 pw <- NULL

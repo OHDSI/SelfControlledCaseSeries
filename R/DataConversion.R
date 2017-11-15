@@ -167,7 +167,9 @@ findIncludedOutcomes <- function(sccsData, outcomeId, firstOutcomeOnly, naivePer
   cases <- sccsData$cases
   cases$trueStartAge <- ff::clone.ff(cases$ageInDays)
   idx <- naivePeriod > cases$censoredDays
-  cases$trueStartAge[idx] <- cases$trueStartAge[idx] + (naivePeriod - cases$censoredDays[idx])
+  if (ffbase::any.ff(idx)) {
+    cases$trueStartAge[idx] <- cases$trueStartAge[idx] + (naivePeriod - cases$censoredDays[idx])
+  }
   cases$trueEndAge <- cases$ageInDays + cases$observationDays
   if (!is.null(minAge)) {
     minAgeDays <- minAge * 365.25

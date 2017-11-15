@@ -441,7 +441,6 @@ if (file.exists("s:/temp/vignetteSccs/eventDepModel.rds")){
 }
 ```
 
-
 # Studies with more than one drug
 
 Although we are usually interested in the effect of a single drug or drug class, it could be beneficial to add exposure to other drugs to the analysis if we believe those drugs represent time-varying confounders that we wish to correct for.
@@ -588,6 +587,59 @@ if (file.exists("s:/temp/vignetteSccs/allDrugsModel.rds")){
 ```
 
 Note that because we used regularization, we are not able to compute the confidence intervals for these estimates. We do again see that PPIs all have relative risks lower than 1 as we would expect.
+
+# Diagnostics
+
+We can perform several diagnostics on the data to verify whether our assumptions underlying the SCCS are met. 
+
+
+## Time from exposure start to event
+
+To gain a better understanding of when the event occurs relative to the start of exposure, we can plot their relationship. Note that we specify the naive period, so this can be applied to the data prior to showing the plot. This will make the plot better in line with the data we ended up fitting:
+
+```{r tidy=TRUE,eval=FALSE}
+plotExposureCentered(sccsData, exposureId = diclofenac, naivePeriod = 180)
+```
+```{r echo=FALSE,message=FALSE,fig.width=6.5, fig.height=5}
+if (file.exists("s:/temp/vignetteSccs")){
+  plotExposureCentered(sccsData, exposureId = diclofenac, naivePeriod = 180)
+}
+```
+
+This plot suggests an increased rate of events in the first few weeks following the start of exposure, perhaps because of an acute effect.
+
+
+## Ages covered per subject
+
+We can visualize which age ranges are covered by each subject's obervation time:
+
+```{r tidy=TRUE,eval=FALSE}
+plotAgeSpans(sccsData, naivePeriod = 180)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")){
+  plotAgeSpans(sccsData, naivePeriod = 180)
+}
+```
+
+Here we see that most observation periods span only a small age range, making it unlikely that any within-person age-related effect will be large.
+
+## Dependency between events and observation end
+
+To understand whether censoring is dependent on the event, which would violate one of the assumptions of the SCCS, we can plot the difference in distribution between censored and uncensored events. By 'censored' we mean periods that end before we would normally expect. Here, we define periods to be uncensored if they end at either the study end date (if specified), database end date (i.e. the date after which no data is captured in the database), or maximum age (if specified). All other periods are assumed to be censored.
+
+```{r tidy=TRUE,eval=FALSE}
+plotEventObservationDependence(sccsData, naivePeriod = 180)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")){
+  sccsData <- loadSccsData("s:/temp/vignetteSccs/data1")
+  plotEventObservationDependence(sccsData, naivePeriod = 180)
+}
+```
+
+Here we see that overall the two distributions are somewhat similar, with little evidence that censoring tends to lead to shorter times to the end of observation.
+
 
 # Acknowledgments
 

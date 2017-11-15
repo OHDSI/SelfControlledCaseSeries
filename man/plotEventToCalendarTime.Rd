@@ -5,7 +5,7 @@
 \title{Plot the count of events over calendar time.}
 \usage{
 plotEventToCalendarTime(sccsData, outcomeId = NULL, naivePeriod = 0,
-  maxAge = NULL, fileName = NULL)
+  minAge = NULL, maxAge = NULL, fileName = NULL)
 }
 \arguments{
 \item{sccsData}{An object of type \code{sccsData} as created using the
@@ -20,6 +20,14 @@ that should not be included in the risk calculations. Note that
 the naive period can be used to determine current covariate
 status right after the naive period, and whether an outcome is
 the first one.}
+
+\item{minAge}{Minimum age at which patient time will be included in the analysis. Note
+that information prior to the min age is still used to determine exposure
+status after the minimum age (e.g. when a prescription was started just prior
+to reaching the minimum age). Also, outcomes occurring before the minimum age
+is reached will be considered as prior outcomes when using first outcomes only.
+Age should be specified in years, but non-integer values are allowed. If not
+specified, no age restriction will be applied.}
 
 \item{maxAge}{Maximum age at which patient time will be included in the analysis. Age should
 be specified in years, but non-integer values are allowed. If not

@@ -65,17 +65,17 @@ plotAgeSpans <- function(sccsData,
       stop("No outcome ID specified, but multiple outcomes found")
     }
   }
-  data <- SelfControlledCaseSeries:::findIncludedOutcomes(sccsData = sccsData,
-                                                          outcomeId = outcomeId,
-                                                          firstOutcomeOnly = firstOutcomeOnly,
-                                                          naivePeriod = naivePeriod,
-                                                          minAge = minAge,
-                                                          maxAge = maxAge)
+  data <- findIncludedOutcomes(sccsData = sccsData,
+                               outcomeId = outcomeId,
+                               firstOutcomeOnly = firstOutcomeOnly,
+                               naivePeriod = naivePeriod,
+                               minAge = minAge,
+                               maxAge = maxAge)
   cases <- data$cases[, c("trueStartAge", "trueEndAge")]
   cases <- cases[order(cases$trueStartAge, cases$trueEndAge), ]
   cases$rank <- 1:nrow(cases)
 
-  ageLabels <- floor(min(cases$trueStartAge)/365.25):floor(max(cases$trueEndAge)/365.25)
+  ageLabels <- floor(min(cases$trueStartAge)/365.25):ceiling(max(cases$trueEndAge)/365.25)
   if (length(ageLabels) > 10) {
     ageLabels <- 10 * (floor(min(cases$trueStartAge)/3652.5):floor(max(cases$trueEndAge)/3652.5))
   }
@@ -166,12 +166,12 @@ plotEventObservationDependence <- function(sccsData,
     }
   }
   data <- SelfControlledCaseSeries:::findIncludedOutcomes(sccsData = sccsData,
-                                                          outcomeId = outcomeId,
-                                                          firstOutcomeOnly = TRUE,
-                                                          naivePeriod = naivePeriod,
-                                                          minAge = minAge,
-                                                          maxAge = maxAge)
-  uncensored <- SelfControlledCaseSeries:::isUncensored(sccsData = sccsData, maxAge = maxAge)
+                               outcomeId = outcomeId,
+                               firstOutcomeOnly = TRUE,
+                               naivePeriod = naivePeriod,
+                               minAge = minAge,
+                               maxAge = maxAge)
+  uncensored <- isUncensored(sccsData = sccsData, maxAge = maxAge)
   cases <- data$cases[, c("trueStartAge", "trueEndAge")]
   outcomes <- data$outcomes[, c("observationPeriodId", "trueEndAge", "outcomeAge")]
   outcomes$censoring <- "Censored"
@@ -262,12 +262,12 @@ plotExposureCentered <- function(sccsData,
       stop("No exposure ID specified, but multiple exposures found")
     }
   }
-  data <- SelfControlledCaseSeries:::findIncludedOutcomes(sccsData = sccsData,
-                                                          outcomeId = outcomeId,
-                                                          firstOutcomeOnly = TRUE,
-                                                          naivePeriod = naivePeriod,
-                                                          minAge = minAge,
-                                                          maxAge = maxAge)
+  data <- findIncludedOutcomes(sccsData = sccsData,
+                               outcomeId = outcomeId,
+                               firstOutcomeOnly = TRUE,
+                               naivePeriod = naivePeriod,
+                               minAge = minAge,
+                               maxAge = maxAge)
 
   exposures <- sccsData$eras[sccsData$eras$conceptId == exposureId & sccsData$eras$eraType == "hei", ]
   exposures <- aggregate(startDay ~ observationPeriodId, exposures, min)
@@ -338,6 +338,13 @@ plotExposureCentered <- function(sccsData,
 #'                                    the naive period can be used to determine current covariate
 #'                                    status right after the naive period, and whether an outcome is
 #'                                    the first one.
+#' @param minAge                Minimum age at which patient time will be included in the analysis. Note
+#'                              that information prior to the min age is still used to determine exposure
+#'                              status after the minimum age (e.g. when a prescription was started just prior
+#'                              to reaching the minimum age). Also, outcomes occurring before the minimum age
+#'                              is reached will be considered as prior outcomes when using first outcomes only.
+#'                              Age should be specified in years, but non-integer values are allowed. If not
+#'                              specified, no age restriction will be applied.
 #' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
 #'                              be specified in years, but non-integer values are allowed. If not
 #'                              specified, no age restriction will be applied.
@@ -351,6 +358,7 @@ plotExposureCentered <- function(sccsData,
 plotEventToCalendarTime <- function(sccsData,
                                     outcomeId = NULL,
                                     naivePeriod = 0,
+                                    minAge = NULL,
                                     maxAge = NULL,
                                     fileName = NULL) {
   if (is.null(outcomeId)) {
@@ -359,11 +367,12 @@ plotEventToCalendarTime <- function(sccsData,
       stop("No outcome ID specified, but multiple outcomes found")
     }
   }
-  data <- SelfControlledCaseSeries:::findIncludedOutcomes(sccsData = sccsData,
-                                                          outcomeId = outcomeId,
-                                                          firstOutcomeOnly = TRUE,
-                                                          naivePeriod = naivePeriod,
-                                                          maxAge = maxAge)
+  data <- findIncludedOutcomes(sccsData = sccsData,
+                               outcomeId = outcomeId,
+                               firstOutcomeOnly = TRUE,
+                               naivePeriod = naivePeriod,
+                               minAge = minAge,
+                               maxAge = maxAge)
   outcomes <- merge(ffbase::subset.ffdf(data$cases, select = c("observationPeriodId", "startYear", "startMonth", "startDay")),
                     ffbase::subset.ffdf(data$outcomes, select = c("observationPeriodId", "outcomeDay")))
 
@@ -372,10 +381,6 @@ plotEventToCalendarTime <- function(sccsData,
                          ff::as.ram(outcomes$startDay),
                          sep = "-"), format = "%Y-%m-%d")
   dates <- dates + ff::as.ram(outcomes$outcomeDay)
-
-  ageLabels <- 0:ceiling(max(outcomes$daysFromEvent)/365.25)
-
-  ageBreaks <- ageLabels * 365.25
 
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
