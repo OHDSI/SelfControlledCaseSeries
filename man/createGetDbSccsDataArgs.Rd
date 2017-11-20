@@ -5,12 +5,20 @@
 \title{Create a parameter object for the function getDbSccsData}
 \usage{
 createGetDbSccsDataArgs(useCustomCovariates = FALSE,
+  useNestingCohort = FALSE, nestingCohortId = NULL,
   deleteCovariatesSmallCount = 100, studyStartDate = "",
   studyEndDate = "", maxCasesPerOutcome = 0, exposureIds = "exposureId",
   customCovariateIds = "")
 }
 \arguments{
 \item{useCustomCovariates}{Create covariates from a custom table?}
+
+\item{useNestingCohort}{Should the study be nested in a cohort (e.g. people witha
+specific indication)? If not, the study will be nestedin the
+general population.}
+
+\item{nestingCohortId}{A cohort definition ID identifying the records in
+thenestingCohortTable to use as nesting cohort.}
 
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to
 bekept.}

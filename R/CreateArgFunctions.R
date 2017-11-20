@@ -6,6 +6,11 @@
 #' Create an object defining the parameter values.
 #'
 #' @param useCustomCovariates          Create covariates from a custom table?
+#' @param useNestingCohort             Should the study be nested in a cohort (e.g. people witha
+#'                                     specific indication)? If not, the study will be nestedin the
+#'                                     general population.
+#' @param nestingCohortId              A cohort definition ID identifying the records in
+#'                                     thenestingCohortTable to use as nesting cohort.
 #' @param deleteCovariatesSmallCount   The minimum count for a covariate to appear in the data to
 #'                                     bekept.
 #' @param studyStartDate               A calendar date specifying the minimum date where data isused.
@@ -26,6 +31,8 @@
 #'
 #' @export
 createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
+                                    useNestingCohort = FALSE,
+                                    nestingCohortId = NULL,
                                     deleteCovariatesSmallCount = 100,
                                     studyStartDate = "",
                                     studyEndDate = "",

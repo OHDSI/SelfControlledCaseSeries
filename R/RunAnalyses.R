@@ -58,6 +58,10 @@
 #'                                         the custom covariate data is available.
 #' @param customCovariateTable             Name of the table holding the custom covariates. This table
 #'                                         should have the same structure as the cohort table.
+#' @param nestingCohortDatabaseSchema      The name of the database schema that is the location
+#'                                         where the nesting cohort is defined.
+#' @param nestingCohortTable               Name of the table holding the nesting cohort. This table
+#'                                          should have the same structure as the cohort table.
 #' @param cdmVersion                       Define the OMOP CDM version used: currently support "4" and
 #'                                         "5".
 #' @param sccsAnalysisList                 A list of objects of type \code{sccsAnalysis} as created
@@ -99,6 +103,8 @@ runSccsAnalyses <- function(connectionDetails,
                             outcomeTable = "condition_era",
                             customCovariateDatabaseSchema = cdmDatabaseSchema,
                             customCovariateTable = "cohort",
+                            nestingCohortDatabaseSchema = cdmDatabaseSchema,
+                            nestingCohortTable = "cohort",
                             cdmVersion = 5,
                             outputFolder = "./SccsOutput",
                             sccsAnalysisList,
@@ -165,16 +171,21 @@ runSccsAnalyses <- function(connectionDetails,
             if (is.character(customCovariateId)) {
               if (is.null(exposureOutcome[[customCovariateId]]))
                 stop(paste("Variable", customCovariateId, " not found in exposure-outcome pair"))
-              exposureIds <- c(exposureIds, exposureOutcome[[exposureId]])
+              customCovariateIds <- c(customCovariateIds, exposureOutcome[[customCovariateId]])
             } else {
-              exposureIds <- c(exposureIds, exposureId)
+              customCovariateIds <- c(customCovariateIds, customCovariateId)
             }
           }
         }
       }
+      nestingCohortId <- -1
+      if (sccsAnalysis$getDbSccsDataArgs$useNestingCohort) {
+        nestingCohortId <- sccsAnalysis$getDbSccsDataArgs$nestingCohortId
+      }
       row <- list(outcomeId = outcomeId,
                   exposureIds = exposureIds,
                   customCovariateIds = customCovariateIds,
+                  nestingCohortId = nestingCohortId,
                   deleteCovariatesSmallCount = sccsAnalysis$getDbSccsDataArgs$deleteCovariatesSmallCount,
                   studyStartDate = sccsAnalysis$getDbSccsDataArgs$studyStartDate,
                   studyEndDate = sccsAnalysis$getDbSccsDataArgs$studyEndDate,
@@ -188,13 +199,15 @@ runSccsAnalyses <- function(connectionDetails,
   # Step 2: group loads where possible
   if (combineDataFetchAcrossOutcomes) {
     uniqueLoads <- unique(OhdsiRTools::selectFromList(conceptsPerLoad,
-                                                      c("deleteCovariatesSmallCount",
+                                                      c("nestingCohortId",
+                                                        "deleteCovariatesSmallCount",
                                                         "studyStartDate",
                                                         "studyEndDate",
                                                         "maxCasesPerOutcome")))
   } else {
     uniqueLoads <- unique(OhdsiRTools::selectFromList(conceptsPerLoad,
-                                                      c("deleteCovariatesSmallCount",
+                                                      c("nestingCohortId",
+                                                        "deleteCovariatesSmallCount",
                                                         "studyStartDate",
                                                         "studyEndDate",
                                                         "maxCasesPerOutcome",
@@ -253,6 +266,8 @@ runSccsAnalyses <- function(connectionDetails,
                    outcomeIds = outcomeIds,
                    useCustomCovariates = useCustomCovariates,
                    customCovariateIds = customCovariateIds,
+                   useNestingCohort = groupables[[1]]$nestingCohortId != -1,
+                   nestingCohortIds = groupables[[1]]$nestingCohortId,
                    deleteCovariatesSmallCount = groupables[[1]]$deleteCovariatesSmallCount,
                    studyStartDate = groupables[[1]]$studyStartDate,
                    studyEndDate = groupables[[1]]$studyEndDate,

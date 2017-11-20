@@ -9,7 +9,9 @@ runSccsAnalyses(connectionDetails, cdmDatabaseSchema,
   exposureDatabaseSchema = cdmDatabaseSchema, exposureTable = "drug_era",
   outcomeDatabaseSchema = cdmDatabaseSchema, outcomeTable = "condition_era",
   customCovariateDatabaseSchema = cdmDatabaseSchema,
-  customCovariateTable = "cohort", cdmVersion = 5,
+  customCovariateTable = "cohort",
+  nestingCohortDatabaseSchema = cdmDatabaseSchema,
+  nestingCohortTable = "cohort", cdmVersion = 5,
   outputFolder = "./SccsOutput", sccsAnalysisList, exposureOutcomeList,
   combineDataFetchAcrossOutcomes = TRUE, compressSccsEraDataFiles = FALSE,
   getDbSccsDataThreads = 1, createSccsEraDataThreads = 1,
@@ -53,6 +55,12 @@ COHORT_END_DATE.}
 the custom covariate data is available.}
 
 \item{customCovariateTable}{Name of the table holding the custom covariates. This table
+should have the same structure as the cohort table.}
+
+\item{nestingCohortDatabaseSchema}{The name of the database schema that is the location
+where the nesting cohort is defined.}
+
+\item{nestingCohortTable}{Name of the table holding the nesting cohort. This table
 should have the same structure as the cohort table.}
 
 \item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and
