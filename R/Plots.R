@@ -282,42 +282,53 @@ plotExposureCentered <- function(sccsData,
   exposures <- exposures[exposures$startDay <= exposures$trueEndDay & exposures$endDay >= exposures$trueStartDay, ]
   exposures$startDay[exposures$startDay < exposures$trueStartDay] <- exposures$trueStartDay[exposures$startDay < exposures$trueStartDay]
   exposures$endDay[exposures$endDay > exposures$trueEndDay] <- exposures$trueEndDay[exposures$endDay > exposures$trueEndDay]
-  exposures <- aggregate(startDay ~ observationPeriodId, exposures, min)
+  firstExposures <- aggregate(startDay ~ observationPeriodId, exposures, min)
 
-  exposures <- merge(exposures, cases)
-  exposures$exposureAge <- exposures$startDay + exposures$ageInDays
-  exposures$startDelta <- exposures$trueStartAge - exposures$exposureAge
-  exposures$endDelta <- exposures$trueEndAge - exposures$exposureAge
+  firstExposures <- merge(firstExposures, cases)
+  firstExposures$exposureAge <- firstExposures$startDay + firstExposures$ageInDays
+  firstExposures$startDelta <- firstExposures$trueStartAge - firstExposures$exposureAge
+  firstExposures$endDelta <- firstExposures$trueEndAge - firstExposures$exposureAge
   outcomes <- data$outcomes[, c("observationPeriodId", "outcomeAge")]
-  outcomes <- merge(outcomes, exposures[, c("observationPeriodId", "exposureAge")])
+  outcomes <- merge(outcomes, firstExposures[, c("observationPeriodId", "exposureAge")])
   outcomes$delta <- outcomes$outcomeAge - outcomes$exposureAge
+
+  exposedOutcomes <- merge(outcomes[, c("observationPeriodId", "outcomeAge", "delta")],
+                    exposures[, c("observationPeriodId", "startDay", "endDay", "ageInDays")])
+  exposedOutcomes$outcomeDay <- exposedOutcomes$outcomeAge - exposedOutcomes$ageInDays
+  exposedOutcomes <- exposedOutcomes[exposedOutcomes$outcomeDay >= exposedOutcomes$startDay & exposedOutcomes$outcomeDay <= exposedOutcomes$endDay, ]
+  exposedOutcomes <- exposedOutcomes[, c("observationPeriodId", "outcomeAge")]
+  exposedOutcomes$exposed <- TRUE
+
+  outcomes <- merge(outcomes, exposedOutcomes, all.x = TRUE)
+  outcomes$exposed[is.na(outcomes$exposed)] <- FALSE
 
   weeks <- data.frame(number = -26:25)
   weeks$start <- weeks$number*7
   weeks$end <- weeks$number*7 + 7
-  weeks$events <- 0
+  weeks$eventsExposed <- 0
+  weeks$eventsUnexposed <- 0
   weeks$observed <- 0
   for (i in 1:nrow(weeks)) {
-    weeks$events[i] <- sum(outcomes$delta >= weeks$start[i] & outcomes$delta < weeks$end[i])
-    weeks$observed[i] <- sum(exposures$startDelta <= weeks$start[i] & exposures$endDelta >= weeks$end[i])
+    weeks$eventsExposed[i] <- sum(outcomes$delta >= weeks$start[i] & outcomes$delta < weeks$end[i] & outcomes$exposed)
+    weeks$eventsUnexposed[i] <- sum(outcomes$delta >= weeks$start[i] & outcomes$delta < weeks$end[i] & !outcomes$exposed)
+    weeks$observed[i] <- sum(firstExposures$startDelta <= weeks$start[i] & firstExposures$endDelta >= weeks$end[i])
   }
   events <- weeks
   events$type <- "Events"
-  events$count <- events$events
-  events$observed <- NULL
-  events$events <- NULL
+  events$count1 <- events$eventsUnexposed
+  events$count2 <- events$eventsExposed
   observed <- weeks
   observed$type <- "Subjects under observation"
-  observed$count <- observed$observed
-  observed$observed <- NULL
-  observed$events <- NULL
+  observed$count1 <- observed$observed
+  observed$count2 <- rep(NA, nrow(observed))
   data <- rbind(events, observed)
   breaks <- seq(-150,150, 30)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(data, ggplot2::aes(x = start, xmin = start, xmax = end, ymax = count, ymin = 0)) +
-    ggplot2::geom_vline(xintercept = 0, colour = "#000000", lty = 1, size = 1) +
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = start, xmin = start, xmax = end, ymax = count1, ymin = 0)) +
     ggplot2::geom_rect(fill = rgb(0, 0, 0.8), alpha = 0.8) +
+    ggplot2::geom_rect(ggplot2::aes(ymax = count1 + count2, ymin = count1), fill = rgb(0.8, 0, 0), alpha = 0.8) +
+    ggplot2::geom_vline(xintercept = 0, colour = "#000000", lty = 1, size = 1) +
     ggplot2::scale_x_continuous("Days since first exposure start", breaks = breaks, labels = breaks) +
     ggplot2::scale_y_continuous("Count") +
     ggplot2::facet_grid(type~., scales = "free_y") +
@@ -331,7 +342,7 @@ plotExposureCentered <- function(sccsData,
                    strip.background = ggplot2::element_blank(),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
-  # fileName <- "S:/temp/plot4.png"
+  # fileName <- "S:/temp/plot4b.png"
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
@@ -655,3 +666,4 @@ plotSeasonality <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
 }
+

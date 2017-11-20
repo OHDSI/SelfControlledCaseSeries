@@ -343,8 +343,8 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
     }
     if (!is.null(covariateSettings$excludeCovariateIds) && length(covariateSettings$excludeCovariateIds) !=
         0) {
-      covariateSettings$covariateIds <- covariateSettings$covariateIds[covariateSettings$covariateIds !=
-                                                                         covariateSettings$excludeCovariateIds]
+      covariateSettings$covariateIds <- covariateSettings$covariateIds[!ffbase::`%in%`(covariateSettings$covariateIds,
+                                                                         covariateSettings$excludeCovariateIds)]
     }
 
     if (length(covariateSettings$splitPoints) == 0) {

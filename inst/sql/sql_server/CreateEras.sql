@@ -152,12 +152,12 @@ SELECT 'dx',
 	cases.observation_period_id,
 	condition_concept_id,
 	1,
-	DATEDIFF(dd, observation_period_start_date, condition_era_start_date),
-	DATEDIFF(dd, observation_period_start_date, condition_era_end_date)
+	DATEDIFF(dd, start_date, condition_era_start_date),
+	DATEDIFF(dd, start_date, condition_era_end_date)
 FROM @custom_covariate_database_schema.@custom_covariate_table covars
 INNER JOIN @cases_table cases
 ON covars.person_id = cases.person_id
-WHERE condition_era_start_date <= observation_period_end_date
+WHERE condition_era_start_date <= end_date
 	AND condition_era_start_date >= observation_period_start_date
 {@has_custom_covariate_ids} ? {
 	AND condition_concept_id IN (SELECT concept_id FROM #custom_coviariate_ids)
@@ -171,12 +171,12 @@ SELECT 'custom',
 	cases.observation_period_id,
 	@cohort_definition_id,
 	1,
-	DATEDIFF(dd, observation_period_start_date, cohort_start_date),
-	DATEDIFF(dd, observation_period_start_date, cohort_end_date)
+	DATEDIFF(dd, start_date, cohort_start_date),
+	DATEDIFF(dd, start_date, cohort_end_date)
 FROM @custom_covariate_database_schema.@custom_covariate_table covars
 INNER JOIN @cases_table cases
 ON covars.subject_id = cases.person_id
-WHERE cohort_start_date <= observation_period_end_date
+WHERE cohort_start_date <= end_date
 	AND cohort_start_date >= observation_period_start_date
 {@has_custom_covariate_ids} ? {
 	AND @cohort_definition_id IN (SELECT concept_id FROM #custom_coviariate_ids)

@@ -125,21 +125,27 @@ fitSccsModel <- function(sccsEraData,
       estimates <- coef(fit)
       estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
       estimates <- merge(estimates, ff::as.ram(sccsEraData$covariateRef), all.x = TRUE)
-      tryCatch({
-        # ci <- confint(fit, parm = nonRegularized[nonRegularized %in% estimates$covariateId], includePenalty = TRUE)
-        ci <- confint(fit, parm = needCi, includePenalty = TRUE)
-        attr(ci, "dimnames")[[1]] <- 1:length(attr(ci, "dimnames")[[1]])
-        ci <- as.data.frame(ci)
-        rownames(ci) <- NULL
-      }, error = function(e) {
-        missing(e)  # suppresses R CMD check note
-        ci <- data.frame(covariateId = 0, logLb95 = 0, logUb95 = 0)
-      })
-      names(ci)[names(ci) == "2.5 %"] <- "logLb95"
-      names(ci)[names(ci) == "97.5 %"] <- "logUb95"
-      ci$evaluations <- NULL
-      estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
-      estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
+      if (length(needCi) == 0) {
+        estimates$logLb95 <- NA
+        estimates$logUb95 <- NA
+        estimates$seLogRr <- NA
+      } else {
+        tryCatch({
+          # ci <- confint(fit, parm = nonRegularized[nonRegularized %in% estimates$covariateId], includePenalty = TRUE)
+          ci <- confint(fit, parm = needCi, includePenalty = TRUE)
+          attr(ci, "dimnames")[[1]] <- 1:length(attr(ci, "dimnames")[[1]])
+          ci <- as.data.frame(ci)
+          rownames(ci) <- NULL
+        }, error = function(e) {
+          missing(e)  # suppresses R CMD check note
+          ci <- data.frame(covariateId = 0, logLb95 = 0, logUb95 = 0)
+        })
+        names(ci)[names(ci) == "2.5 %"] <- "logLb95"
+        names(ci)[names(ci) == "97.5 %"] <- "logUb95"
+        ci$evaluations <- NULL
+        estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
+        estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
+      }
       # Remove regularized estimates with logRr = 0:
       estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr) | estimates$covariateId <
                                1000, ]
