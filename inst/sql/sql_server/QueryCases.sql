@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ***********************************************************************/
 
-{DEFAULT @cases_table = #cases}
+{DEFAULT @sampled_cases = FALSE}
 
 SELECT
 	observation_period_id,
@@ -29,6 +29,10 @@ SELECT
 	DAY(start_date) AS start_day,
 	age_in_days,
 	DATEDIFF(DAY, observation_period_start_date, start_date) AS censored_days
-FROM @cases_table
+{@sampled_cases} ? {
+FROM #sampled_cases
+} : {
+FROM #cases
+}
 ORDER BY
 	observation_period_id;

@@ -34,7 +34,7 @@ limitations under the License.
 {DEFAULT @cohort_definition_id = 'cohort_concept_id'}
 {DEFAULT @study_start_date = '' }
 {DEFAULT @study_end_date = '' }
-{DEFAULT @cases_table = #cases}
+{DEFAULT @sampled_cases = FALSE}
 
 IF OBJECT_ID('tempdb..#eras', 'U') IS NOT NULL
 	DROP TABLE #eras;
@@ -61,7 +61,11 @@ SELECT 'hei',
 	DATEDIFF(dd, start_date, drug_era_start_date),
 	DATEDIFF(dd, start_date, drug_era_end_date)
 FROM @exposure_database_schema.drug_era
-INNER JOIN @cases_table cases
+{@sampled_cases} ? {
+INNER JOIN #sampled_cases cases
+} : {
+INNER JOIN #cases cases
+}
 ON drug_era.person_id = cases.person_id
 	AND drug_era_start_date <= end_date
 	AND drug_era_end_date >= observation_period_start_date
@@ -79,7 +83,11 @@ SELECT 'hei',
 	DATEDIFF(dd, start_date, cohort_start_date),
 	DATEDIFF(dd, start_date, cohort_end_date)
 FROM @exposure_database_schema.@exposure_table exposure
-INNER JOIN @cases_table cases
+{@sampled_cases} ? {
+INNER JOIN #sampled_cases cases
+} : {
+INNER JOIN #cases cases
+}
 ON exposure.subject_id = cases.person_id
 	AND cohort_start_date <= end_date
 	AND cohort_end_date >= observation_period_start_date
@@ -100,13 +108,22 @@ SELECT 'hoi',
 	DATEDIFF(dd, start_date, condition_start_date),
 	DATEDIFF(dd, start_date, condition_end_date)
 FROM @outcome_database_schema.condition_occurrence
-INNER JOIN @cases_table cases
+{@sampled_cases} ? {
+INNER JOIN #cases cases
+ON condition_occurrence.person_id = cases.person_id
+	AND condition_start_date >= observation_period_start_date
+	AND condition_start_date <= end_date
+INNER JOIN #sampled_cases_per_o sampled_cases_per_o
+	ON cases.observation_period_id = sampled_cases_per_o.observation_period_id
+	AND	condition_concept_id = outcome_id;
+} : {
+INNER JOIN #cases cases
 ON condition_occurrence.person_id = cases.person_id
 	AND condition_start_date >= observation_period_start_date
 	AND condition_start_date <= end_date
 WHERE
-	condition_concept_id IN (@outcome_concept_ids)
-;
+	condition_concept_id IN (@outcome_concept_ids);
+}
 } : {
 	{@outcome_table == 'condition_era'} ? {
 INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
@@ -117,13 +134,22 @@ SELECT 'hoi',
 	DATEDIFF(dd, start_date, condition_era_start_date),
 	DATEDIFF(dd, start_date, condition_era_end_date)
 FROM @outcome_database_schema.condition_era
-INNER JOIN @cases_table cases
+		{@sampled_cases} ? {
+INNER JOIN #cases cases
+ON condition_era.person_id = cases.person_id
+	AND condition_era_start_date >= observation_period_start_date
+	AND condition_era_start_date <= end_date
+INNER JOIN #sampled_cases_per_o sampled_cases_per_o
+	ON cases.observation_period_id = sampled_cases_per_o.observation_period_id
+	AND	condition_concept_id = outcome_id;
+		} : {
+INNER JOIN #cases cases
 ON condition_era.person_id = cases.person_id
 	AND condition_era_start_date >= observation_period_start_date
 	AND condition_era_start_date <= end_date
 WHERE
-	condition_concept_id IN (@outcome_concept_ids)
-;
+	condition_concept_id IN (@outcome_concept_ids);
+		}
 	} : { /* outcome table has same structure as cohort table */
 INSERT INTO #eras (era_type, observation_period_id, concept_id, era_value, start_day, end_day)
 SELECT 'hoi',
@@ -133,13 +159,22 @@ SELECT 'hoi',
 	DATEDIFF(dd, start_date, cohort_start_date),
 	DATEDIFF(dd, start_date, cohort_end_date)
 FROM @outcome_database_schema.@outcome_table outcomes
-INNER JOIN @cases_table cases
+		{@sampled_cases} ? {
+INNER JOIN #cases cases
+ON outcomes.subject_id = cases.person_id
+	AND cohort_start_date >= observation_period_start_date
+	AND cohort_start_date <= end_date
+INNER JOIN #sampled_cases_per_o sampled_cases_per_o
+	ON cases.observation_period_id = sampled_cases_per_o.observation_period_id
+	AND	@cohort_definition_id = outcome_id;
+		} : {
+INNER JOIN #cases cases
 ON outcomes.subject_id = cases.person_id
 	AND cohort_start_date >= observation_period_start_date
 	AND cohort_start_date <= end_date
 WHERE
-	@cohort_definition_id IN (@outcome_concept_ids)
-;
+	@cohort_definition_id IN (@outcome_concept_ids);
+		}
 	}
 }
 
@@ -155,7 +190,11 @@ SELECT 'dx',
 	DATEDIFF(dd, start_date, condition_era_start_date),
 	DATEDIFF(dd, start_date, condition_era_end_date)
 FROM @custom_covariate_database_schema.@custom_covariate_table covars
-INNER JOIN @cases_table cases
+{@sampled_cases} ? {
+INNER JOIN #sampled_cases cases
+} : {
+INNER JOIN #cases cases
+}
 ON covars.person_id = cases.person_id
 WHERE condition_era_start_date <= end_date
 	AND condition_era_start_date >= observation_period_start_date
@@ -174,7 +213,11 @@ SELECT 'custom',
 	DATEDIFF(dd, start_date, cohort_start_date),
 	DATEDIFF(dd, start_date, cohort_end_date)
 FROM @custom_covariate_database_schema.@custom_covariate_table covars
-INNER JOIN @cases_table cases
+{@sampled_cases} ? {
+INNER JOIN #sampled_cases cases
+} : {
+INNER JOIN #cases cases
+}
 ON covars.subject_id = cases.person_id
 WHERE cohort_start_date <= end_date
 	AND cohort_start_date >= observation_period_start_date

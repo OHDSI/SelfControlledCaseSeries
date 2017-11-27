@@ -203,7 +203,6 @@ getDbSccsData <- function(connectionDetails,
 
   sampledCases <- FALSE
   casesPerOutcome <- FALSE
-  casesTable <- "#cases"
   if (maxCasesPerOutcome != 0) {
     casesPerOutcome <- TRUE
     writeLines("Counting cases per outcome")
@@ -235,7 +234,6 @@ getDbSccsData <- function(connectionDetails,
                                                oracleTempSchema = oracleTempSchema,
                                                max_cases_per_outcome = maxCasesPerOutcome)
       DatabaseConnector::executeSql(conn, sql)
-      casesTable <- "#sampled_cases"
     }
   }
 
@@ -259,7 +257,7 @@ getDbSccsData <- function(connectionDetails,
                                            study_end_date = studyEndDate,
                                            cdm_version = cdmVersion,
                                            cohort_definition_id = cohortDefinitionId,
-                                           cases_table = casesTable)
+                                           sampled_cases = sampledCases)
 
   writeLines("Creating eras")
   DatabaseConnector::executeSql(conn, sql)
@@ -270,7 +268,7 @@ getDbSccsData <- function(connectionDetails,
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
                                            oracleTempSchema = oracleTempSchema,
-                                           cases_table = casesTable)
+                                           sampled_cases = sampledCases)
   cases <- DatabaseConnector::querySql.ffdf(conn, sql)
   colnames(cases) <- SqlRender::snakeCaseToCamelCase(colnames(cases))
 

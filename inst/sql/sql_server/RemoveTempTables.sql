@@ -13,6 +13,9 @@ DROP TABLE #cases_per_outcome;
 }
 
 {@sampled_cases} ? {
+TRUNCATE TABLE #sampled_cases_per_o;
+DROP TABLE #sampled_cases_per_o;
+
 TRUNCATE TABLE #sampled_cases;
 DROP TABLE #sampled_cases;
 }

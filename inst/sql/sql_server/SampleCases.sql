@@ -20,8 +20,22 @@ limitations under the License.
 
 {DEFAULT @max_cases_per_outcome = 1000000}
 
+IF OBJECT_ID('tempdb..#sampled_cases_per_o', 'U') IS NOT NULL
+	DROP TABLE #sampled_cases_per_o;
+
 IF OBJECT_ID('tempdb..#sampled_cases', 'U') IS NOT NULL
 	DROP TABLE #sampled_cases;
+
+SELECT observation_period_id,
+	outcome_id
+INTO #sampled_cases_per_o
+FROM (
+	SELECT observation_period_id,
+		outcome_id,
+		ROW_NUMBER() OVER (PARTITION BY outcome_id ORDER BY random_id) AS rn 
+	FROM #cases_per_outcome 
+) temp
+WHERE rn <= @max_cases_per_outcome;
 	
 SELECT cases.observation_period_id,
 	cases.person_id,
@@ -32,12 +46,7 @@ SELECT cases.observation_period_id,
 INTO #sampled_cases
 FROM (
 	SELECT DISTINCT observation_period_id
-	FROM (
-		SELECT observation_period_id,
-		ROW_NUMBER() OVER (PARTITION BY outcome_id ORDER BY random_id) AS rn 
-		FROM #cases_per_outcome 
-		) temp
-	WHERE rn <= @max_cases_per_outcome
+	FROM #sampled_cases_per_o
 	) sampled_ids
 INNER JOIN #cases cases
 	ON cases.observation_period_id = sampled_ids.observation_period_id;
