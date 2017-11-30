@@ -503,9 +503,18 @@ summarizeSccsAnalyses <- function(outcomeReference) {
                                ci95ub = exp(estimates$logUb95[j]),
                                logRr = estimates$logRr[j],
                                seLogRr = estimates$seLogRr[j])
+        if (grepl(".*, day -?[0-9]+--?[0-9]*$", estimates$covariateName[j])) {
+          name <- as.character(estimates$covariateName[j])
+          pos1 <- attr(regexpr("^[^:]*:", name),"match.length") - 1
+          pos2 <- regexpr(", day -?[0-9]+--?[0-9]*$", name) + 2
+          label <- paste(substr(name, 1, pos1),
+                         substr(name, pos2, nchar(name)))
+        } else {
+          label <- sub(":.*$", "", estimates$covariateName[j])
+        }
         names(estimatesToInsert) <- paste0(names(estimatesToInsert),
                                            "(",
-                                           sub(":.*$", "", estimates$covariateName[j]),
+                                           label,
                                            ")")
         for (colName in names(estimatesToInsert)) {
           if (!(colName %in% colnames(result))) {
