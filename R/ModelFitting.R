@@ -130,15 +130,15 @@ fitSccsModel <- function(sccsEraData,
         estimates$logUb95 <- NA
         estimates$seLogRr <- NA
       } else {
-        tryCatch({
-          # ci <- confint(fit, parm = nonRegularized[nonRegularized %in% estimates$covariateId], includePenalty = TRUE)
-          ci <- confint(fit, parm = needCi, includePenalty = TRUE)
-          attr(ci, "dimnames")[[1]] <- 1:length(attr(ci, "dimnames")[[1]])
-          ci <- as.data.frame(ci)
-          rownames(ci) <- NULL
+        ci <- tryCatch({
+          result <- confint(fit, parm = needCi, includePenalty = TRUE)
+          attr(result, "dimnames")[[1]] <- 1:length(attr(result, "dimnames")[[1]])
+          result <- as.data.frame(result)
+          rownames(result) <- NULL
+          result
         }, error = function(e) {
           missing(e)  # suppresses R CMD check note
-          ci <- data.frame(covariateId = 0, logLb95 = 0, logUb95 = 0)
+          data.frame(covariateId = 0, logLb95 = 0, logUb95 = 0)
         })
         names(ci)[names(ci) == "2.5 %"] <- "logLb95"
         names(ci)[names(ci) == "97.5 %"] <- "logUb95"
