@@ -138,7 +138,7 @@ fitSccsModel <- function(sccsEraData,
           result
         }, error = function(e) {
           missing(e)  # suppresses R CMD check note
-          data.frame(covariateId = 0, logLb95 = 0, logUb95 = 0)
+          data.frame(covariate = 0, logLb95 = 0, logUb95 = 0)
         })
         names(ci)[names(ci) == "2.5 %"] <- "logLb95"
         names(ci)[names(ci) == "97.5 %"] <- "logUb95"
