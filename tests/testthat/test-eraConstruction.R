@@ -8,7 +8,8 @@ convertToSccsDataWrapper <- function(cases,
                                      seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
                                      naivePeriod = 0,
                                      firstOutcomeOnly = FALSE,
-                                     excludeConceptIds = NULL) {
+                                     excludeConceptIds = NULL,
+                                     placeInRam = TRUE) {
   if (is.null(covariateSettings)) {
     covariateSettings <- createCovariateSettings(includeCovariateIds = exposureId,
                                                  start = 0,
@@ -36,7 +37,12 @@ convertToSccsDataWrapper <- function(cases,
                               ageSettings = ageSettings,
                               seasonalitySettings = seasonalitySettings,
                               covariateSettings = covariateSettings)
-  return(list(outcomes = ff::as.ram(result$outcomes), covariates = ff::as.ram(result$covariates)))
+  if (placeInRam) {
+    result$outcomes <- ff::as.ram(result$outcomes)
+    result$covariates <- ff::as.ram(result$covariates)
+  }
+
+  return(list(outcomes = result$outcomes, covariates = result$covariates))
 }
 
 test_that("Simple era construction", {
@@ -63,6 +69,8 @@ test_that("Simple era construction", {
   expect_equal(result$covariates$stratumId, c(1))
   expect_equal(result$covariates$covariateId, c(1000))
 })
+
+
 
 test_that("Age restriction", {
   cases <- data.frame(observationPeriodId = 1,
@@ -593,6 +601,29 @@ test_that("Pre-exposure window", {
   expect_equal(result$covariates$rowId, c(1, 2))
   expect_equal(result$covariates$stratumId, c(1, 1))
   expect_equal(result$covariates$covariateId, c(1000, 1001))
+})
+
+test_that("Simple era construction", {
+  cases <- data.frame(observationPeriodId = 1,
+                      personId = 1,
+                      observationDays = 100,
+                      ageInDays = 0,
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
+  eras <- data.frame(eraType = c("hoi", "hei"),
+                     observationPeriodId = c(1, 1),
+                     conceptId = c(10, 11),
+                     value = c(1, 1),
+                     startDay = c(50, 25),
+                     endDay = c(50, 75))
+  ffResult <- convertToSccsDataWrapper(cases, eras, exposureId = 11, placeInRam = FALSE)
+  expect_equal(class(ffResult$outcomes), "ffdf")
+  expect_equal(class(ffResult$covariates), "ffdf")
+  ramResult <- forceSccsEraDataIntoRam(ffResult)
+  expect_equal(class(ramResult$outcomes), "data.frame")
+  expect_equal(class(ramResult$covariates), "data.frame")
 })
 
 # test_that('Age', { cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays =

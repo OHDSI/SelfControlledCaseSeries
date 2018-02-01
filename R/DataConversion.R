@@ -708,6 +708,34 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
   return(result)
 }
 
+
+
+#' Force a loaded SCCS era data in RAM
+#'
+#' @description
+#' \code{forceSccsEraDataIntoRam} converts the ffdf components of an sccsEraData object
+#' into data.table components
+#'
+#' @param sccsEraData     Exisiting sccsEraData object.
+#'
+#' @details
+#' Uses ff::as.ram() to move virtual data into data.table objects
+#'
+#' @return
+#' An object of class sccsEraData
+#'
+#' @export
+forceSccsEraDataIntoRam <- function(sccsEraData) {
+  if (!inherits(sccsEraData$outcomes , "ffdf")) {
+    stop("sccsEraData must contain virtual ffdf objects")
+  }
+  sccsEraData$outcomes <- ff::as.ram(sccsEraData$outcomes)
+  sccsEraData$covariates <- ff::as.ram(sccsEraData$covariates)
+  sccsEraData$covariateRef <- ff::as.ram(sccsEraData$covariateRef)
+
+  return (sccsEraData)
+}
+
 #' @export
 print.sccsEraData <- function(x, ...) {
   writeLines("sccsEraData object")
@@ -728,9 +756,18 @@ summary.sccsEraData <- function(object, ...) {
                    covariateValueCount = 0,
                    covariateRef = ff::as.ram(object$covariateRef))
   } else {
+
+    eventCount <- ifelse(inherits(object$outcomes, "ffdf"),
+                         ffbase::sum.ff(object$outcomes$y),
+                         sum(object$outcomes$y))
+
+    caseCount <- ifelse(inherits(object$outcomes, "ffdf"),
+                        length(ffbase::unique.ff(object$outcomes$stratumId)),
+                        length(unique(object$outcomes$stratumId)))
+
     outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
-                                eventCount = ffbase::sum.ff(object$outcomes$y),
-                                caseCount = length(ffbase::unique.ff(object$outcomes$stratumId)))
+                                eventCount = eventCount,
+                                caseCount = caseCount)
 
     result <- list(metaData = object$metaData,
                    outcomeCounts = outcomeCounts,
