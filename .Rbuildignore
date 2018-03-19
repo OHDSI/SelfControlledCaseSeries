@@ -6,3 +6,4 @@ standalone
 .travis.yml
 ^\.git
 deploy.sh
+compare_versions
