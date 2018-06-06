@@ -271,6 +271,12 @@ getDbSccsData <- function(connectionDetails,
                                            sampled_cases = sampledCases)
   cases <- DatabaseConnector::querySql.ffdf(conn, sql)
   colnames(cases) <- SqlRender::snakeCaseToCamelCase(colnames(cases))
+  idx <- cases$ageInDays < 0
+  countNegativeAges <- ffbase::sum.ff(idx)
+  if (countNegativeAges > 0) {
+    warning("There are ", countNegativeAges, " cases with negative ages. Setting their starting age to 0. Please review your data.")
+    cases$ageInDays[idx] <- ff::ff(0, length = countNegativeAges)
+  }
 
   sql <- SqlRender::loadRenderTranslateSql("QueryEras.sql",
                                            packageName = "SelfControlledCaseSeries",
