@@ -64,7 +64,7 @@ computeMdrr <- function(sccsEraData,
   if (twoSided) {
     alpha <- alpha / 2                                                           # alpha
   }
-  z <- qnorm(1-alpha)                                                            # z alpha
+  z <- qnorm(1 - alpha)                                                            # z alpha
 
   if (method != "distribution" && method != "binomial" && method != "SRL1" && method != "SRL2" && method != "ageEffects")
     stop(paste0("Unknown method '",
@@ -75,7 +75,7 @@ computeMdrr <- function(sccsEraData,
   {
     computePower <- function(p, z, r, n, alpha)
     {
-      zbnum <- log(p) * sqrt(n * p * r * (1-r)) - z * sqrt(p)
+      zbnum <- log(p) * sqrt(n * p * r * (1 - r)) - z * sqrt(p)
       zbden <- p * r + 1 - r
       zb <- zbnum / zbden
       power <- pnorm(zb)
@@ -102,7 +102,7 @@ computeMdrr <- function(sccsEraData,
 
   if (method == "SRL1") # expression 7
   {
-    computePower <- function(b, z, r, n, alpha)
+    computePowerSrl <- function(b, z, r, n, alpha)
     {
       A <- 2 * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
       B <- b^2 / A * exp(b) * r * (1 - r) / (exp(b) * r + 1 - r)^2
@@ -116,10 +116,10 @@ computeMdrr <- function(sccsEraData,
 
   if (method == "SRL2") # expression 8
   {
-    computePower <- function(b, z, r, n, alpha)
+    computePowerSrl <- function(b, z, r, n, alpha)
     {
       A <- 2 * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
-      B <- b^2 / A * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * exp(b) * r * (1-r) / (exp(b) * r + 1 - r)^2
+      B <- b^2 / A * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * exp(b) * r * (1 - r) / (exp(b) * r + 1 - r)^2
       zb <- (sqrt(n * A) - z) / sqrt(B)
       power <- pnorm(zb)
       if (power < alpha | n < 1)
@@ -141,7 +141,7 @@ computeMdrr <- function(sccsEraData,
     {
       M <- L + (H - L) / 2
       if (method %in% c("SRL1", "SRL2")) {
-        powerM <- computePower(M, z, r, n, alpha)
+        powerM <- computePowerSrl(M, z, r, n, alpha)
       }
       else {
         powerM <- computePower(exp(M), z, r, n, alpha)

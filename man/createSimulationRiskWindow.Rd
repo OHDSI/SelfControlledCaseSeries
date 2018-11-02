@@ -4,8 +4,9 @@
 \alias{createSimulationRiskWindow}
 \title{Create a risk window definition for simulation}
 \usage{
-createSimulationRiskWindow(start = 0, end = 0, addExposedDaysToEnd = TRUE,
-  splitPoints = c(), relativeRisks = c(0))
+createSimulationRiskWindow(start = 0, end = 0,
+  addExposedDaysToEnd = TRUE, splitPoints = c(),
+  relativeRisks = c(0))
 }
 \arguments{
 \item{start}{Start of the risk window relative to exposure start.}

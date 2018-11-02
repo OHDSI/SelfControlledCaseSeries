@@ -4,9 +4,9 @@
 \alias{createSccsAnalysis}
 \title{Create a SelfControlledCaseSeries analysis specification}
 \usage{
-createSccsAnalysis(analysisId = 1, description = "", exposureType = NULL,
-  outcomeType = NULL, getDbSccsDataArgs, createSccsEraDataArgs,
-  fitSccsModelArgs)
+createSccsAnalysis(analysisId = 1, description = "",
+  exposureType = NULL, outcomeType = NULL, getDbSccsDataArgs,
+  createSccsEraDataArgs, fitSccsModelArgs)
 }
 \arguments{
 \item{analysisId}{An integer that will be used later to refer to this specific set of

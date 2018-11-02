@@ -4,8 +4,8 @@
 \alias{plotEventObservationDependence}
 \title{Plot time from event to observation end for censored and uncensored time.}
 \usage{
-plotEventObservationDependence(sccsData, outcomeId = NULL, naivePeriod = 0,
-  minAge = NULL, maxAge = NULL, fileName = NULL)
+plotEventObservationDependence(sccsData, outcomeId = NULL,
+  naivePeriod = 0, minAge = NULL, maxAge = NULL, fileName = NULL)
 }
 \arguments{
 \item{sccsData}{An object of type \code{sccsData} as created using the

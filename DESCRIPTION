@@ -19,11 +19,10 @@ Imports:
     ff,
     ffbase (>= 0.12.1),
     Rcpp (>= 0.11.2),
-    OhdsiRTools (>= 1.1.1),
+    ParallelLogger,
     splines,
     ggplot2,
-    methods,
-    zip
+    methods
 Suggests:
     testthat,
     knitr,
@@ -32,4 +31,4 @@ Suggests:
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

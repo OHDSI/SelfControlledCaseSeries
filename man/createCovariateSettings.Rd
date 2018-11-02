@@ -5,9 +5,9 @@
 \title{Create covariate settings}
 \usage{
 createCovariateSettings(includeCovariateIds = NULL,
-  excludeCovariateIds = NULL, label = "Covariates", stratifyById = TRUE,
-  start = 0, addExposedDaysToStart = FALSE, end = 0,
-  addExposedDaysToEnd = FALSE, firstOccurrenceOnly = FALSE,
+  excludeCovariateIds = NULL, label = "Covariates",
+  stratifyById = TRUE, start = 0, addExposedDaysToStart = FALSE,
+  end = 0, addExposedDaysToEnd = FALSE, firstOccurrenceOnly = FALSE,
   splitPoints = c(), allowRegularization = FALSE)
 }
 \arguments{

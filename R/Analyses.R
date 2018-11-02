@@ -77,7 +77,7 @@ saveSccsAnalysisList <- function(sccsAnalysisList, file) {
   for (i in 1:length(sccsAnalysisList)) {
     stopifnot(class(sccsAnalysisList[[i]]) == "sccsAnalysis")
   }
-  OhdsiRTools::saveSettingsToJson(sccsAnalysisList, file)
+  ParallelLogger::saveSettingsToJson(sccsAnalysisList, file)
 }
 
 
@@ -93,7 +93,7 @@ saveSccsAnalysisList <- function(sccsAnalysisList, file) {
 #'
 #' @export
 loadSccsAnalysisList <- function(file) {
-  return(OhdsiRTools::loadSettingsFromJson(file))
+  return(ParallelLogger::loadSettingsFromJson(file))
 }
 
 #' Create a exposure-outcome combination.
@@ -134,7 +134,7 @@ saveExposureOutcomeList <- function(exposureOutcomeList, file) {
   for (i in 1:length(exposureOutcomeList)) {
     stopifnot(class(exposureOutcomeList[[i]]) == "exposureOutcome")
   }
-  OhdsiRTools::saveSettingsToJson(exposureOutcomeList, file)
+  ParallelLogger::saveSettingsToJson(exposureOutcomeList, file)
 }
 
 #' Load a list of exposureOutcome from file
@@ -149,5 +149,5 @@ saveExposureOutcomeList <- function(exposureOutcomeList, file) {
 #'
 #' @export
 loadExposureOutcomeList <- function(file) {
-  return(OhdsiRTools::loadSettingsFromJson(file))
+  return(ParallelLogger::loadSettingsFromJson(file))
 }

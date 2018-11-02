@@ -6,16 +6,19 @@
 \usage{
 runSccsAnalyses(connectionDetails, cdmDatabaseSchema,
   oracleTempSchema = cdmDatabaseSchema,
-  exposureDatabaseSchema = cdmDatabaseSchema, exposureTable = "drug_era",
-  outcomeDatabaseSchema = cdmDatabaseSchema, outcomeTable = "condition_era",
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  outcomeDatabaseSchema = cdmDatabaseSchema,
+  outcomeTable = "condition_era",
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort",
   nestingCohortDatabaseSchema = cdmDatabaseSchema,
   nestingCohortTable = "cohort", cdmVersion = 5,
   outputFolder = "./SccsOutput", sccsAnalysisList, exposureOutcomeList,
-  combineDataFetchAcrossOutcomes = TRUE, compressSccsEraDataFiles = FALSE,
-  getDbSccsDataThreads = 1, createSccsEraDataThreads = 1,
-  fitSccsModelThreads = 1, cvThreads = 1)
+  combineDataFetchAcrossOutcomes = TRUE,
+  compressSccsEraDataFiles = FALSE, getDbSccsDataThreads = 1,
+  createSccsEraDataThreads = 1, fitSccsModelThreads = 1,
+  cvThreads = 1)
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using

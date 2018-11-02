@@ -4,9 +4,9 @@
 \alias{createFitSccsModelArgs}
 \title{Create a parameter object for the function fitSccsModel}
 \usage{
-createFitSccsModelArgs(prior = createPrior("laplace", useCrossValidation =
-  TRUE), control = createControl(cvType = "auto", selectorType = "byPid",
-  startingVariance = 0.1, noiseLevel = "quiet"))
+createFitSccsModelArgs(prior = createPrior("laplace", useCrossValidation
+  = TRUE), control = createControl(cvType = "auto", selectorType =
+  "byPid", startingVariance = 0.1, noiseLevel = "quiet"))
 }
 \arguments{
 \item{prior}{The prior used to fit the model. See createPrior fordetails.}

@@ -6,13 +6,15 @@
 \usage{
 getDbSccsData(connectionDetails, cdmDatabaseSchema,
   oracleTempSchema = cdmDatabaseSchema,
-  outcomeDatabaseSchema = cdmDatabaseSchema, outcomeTable = "condition_era",
-  outcomeIds, exposureDatabaseSchema = cdmDatabaseSchema,
+  outcomeDatabaseSchema = cdmDatabaseSchema,
+  outcomeTable = "condition_era", outcomeIds,
+  exposureDatabaseSchema = cdmDatabaseSchema,
   exposureTable = "drug_era", exposureIds = c(),
   useCustomCovariates = FALSE,
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort", customCovariateIds = c(),
-  useNestingCohort = FALSE, nestingCohortDatabaseSchema = cdmDatabaseSchema,
+  useNestingCohort = FALSE,
+  nestingCohortDatabaseSchema = cdmDatabaseSchema,
   nestingCohortTable = "cohort", nestingCohortId = NULL,
   deleteCovariatesSmallCount = 100, studyStartDate = "",
   studyEndDate = "", cdmVersion = "5", maxCasesPerOutcome = 0)

@@ -6,8 +6,9 @@
 \usage{
 createCreateSccsEraDataArgs(naivePeriod = 0, firstOutcomeOnly = FALSE,
   covariateSettings, ageSettings = createAgeSettings(includeAge = FALSE),
-  seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
-  minCasesForAgeSeason = 10000, eventDependentObservation = FALSE)
+  seasonalitySettings = createSeasonalitySettings(includeSeasonality =
+  FALSE), minCasesForAgeSeason = 10000,
+  eventDependentObservation = FALSE)
 }
 \arguments{
 \item{naivePeriod}{The number of days at the start of a patient's observation

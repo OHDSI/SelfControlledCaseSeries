@@ -184,9 +184,9 @@ fitModelsAndPickBest <- function(data) {
     return(result)
   }
   writeLines("Fitting censoring models")
-  cluster <- OhdsiRTools::makeCluster(4)
-  results <- OhdsiRTools::clusterApply(cluster, 1:4, fitCensorModel, data)
-  OhdsiRTools::stopCluster(cluster)
+  cluster <- ParallelLogger::makeCluster(4)
+  results <- ParallelLogger::clusterApply(cluster, 1:4, fitCensorModel, data)
+  ParallelLogger::stopCluster(cluster)
   for (i in 1:4){
     if (results[[i]]$aic == 999999999) {
       if (results[[i]]$model == 1) {
@@ -201,7 +201,7 @@ fitModelsAndPickBest <- function(data) {
     }
   }
 
-  aics <- unlist(OhdsiRTools::selectFromList(results, "aic"))
+  aics <- unlist(ParallelLogger::selectFromList(results, "aic"))
   minAic <- min(aics)
   best <- results[[which(aics == minAic)[1]]]
   if (best$model == 1) {

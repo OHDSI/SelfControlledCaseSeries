@@ -58,7 +58,7 @@ Dependencies
  * Cyclops
  * DatabaseConnector
  * SqlRender
- * OhdsiRTools
+ * ParallelLogger
 
 Getting Started
 ===============
@@ -70,7 +70,7 @@ Getting Started
   ```r
   install.packages("devtools")
   library(devtools)
-  install_github("ohdsi/OhdsiRTools") 
+  install_github("ohdsi/ParallelLogger") 
   install_github("ohdsi/SqlRender")
   install_github("ohdsi/DatabaseConnector")
   install_github("ohdsi/Cyclops")

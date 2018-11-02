@@ -117,11 +117,11 @@ runSccsAnalyses <- function(connectionDetails,
                             cvThreads = 1) {
   for (exposureOutcome in exposureOutcomeList) stopifnot(class(exposureOutcome) == "exposureOutcome")
   for (sccsAnalysis in sccsAnalysisList) stopifnot(class(sccsAnalysis) == "sccsAnalysis")
-  uniqueExposureOutcomeList <- unique(OhdsiRTools::selectFromList(exposureOutcomeList,
+  uniqueExposureOutcomeList <- unique(ParallelLogger::selectFromList(exposureOutcomeList,
                                                                   c("exposureId", "outcomeId")))
   if (length(uniqueExposureOutcomeList) != length(exposureOutcomeList))
     stop("Duplicate exposure-outcomes pairs are not allowed")
-  uniqueAnalysisIds <- unlist(unique(OhdsiRTools::selectFromList(sccsAnalysisList, "analysisId")))
+  uniqueAnalysisIds <- unlist(unique(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId")))
   if (length(uniqueAnalysisIds) != length(sccsAnalysisList))
     stop("Duplicate analysis IDs are not allowed")
 
@@ -198,14 +198,14 @@ runSccsAnalyses <- function(connectionDetails,
 
   # Step 2: group loads where possible
   if (combineDataFetchAcrossOutcomes) {
-    uniqueLoads <- unique(OhdsiRTools::selectFromList(conceptsPerLoad,
+    uniqueLoads <- unique(ParallelLogger::selectFromList(conceptsPerLoad,
                                                       c("nestingCohortId",
                                                         "deleteCovariatesSmallCount",
                                                         "studyStartDate",
                                                         "studyEndDate",
                                                         "maxCasesPerOutcome")))
   } else {
-    uniqueLoads <- unique(OhdsiRTools::selectFromList(conceptsPerLoad,
+    uniqueLoads <- unique(ParallelLogger::selectFromList(conceptsPerLoad,
                                                       c("nestingCohortId",
                                                         "deleteCovariatesSmallCount",
                                                         "studyStartDate",
@@ -218,7 +218,7 @@ runSccsAnalyses <- function(connectionDetails,
   sccsDataObjectsToCreate <- list()
   for (loadId in 1:length(uniqueLoads)) {
     uniqueLoad <- uniqueLoads[[loadId]]
-    groupables <- OhdsiRTools::matchInList(conceptsPerLoad, uniqueLoad)
+    groupables <- ParallelLogger::matchInList(conceptsPerLoad, uniqueLoad)
     outcomeIds <- c()
     exposureIds <- c()
     customCovariateIds <- c()
@@ -369,26 +369,26 @@ runSccsAnalyses <- function(connectionDetails,
 
   writeLines("*** Creating sccsData objects ***")
   if (length(sccsDataObjectsToCreate) != 0) {
-    cluster <- OhdsiRTools::makeCluster(getDbSccsDataThreads)
-    OhdsiRTools::clusterRequire(cluster, "SelfControlledCaseSeries")
-    dummy <- OhdsiRTools::clusterApply(cluster, sccsDataObjectsToCreate, createSccsDataObject)
-    OhdsiRTools::stopCluster(cluster)
+    cluster <- ParallelLogger::makeCluster(getDbSccsDataThreads)
+    ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
+    dummy <- ParallelLogger::clusterApply(cluster, sccsDataObjectsToCreate, createSccsDataObject)
+    ParallelLogger::stopCluster(cluster)
   }
 
   writeLines("*** Creating sccsEraData objects ***")
   if (length(sccsEraDataObjectsToCreate) != 0) {
-    cluster <- OhdsiRTools::makeCluster(createSccsEraDataThreads)
-    OhdsiRTools::clusterRequire(cluster, "SelfControlledCaseSeries")
-    dummy <- OhdsiRTools::clusterApply(cluster, sccsEraDataObjectsToCreate, createSccsEraDataObject)
-    OhdsiRTools::stopCluster(cluster)
+    cluster <- ParallelLogger::makeCluster(createSccsEraDataThreads)
+    ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
+    dummy <- ParallelLogger::clusterApply(cluster, sccsEraDataObjectsToCreate, createSccsEraDataObject)
+    ParallelLogger::stopCluster(cluster)
   }
 
   writeLines("*** Fitting models ***")
   if (length(sccsModelObjectsToCreate) != 0) {
-    cluster <- OhdsiRTools::makeCluster(fitSccsModelThreads)
-    OhdsiRTools::clusterRequire(cluster, "SelfControlledCaseSeries")
-    dummy <- OhdsiRTools::clusterApply(cluster, sccsModelObjectsToCreate, createSccsModelObject)
-    OhdsiRTools::stopCluster(cluster)
+    cluster <- ParallelLogger::makeCluster(fitSccsModelThreads)
+    ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
+    dummy <- ParallelLogger::clusterApply(cluster, sccsModelObjectsToCreate, createSccsModelObject)
+    ParallelLogger::stopCluster(cluster)
   }
 
   invisible(outcomeReference)
