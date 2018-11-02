@@ -4,10 +4,12 @@
 \alias{summarizeSccsAnalyses}
 \title{Create a summary report of the analyses}
 \usage{
-summarizeSccsAnalyses(outcomeReference)
+summarizeSccsAnalyses(outcomeReference, outputFolder)
 }
 \arguments{
 \item{outcomeReference}{A data.frame as created by the \code{\link{runSccsAnalyses}} function.}
+
+\item{outputFolder}{Name of the folder where all the outputs have been written to.}
 }
 \value{
 A data frame with the following columns: \tabular{ll}{ \verb{analysisId} \tab The unique identifier

@@ -209,7 +209,7 @@ result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           exposureOutcomeList = exposureOutcomeList,
                           sccsAnalysisList = sccsAnalysisList,
                           getDbSccsDataThreads = 1,
-                          createSccsEraDataThreads = 5,
+                          createSccsEraDataThreads = 1,
                           fitSccsModelThreads = 8,
                           cvThreads = 4)
 

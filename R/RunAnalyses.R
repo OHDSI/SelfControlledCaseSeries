@@ -241,9 +241,9 @@ runSccsAnalyses <- function(connectionDetails,
       }
       rowIds <- c(rowIds, groupable$rowId)
     }
-    sccsDataFileName <- .createSccsDataFileName(outputFolder, loadId)
+    sccsDataFileName <- .createSccsDataFileName(loadId)
     outcomeReference$sccsDataFolder[rowIds] <- sccsDataFileName
-    if (!file.exists(sccsDataFileName)) {
+    if (!file.exists(file.path(outputFolder, sccsDataFileName))) {
       if (length(exposureIds) == 1 && exposureIds[1] == "all")
         exposureIds <- c()
       useCustomCovariates <- (length(customCovariateIds) > 0)
@@ -275,7 +275,7 @@ runSccsAnalyses <- function(connectionDetails,
                    studyEndDate = groupables[[1]]$studyEndDate,
                    maxCasesPerOutcome = groupables[[1]]$maxCasesPerOutcome)
       sccsDataObjectsToCreate[[length(sccsDataObjectsToCreate) + 1]] <- list(args = args,
-                                                                             sccsDataFileName = sccsDataFileName)
+                                                                             sccsDataFileName = file.path(outputFolder, sccsDataFileName))
     }
   }
 
@@ -284,15 +284,15 @@ runSccsAnalyses <- function(connectionDetails,
   sccsEraDataObjectsToCreate <- list()
   outcomeReference$sccsEraDataFolder <- ""
   for (sccsAnalysis in sccsAnalysisList) {
-    analysisFolder <- file.path(outputFolder, paste("Analysis_", sccsAnalysis$analysisId, sep = ""))
-    if (!file.exists(analysisFolder))
+    analysisFolder <- paste("Analysis_", sccsAnalysis$analysisId, sep = "")
+    if (!file.exists(file.path(outputFolder, analysisFolder)))
       dir.create(analysisFolder)
     for (exposureOutcome in exposureOutcomeList) {
       sccsEraDataFileName <- .createSccsEraDataFileName(analysisFolder,
                                                         outcomeReference$exposureId[rowId],
                                                         outcomeReference$outcomeId[rowId])
       outcomeReference$sccsEraDataFolder[rowId] <- sccsEraDataFileName
-      if (!file.exists(sccsEraDataFileName)) {
+      if (!file.exists(file.path(outputFolder, sccsEraDataFileName))) {
 
         args <- sccsAnalysis$createSccsEraDataArgs
         covariateSettings <- args$covariateSettings
@@ -333,8 +333,8 @@ runSccsAnalyses <- function(connectionDetails,
         sccsDataFileName <- outcomeReference$sccsDataFolder[rowId]
         sccsEraDataObjectsToCreate[[length(sccsEraDataObjectsToCreate) + 1]] <- list(args = args,
                                                                                      compressSccsEraDataFiles = compressSccsEraDataFiles,
-                                                                                     sccsDataFileName = sccsDataFileName,
-                                                                                     sccsEraDataFileName = sccsEraDataFileName)
+                                                                                     sccsDataFileName = file.path(outputFolder, sccsDataFileName),
+                                                                                     sccsEraDataFileName = file.path(outputFolder, sccsEraDataFileName))
       }
       rowId <- rowId + 1
     }
@@ -345,20 +345,20 @@ runSccsAnalyses <- function(connectionDetails,
   sccsModelObjectsToCreate <- list()
   outcomeReference$sccsModelFile <- ""
   for (sccsAnalysis in sccsAnalysisList) {
-    analysisFolder <- file.path(outputFolder, paste("Analysis_", sccsAnalysis$analysisId, sep = ""))
+    analysisFolder <- paste("Analysis_", sccsAnalysis$analysisId, sep = "")
     for (exposureOutcome in exposureOutcomeList) {
       sccsModelFileName <- .createSccsModelFileName(analysisFolder,
                                                     outcomeReference$exposureId[rowId],
                                                     outcomeReference$outcomeId[rowId])
       outcomeReference$sccsModelFile[rowId] <- sccsModelFileName
-      if (!file.exists(sccsModelFileName)) {
+      if (!file.exists(file.path(outputFolder, sccsModelFileName))) {
         args <- sccsAnalysis$fitSccsModelArgs
         args$control$threads <- cvThreads
         sccsEraDataFileName <- outcomeReference$sccsEraDataFolder[rowId]
 
         sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(args = args,
-                                                                                 sccsEraDataFileName = sccsEraDataFileName,
-                                                                                 sccsModelFileName = sccsModelFileName)
+                                                                                 sccsEraDataFileName = file.path(outputFolder, sccsEraDataFileName),
+                                                                                 sccsModelFileName = file.path(outputFolder, sccsModelFileName))
       }
       rowId <- rowId + 1
     }
@@ -429,19 +429,19 @@ createSccsModelObject <- function(params) {
   saveRDS(sccsModel, params$sccsModelFileName)
 }
 
-.createSccsDataFileName <- function(folder, loadId) {
+.createSccsDataFileName <- function(loadId) {
   name <- paste("SccsData_l", loadId, sep = "")
-  return(file.path(folder, name))
+  return(name)
 }
 
-.createSccsEraDataFileName <- function(folder, exposureId, outcomeId) {
+.createSccsEraDataFileName <- function(analysisFolder, exposureId, outcomeId) {
   name <- paste("SccsEraData_e", exposureId, "_o", outcomeId, sep = "")
-  return(file.path(folder, name))
+  return(file.path(analysisFolder, name))
 }
 
-.createSccsModelFileName <- function(folder, exposureId, outcomeId) {
+.createSccsModelFileName <- function(analysisFolder, exposureId, outcomeId) {
   name <- paste("SccsModel_e", exposureId, "_o", outcomeId, ".rds", sep = "")
-  return(file.path(folder, name))
+  return(file.path(analysisFolder, name))
 }
 
 .selectByType <- function(type, value, label) {
@@ -464,6 +464,7 @@ createSccsModelObject <- function(params) {
 #' Create a summary report of the analyses
 #'
 #' @param outcomeReference   A data.frame as created by the \code{\link{runSccsAnalyses}} function.
+#' @param outputFolder       Name of the folder where all the outputs have been written to.
 #'
 #' @return
 #' A data frame with the following columns: \tabular{ll}{ \verb{analysisId} \tab The unique identifier
@@ -481,7 +482,7 @@ createSccsModelObject <- function(params) {
 #' relative risk.\cr }
 #'
 #' @export
-summarizeSccsAnalyses <- function(outcomeReference) {
+summarizeSccsAnalyses <- function(outcomeReference, outputFolder) {
   columns <- c("analysisId", "exposureId", "outcomeId")
   result <- outcomeReference[, columns]
   result$caseCount <- 0
@@ -492,7 +493,7 @@ summarizeSccsAnalyses <- function(outcomeReference) {
     # s <- summary(sccsEraData)
     # result$caseCount[i] <- s$outcomeCounts$caseCount
     # result$eventCount[i] <- s$outcomeCounts$eventCount
-    sccsModel <- readRDS(as.character(outcomeReference$sccsModelFile[i]))
+    sccsModel <- readRDS(file.path(outputFolder, as.character(outcomeReference$sccsModelFile[i])))
     result$caseCount[i] <- sccsModel$metaData$counts$caseCount
     result$eventCount[i] <- sccsModel$metaData$counts$eventCount
     estimates <- sccsModel$estimates[sccsModel$estimates$originalCovariateId == outcomeReference$exposureId[i], ]
