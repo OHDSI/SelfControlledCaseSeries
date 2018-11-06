@@ -26,12 +26,13 @@ pw <- NULL
 dbms <- "pdw"
 user <- NULL
 server <- Sys.getenv("PDW_SERVER")
-cdmDatabaseSchema <- "cdm_truven_mdcd_v569.dbo"
+cdmDatabaseSchema <- "cdm_truven_mdcd_v780.dbo"
 cohortDatabaseSchema <- "scratch.dbo"
 oracleTempSchema <- NULL
 outcomeTable <- "mschuemi_sccs_vignette"
 port <- Sys.getenv("PDW_PORT")
 cdmVersion <- "5"
+outputFolder <- "s:/temp/sccsVignette2"
 
 connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
                                                                 server = server,
@@ -64,6 +65,8 @@ sql <- SqlRender::renderSql(sql, cdmDatabaseSchema = cdmDatabaseSchema)$sql
 sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
 ppis <- DatabaseConnector::querySql(connection, sql)
 ppis <- ppis$CONCEPT_ID
+
+DatabaseConnector::disconnect(connection)
 
 negativeControls <- c(705178,
                       705944,
@@ -204,19 +207,20 @@ result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
                           outcomeTable = outcomeTable,
                           cdmVersion = cdmVersion,
-                          outputFolder = "s:/temp/sccsVignette2",
+                          outputFolder = outputFolder,
                           combineDataFetchAcrossOutcomes = TRUE,
                           exposureOutcomeList = exposureOutcomeList,
                           sccsAnalysisList = sccsAnalysisList,
                           getDbSccsDataThreads = 1,
-                          createSccsEraDataThreads = 1,
-                          fitSccsModelThreads = 8,
-                          cvThreads = 4)
+                          createSccsEraDataThreads = 3,
+                          fitSccsModelThreads = 4,
+                          cvThreads = 10,
+                          compressSccsEraDataFiles = TRUE)
 
 # result <- readRDS('s:/temp/sccsVignette2/outcomeModelReference.rds')
 
-analysisSum <- summarizeSccsAnalyses(result)
-saveRDS(analysisSum, "s:/temp/sccsVignette2/analysisSummary.rds")
+analysisSum <- summarizeSccsAnalyses(result, outputFolder)
+saveRDS(analysisSum, file.path(outputFolder, "analysisSummary.rds"))
 
 
 sccsData <- loadSccsData(result$sccsDataFolder[1])

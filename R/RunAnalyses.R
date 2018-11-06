@@ -286,7 +286,7 @@ runSccsAnalyses <- function(connectionDetails,
   for (sccsAnalysis in sccsAnalysisList) {
     analysisFolder <- paste("Analysis_", sccsAnalysis$analysisId, sep = "")
     if (!file.exists(file.path(outputFolder, analysisFolder)))
-      dir.create(analysisFolder)
+      dir.create(file.path(outputFolder, analysisFolder))
     for (exposureOutcome in exposureOutcomeList) {
       sccsEraDataFileName <- .createSccsEraDataFileName(analysisFolder,
                                                         outcomeReference$exposureId[rowId],
@@ -408,6 +408,7 @@ getSccsData <- function(sccsDataFolder) {
 createSccsDataObject <- function(params) {
   sccsData <- do.call("getDbSccsData", params$args)
   saveSccsData(sccsData, params$sccsDataFileName)
+  return(NULL)
 }
 
 createSccsEraDataObject <- function(params) {
@@ -417,6 +418,7 @@ createSccsEraDataObject <- function(params) {
   saveSccsEraData(sccsEraData = sccsEraData,
                   folder = params$sccsEraDataFileName,
                   compress = params$compressSccsEraDataFiles)
+  return(NULL)
 }
 
 createSccsModelObject <- function(params) {
@@ -427,6 +429,7 @@ createSccsModelObject <- function(params) {
                             prior = params$args$prior,
                             control = params$args$control)
   saveRDS(sccsModel, params$sccsModelFileName)
+  return(NULL)
 }
 
 .createSccsDataFileName <- function(loadId) {

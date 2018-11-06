@@ -18,10 +18,10 @@ vignette: >
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
-if (file.exists("S:/temp"))
-  setwd("s:/temp")
+outputFolder <- "s:/temp/sccsVignette2"
+
 knitr::opts_chunk$set(
-  cache=FALSE,
+  cache = FALSE,
   comment = "#>",
   error = FALSE,
   tidy = FALSE)
@@ -60,6 +60,8 @@ connectionDetails <- createConnectionDetails(dbms = "postgresql",
                                              server = "localhost/ohdsi", 
                                              user = "joe", 
                                              password = "supersecret")
+
+outputFolder <- "/home/sccsOutput"
 
 cdmDatabaseSchema <- "my_cdm_data"
 cohortDatabaseSchema <- "my_cohorts"
@@ -303,7 +305,7 @@ result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
                           outcomeTable = outcomeTable,
                           cdmVersion = cdmVersion,
-                          outputFolder = "s:/temp/sccsVignette2",
+                          outputFolder = outputFolder,
                           combineDataFetchAcrossOutcomes = TRUE,
                           exposureOutcomeList = exposureOutcomeList,
                           sccsAnalysisList = sccsAnalysisList,
@@ -327,17 +329,17 @@ The result of the `runSccsAnalyses()` is a data frame with one row per exposure-
 sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 & 
                                       result$outcomeId == 1 &
                                       result$analysisId == 1]
-sccsModel <- readRDS(sccsModelFile)
+sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
 summary(sccsModel)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/sccsVignette2/outcomeModelReference.rds")){
-  result <- readRDS("s:/temp/sccsVignette2/outcomeModelReference.rds")
-sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 & 
-                                      result$outcomeId == 1 &
-                                      result$analysisId == 1]
-sccsModel <- readRDS(sccsModelFile)
-summary(sccsModel)
+if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
+  result <- readRDS(file.path(outputFolder, "outcomeModelReference.rds"))
+  sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 & 
+                                          result$outcomeId == 1 &
+                                          result$analysisId == 1]
+  sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
+  summary(sccsModel)
 }
 ```
 
@@ -345,12 +347,12 @@ Note that some of the file names will appear several times in the table. For exa
 
 We can create a summary of the results using `summarizeSccsAnalyses()`:
 ```{r tidy=FALSE,eval=FALSE}
-analysisSum <- summarizeSccsAnalyses(result)
+analysisSum <- summarizeSccsAnalyses(result, outputFolder)
 head(analysisSum)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/sccsVignette2/analysisSummary.rds")){
-  analysisSum <- readRDS("s:/temp/sccsVignette2/analysisSummary.rds")
+if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
+  analysisSum <- readRDS(file.path(outputFolder, "analysisSummary.rds"))
   head(analysisSum)
 }
 ```
@@ -377,17 +379,17 @@ plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`,
                       null)
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
-if (file.exists("s:/temp/sccsVignette2/analysisSummary.rds")){
+if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   library(EmpiricalCalibration)
   negCons <- analysisSum[analysisSum$analysisId == 1 & analysisSum$exposureId != 1124300, ]
-ei <-  analysisSum[analysisSum$analysisId == 1 & analysisSum$exposureId == 1124300, ]
-null <- fitNull(negCons$`logRr(Exposure of interest)`, 
-                negCons$`seLogRr(Exposure of interest)`)
-plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`, 
-                      seLogRrNegatives = negCons$`seLogRr(Exposure of interest)`, 
-                      logRrPositives = ei$`logRr(Exposure of interest)`, 
-                      seLogRrPositives = ei$`seLogRr(Exposure of interest)`, 
-                      null)
+  ei <-  analysisSum[analysisSum$analysisId == 1 & analysisSum$exposureId == 1124300, ]
+  null <- fitNull(negCons$`logRr(Exposure of interest)`, 
+                  negCons$`seLogRr(Exposure of interest)`)
+  plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`, 
+                        seLogRrNegatives = negCons$`seLogRr(Exposure of interest)`, 
+                        logRrPositives = ei$`logRr(Exposure of interest)`, 
+                        seLogRrPositives = ei$`seLogRr(Exposure of interest)`, 
+                        null)
 }
 ```
 
@@ -404,16 +406,16 @@ plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`,
                       null)
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
-if (file.exists("s:/temp/sccsVignette2/analysisSummary.rds")){
-negCons <- analysisSum[analysisSum$analysisId == 2 & analysisSum$exposureId != 1124300, ]
-ei <-  analysisSum[analysisSum$analysisId == 2 & analysisSum$exposureId == 1124300, ]
-null <- fitNull(negCons$`logRr(Exposure of interest)`, 
-                negCons$`seLogRr(Exposure of interest)`)
-plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`, 
-                      seLogRrNegatives = negCons$`seLogRr(Exposure of interest)`, 
-                      logRrPositives = ei$`logRr(Exposure of interest)`, 
-                      seLogRrPositives = ei$`seLogRr(Exposure of interest)`, 
-                      null)
+if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
+  negCons <- analysisSum[analysisSum$analysisId == 2 & analysisSum$exposureId != 1124300, ]
+  ei <-  analysisSum[analysisSum$analysisId == 2 & analysisSum$exposureId == 1124300, ]
+  null <- fitNull(negCons$`logRr(Exposure of interest)`, 
+                  negCons$`seLogRr(Exposure of interest)`)
+  plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`, 
+                        seLogRrNegatives = negCons$`seLogRr(Exposure of interest)`, 
+                        logRrPositives = ei$`logRr(Exposure of interest)`, 
+                        seLogRrPositives = ei$`seLogRr(Exposure of interest)`, 
+                        null)
 }
 ```
 
@@ -430,16 +432,16 @@ plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`,
                       null)
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
-if (file.exists("s:/temp/sccsVignette2/analysisSummary.rds")){
-negCons <- analysisSum[analysisSum$analysisId == 3 & analysisSum$exposureId != 1124300, ]
-ei <-  analysisSum[analysisSum$analysisId == 3 & analysisSum$exposureId == 1124300, ]
-null <- fitNull(negCons$`logRr(Exposure of interest)`, 
-                negCons$`seLogRr(Exposure of interest)`)
-plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`, 
-                      seLogRrNegatives = negCons$`seLogRr(Exposure of interest)`, 
-                      logRrPositives = ei$`logRr(Exposure of interest)`, 
-                      seLogRrPositives = ei$`seLogRr(Exposure of interest)`, 
-                      null)
+if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
+  negCons <- analysisSum[analysisSum$analysisId == 3 & analysisSum$exposureId != 1124300, ]
+  ei <-  analysisSum[analysisSum$analysisId == 3 & analysisSum$exposureId == 1124300, ]
+  null <- fitNull(negCons$`logRr(Exposure of interest)`, 
+                  negCons$`seLogRr(Exposure of interest)`)
+  plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`, 
+                        seLogRrNegatives = negCons$`seLogRr(Exposure of interest)`, 
+                        logRrPositives = ei$`logRr(Exposure of interest)`, 
+                        seLogRrPositives = ei$`seLogRr(Exposure of interest)`, 
+                        null)
 }
 ```
 
@@ -457,16 +459,16 @@ plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`,
                       null)
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
-if (file.exists("s:/temp/sccsVignette2/analysisSummary.rds")){
-negCons <- analysisSum[analysisSum$analysisId == 4 & analysisSum$exposureId != 1124300, ]
-ei <-  analysisSum[analysisSum$analysisId == 4 & analysisSum$exposureId == 1124300, ]
-null <- fitNull(negCons$`logRr(Exposure of interest)`, 
-                negCons$`seLogRr(Exposure of interest)`)
-plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`, 
-                      seLogRrNegatives = negCons$`seLogRr(Exposure of interest)`, 
-                      logRrPositives = ei$`logRr(Exposure of interest)`, 
-                      seLogRrPositives = ei$`seLogRr(Exposure of interest)`, 
-                      null)
+if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
+  negCons <- analysisSum[analysisSum$analysisId == 4 & analysisSum$exposureId != 1124300, ]
+  ei <-  analysisSum[analysisSum$analysisId == 4 & analysisSum$exposureId == 1124300, ]
+  null <- fitNull(negCons$`logRr(Exposure of interest)`, 
+                  negCons$`seLogRr(Exposure of interest)`)
+  plotCalibrationEffect(logRrNegatives = negCons$`logRr(Exposure of interest)`, 
+                        seLogRrNegatives = negCons$`seLogRr(Exposure of interest)`, 
+                        logRrPositives = ei$`logRr(Exposure of interest)`, 
+                        seLogRrPositives = ei$`seLogRr(Exposure of interest)`, 
+                        null)
 }
 ```
 

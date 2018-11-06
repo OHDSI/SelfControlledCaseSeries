@@ -44,7 +44,7 @@ IF OBJECT_ID('tempdb..#covariate_ref', 'U') IS NOT NULL
 
 CREATE TABLE #eras (
 	era_type VARCHAR(3),
-	observation_period_id INT,
+	observation_period_id BIGINT,
 	concept_id INT,
 	era_value FLOAT,
 	start_day INT,

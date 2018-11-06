@@ -678,7 +678,6 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
 
   temp <- setwd(folder)
   absolutePath <- setwd(temp)
-
   e <- new.env()
   if (file.exists(file.path(absolutePath, "outcomes.zip"))) {
     outcomes <- loadCompressedFfdf(file.path(absolutePath, "outcomes"))
@@ -686,18 +685,18 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
     covariateRef <- loadCompressedFfdf(file.path(absolutePath, "covariateRef"))
   } else {
     ffbase::load.ffdf(absolutePath, e)
+    outcomes = get("outcomes", envir = e)
+    covariates = get("covariates", envir = e)
+    covariateRef = get("covariateRef", envir = e)
+    open(outcomes, readonly = readOnly)
+    open(covariates, readonly = readOnly)
+    open(covariateRef, readonly = readOnly)
   }
   load(file.path(absolutePath, "metaData.Rdata"), e)
-  result <- list(outcomes = get("outcomes", envir = e),
-                 covariates = get("covariates", envir = e),
-                 covariateRef = get("covariateRef", envir = e),
+  result <- list(outcomes = outcomes,
+                 covariates = covariates,
+                 covariateRef = covariateRef,
                  metaData = get("metaData", envir = e))
-  if (!file.exists(file.path(absolutePath, "outcomes.zip"))) {
-    # Open all ffdfs to prevent annoying messages later:
-    open(result$outcomes, readonly = readOnly)
-    open(result$covariates, readonly = readOnly)
-    open(result$covariateRef, readonly = readOnly)
-  }
   if (!is.null(result$outcomes$error)) {
     result$outcomes <- NULL
     result$covariates <- NULL
@@ -707,7 +706,6 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
   rm(e)
   return(result)
 }
-
 
 
 #' Force a loaded SCCS era data in RAM
