@@ -18,8 +18,6 @@ vignette: >
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
-outputFolder <- "s:/temp/sccsVignette2"
-
 knitr::opts_chunk$set(
   cache = FALSE,
   comment = "#>",
@@ -61,7 +59,7 @@ connectionDetails <- createConnectionDetails(dbms = "postgresql",
                                              user = "joe", 
                                              password = "supersecret")
 
-outputFolder <- "/home/sccsOutput"
+outputFolder <- "s:/temp/sccsVignette2"
 
 cdmDatabaseSchema <- "my_cdm_data"
 cohortDatabaseSchema <- "my_cohorts"
@@ -123,7 +121,7 @@ The first group of arguments define the exposure and outcome. Here we demonstrat
 negativeControls <- c(705178, 705944, 710650, 714785, 719174, 719311, 735340, 742185, 
                       780369, 781182, 924724, 990760, 1110942, 1111706, 1136601, 
                       1317967, 1501309, 1505346, 1551673, 1560278, 1584910, 19010309, 
-                      19044727, 40163731)
+                      40163731)
 diclofenac <- 1124300
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
 
@@ -333,6 +331,8 @@ sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
 summary(sccsModel)
 ```
 ```{r echo=FALSE,message=FALSE}
+print(file.exists(file.path(outputFolder, "outcomeModelReference.rds")))
+print(outputFolder)
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   result <- readRDS(file.path(outputFolder, "outcomeModelReference.rds"))
   sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 & 
