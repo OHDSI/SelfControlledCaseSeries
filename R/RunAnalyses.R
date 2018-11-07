@@ -73,8 +73,7 @@
 #'                                         at a time, or for all outcomes in one fetch? Combining
 #'                                         fetches will be more efficient if there is large overlap in
 #'                                         the subjects that have the different outcomes.
-#' @param compressSccsEraDataFiles         Should compression be used when saving? IF TRUE, the zip
-#'                                         program needs to be available on the command prompt.
+#' @param compressSccsEraDataFiles         Should compression be used when saving?
 #' @param getDbSccsDataThreads             The number of parallel threads to use for building the
 #'                                         sccsData objects.
 #' @param createSccsEraDataThreads         The number of parallel threads to use for building the
