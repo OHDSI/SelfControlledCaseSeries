@@ -324,13 +324,15 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, con
 void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int end, int leftCensor, int rightCensor, int covariateIdRow, const CovariateSettings& covariateSettings) {
   int newStart = covariateSettings.start + (covariateSettings.addExposedDaysToStart?end:start);
   int newEnd = covariateSettings.end + (covariateSettings.addExposedDaysToEnd?end:start);
-  //std::cout << "Start: " << start << ", end: " << end<< ", newStart: " << newStart << ", newEnd: " << newEnd << "\n";
+  // std::cout << "Start: " << start << ", end: " << end<< ", newStart: " << newStart << ", newEnd: " << newEnd << "\n";
   if (newStart <= leftCensor){
     newStart = leftCensor + 1;
   }
   if (newEnd >= rightCensor) {
     newEnd = rightCensor - 1;
   }
+  if (newEnd < newStart)
+    return;
   if (covariateSettings.splitPoints.size() == 0) {
     Era era(newStart, newEnd, covariateSettings.outputIds(covariateIdRow,0), 1, false);
     outputEras.push_back(era);
@@ -370,6 +372,7 @@ void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::ve
         if (era->conceptId == covariateId) {
           if (era->start > (end + 1) && end != -9999) {
             Era mergedEra(start, end, 0, 1, false);
+            // std::cout << "Start: " << start << ", end: " << end<< ", eraStart: " << era->start<< ", eraEnd: " << era->end << "\n";
             covariateEras.push_back(mergedEra);
             if (covariateSettings.firstOccurrenceOnly) {
               first = false;
@@ -383,14 +386,14 @@ void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::ve
           if (era->end > end) {
             end = era->end;
           }
-          //std::cout << "Start: " << start << ", end: " << end<< ", eraStart: " << era->start<< ", eraEnd: " << era->end << "\n";
+          // std::cout << "Start: " << start << ", end: " << end<< ", eraStart: " << era->start<< ", eraEnd: " << era->end << "\n";
         }
       }
       if (end != -9999 && (!covariateSettings.firstOccurrenceOnly || first)){
         Era mergedEra(start, end, 0, 1, false);
         covariateEras.push_back(mergedEra);
       }
-      //std::cout << "Count: " << covariateEras.size() << "\n";
+      // std::cout << "Count: " << covariateEras.size() << "\n";
       int leftCensor = -1;
       for (unsigned int j = 0; j < covariateEras.size(); j++) {
         int rightCensor;

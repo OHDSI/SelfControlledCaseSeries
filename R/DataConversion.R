@@ -137,6 +137,7 @@ createSccsEraData <- function(sccsData,
                         settings$covariateSettingsList,
                         eventDependentObservation,
                         settings$censorModel)
+  # Using length not nrow to detect empty object:
   if (length(data$outcomes) == 0) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
     result <- list(outcomes = NULL,

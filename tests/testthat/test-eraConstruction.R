@@ -404,6 +404,30 @@ test_that("Two HOIs, keeping first", {
   expect_equal(result$covariates$covariateId, c(1000))
 })
 
+test_that("Removal of risk windows where end before start", {
+  cases <- data.frame(observationPeriodId = 1,
+                      personId = 1,
+                      observationDays = 100,
+                      ageInDays = 0,
+                      startYear = 2000,
+                      startMonth = 5,
+                      startDay = 1,
+                      censoredDays = 0)
+  eras <- data.frame(eraType = c("hoi", "hei"),
+                     observationPeriodId = c(1, 1),
+                     conceptId = c(10, 11),
+                     value = c(1, 1),
+                     startDay = c(50, 50),
+                     endDay = c(50, 75))
+  result <- convertToSccsDataWrapper(cases,
+                                     eras,
+                                     covariateSettings = createCovariateSettings(includeCovariateIds = c(11),
+                                                                                 start = 0,
+                                                                                 end = 7,
+                                                                                 addExposedDaysToStart = TRUE))
+  expect_null(result$outcomes)
+})
+
 test_that("Aggregates on large set", {
   settings <- createSccsSimulationSettings(includeAgeEffect = FALSE, includeSeasonality = FALSE)
   sccsData <- simulateSccsData(1000, settings)
