@@ -612,8 +612,7 @@ createSeasonalitySettings <- function(includeSeasonality = FALSE,
 #'                      \code{\link{createSccsEraData}}.
 #' @param folder        The name of the folder where the data will be written. The folder should not
 #'                      yet exist.
-#' @param compress      Should compression be used when saving? IF TRUE, the zip program needs to be
-#'                      available on the command prompt.
+#' @param compress      Should compression be used when saving?
 #'
 #' @details
 #' The data will be written to a set of files in the specified folder.

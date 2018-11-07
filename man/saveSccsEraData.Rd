@@ -13,8 +13,7 @@ saveSccsEraData(sccsEraData, folder, compress = FALSE)
 \item{folder}{The name of the folder where the data will be written. The folder should not
 yet exist.}
 
-\item{compress}{Should compression be used when saving? IF TRUE, the zip program needs to be
-available on the command prompt.}
+\item{compress}{Should compression be used when saving?}
 }
 \description{
 \code{saveSccsEraData} saves an object of type sccsEraData to folder.
