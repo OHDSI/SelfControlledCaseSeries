@@ -90,7 +90,6 @@ negativeControls <- c(705178,
                       1560278,
                       1584910,
                       19010309,
-                      19044727,
                       40163731)
 diclofenac <- 1124300
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
@@ -111,7 +110,7 @@ getDbSccsDataArgs1 <- createGetDbSccsDataArgs(useCustomCovariates = FALSE,
 
 covarExposureOfInt <- createCovariateSettings(label = "Exposure of interest",
                                               includeCovariateIds = "exposureId",
-                                              start = 0,
+                                              start = 1,
                                               end = 0,
                                               addExposedDaysToEnd = TRUE)
 
@@ -129,7 +128,7 @@ sccsAnalysis1 <- createSccsAnalysis(analysisId = 1,
 
 covarProphylactics <- createCovariateSettings(label = "Prophylactics",
                                               includeCovariateIds = "prophylactics",
-                                              start = 0,
+                                              start = 1,
                                               end = 0,
                                               addExposedDaysToEnd = TRUE)
 

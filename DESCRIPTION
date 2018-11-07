@@ -12,7 +12,7 @@ VignetteBuilder: knitr
 Depends:
     R (>= 3.2.2),
     Cyclops (>= 1.2.0),
-    DatabaseConnector (>= 2.0.0)
+    DatabaseConnector (>= 2.2.0)
 Imports:
     SqlRender (>= 1.1.1),
     bit,
