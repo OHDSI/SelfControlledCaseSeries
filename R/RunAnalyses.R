@@ -496,8 +496,8 @@ summarizeSccsAnalyses <- function(outcomeReference, outputFolder) {
     # result$caseCount[i] <- s$outcomeCounts$caseCount
     # result$eventCount[i] <- s$outcomeCounts$eventCount
     sccsModel <- readRDS(file.path(outputFolder, as.character(outcomeReference$sccsModelFile[i])))
-    result$caseCount[i] <- sccsModel$metaData$counts$caseCount
-    result$eventCount[i] <- sccsModel$metaData$counts$eventCount
+    result$caseCount[i] <- ifelse(is.null(sccsModel$metaData$counts$caseCount), 0, sccsModel$metaData$counts$caseCount)
+    result$eventCount[i] <- ifelse(is.null(sccsModel$metaData$counts$eventCount), 0, sccsModel$metaData$counts$eventCount)
     estimates <- sccsModel$estimates[sccsModel$estimates$originalCovariateId == outcomeReference$exposureId[i], ]
     if (!is.null(estimates) && nrow(estimates) != 0) {
       for (j in 1:nrow(estimates)) {
