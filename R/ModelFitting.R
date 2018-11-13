@@ -46,6 +46,7 @@ fitSccsModel <- function(sccsEraData,
                                                  selectorType = "byPid",
                                                  startingVariance = 0.1,
                                                  noiseLevel = "quiet")) {
+  ParallelLogger::logTrace("Fitting SCCS model")
   if (!is.null(sccsEraData$metaData$error)) {
     result <- list(status = sccsEraData$metaData$error,
                    metaData = sccsEraData$metaData)
@@ -159,7 +160,8 @@ fitSccsModel <- function(sccsEraData,
   result$metaData$counts <- summary(sccsEraData)$outcomeCounts
   class(result) <- "sccsModel"
   delta <- Sys.time() - start
-  writeLines(paste("Fitting the model took", signif(delta, 3), attr(delta, "units")))
+  ParallelLogger::logInfo(paste("Fitting the model took", signif(delta, 3), attr(delta, "units")))
+  ParallelLogger::logDebug("Model fitting status is: ", status)
   return(result)
 }
 

@@ -183,7 +183,7 @@ getDbSccsData <- function(connectionDetails,
                                    tempTable = TRUE,
                                    oracleTempSchema = oracleTempSchema)
   }
-  writeLines("Creating cases")
+  ParallelLogger::logInfo("Creating cases")
   sql <- SqlRender::loadRenderTranslateSql("CreateCases.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
@@ -205,7 +205,7 @@ getDbSccsData <- function(connectionDetails,
   casesPerOutcome <- FALSE
   if (maxCasesPerOutcome != 0) {
     casesPerOutcome <- TRUE
-    writeLines("Counting cases per outcome")
+    ParallelLogger::logInfo("Counting cases per outcome")
     sql <- SqlRender::loadRenderTranslateSql("CasesPerOutcome.sql",
                                              packageName = "SelfControlledCaseSeries",
                                              dbms = connectionDetails$dbms,
@@ -223,7 +223,7 @@ getDbSccsData <- function(connectionDetails,
 
     for (i in 1:nrow(caseCounts)) {
       if (caseCounts$caseCount[i] > maxCasesPerOutcome) {
-        writeLines(paste0("Downsampling cases for outcome ", caseCounts$outcomeId[i], " from ", caseCounts$caseCount[i], " to ", maxCasesPerOutcome))
+        ParallelLogger::logInfo(paste0("Downsampling cases for outcome ", caseCounts$outcomeId[i], " from ", caseCounts$caseCount[i], " to ", maxCasesPerOutcome))
         sampledCases <- TRUE
       }
     }
@@ -259,10 +259,10 @@ getDbSccsData <- function(connectionDetails,
                                            cohort_definition_id = cohortDefinitionId,
                                            sampled_cases = sampledCases)
 
-  writeLines("Creating eras")
+  ParallelLogger::logInfo("Creating eras")
   DatabaseConnector::executeSql(conn, sql)
 
-  writeLines("Fetching data from server")
+  ParallelLogger::logInfo("Fetching data from server")
   start <- Sys.time()
   sql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
                                            packageName = "SelfControlledCaseSeries",
@@ -271,6 +271,7 @@ getDbSccsData <- function(connectionDetails,
                                            sampled_cases = sampledCases)
   cases <- DatabaseConnector::querySql.ffdf(conn, sql)
   colnames(cases) <- SqlRender::snakeCaseToCamelCase(colnames(cases))
+  ParallelLogger::logDebug("Fetched ", nrow(cases), " cases from server")
   idx <- cases$ageInDays < 0
   countNegativeAges <- ffbase::sum.ff(idx)
   if (countNegativeAges > 0) {
@@ -291,7 +292,7 @@ getDbSccsData <- function(connectionDetails,
   colnames(covariateRef) <- SqlRender::snakeCaseToCamelCase(colnames(covariateRef))
 
   delta <- Sys.time() - start
-  writeLines(paste("Loading took", signif(delta, 3), attr(delta, "units")))
+  ParallelLogger::logInfo(paste("Loading took", signif(delta, 3), attr(delta, "units")))
 
   # Delete temp tables
   sql <- SqlRender::loadRenderTranslateSql("RemoveTempTables.sql",
@@ -338,6 +339,7 @@ saveSccsData <- function(sccsData, folder) {
     stop("Must specify folder")
   if (class(sccsData) != "sccsData")
     stop("Data not of class sccsData")
+  ParallelLogger::logTrace("Saving SccsData to ", folder)
 
   cases <- sccsData$cases
   eras <- sccsData$eras
@@ -373,6 +375,7 @@ loadSccsData <- function(folder, readOnly = TRUE) {
   if (!file.info(folder)$isdir)
     stop(paste("Not a folder:", folder))
 
+  ParallelLogger::logTrace("Loading SccsData from ", folder)
   temp <- setwd(folder)
   absolutePath <- setwd(temp)
 

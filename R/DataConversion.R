@@ -120,7 +120,7 @@ createSccsEraData <- function(sccsData,
   settings <- addCovariateSettings(settings, covariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- settings$covariateSettingsList
 
-  writeLines("Converting person data to SCCS eras. This might take a while.")
+  ParallelLogger::logInfo("Converting person data to SCCS eras. This might take a while.")
   data <- convertToSccs(sccsData$cases,
                         sccsData$eras,
                         outcomeId,
@@ -155,7 +155,7 @@ createSccsEraData <- function(sccsData,
   }
   class(result) <- "sccsEraData"
   delta <- Sys.time() - start
-  writeLines(paste("Analysis took", signif(delta, 3), attr(delta, "units")))
+  ParallelLogger::logInfo(paste("Analysis took", signif(delta, 3), attr(delta, "units")))
   return(result)
 }
 
@@ -625,6 +625,7 @@ saveSccsEraData <- function(sccsEraData, folder, compress = FALSE) {
     stop("Must specify folder")
   if (class(sccsEraData) != "sccsEraData")
     stop("Data not of class sccsEraData")
+  ParallelLogger::logTrace("Saving SccsEraData to ", folder)
 
   dir.create(folder)
 
@@ -675,6 +676,7 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
     stop(paste("Cannot find folder", folder))
   if (!file.info(folder)$isdir)
     stop(paste("Not a folder:", folder))
+  ParallelLogger::logTrace("Loading SccsEraData from ", folder)
 
   temp <- setwd(folder)
   absolutePath <- setwd(temp)
@@ -731,7 +733,7 @@ forceSccsEraDataIntoRam <- function(sccsEraData) {
   sccsEraData$covariates <- ff::as.ram(sccsEraData$covariates)
   sccsEraData$covariateRef <- ff::as.ram(sccsEraData$covariateRef)
 
-  return (sccsEraData)
+  return(sccsEraData)
 }
 
 #' @export

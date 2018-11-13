@@ -366,7 +366,7 @@ runSccsAnalyses <- function(connectionDetails,
 
   ### Actual construction of objects ###
 
-  writeLines("*** Creating sccsData objects ***")
+  ParallelLogger::logInfo("*** Creating sccsData objects ***")
   if (length(sccsDataObjectsToCreate) != 0) {
     cluster <- ParallelLogger::makeCluster(getDbSccsDataThreads)
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
@@ -374,7 +374,7 @@ runSccsAnalyses <- function(connectionDetails,
     ParallelLogger::stopCluster(cluster)
   }
 
-  writeLines("*** Creating sccsEraData objects ***")
+  ParallelLogger::logInfo("*** Creating sccsEraData objects ***")
   if (length(sccsEraDataObjectsToCreate) != 0) {
     cluster <- ParallelLogger::makeCluster(createSccsEraDataThreads)
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
@@ -382,7 +382,7 @@ runSccsAnalyses <- function(connectionDetails,
     ParallelLogger::stopCluster(cluster)
   }
 
-  writeLines("*** Fitting models ***")
+  ParallelLogger::logInfo("*** Fitting models ***")
   if (length(sccsModelObjectsToCreate) != 0) {
     cluster <- ParallelLogger::makeCluster(fitSccsModelThreads)
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
