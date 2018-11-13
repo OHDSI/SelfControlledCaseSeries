@@ -155,7 +155,7 @@ createSccsEraData <- function(sccsData,
   }
   class(result) <- "sccsEraData"
   delta <- Sys.time() - start
-  ParallelLogger::logInfo(paste("Analysis took", signif(delta, 3), attr(delta, "units")))
+  ParallelLogger::logInfo(paste("Generating SCCS era data took", signif(delta, 3), attr(delta, "units")))
   return(result)
 }
 
