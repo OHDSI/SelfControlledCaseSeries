@@ -42,6 +42,7 @@ rmarkdown::render("vignettes/MultipleAnalyses.Rmd",
                                           toc = TRUE,
                                           number_sections = TRUE))
 
+pkgdown::build_site()
 
 # Create arg functions:
 library(SelfControlledCaseSeries)

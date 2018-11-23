@@ -1,6 +1,11 @@
 SelfControlledCaseSeries
 ========================
 
+[![Build Status](https://travis-ci.org/OHDSI/SelfControlledCaseSeries.svg?branch=master)](https://travis-ci.org/OHDSI/SelfControlledCaseSeries)
+[![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=master)
+
+CaseControl is part of the [OHDSI Methods Library](https://ohdsi.github.io/MethodsLibrary).
+
 Introduction
 ============
 SelfControlledCaseSeries is an R package for performing Self-Controlled Case Series (SCCS) analyses in an observational database in the OMOP Common Data Model.
@@ -16,7 +21,7 @@ Features
 - Optionally use regularization on all covariates except the outcome of interest.
 
 Example
-===========
+=======
 ```r
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
@@ -53,13 +58,6 @@ System Requirements
 ===================
 Requires R (version 3.2.2 or higher). Installation on Windows requires [RTools](http://cran.r-project.org/bin/windows/Rtools/). Libraries used in SelfControlledCaseSeries require Java.
 
-Dependencies
-============
- * Cyclops
- * DatabaseConnector
- * SqlRender
- * ParallelLogger
-
 Getting Started
 ===============
 1. On Windows, make sure [RTools](http://cran.r-project.org/bin/windows/Rtools/) is installed.
@@ -68,22 +66,21 @@ Getting Started
 3. In R, use the following commands to download and install SelfControlledCaseSeries:
 
   ```r
-  install.packages("devtools")
-  library(devtools)
-  install_github("ohdsi/ParallelLogger") 
-  install_github("ohdsi/SqlRender")
-  install_github("ohdsi/DatabaseConnector")
-  install_github("ohdsi/Cyclops")
-  install_github("ohdsi/SelfControlledCaseSeries")
+  install.packages("drat")
+  drat::addRepo("OHDSI")
+  install.packages("SelfControlledCaseSeries")
   ```
 
-Getting Involved
-================
+User Documentation
+==================
 * Vignette: [Single studies using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/inst/doc/SingleStudies.pdf)
 * Vignette: [Running multiple analyses at once using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/inst/doc/MultipleAnalyses.pdf)
 * Package manual: [SelfControlledCaseSeries.pdf](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/extras/SelfControlledCaseSeries.pdf)
+
+Support
+=======
 * Developer questions/comments/feedback: <a href="http://forums.ohdsi.org/c/developers">OHDSI Forum</a>
-* We use the <a href="../../issues">GitHub issue tracker</a> for all bugs/issues/enhancements
+* We use the <a href="https://github.com/OHDSI/SelfControlledCaseSeries/issues">GitHub issue tracker</a> for all bugs/issues/enhancements
 
 License
 =======
@@ -94,8 +91,6 @@ Development
 SelfControlledCaseSeries is being developed in R Studio.
 
 ### Development status
-[![Build Status](https://travis-ci.org/OHDSI/SelfControlledCaseSeries.svg?branch=master)](https://travis-ci.org/OHDSI/SelfControlledCaseSeries)
-[![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=master)
 
 Beta
 

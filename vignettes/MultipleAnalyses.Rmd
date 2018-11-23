@@ -331,8 +331,6 @@ sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
 summary(sccsModel)
 ```
 ```{r echo=FALSE,message=FALSE}
-print(file.exists(file.path(outputFolder, "outcomeModelReference.rds")))
-print(outputFolder)
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   result <- readRDS(file.path(outputFolder, "outcomeModelReference.rds"))
   sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 & 
