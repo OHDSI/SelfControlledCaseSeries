@@ -52,6 +52,9 @@ NULL
   # https://github.com/edwindj/ffbase/issues/37)
   options(ffbatchbytes = min(getOption("ffbatchbytes"), .Machine$integer.max / 10))
   options(ffmaxbytes = min(getOption("ffmaxbytes"), .Machine$integer.max * 12))
+
+  # Simulate behavior before R 3.6.0. Some explicit ff and ffbase calss so implicit calls work in future:
+  ffbase::any.ff(ff::as.ff(c(TRUE, FALSE)))
 }
 
 sccs <- function() {

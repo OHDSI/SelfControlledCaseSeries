@@ -1,8 +1,8 @@
 library(SelfControlledCaseSeries)
-options(fftempdir = "s:/fftemp")
+options(fftempdir = "c:/fftemp")
 settings <- createSccsSimulationSettings(includeAgeEffect = TRUE, includeSeasonality = TRUE)
 
-sccsData <- simulateSccsData(1000, settings)
+sccsData <- simulateSccsData(10000, settings)
 
 ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
 
@@ -23,11 +23,7 @@ sccsEraData <- createSccsEraData(sccsData,
 
 length(unique(sccsEraData$outcomes$stratumId))
 
-model <- fitSccsModel(sccsEraData, control = createControl(cvType = "auto",
-                                                           selectorType = "byPid",
-                                                           startingVariance = 0.1,
-                                                           noiseLevel = "quiet",
-                                                           threads = 4))
+model <- fitSccsModel(sccsEraData, prior = createPrior("none"))
 
 summary(model)
 plotSeasonality(model)
