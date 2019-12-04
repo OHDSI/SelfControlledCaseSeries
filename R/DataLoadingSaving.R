@@ -217,7 +217,7 @@ getDbSccsData <- function(connectionDetails,
     DatabaseConnector::executeSql(conn, sql)
 
     sql <- "SELECT outcome_id, COUNT(*) AS case_count FROM #cases_per_outcome GROUP BY outcome_id"
-    sql <- SqlRender::translateSql(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)$sql
+    sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
     caseCounts <- DatabaseConnector::querySql(conn, sql)
     colnames(caseCounts) <- SqlRender::snakeCaseToCamelCase(colnames(caseCounts))
 
@@ -287,7 +287,7 @@ getDbSccsData <- function(connectionDetails,
   colnames(eras) <- SqlRender::snakeCaseToCamelCase(colnames(eras))
 
   sql <- "SELECT covariate_id, covariate_name FROM #covariate_ref"
-  sql <- SqlRender::translateSql(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)$sql
+  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
   covariateRef <- DatabaseConnector::querySql.ffdf(conn, sql)
   colnames(covariateRef) <- SqlRender::snakeCaseToCamelCase(colnames(covariateRef))
 
