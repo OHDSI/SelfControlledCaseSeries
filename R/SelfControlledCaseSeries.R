@@ -50,6 +50,7 @@ NULL
 
   # Workaround for problem with ff on machines with lots of memory (see
   # https://github.com/edwindj/ffbase/issues/37)
+  options(ffbatchbytes = min(getOption("ffbatchbytes"), .Machine$integer.max / 10))
   options(ffmaxbytes = min(getOption("ffmaxbytes"), .Machine$integer.max * 12))
 }
 
