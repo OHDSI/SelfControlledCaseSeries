@@ -38,6 +38,7 @@ PersonDataIterator::PersonDataIterator(const List& _cases, const List& _eras) :
 }
 
 void PersonDataIterator::loadNextCases() {
+
   List cases = casesIterator.next();
   casesPersonId = cases["personId"];
   casesObservationPeriodId = cases["observationPeriodId"];
@@ -48,9 +49,13 @@ void PersonDataIterator::loadNextCases() {
   casesStartDay = cases["startDay"];
   casesUncensored = cases["uncensored"];
   casesCensoredDays = cases["censoredDays"];
+  // Environment bit = Environment::namespace_env("base");
+  // Function writeLines = bit["writeLines"];
+  // writeLines(std::to_string(casesAgeInDays[1]));
 }
 
 void PersonDataIterator::loadNextEras() {
+
   List eras = erasIterator.next();
   erasObservationPeriodId = eras["observationPeriodId"];
   erasStartDay = eras["startDay"];
@@ -58,6 +63,9 @@ void PersonDataIterator::loadNextEras() {
   erasConceptId = eras["conceptId"];
   erasValue = eras["value"];
   erasEraType = eras["eraType"];
+  // Environment bit = Environment::namespace_env("base");
+  // Function writeLines = bit["writeLines"];
+  // writeLines(std::to_string(erasObservationPeriodId[1]));
 }
 
 bool PersonDataIterator::hasNext() {

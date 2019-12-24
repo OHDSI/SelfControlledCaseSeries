@@ -49,13 +49,17 @@ bool FfdfIterator::hasNext() {
 List FfdfIterator::next() {
   Environment ff = Environment::namespace_env("ff");
   Function subset = ff["[.ff"];
+  Function getNames = ff["names.ffdf"];
   List physical = ffdf["physical"];
+  List virtualFfdf = ffdf["virtual"];
+  IntegerVector physicalElementNo = virtualFfdf["PhysicalElementNo"];
+  CharacterVector names = getNames(ffdf);
+  names = names[physicalElementNo - 1];
   List result(physical.length());
   for (int i = 0; i < physical.length(); i++){
     result[i] = subset(physical[i], chunks[cursor]);
   }
-  Function getNames = ff["names.ffdf"];
-  result.names() = getNames(ffdf);
+  result.names() = names;
   cursor++;
   if (showProgressBar){
     Environment utils = Environment::namespace_env("utils");

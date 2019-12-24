@@ -454,10 +454,16 @@ void SccsConverter::processPerson(PersonData& personData) {
   if (firstOutcomeOnly) {
     removeAllButFirstOutcome(outcomes);
   }
+  if (outcomes.size() == 0) {// No outcomes left. Probably case without this particulary outcome
+    return;
+  }
   //Naive period can use censored days (ie days prior to study start date):
   int startDay = std::max(0, naivePeriod - personData.censoredDays);
-  if (personData.ageInDays + startDay < minAge)
+  if (personData.ageInDays + startDay < minAge) {
+    // std::cout << "personData.ageInDays:" << personData.ageInDays << ", startDay:" << startDay << ", minAge:" << minAge << "\n";
     startDay = minAge - personData.ageInDays;
+
+  }
   int endDay = personData.daysOfObservation - 1;
   if (maxAge > 0 && personData.ageInDays + endDay > maxAge)
     endDay = maxAge - personData.ageInDays;
