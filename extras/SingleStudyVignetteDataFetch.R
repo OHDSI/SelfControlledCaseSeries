@@ -54,16 +54,16 @@ DatabaseConnector::executeSql(connection, sql)
 
 # Check number of subjects per cohort:
 sql <- "SELECT cohort_definition_id, COUNT(*) AS count FROM @cohortDatabaseSchema.@outcomeTable GROUP BY cohort_definition_id"
-sql <- SqlRender::renderSql(sql,
-                            cohortDatabaseSchema = cohortDatabaseSchema,
-                            outcomeTable = outcomeTable)$sql
-sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+sql <- SqlRender::render(sql,
+                         cohortDatabaseSchema = cohortDatabaseSchema,
+                         outcomeTable = outcomeTable)
+sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
 DatabaseConnector::querySql(connection, sql)
 
 # Get all PPIs:
 sql <- "SELECT concept_id FROM @cdmDatabaseSchema.concept_ancestor INNER JOIN @cdmDatabaseSchema.concept ON descendant_concept_id = concept_id WHERE ancestor_concept_id = 21600095 AND concept_class_id = 'Ingredient'"
-sql <- SqlRender::renderSql(sql, cdmDatabaseSchema = cdmDatabaseSchema)$sql
-sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+sql <- SqlRender::render(sql, cdmDatabaseSchema = cdmDatabaseSchema)
+sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
 ppis <- DatabaseConnector::querySql(connection, sql)
 ppis <- ppis$CONCEPT_ID
 

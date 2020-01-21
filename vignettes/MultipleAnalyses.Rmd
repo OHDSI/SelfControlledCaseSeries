@@ -102,10 +102,10 @@ This is parameterized SQL which can be used by the `SqlRender` package. We use p
 ```{r tidy=FALSE,eval=FALSE}
 library(SqlRender)
 sql <- readSql("vignette.sql")
-sql <- renderSql(sql,
-                 cdmDatabaseSchema = cdmDatabaseSchema, 
-                 cohortDatabaseSchema = cohortDatabaseSchema)$sql
-sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+sql <- render(sql,
+              cdmDatabaseSchema = cdmDatabaseSchema, 
+              cohortDatabaseSchema = cohortDatabaseSchema)
+sql <- translate(sql, targetDialect = connectionDetails$dbms)
 
 connection <- connect(connectionDetails)
 executeSql(connection, sql)
