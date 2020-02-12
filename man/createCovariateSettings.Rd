@@ -4,11 +4,19 @@
 \alias{createCovariateSettings}
 \title{Create covariate settings}
 \usage{
-createCovariateSettings(includeCovariateIds = NULL,
-  excludeCovariateIds = NULL, label = "Covariates",
-  stratifyById = TRUE, start = 0, addExposedDaysToStart = FALSE,
-  end = 0, addExposedDaysToEnd = FALSE, firstOccurrenceOnly = FALSE,
-  splitPoints = c(), allowRegularization = FALSE)
+createCovariateSettings(
+  includeCovariateIds = NULL,
+  excludeCovariateIds = NULL,
+  label = "Covariates",
+  stratifyById = TRUE,
+  start = 0,
+  addExposedDaysToStart = FALSE,
+  end = 0,
+  addExposedDaysToEnd = FALSE,
+  firstOccurrenceOnly = FALSE,
+  splitPoints = c(),
+  allowRegularization = FALSE
+)
 }
 \arguments{
 \item{includeCovariateIds}{One or more IDs of variables in the \code{sccsData} object that

@@ -4,8 +4,14 @@
 \alias{computeMdrr}
 \title{Compute the minimum detectable relative risk}
 \usage{
-computeMdrr(sccsEraData, exposureCovariateId, alpha = 0.05,
-  power = 0.8, twoSided = TRUE, method = "binomial")
+computeMdrr(
+  sccsEraData,
+  exposureCovariateId,
+  alpha = 0.05,
+  power = 0.8,
+  twoSided = TRUE,
+  method = "binomial"
+)
 }
 \arguments{
 \item{sccsEraData}{An object containing study population observation time, outcomesa and covariates as created

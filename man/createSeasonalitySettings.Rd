@@ -4,8 +4,12 @@
 \alias{createSeasonalitySettings}
 \title{Create seasonality settings}
 \usage{
-createSeasonalitySettings(includeSeasonality = FALSE, seasonKnots = 5,
-  allowRegularization = FALSE, computeConfidenceIntervals = FALSE)
+createSeasonalitySettings(
+  includeSeasonality = FALSE,
+  seasonKnots = 5,
+  allowRegularization = FALSE,
+  computeConfidenceIntervals = FALSE
+)
 }
 \arguments{
 \item{includeSeasonality}{Should seasonlaity be included in the model?}

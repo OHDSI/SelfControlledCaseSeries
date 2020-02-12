@@ -4,12 +4,17 @@
 \alias{createSccsEraData}
 \title{Create SCCS era data}
 \usage{
-createSccsEraData(sccsData, outcomeId = NULL, naivePeriod = 0,
-  firstOutcomeOnly = FALSE, covariateSettings,
+createSccsEraData(
+  sccsData,
+  outcomeId = NULL,
+  naivePeriod = 0,
+  firstOutcomeOnly = FALSE,
+  covariateSettings,
   ageSettings = createAgeSettings(includeAge = FALSE),
-  seasonalitySettings = createSeasonalitySettings(includeSeasonality =
-  FALSE), minCasesForAgeSeason = 10000,
-  eventDependentObservation = FALSE)
+  seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
+  minCasesForAgeSeason = 10000,
+  eventDependentObservation = FALSE
+)
 }
 \arguments{
 \item{sccsData}{An object of type \code{sccsData} as created using the

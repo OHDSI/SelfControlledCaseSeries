@@ -4,9 +4,12 @@
 \alias{fitSccsModel}
 \title{Fit the SCCS model}
 \usage{
-fitSccsModel(sccsEraData, prior = createPrior("laplace",
-  useCrossValidation = TRUE), control = createControl(cvType = "auto",
-  selectorType = "byPid", startingVariance = 0.1, noiseLevel = "quiet"))
+fitSccsModel(
+  sccsEraData,
+  prior = createPrior("laplace", useCrossValidation = TRUE),
+  control = createControl(cvType = "auto", selectorType = "byPid", startingVariance =
+    0.1, noiseLevel = "quiet")
+)
 }
 \arguments{
 \item{sccsEraData}{An object of type \code{sccsEraData} as created using the

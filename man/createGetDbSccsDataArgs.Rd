@@ -4,11 +4,17 @@
 \alias{createGetDbSccsDataArgs}
 \title{Create a parameter object for the function getDbSccsData}
 \usage{
-createGetDbSccsDataArgs(useCustomCovariates = FALSE,
-  useNestingCohort = FALSE, nestingCohortId = NULL,
-  deleteCovariatesSmallCount = 100, studyStartDate = "",
-  studyEndDate = "", maxCasesPerOutcome = 0,
-  exposureIds = "exposureId", customCovariateIds = "")
+createGetDbSccsDataArgs(
+  useCustomCovariates = FALSE,
+  useNestingCohort = FALSE,
+  nestingCohortId = NULL,
+  deleteCovariatesSmallCount = 100,
+  studyStartDate = "",
+  studyEndDate = "",
+  maxCasesPerOutcome = 0,
+  exposureIds = "exposureId",
+  customCovariateIds = ""
+)
 }
 \arguments{
 \item{useCustomCovariates}{Create covariates from a custom table?}

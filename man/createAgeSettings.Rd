@@ -4,9 +4,14 @@
 \alias{createAgeSettings}
 \title{Create age settings}
 \usage{
-createAgeSettings(includeAge = FALSE, ageKnots = 5,
-  allowRegularization = FALSE, computeConfidenceIntervals = FALSE,
-  minAge = NULL, maxAge = NULL)
+createAgeSettings(
+  includeAge = FALSE,
+  ageKnots = 5,
+  allowRegularization = FALSE,
+  computeConfidenceIntervals = FALSE,
+  minAge = NULL,
+  maxAge = NULL
+)
 }
 \arguments{
 \item{includeAge}{Should age be included in the model?}

@@ -4,20 +4,30 @@
 \alias{getDbSccsData}
 \title{Load data for SCCS from the database}
 \usage{
-getDbSccsData(connectionDetails, cdmDatabaseSchema,
+getDbSccsData(
+  connectionDetails,
+  cdmDatabaseSchema,
   oracleTempSchema = cdmDatabaseSchema,
   outcomeDatabaseSchema = cdmDatabaseSchema,
-  outcomeTable = "condition_era", outcomeIds,
+  outcomeTable = "condition_era",
+  outcomeIds,
   exposureDatabaseSchema = cdmDatabaseSchema,
-  exposureTable = "drug_era", exposureIds = c(),
+  exposureTable = "drug_era",
+  exposureIds = c(),
   useCustomCovariates = FALSE,
   customCovariateDatabaseSchema = cdmDatabaseSchema,
-  customCovariateTable = "cohort", customCovariateIds = c(),
+  customCovariateTable = "cohort",
+  customCovariateIds = c(),
   useNestingCohort = FALSE,
   nestingCohortDatabaseSchema = cdmDatabaseSchema,
-  nestingCohortTable = "cohort", nestingCohortId = NULL,
-  deleteCovariatesSmallCount = 100, studyStartDate = "",
-  studyEndDate = "", cdmVersion = "5", maxCasesPerOutcome = 0)
+  nestingCohortTable = "cohort",
+  nestingCohortId = NULL,
+  deleteCovariatesSmallCount = 100,
+  studyStartDate = "",
+  studyEndDate = "",
+  cdmVersion = "5",
+  maxCasesPerOutcome = 0
+)
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using

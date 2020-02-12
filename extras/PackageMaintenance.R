@@ -1,6 +1,6 @@
 # @file PackageMaintenance
 #
-# Copyright 2018 Observational Health Data Sciences and Informatics
+# Copyright 2020 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 #
@@ -26,7 +26,7 @@ if (.Platform$OS.type == "unix") {
   system("rm extras/SelfControlledCaseSeries.pdf")
   system("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
 } else {
-  shell("rm extras/SelfControlledCaseSeries.pdf")
+  unlink("extras/SelfControlledCaseSeries.pdf")
   shell("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
 }
 

@@ -4,16 +4,26 @@
 \alias{createSccsSimulationSettings}
 \title{Create SCCS simulation settings}
 \usage{
-createSccsSimulationSettings(meanPatientTime = 4 * 365,
-  sdPatientTime = 2 * 365, minAge = 18 * 365, maxAge = 65 * 365,
-  minBaselineRate = 0.001, maxBaselineRate = 0.01,
-  covariateIds = c(1, 2), patientUsages = c(0.2, 0.1),
-  usageRate = c(0.01, 0.01), meanPrescriptionDurations = c(14, 30),
+createSccsSimulationSettings(
+  meanPatientTime = 4 * 365,
+  sdPatientTime = 2 * 365,
+  minAge = 18 * 365,
+  maxAge = 65 * 365,
+  minBaselineRate = 0.001,
+  maxBaselineRate = 0.01,
+  covariateIds = c(1, 2),
+  patientUsages = c(0.2, 0.1),
+  usageRate = c(0.01, 0.01),
+  meanPrescriptionDurations = c(14, 30),
   sdPrescriptionDurations = c(7, 14),
-  simulationRiskWindows = list(createSimulationRiskWindow(relativeRisks =
-  1), createSimulationRiskWindow(relativeRisks = 1.5)),
-  includeAgeEffect = TRUE, ageKnots = 5, includeSeasonality = TRUE,
-  seasonKnots = 5, outcomeId = 10)
+  simulationRiskWindows = list(createSimulationRiskWindow(relativeRisks = 1),
+    createSimulationRiskWindow(relativeRisks = 1.5)),
+  includeAgeEffect = TRUE,
+  ageKnots = 5,
+  includeSeasonality = TRUE,
+  seasonKnots = 5,
+  outcomeId = 10
+)
 }
 \arguments{
 \item{meanPatientTime}{Mean number of observation days per patient.}

@@ -4,9 +4,16 @@
 \alias{plotPerPersonData}
 \title{Plot exposures and outcomes per person}
 \usage{
-plotPerPersonData(sccsData, outcomeId = NULL, exposureId = NULL,
-  naivePeriod = 0, firstOutcomeOnly = FALSE, minAge = NULL,
-  maxAge = NULL, fileName = NULL)
+plotPerPersonData(
+  sccsData,
+  outcomeId = NULL,
+  exposureId = NULL,
+  naivePeriod = 0,
+  firstOutcomeOnly = FALSE,
+  minAge = NULL,
+  maxAge = NULL,
+  fileName = NULL
+)
 }
 \arguments{
 \item{sccsData}{An object of type \code{sccsData} as created using the

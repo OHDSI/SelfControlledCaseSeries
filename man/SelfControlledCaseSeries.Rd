@@ -3,7 +3,6 @@
 \docType{package}
 \name{SelfControlledCaseSeries}
 \alias{SelfControlledCaseSeries}
-\alias{SelfControlledCaseSeries-package}
 \title{SelfControlledCaseSeries}
 \description{
 SelfControlledCaseSeries

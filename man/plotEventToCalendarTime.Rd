@@ -4,8 +4,14 @@
 \alias{plotEventToCalendarTime}
 \title{Plot the count of events over calendar time.}
 \usage{
-plotEventToCalendarTime(sccsData, outcomeId = NULL, naivePeriod = 0,
-  minAge = NULL, maxAge = NULL, fileName = NULL)
+plotEventToCalendarTime(
+  sccsData,
+  outcomeId = NULL,
+  naivePeriod = 0,
+  minAge = NULL,
+  maxAge = NULL,
+  fileName = NULL
+)
 }
 \arguments{
 \item{sccsData}{An object of type \code{sccsData} as created using the

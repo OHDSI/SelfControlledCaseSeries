@@ -4,8 +4,15 @@
 \alias{plotAgeSpans}
 \title{Plot the age ranges spanned by each observation period.}
 \usage{
-plotAgeSpans(sccsData, outcomeId = NULL, firstOutcomeOnly = FALSE,
-  naivePeriod = 0, minAge = NULL, maxAge = NULL, fileName = NULL)
+plotAgeSpans(
+  sccsData,
+  outcomeId = NULL,
+  firstOutcomeOnly = FALSE,
+  naivePeriod = 0,
+  minAge = NULL,
+  maxAge = NULL,
+  fileName = NULL
+)
 }
 \arguments{
 \item{sccsData}{An object of type \code{sccsData} as created using the
