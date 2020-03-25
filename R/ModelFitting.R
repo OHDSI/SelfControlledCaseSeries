@@ -121,6 +121,11 @@ fitSccsModel <- function(sccsEraData,
       estimates <- NULL
       priorVariance <- 0
       status <- "ILL CONDITIONED, CANNOT FIT"
+    } else if (fit$return_flag == "MAX_ITERATIONS") {
+      coefficients <- c(0)
+      estimates <- NULL
+      priorVariance <- 0
+      status <- "REACHED MAXIMUM NUMBER OF ITERATIONS, CANNOT FIT"
     } else {
       status <- "OK"
       estimates <- coef(fit)
