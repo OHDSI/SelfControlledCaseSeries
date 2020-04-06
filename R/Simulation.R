@@ -162,7 +162,8 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                           conceptId = settings$covariateIds[i],
                           value = 1,
                           startDay = startDay,
-                          endDay = endDay)
+                          endDay = endDay,
+                          stringsAsFactors = TRUE)
     eras <- rbind(eras, newEras)
   }
   eras <- eras[order(eras$observationPeriodId, eras$conceptId), ]
@@ -206,7 +207,8 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                              conceptId = conceptId,
                              value = 1,
                              startDay = sourceEras$startDay[filteredIndex] + start,
-                             endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex])
+                             endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex],
+                             stringsAsFactors = TRUE)
       newEras <- rbind(newEras, riskEras)
       conceptIds <- c(conceptIds, conceptId)
       rrs <- c(rrs, simulationRiskWindow$relativeRisks[j])
@@ -215,7 +217,8 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
     }
   }
   newEras <- newEras[order(newEras$observationPeriodId, newEras$conceptId), ]
-  eraRrs <- data.frame(conceptId = conceptIds, rr = rrs)
+  eraRrs <- data.frame(conceptId = conceptIds, rr = rrs,
+                       stringsAsFactors = TRUE)
   outcomes <- simulateSccsOutcomes(cases,
                                    newEras,
                                    baselineRates,
@@ -230,7 +233,8 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                          conceptId = settings$outcomeId,
                          value = 1,
                          startDay = outcomes$startDay,
-                         endDay = outcomes$startDay)
+                         endDay = outcomes$startDay,
+                         stringsAsFactors = TRUE)
 
   # ** Remove non-cases ***
   caseIds <- unique(outcomes$observationPeriodId)
@@ -298,7 +302,8 @@ simulateSccsData <- function(nCases, settings) {
                                exposureIds = settings$covariateIds,
                                outcomeIds = settings$outcomeId),
                covariateRef = ff::as.ffdf(data.frame(covariateId = settings$covariateIds,
-                                                     covariateName = c(""))))
+                                                     covariateName = c(""),
+                                                     stringsAsFactors = TRUE)))
   rownames(data$cases) <- NULL
   rownames(data$eras) <- NULL
   class(data) <- "sccsData"

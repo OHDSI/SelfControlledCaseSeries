@@ -30,7 +30,8 @@ convertToSccsDataWrapper <- function(cases,
                eras = ff::as.ffdf(eras),
                metaData = list(outcomeIds = 10),
                covariateRef = ff::as.ffdf(data.frame(covariateId = covariateIds,
-                                                     covariateName = "")))
+                                                     covariateName = "",
+                                                     stringsAsFactors = TRUE)))
   result <- createSccsEraData(sccsData = data,
                               naivePeriod = naivePeriod,
                               firstOutcomeOnly = firstOutcomeOnly,
@@ -59,7 +60,8 @@ test_that("Simple era construction", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(50, 25),
-                     endDay = c(50, 75))
+                     endDay = c(50, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = 11)
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -86,7 +88,8 @@ test_that("Age restriction", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(500, 525),
-                     endDay = c(500, 575))
+                     endDay = c(500, 575),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = 11, ageSettings = createAgeSettings(includeAge = FALSE, minAge = 2, maxAge = 3))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -111,7 +114,8 @@ test_that("Outcome on boundary", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(25, 25),
-                     endDay = c(25, 75))
+                     endDay = c(25, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -136,7 +140,8 @@ test_that("Outcome on boundary", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(24, 25),
-                     endDay = c(24, 75))
+                     endDay = c(24, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -161,7 +166,8 @@ test_that("Outcome on boundary", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(75, 25),
-                     endDay = c(75, 75))
+                     endDay = c(75, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -187,7 +193,8 @@ test_that("Outcome on boundary", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(76, 25),
-                     endDay = c(76, 75))
+                     endDay = c(76, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -212,7 +219,8 @@ test_that("One day era", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(50, 25),
-                     endDay = c(50, 25))
+                     endDay = c(50, 25),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -237,7 +245,8 @@ test_that("Merging overlapping eras", {
                      conceptId = c(10, 11, 11),
                      value = c(1, 1, 1),
                      startDay = c(50, 25, 70),
-                     endDay = c(50, 75, 80))
+                     endDay = c(50, 75, 80),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -262,7 +271,8 @@ test_that("Merging overlapping eras with same start date", {
                      conceptId = c(10, 11, 11),
                      value = c(1, 1, 1),
                      startDay = c(50, 25, 25),
-                     endDay = c(50, 75, 50))
+                     endDay = c(50, 75, 50),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -288,7 +298,8 @@ test_that("Concomitant drug use", {
                      conceptId = c(10, 11, 12),
                      value = c(1, 1, 1),
                      startDay = c(50, 25, 60),
-                     endDay = c(50, 75, 70))
+                     endDay = c(50, 75, 70),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11, 12))
   expect_equal(result$outcomes$rowId, c(0, 1, 2))
   expect_equal(result$outcomes$stratumId, c(1, 1, 1))
@@ -313,7 +324,8 @@ test_that("Concomitant drug use (3 drugs)", {
                      conceptId = c(10, 10, 11, 12, 13),
                      value = c(1, 1, 1, 1, 1),
                      startDay = c(50, 85, 25, 70, 70),
-                     endDay = c(NA, NA, 75, 80, 77))
+                     endDay = c(NA, NA, 75, 80, 77),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11, 12, 13))
   expect_equal(result$outcomes$rowId, c(0, 1, 2, 3, 4))
   expect_equal(result$outcomes$stratumId, c(1, 1, 1, 1, 1))
@@ -338,7 +350,8 @@ test_that("Start risk window at day 1 not 0", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(50, 50),
-                     endDay = c(50, 75))
+                     endDay = c(50, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = c(11, 12, 13),
@@ -368,7 +381,8 @@ test_that("Two HOIs, keeping both", {
                      conceptId = c(10, 10, 11),
                      value = c(1, 1, 1),
                      startDay = c(25, 50, 30),
-                     endDay = c(25, 50, 60))
+                     endDay = c(25, 50, 60),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, firstOutcomeOnly = FALSE, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -393,7 +407,8 @@ test_that("Two HOIs, keeping first", {
                      conceptId = c(10, 10, 11),
                      value = c(1, 1, 1),
                      startDay = c(25, 50, 30),
-                     endDay = c(25, 50, 60))
+                     endDay = c(25, 50, 60),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, firstOutcomeOnly = TRUE, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -418,7 +433,8 @@ test_that("Removal of risk windows where end before start", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(50, 50),
-                     endDay = c(50, 75))
+                     endDay = c(50, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = c(11),
@@ -436,7 +452,7 @@ test_that("Aggregates on large set", {
                                    firstOutcomeOnly = FALSE,
                                    covariateSettings = createCovariateSettings(includeCovariateIds = c(1, 2),
                                                                                addExposedDaysToEnd = TRUE))
-   x <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 1))
+  x <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 1))
   y <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 10))
   z <- merge(x, y, by = c("observationPeriodId"))
   z <- subset(z, startDay.y >= startDay.x & startDay.y <= endDay.x)
@@ -483,7 +499,8 @@ test_that("Exposure splitting", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(50, 25),
-                     endDay = c(50, 75))
+                     endDay = c(50, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = 11,
@@ -514,7 +531,8 @@ test_that("Exposure splitting twice", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(50, 25),
-                     endDay = c(50, 75))
+                     endDay = c(50, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = 11,
@@ -546,7 +564,8 @@ test_that("Merging exposures (stratifyById=FALSE)", {
                      conceptId = c(10, 11, 12),
                      value = c(1, 1, 1),
                      startDay = c(50, 25, 70),
-                     endDay = c(50, 75, 100))
+                     endDay = c(50, 75, 100),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = c(11,12),
@@ -578,7 +597,8 @@ test_that("Exposure splitting without stratifyById", {
                      conceptId = c(10, 11, 12),
                      value = c(1, 1, 1),
                      startDay = c(50, 25, 70),
-                     endDay = c(50, 75, 100))
+                     endDay = c(50, 75, 100),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = c(11,12),
@@ -610,7 +630,8 @@ test_that("Pre-exposure window", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(50, 25),
-                     endDay = c(50, 75))
+                     endDay = c(50, 75),
+                     stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, covariateSettings = list(createCovariateSettings(includeCovariateIds = 11,
                                                                                                    start = 0,
                                                                                                    end = 0,
@@ -641,7 +662,8 @@ test_that("Simple era construction", {
                      conceptId = c(10, 11),
                      value = c(1, 1),
                      startDay = c(50, 25),
-                     endDay = c(50, 75))
+                     endDay = c(50, 75),
+                     stringsAsFactors = TRUE)
   ffResult <- convertToSccsDataWrapper(cases, eras, exposureId = 11, placeInRam = FALSE)
   expect_equal(class(ffResult$outcomes), "ffdf")
   expect_equal(class(ffResult$covariates), "ffdf")

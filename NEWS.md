@@ -1,7 +1,14 @@
+CohortMethod 1.4.2
+==================
+
+Bugfixes
+
+1. Fixed errors introduced by R 4.0.0.
+
 CohortMethod 1.4.1
 ==================
 
-Bugfixes:
+Bugfixes
 
 1. Several workaround for issues with the ff package.
 
