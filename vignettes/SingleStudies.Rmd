@@ -76,7 +76,7 @@ The last three lines define the `cdmDatabaseSchema` and `cohortDatabaseSchema` v
 
 ## Preparing the health outcome of interest
 
-We need to define the exposures and outcomes for our study. One way to do this is by writing SQL statements against the OMOP CDM that populate a table of events in which we are interested. The resulting table should have the same structure as the `cohort` table in the CDM. For CDM v5+, this means it should have the fields `cohort_definition_id`, `cohort_start_date`, `cohort_end_date`,and `subject_id`. For CDM v4, the `cohort_definition_id` field must be called `cohort_concept_id`. 
+We need to define the exposures and outcomes for our study. One way to do this is by writing SQL statements against the OMOP CDM that populate a table of events in which we are interested. The resulting table should have the same structure as the `cohort` table in the CDM. This means it should have the fields `cohort_definition_id`, `cohort_start_date`, `cohort_end_date`,and `subject_id`. 
 
 For our example study, we have created a file called *vignette.sql* with the following contents:
 
@@ -103,7 +103,6 @@ WHERE condition_concept_id IN (
 		)
 	AND visit_occurrence.visit_concept_id IN (9201, 9203);
 ```
-Note on CDM V4 'visit_concept_id' should be 'place_of_service_concept_id', and 'cohort_definition_id' should be 'cohort_concept_id'.
 
 This is parameterized SQL which can be used by the `SqlRender` package. We use parameterized SQL so we do not have to pre-specify the names of the CDM and cohort schemas. That way, if we want to run the SQL on a different schema, we only need to change the parameter values; we do not have to change the SQL code. By also making use of translation functionality in `SqlRender`, we can make sure the SQL code can be run in many different environments.
 
@@ -136,7 +135,7 @@ sql <- translate(sql, targetDialect = connectionDetails$dbms)
 querySql(connection, sql)
 ```
 ```{r echo=FALSE,message=FALSE}
-data.frame(cohort_concept_id = c(1),count=c(635684))
+data.frame(cohort_concept_id = c(1),count = c(635684))
 ```
 
 ## Extracting the data from the server
@@ -160,12 +159,12 @@ sccsData
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
 diclofenac <- 1124300
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   sccsData <- loadSccsData("s:/temp/vignetteSccs/data1")
 } 
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   sccsData
 }
 ```
@@ -183,7 +182,7 @@ We can use the generic `summary()` function to view some more information of the
 summary(sccsData)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   summary(sccsData)
 }
 ```
@@ -217,7 +216,7 @@ sccsEraData <- createSccsEraData(sccsData,
 summary(sccsEraData)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   sccsEraData <- loadSccsEraData("s:/temp/vignetteSccs/eraData1")
   summary(sccsEraData)
 }
@@ -240,7 +239,7 @@ computeMdrr(sccsEraData,
             method = "binomial")
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   computeMdrr(sccsEraData,
               exposureCovariateId = 1000,
               alpha = 0.05,
@@ -299,7 +298,7 @@ Here we created a new covariate definition in addition to the first one. We defi
 summary(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   model <- readRDS("s:/temp/vignetteSccs/preExposureModel.rds")
   summary(model)
 }
@@ -338,7 +337,7 @@ Here we've redefined out covariate definitions: We kept the same start and end d
 summary(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   model <- readRDS("s:/temp/vignetteSccs/splitModel.rds")
   summary(model)
 }
@@ -383,7 +382,7 @@ Again, we can inspect the model:
 summary(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")){
+if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")) {
   model <- readRDS("s:/temp/vignetteSccs/ageAndSeasonModel.rds")
   summary(model)
 }
@@ -395,7 +394,7 @@ We see that our estimates for exposed and pre-exposure  time have not changes mu
 plotAgeEffect(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")){
+if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")) {
   plotAgeEffect(model)
 }
 ```
@@ -404,7 +403,7 @@ if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")){
 plotSeasonality(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")){
+if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")) {
   plotSeasonality(model)
 }
 ```
@@ -435,7 +434,7 @@ Again, we can inspect the model:
 summary(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/eventDepModel.rds")){
+if (file.exists("s:/temp/vignetteSccs/eventDepModel.rds")) {
   model <- readRDS("s:/temp/vignetteSccs/eventDepModel.rds")
   summary(model)
 }
@@ -467,12 +466,12 @@ sccsData
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   sccsData <- loadSccsData("s:/temp/vignetteSccs/data2")
 } 
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   sccsData
 }
 ```
@@ -506,7 +505,7 @@ Here, we added a new covariate based on the list of concept IDs for the various 
 summary(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/ppiModel.rds")){
+if (file.exists("s:/temp/vignetteSccs/ppiModel.rds")) {
   model <- readRDS("s:/temp/vignetteSccs/ppiModel.rds")
   summary(model)
 }
@@ -566,7 +565,7 @@ Because there are now so many estimates, we will not use the `summary()` functio
   estimates[estimates$originalCovariateId == diclofenac,]
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/allDrugsModel.rds")){
+if (file.exists("s:/temp/vignetteSccs/allDrugsModel.rds")) {
   model <- readRDS("s:/temp/vignetteSccs/allDrugsModel.rds")
   estimates <- getModel(model)
   estimates[estimates$originalCovariateId == diclofenac,]
@@ -581,7 +580,7 @@ In case we're interested, we can also look at the effect sizes for the PPIs:
   estimates[estimates$originalCovariateId %in% ppis,]
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/allDrugsModel.rds")){
+if (file.exists("s:/temp/vignetteSccs/allDrugsModel.rds")) {
   estimates[estimates$originalCovariateId %in% ppis,]
 }
 ```
@@ -601,7 +600,7 @@ To gain a better understanding of when the event occurs relative to the start of
 plotExposureCentered(sccsData, exposureId = diclofenac, naivePeriod = 180)
 ```
 ```{r echo=FALSE,message=FALSE,fig.width=6.5, fig.height=5}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   plotExposureCentered(sccsData, exposureId = diclofenac, naivePeriod = 180)
 }
 ```
@@ -611,13 +610,13 @@ This plot suggests an increased rate of events in the first few weeks following 
 
 ## Ages covered per subject
 
-We can visualize which age ranges are covered by each subject's obervation time:
+We can visualize which age ranges are covered by each subject's observation time:
 
 ```{r tidy=TRUE,eval=FALSE}
 plotAgeSpans(sccsData, naivePeriod = 180)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   plotAgeSpans(sccsData, naivePeriod = 180)
 }
 ```
@@ -632,7 +631,7 @@ To understand whether censoring is dependent on the event, which would violate o
 plotEventObservationDependence(sccsData, naivePeriod = 180)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs")){
+if (file.exists("s:/temp/vignetteSccs")) {
   sccsData <- loadSccsData("s:/temp/vignetteSccs/data1")
   plotEventObservationDependence(sccsData, naivePeriod = 180)
 }

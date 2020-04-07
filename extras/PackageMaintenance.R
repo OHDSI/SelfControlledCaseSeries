@@ -20,6 +20,7 @@
 OhdsiRTools::formatRFolder()
 OhdsiRTools::checkUsagePackage("SelfControlledCaseSeries")
 OhdsiRTools::updateCopyrightYearFolder()
+devtools::spell_check()
 
 # Create manual and vignette
 if (.Platform$OS.type == "unix") {
@@ -35,12 +36,14 @@ rmarkdown::render("vignettes/SingleStudies.Rmd",
                   rmarkdown::pdf_document(latex_engine = "pdflatex",
                                           toc = TRUE,
                                           number_sections = TRUE))
+unlink("inst/doc/SingleStudies.tex")
 
 rmarkdown::render("vignettes/MultipleAnalyses.Rmd",
                   output_file = "../inst/doc/MultipleAnalyses.pdf",
                   rmarkdown::pdf_document(latex_engine = "pdflatex",
                                           toc = TRUE,
                                           number_sections = TRUE))
+unlink("inst/doc/MultipleAnalyses.tex")
 
 pkgdown::build_site()
 

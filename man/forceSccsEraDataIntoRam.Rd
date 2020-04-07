@@ -7,7 +7,7 @@
 forceSccsEraDataIntoRam(sccsEraData)
 }
 \arguments{
-\item{sccsEraData}{Exisiting sccsEraData object.}
+\item{sccsEraData}{Existing sccsEraData object.}
 }
 \value{
 An object of class sccsEraData

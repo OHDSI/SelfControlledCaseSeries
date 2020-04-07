@@ -7,7 +7,7 @@
 createExposureOutcome(exposureId, outcomeId, ...)
 }
 \arguments{
-\item{exposureId}{A concept ID indentifying the target drug in the exposure table. If multiple
+\item{exposureId}{A concept ID identifying the target drug in the exposure table. If multiple
 strategies for picking the exposure will be tested in the analysis, a named list
 of numbers can be provided instead. In the analysis, the name of the number to
 be used can be specified using the #' \code{exposureType} parameter in the

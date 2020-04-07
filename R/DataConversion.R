@@ -501,7 +501,7 @@ createCovariateSettings <- function(includeCovariateIds = NULL,
 #' Create age settings
 #'
 #' @details
-#' Create an object specifing whether and how age should be included in the model. Age can be included
+#' Create an object specifying whether and how age should be included in the model. Age can be included
 #' by splitting patient time into calendar months. During a month, the relative risk attributed to age
 #' is assumed to be constant, and the risk from month to month is modeled using a cubic spline.
 #'
@@ -564,9 +564,9 @@ createAgeSettings <- function(includeAge = FALSE,
 #' attributed to season is assumed to be constant, and the risk from month to month is modeled using a
 #' cyclic cubic spline.
 #'
-#' @param includeSeasonality    Should seasonlaity be included in the model?
+#' @param includeSeasonality    Should seasonality be included in the model?
 #' @param seasonKnots           If a single number is provided this is assumed to indicate the number
-#'                              of knots to use for the spline, and the knots are automatically equaly
+#'                              of knots to use for the spline, and the knots are automatically equally
 #'                              spaced across the year. If more than one number is provided these are
 #'                              assumed to be the exact location of the knots in days relative to the
 #'                              start of the year.
@@ -574,7 +574,7 @@ createAgeSettings <- function(includeAge = FALSE,
 #'                              to be regularized?
 #' @param computeConfidenceIntervals  Should confidence intervals be computed for the covariates defined
 #'                                    here? Setting this to FALSE might save computing time when fitting the
-#'                                    model. Will be turned to FALSE  automaticaly when \code{allowRegularization = TRUE}.
+#'                                    model. Will be turned to FALSE  automatically when \code{allowRegularization = TRUE}.
 #'
 #' @return
 #' An object of type \code{seasonalitySettings}.
@@ -716,7 +716,7 @@ loadSccsEraData <- function(folder, readOnly = FALSE) {
 #' \code{forceSccsEraDataIntoRam} converts the ffdf components of an sccsEraData object
 #' into data.table components
 #'
-#' @param sccsEraData     Exisiting sccsEraData object.
+#' @param sccsEraData     Existing sccsEraData object.
 #'
 #' @details
 #' Uses ff::as.ram() to move virtual data into data.table objects

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Save a list of sccsAnalysis to file — saveSccsAnalysisList • SelfControlledCaseSeries</title>
+<title>SelfControlledCaseSeries: Self-Controlled Case Series — SelfControlledCaseSeries-package • SelfControlledCaseSeries</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,15 @@
 
 
 
-<meta property="og:title" content="Save a list of sccsAnalysis to file — saveSccsAnalysisList" />
-<meta property="og:description" content="Write a list of objects of type sccsAnalysis to file. The file is in JSON format." />
+<meta property="og:title" content="SelfControlledCaseSeries: Self-Controlled Case Series — SelfControlledCaseSeries-package" />
+<meta property="og:description" content="SelfControlledCaseSeries is an R package for performing self-
+    controlled case series (SCCS) analyses in an observational database in the OMOP
+    Common Data Model. It extracts all necessary data from the database and 
+    transforms it to the format required for SCCS. Age and season can be modeled
+    using splines assuming constant hazard within calendar months. Event-dependent 
+    censoring of the observation period can be corrected for. Many exposures can be
+    included at once (MSCCS), with regularization on all coefficients except for the
+    exposure of interest." />
 
 
 
@@ -126,30 +133,32 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Save a list of sccsAnalysis to file</h1>
-    <small class="dont-index">Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/R/Analyses.R'><code>R/Analyses.R</code></a></small>
-    <div class="hidden name"><code>saveSccsAnalysisList.Rd</code></div>
+    <h1>SelfControlledCaseSeries: Self-Controlled Case Series</h1>
+    <small class="dont-index">Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/R/SelfControlledCaseSeries.R'><code>R/SelfControlledCaseSeries.R</code></a></small>
+    <div class="hidden name"><code>SelfControlledCaseSeries-package.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Write a list of objects of type <code>sccsAnalysis</code> to file. The file is in JSON format.</p>
+    <p>SelfControlledCaseSeries is an R package for performing self-
+    controlled case series (SCCS) analyses in an observational database in the OMOP
+    Common Data Model. It extracts all necessary data from the database and 
+    transforms it to the format required for SCCS. Age and season can be modeled
+    using splines assuming constant hazard within calendar months. Event-dependent 
+    censoring of the observation period can be corrected for. Many exposures can be
+    included at once (MSCCS), with regularization on all coefficients except for the
+    exposure of interest.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>saveSccsAnalysisList</span>(<span class='no'>sccsAnalysisList</span>, <span class='no'>file</span>)</pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>sccsAnalysisList</th>
-      <td><p>The sccsAnalysis list to be written to file</p></td>
-    </tr>
-    <tr>
-      <th>file</th>
-      <td><p>The name of the file where the results will be written</p></td>
-    </tr>
-    </table>
 
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+
+    <div class='dont-index'><p>Useful links:</p><ul>
+<li><p><a href='https://github.com/OHDSI/SelfControlledCaseSeries'>https://github.com/OHDSI/SelfControlledCaseSeries</a></p></li>
+<li><p>Report bugs at <a href='https://github.com/OHDSI/SelfControlledCaseSeries/issues'>https://github.com/OHDSI/SelfControlledCaseSeries/issues</a></p></li>
+</ul>
+
+</div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

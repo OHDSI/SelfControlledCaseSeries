@@ -176,7 +176,7 @@ sccsAnalysis1 <- createSccsAnalysis(analysisId = 1,
 
 Note that we have assigned an analysis ID (1) to this set of arguments. We can use this later to link the results back to this specific set of choices. We also include a short description of the analysis.
 
-We can easily create more analyses, for example by incuding adjustments for age and seasonality, or for including other drugs in the model:
+We can easily create more analyses, for example by including adjustments for age and seasonality, or for including other drugs in the model:
 
 ```{r tidy=FALSE,eval=TRUE}
 covarProp <- createCovariateSettings(label = "Prophylactics",

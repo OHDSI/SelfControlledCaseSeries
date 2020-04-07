@@ -54,7 +54,7 @@ censored' and those that are 'uncensored'. By 'censored' we mean periods that en
 periods to be uncensored if they end at either the study end date (if specified), database end date (i.e. the date after which no
 data is captured in the database), or maximum age (if specified). All other periods are assumed to be censored.
 
-As proposed by Farrington et al., by comparing the two plots, we can gain some insight into whether the censoring is dependend
+As proposed by Farrington et al., by comparing the two plots, we can gain some insight into whether the censoring is dependent
 on the occurrence of the event.
 
 If parameters such as naivePeriod, minAge, and maxAge are provided, these will first be applied to curtail the observation period

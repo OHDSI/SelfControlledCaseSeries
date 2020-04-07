@@ -22,6 +22,7 @@ Features
 
 Example
 =======
+
 ```r
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
@@ -50,6 +51,7 @@ summary(model)
 #                               Name    ID  Estimate  lower .95  upper .95   logRr  seLogRr
 #   Exposure of interest: Diclofenac  1000     1.274      1.213      1.336  0.2421  0.02431
 ```
+
 Technology
 ==========
 SelfControlledCaseSeries is an R package, with some functions implemented in C++.

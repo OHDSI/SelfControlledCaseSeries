@@ -37,7 +37,7 @@ A data frame with the MDRR, number of events, time at risk, and total time.
 Compute the minimum detectable relative risk
 }
 \details{
-Compute the minimum detectable relative risk (MDRR) for a given study population, using the observerd
+Compute the minimum detectable relative risk (MDRR) for a given study population, using the observed
 time at risk and total time in days and number of events. Five sample size formulas are implemented:
 sampling proportion, binomial proportion, 2 signed root likelihood ratio methods, and likelihood extension for
 age effects. The expressions by Musonda (2006) are used.

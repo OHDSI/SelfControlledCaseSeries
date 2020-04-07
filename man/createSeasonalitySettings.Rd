@@ -12,10 +12,10 @@ createSeasonalitySettings(
 )
 }
 \arguments{
-\item{includeSeasonality}{Should seasonlaity be included in the model?}
+\item{includeSeasonality}{Should seasonality be included in the model?}
 
 \item{seasonKnots}{If a single number is provided this is assumed to indicate the number
-of knots to use for the spline, and the knots are automatically equaly
+of knots to use for the spline, and the knots are automatically equally
 spaced across the year. If more than one number is provided these are
 assumed to be the exact location of the knots in days relative to the
 start of the year.}
@@ -25,7 +25,7 @@ to be regularized?}
 
 \item{computeConfidenceIntervals}{Should confidence intervals be computed for the covariates defined
 here? Setting this to FALSE might save computing time when fitting the
-model. Will be turned to FALSE  automaticaly when \code{allowRegularization = TRUE}.}
+model. Will be turned to FALSE  automatically when \code{allowRegularization = TRUE}.}
 }
 \value{
 An object of type \code{seasonalitySettings}.
