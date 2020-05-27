@@ -119,14 +119,7 @@ outcome cases will be sampled to this size. \code{maxCasesPerOutcome = 0}
 indicates no maximum size.}
 }
 \value{
-Returns an object of type \code{sccsData}, containing information on the cases, their outcomes,
-exposures, and potentially other covariates. Information about multiple outcomes can be captured at
-once for efficiency reasons. This object is a list with the following components: \describe{
-\item{cases}{An ffdf object listing the persons that have the outcome(s), their age, and
-observation time.} \item{eras}{An ffdf object listing the exposures, outcomes and other
-covariates.} \item{covariateRef}{An ffdf object describing the covariates that have been
-extracted.} \item{metaData}{A list of objects with information on how the sccsData object was
-constructed.} } The generic \code{summary()} function has been implemented for this object.
+An \code{\link{SccsData}} object.
 }
 \description{
 Load all data needed to perform an SCCS analysis from the database.

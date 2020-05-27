@@ -42,14 +42,7 @@
 #' All five locations could point to the same database schema.
 #'
 #' @return
-#' Returns an object of type \code{sccsData}, containing information on the cases, their outcomes,
-#' exposures, and potentially other covariates. Information about multiple outcomes can be captured at
-#' once for efficiency reasons. This object is a list with the following components: \describe{
-#' \item{cases}{An ffdf object listing the persons that have the outcome(s), their age, and
-#' observation time.} \item{eras}{An ffdf object listing the exposures, outcomes and other
-#' covariates.} \item{covariateRef}{An ffdf object describing the covariates that have been
-#' extracted.} \item{metaData}{A list of objects with information on how the sccsData object was
-#' constructed.} } The generic \code{summary()} function has been implemented for this object.
+#' An \code{\link{SccsData}} object.
 #'
 #' @param connectionDetails               An R object of type \code{ConnectionDetails} created using
 #'                                        the function \code{createConnectionDetails} in the
@@ -141,24 +134,23 @@ getDbSccsData <- function(connectionDetails,
                           studyEndDate = "",
                           cdmVersion = "5",
                           maxCasesPerOutcome = 0) {
-  if (studyStartDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
+  if (studyStartDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1)
     stop("Study start date must have format YYYYMMDD")
-  }
-  if (studyEndDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyEndDate) == -1) {
+  if (studyEndDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyEndDate) == -1)
     stop("Study end date must have format YYYYMMDD")
-  }
+  if (cdmVersion == "4")
+    stop("CDM version 4 is no longer supported")
+  if (!is.null(exposureIds) && length(exposureIds) > 0 && !is.numeric(exposureIds))
+    stop("exposureIds must be a (vector of) numeric")
+  if (useCustomCovariates && !is.null(customCovariateIds) && length(customCovariateIds) > 0 && !is.numeric(customCovariateIds))
+    stop("customCovariateIds must be a (vector of) numeric")
 
   conn <- DatabaseConnector::connect(connectionDetails)
-  if (cdmVersion == "4") {
-    cohortDefinitionId <- "cohort_concept_id"
-  } else {
-    cohortDefinitionId <- "cohort_definition_id"
-  }
+  on.exit(DatabaseConnector::disconnect(conn))
+
   if (is.null(exposureIds) || length(exposureIds) == 0) {
     hasExposureIds <- FALSE
   } else {
-    if (!is.numeric(exposureIds))
-      stop("exposureIds must be a (vector of) numeric")
     hasExposureIds <- TRUE
     DatabaseConnector::insertTable(conn,
                                    tableName = "#exposure_ids",
@@ -169,11 +161,9 @@ getDbSccsData <- function(connectionDetails,
                                    oracleTempSchema = oracleTempSchema)
   }
 
-  if (is.null(customCovariateIds) || length(customCovariateIds) == 0) {
+  if (!useCustomCovariates || is.null(customCovariateIds) || length(customCovariateIds) == 0) {
     hasCustomCovariateIds <- FALSE
   } else {
-    if (!is.numeric(customCovariateIds))
-      stop("customCovariateIds must be a (vector of) numeric")
     hasCustomCovariateIds <- TRUE
     DatabaseConnector::insertTable(conn,
                                    tableName = "#custom_covariate_ids",
@@ -183,6 +173,7 @@ getDbSccsData <- function(connectionDetails,
                                    tempTable = TRUE,
                                    oracleTempSchema = oracleTempSchema)
   }
+
   ParallelLogger::logInfo("Creating cases")
   sql <- SqlRender::loadRenderTranslateSql("CreateCases.sql",
                                            packageName = "SelfControlledCaseSeries",
@@ -197,8 +188,7 @@ getDbSccsData <- function(connectionDetails,
                                            nesting_cohort_table = nestingCohortTable,
                                            nesting_cohort_id = nestingCohortId,
                                            study_start_date = studyStartDate,
-                                           study_end_date = studyEndDate,
-                                           cohort_definition_id = cohortDefinitionId)
+                                           study_end_date = studyEndDate)
   DatabaseConnector::executeSql(conn, sql)
 
   sampledCases <- FALSE
@@ -212,14 +202,12 @@ getDbSccsData <- function(connectionDetails,
                                              oracleTempSchema = oracleTempSchema,
                                              outcome_database_schema = outcomeDatabaseSchema,
                                              outcome_table = outcomeTable,
-                                             outcome_concept_ids = outcomeIds,
-                                             cohort_definition_id = cohortDefinitionId)
+                                             outcome_concept_ids = outcomeIds)
     DatabaseConnector::executeSql(conn, sql)
 
-    sql <- "SELECT outcome_id, COUNT(*) AS case_count FROM #cases_per_outcome GROUP BY outcome_id"
+    sql <- "SELECT outcome_id, COUNT(*) AS case_count FROM #cases_per_outcome GROUP BY outcome_id;"
     sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
-    caseCounts <- DatabaseConnector::querySql(conn, sql)
-    colnames(caseCounts) <- SqlRender::snakeCaseToCamelCase(colnames(caseCounts))
+    caseCounts <- DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE)
 
     for (i in 1:nrow(caseCounts)) {
       if (caseCounts$caseCount[i] > maxCasesPerOutcome) {
@@ -237,6 +225,7 @@ getDbSccsData <- function(connectionDetails,
     }
   }
 
+  ParallelLogger::logInfo("Creating eras")
   sql <- SqlRender::loadRenderTranslateSql("CreateEras.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
@@ -255,41 +244,55 @@ getDbSccsData <- function(connectionDetails,
                                            delete_covariates_small_count = deleteCovariatesSmallCount,
                                            study_start_date = studyStartDate,
                                            study_end_date = studyEndDate,
-                                           cdm_version = cdmVersion,
-                                           cohort_definition_id = cohortDefinitionId,
                                            sampled_cases = sampledCases)
-
-  ParallelLogger::logInfo("Creating eras")
   DatabaseConnector::executeSql(conn, sql)
 
   ParallelLogger::logInfo("Fetching data from server")
   start <- Sys.time()
+  sccsData <- Andromeda::andromeda()
   sql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
                                            oracleTempSchema = oracleTempSchema,
                                            sampled_cases = sampledCases)
-  cases <- DatabaseConnector::querySql.ffdf(conn, sql)
-  colnames(cases) <- SqlRender::snakeCaseToCamelCase(colnames(cases))
-  ParallelLogger::logDebug("Fetched ", nrow(cases), " cases from server")
-  idx <- cases$ageInDays < 0
-  countNegativeAges <- ffbase::sum.ff(idx)
+  DatabaseConnector::querySqlToAndromeda(connection = conn,
+                                         sql = sql,
+                                         andromeda = sccsData,
+                                         andromedaTableName = "cases",
+                                         snakeCaseToCamelCase = TRUE)
+
+  ParallelLogger::logDebug("Fetched ", sccsData$cases %>% count() %>% pull(), " cases from server")
+
+  countNegativeAges <- sccsData$cases %>%
+    filter(.data$ageInDays < 0) %>%
+    count() %>%
+    pull()
+
   if (countNegativeAges > 0) {
     warning("There are ", countNegativeAges, " cases with negative ages. Setting their starting age to 0. Please review your data.")
-    cases$ageInDays[idx] <- ff::ff(0, length = countNegativeAges)
+    sccsData$cases <- sccsData$cases %>%
+      mutate(ageInDays = case_when(.data$ageInDays < 0 ~ 0,
+                                   TRUE ~ .data$ageInDays))
   }
+
 
   sql <- SqlRender::loadRenderTranslateSql("QueryEras.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
                                            oracleTempSchema = oracleTempSchema)
-  eras <- DatabaseConnector::querySql.ffdf(conn, sql)
-  colnames(eras) <- SqlRender::snakeCaseToCamelCase(colnames(eras))
+  DatabaseConnector::querySqlToAndromeda(connection = conn,
+                                         sql = sql,
+                                         andromeda = sccsData,
+                                         andromedaTableName = "eras",
+                                         snakeCaseToCamelCase = TRUE)
 
-  sql <- "SELECT covariate_id, covariate_name FROM #covariate_ref"
+  sql <- "SELECT era_id, era_name FROM #era_ref"
   sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
-  covariateRef <- DatabaseConnector::querySql.ffdf(conn, sql)
-  colnames(covariateRef) <- SqlRender::snakeCaseToCamelCase(colnames(covariateRef))
+  DatabaseConnector::querySqlToAndromeda(connection = conn,
+                                         sql = sql,
+                                         andromeda = sccsData,
+                                         andromedaTableName = "eraRef",
+                                         snakeCaseToCamelCase = TRUE)
 
   delta <- Sys.time() - start
   ParallelLogger::logInfo(paste("Loading took", signif(delta, 3), attr(delta, "units")))
@@ -303,153 +306,8 @@ getDbSccsData <- function(connectionDetails,
                                            sampled_cases = sampledCases)
   DatabaseConnector::executeSql(conn, sql, progressBar = FALSE, reportOverallTime = FALSE)
 
-  DatabaseConnector::disconnect(conn)
-
-  metaData <- list(exposureIds = exposureIds, outcomeIds = outcomeIds, call = match.call())
-  result <- list(cases = cases, eras = eras, covariateRef = covariateRef, metaData = metaData)
-
-  # Open all ffdfs to prevent annoying messages later:
-  open(result$cases)
-  open(result$eras)
-  open(result$covariateRef)
-  class(result) <- "sccsData"
-  return(result)
-}
-
-#' Save the SCCS data to folder
-#'
-#' @description
-#' \code{sccsData} saves an object of type sccsData to folder.
-#'
-#' @param sccsData   An object of type \code{sccsData} as generated using \code{\link{getDbSccsData}}.
-#' @param folder     The name of the folder where the data will be written. The folder should not yet
-#'                   exist.
-#'
-#' @details
-#' The data will be written to a set of files in the specified folder.
-#'
-#' @examples
-#' # todo
-#'
-#' @export
-saveSccsData <- function(sccsData, folder) {
-  if (missing(sccsData))
-    stop("Must specify sccsData")
-  if (missing(folder))
-    stop("Must specify folder")
-  if (class(sccsData) != "sccsData")
-    stop("Data not of class sccsData")
-  ParallelLogger::logTrace("Saving SccsData to ", folder)
-
-  cases <- sccsData$cases
-  eras <- sccsData$eras
-  covariateRef <- sccsData$covariateRef
-  ffbase::save.ffdf(cases, eras, covariateRef, dir = folder)
-  metaData <- sccsData$metaData
-  save(metaData, file = file.path(folder, "metaData.Rdata"))
-  # Open all ffdfs to prevent annoying messages later:
-  open(sccsData$cases)
-  open(sccsData$eras)
-  open(sccsData$covariateRef)
-  invisible(TRUE)
-}
-
-#' Load the SCCS data from a folder
-#'
-#' @description
-#' \code{loadSccsData} loads an object of type sccsData from a folder in the file system.
-#'
-#' @param folder     The name of the folder containing the data.
-#' @param readOnly   If true, the data is opened read only.
-#'
-#' @details
-#' The data will be written to a set of files in the folder specified by the user.
-#'
-#' @return
-#' An object of class cohortData.
-#'
-#' @export
-loadSccsData <- function(folder, readOnly = TRUE) {
-  if (!file.exists(folder))
-    stop(paste("Cannot find folder", folder))
-  if (!file.info(folder)$isdir)
-    stop(paste("Not a folder:", folder))
-
-  ParallelLogger::logTrace("Loading SccsData from ", folder)
-  temp <- setwd(folder)
-  absolutePath <- setwd(temp)
-
-  e <- new.env()
-  ffbase::load.ffdf(absolutePath, e)
-  load(file.path(absolutePath, "metaData.Rdata"), e)
-  result <- list(cases = get("cases", envir = e),
-                 eras = get("eras", envir = e),
-                 covariateRef = get("covariateRef", envir = e),
-                 metaData = get("metaData", envir = e))
-  # Open all ffdfs to prevent annoying messages later:
-  open(result$cases, readonly = readOnly)
-  open(result$eras, readonly = readOnly)
-  open(result$covariateRef, readonly = readOnly)
-  class(result) <- "sccsData"
-  rm(e)
-  return(result)
-}
-
-#' @export
-print.sccsData <- function(x, ...) {
-  writeLines("SCCS data object")
-  writeLines("")
-  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureIds, collapse = ",")))
-  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeIds, collapse = ",")))
-}
-
-#' @export
-summary.sccsData <- function(object, ...) {
-  caseCount <- nrow(object$cases)
-
-  outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeIds,
-                              eventCount = 0,
-                              caseCount = 0)
-  t <- object$eras$eraType == "hoi"
-  hois <- object$eras[ffbase::ffwhich(t, t == TRUE), ]
-  for (i in 1:nrow(outcomeCounts)) {
-    outcomeCounts$eventCount[i] <- ffbase::sum.ff(hois$conceptId == object$metaData$outcomeIds[i])
-    if (outcomeCounts$eventCount[i] == 0) {
-      outcomeCounts$caseCount[i] <- 0
-    } else {
-      t <- (hois$conceptId == object$metaData$outcomeIds[i])
-      outcomeCounts$caseCount[i] <- length(ffbase::unique.ff(hois$observationPeriodId[ffbase::ffwhich(t,
-                                                                                                      t == TRUE)]))
-    }
-  }
-  covariateValueCount <- ffbase::sum.ff(object$eras$eraType != "hoi")
-
-  result <- list(metaData = object$metaData,
-                 caseCount = caseCount,
-                 outcomeCounts = outcomeCounts,
-                 covariateCount = nrow(object$covariateRef) - length(object$metaData$outcomeIds),
-                 covariateValueCount = covariateValueCount)
-  class(result) <- "summary.sccsData"
-  return(result)
-}
-
-#' @export
-print.summary.sccsData <- function(x, ...) {
-  writeLines("sccsData object summary")
-  writeLines("")
-  writeLines(paste("Exposure concept ID(s):", paste(x$metaData$exposureIds, collapse = ",")))
-  writeLines(paste("Outcome concept ID(s):", paste(x$metaData$outcomeIds, collapse = ",")))
-  writeLines("")
-  writeLines(paste("Cases:", paste(x$caseCount)))
-  writeLines("")
-  writeLines("Outcome counts:")
-  outcomeCounts <- x$outcomeCounts
-  rownames(outcomeCounts) <- outcomeCounts$outcomeConceptId
-  outcomeCounts$outcomeConceptId <- NULL
-  colnames(outcomeCounts) <- c("Event count", "Case count")
-  printCoefmat(outcomeCounts)
-  writeLines("")
-  writeLines("Covariates:")
-  writeLines(paste("Number of covariates:", x$covariateCount))
-  writeLines(paste("Number of covariate eras:", x$covariateValueCount))
+  attr(sccsData, "metaData") <- list(exposureIds = exposureIds, outcomeIds = outcomeIds)
+  class(sccsData) <- "SccsData"
+  attr(class(sccsData), "package") <- "SelfControlledCaseSeries"
+  return(sccsData)
 }

@@ -20,7 +20,7 @@
 library(SqlRender)
 library(DatabaseConnector)
 library(SelfControlledCaseSeries)
-options(fftempdir = "s:/fftemp")
+options(andromedaTempFolder = "s:/andromedaTemp")
 
 pw <- NULL
 dbms <- "pdw"

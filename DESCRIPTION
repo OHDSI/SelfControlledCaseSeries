@@ -24,12 +24,11 @@ BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
     R (>= 3.2.2),
     Cyclops (>= 1.2.0),
-    DatabaseConnector (>= 2.2.0)
+    DatabaseConnector (>= 2.2.0),
+    Andromeda
 Imports:
     SqlRender (>= 1.6.0),
-    bit,
-    ff,
-    ffbase (>= 0.12.1),
+    dplyr,
     Rcpp (>= 0.11.2),
     ParallelLogger,
     splines,

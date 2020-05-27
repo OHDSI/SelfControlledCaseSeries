@@ -21,7 +21,6 @@ limitations under the License.
 {DEFAULT @outcome_database_schema = 'cdm4_sim'}
 {DEFAULT @outcome_table = 'condition_occurrence'}
 {DEFAULT @outcome_concept_ids = ''}
-{DEFAULT @cohort_definition_id = 'cohort_concept_id'}
 
 IF OBJECT_ID('tempdb..#cases_per_outcome', 'U') IS NOT NULL
 	DROP TABLE #cases_per_outcome;
@@ -52,14 +51,14 @@ WHERE condition_concept_id IN (@outcome_concept_ids)
 } : { /* outcome table has same structure as cohort table */
 SELECT DISTINCT observation_period_id,
 	random_id,
-	@cohort_definition_id AS outcome_id
+	cohort_definition_id AS outcome_id
 INTO #cases_per_outcome
 FROM #cases cases
 INNER JOIN @outcome_database_schema.@outcome_table outcome
 	ON outcome.subject_id = cases.person_id
 		AND	cohort_start_date <= cases.end_date
 		AND	cohort_start_date >= cases.start_date
-WHERE @cohort_definition_id IN (@outcome_concept_ids)
+WHERE cohort_definition_id IN (@outcome_concept_ids)
 }
 }
 ;

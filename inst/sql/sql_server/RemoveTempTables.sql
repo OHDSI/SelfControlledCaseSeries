@@ -4,8 +4,8 @@ DROP TABLE #cases;
 TRUNCATE TABLE #eras;
 DROP TABLE #eras;
 
-TRUNCATE TABLE #covariate_ref;
-DROP TABLE #covariate_ref;
+TRUNCATE TABLE #era_ref;
+DROP TABLE #era_ref;
 
 {@cases_per_outcome} ? {
 TRUNCATE TABLE #cases_per_outcome;

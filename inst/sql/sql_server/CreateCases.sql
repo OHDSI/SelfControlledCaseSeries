@@ -26,7 +26,6 @@ limitations under the License.
 {DEFAULT @nesting_cohort_database_schema = 'cdm4_sim.dbo'}
 {DEFAULT @nesting_cohort_table = 'cohort'}
 {DEFAULT @nesting_cohort_id = ''}
-{DEFAULT @cohort_definition_id = 'cohort_concept_id'}
 {DEFAULT @study_start_date = '' }
 {DEFAULT @study_end_date = '' }
 
@@ -83,7 +82,7 @@ FROM (
 	ON temp.person_id = nesting.subject_id
 		AND temp.observation_period_start_date <= nesting.cohort_start_date
 		AND temp.observation_period_end_date >= nesting.cohort_end_date
-	WHERE nesting.@cohort_definition_id = @nesting_cohort_id
+	WHERE nesting.cohort_definition_id = @nesting_cohort_id
 }
 ) observation_period
 INNER JOIN @cdm_database_schema.person
@@ -110,7 +109,7 @@ WHERE EXISTS (
 		WHERE outcome.subject_id = observation_period.person_id
 			AND cohort_start_date <= end_date
 			AND	cohort_start_date >= observation_period_start_date
-			AND	@cohort_definition_id IN (@outcome_concept_ids)
+			AND	cohort_definition_id IN (@outcome_concept_ids)
 	}
 }
 );

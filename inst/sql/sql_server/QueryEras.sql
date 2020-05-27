@@ -19,7 +19,7 @@ limitations under the License.
 ***********************************************************************/
 SELECT era_type,
 	observation_period_id,
-	concept_id,
+	era_id,
 	era_value AS value,
 	start_day,
 	end_day
