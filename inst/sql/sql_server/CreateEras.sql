@@ -50,6 +50,7 @@ CREATE TABLE #eras (
 );
 
 CREATE TABLE #era_ref (
+	era_type VARCHAR(3),
 	era_id INT,
 	era_name VARCHAR(255)
 );
@@ -78,8 +79,9 @@ WHERE
 }
 ;
 
-INSERT INTO #era_ref (era_id, era_name)
-SELECT concept_id,
+INSERT INTO #era_ref (era_type, era_id, era_name)
+SELECT 'hei',
+	concept_id,
 	concept_name
 FROM @cdm_database_schema.concept
 RIGHT JOIN (
@@ -112,8 +114,9 @@ WHERE
 }
 ;
 
-INSERT INTO #era_ref (era_id, era_name)
-SELECT era_id,
+INSERT INTO #era_ref (era_type, era_id, era_name)
+SELECT 'hei',
+	era_id,
 	CONCAT('Exposure cohort ', era_id)
 FROM (
 	SELECT DISTINCT era_id
@@ -123,115 +126,49 @@ FROM (
 }
 
 /* Create outcome eras */
-{@outcome_table == 'condition_occurrence'} ? {
 INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
 SELECT 'hoi',
 	cases.observation_period_id,
-	condition_concept_id,
+	outcome_id,
 	1,
-	DATEDIFF(dd, start_date, condition_start_date),
-	DATEDIFF(dd, start_date, condition_end_date)
-FROM @outcome_database_schema.condition_occurrence
+	DATEDIFF(dd, start_date, outcome_date),
+	DATEDIFF(dd, start_date, outcome_date)
+{@use_nesting_cohort} ? {
+FROM #outcomes_in_nesting outcomes
+} : { {@study_start_date != '' & @study_end_date != ''} ? {
+FROM #outcomes_in_period outcomes
+} : {
+FROM #outcomes outcomes
+}}	 
 {@sampled_cases} ? {
-INNER JOIN #cases cases
-ON condition_occurrence.person_id = cases.person_id
-	AND condition_start_date >= observation_period_start_date
-	AND condition_start_date <= end_date
-INNER JOIN #sampled_cases_per_o sampled_cases_per_o
-	ON cases.observation_period_id = sampled_cases_per_o.observation_period_id
-	AND	condition_concept_id = outcome_id;
+INNER JOIN #sampled_cases cases
 } : {
 INNER JOIN #cases cases
-ON condition_occurrence.person_id = cases.person_id
-	AND condition_start_date >= observation_period_start_date
-	AND condition_start_date <= end_date
-WHERE
-	condition_concept_id IN (@outcome_concept_ids);
-	
-INSERT INTO #era_ref (era_id, era_name)
-SELECT concept_id,
-	concept_name
-FROM @cdm_database_schema.concept
-RIGHT JOIN (
-	SELECT DISTINCT era_id
-	FROM #eras
-	WHERE era_type = 'hoi'
-	) eras
-ON eras.era_id = concept.concept_id;
 }
-} : {
-	{@outcome_table == 'condition_era'} ? {
-INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
+ON outcomes.observation_period_id = cases.observation_period_id;
+
+{@outcome_table == 'condition_occurrence' | @outcome_table == 'condition_era'} ? {
+INSERT INTO #era_ref (era_type, era_id, era_name)
 SELECT 'hoi',
-	cases.observation_period_id,
-	condition_concept_id,
-	1,
-	DATEDIFF(dd, start_date, condition_era_start_date),
-	DATEDIFF(dd, start_date, condition_era_end_date)
-FROM @outcome_database_schema.condition_era
-		{@sampled_cases} ? {
-INNER JOIN #cases cases
-ON condition_era.person_id = cases.person_id
-	AND condition_era_start_date >= observation_period_start_date
-	AND condition_era_start_date <= end_date
-INNER JOIN #sampled_cases_per_o sampled_cases_per_o
-	ON cases.observation_period_id = sampled_cases_per_o.observation_period_id
-	AND	condition_concept_id = outcome_id;
-		} : {
-INNER JOIN #cases cases
-ON condition_era.person_id = cases.person_id
-	AND condition_era_start_date >= observation_period_start_date
-	AND condition_era_start_date <= end_date
-WHERE
-	condition_concept_id IN (@outcome_concept_ids);
-	
-INSERT INTO #era_ref (era_id, era_name)
-SELECT concept_id,
+	concept_id,
 	concept_name
 FROM @cdm_database_schema.concept
-RIGHT JOIN (
+INNER JOIN (
 	SELECT DISTINCT era_id
 	FROM #eras
 	WHERE era_type = 'hoi'
 	) eras
 ON eras.era_id = concept.concept_id;
-		}
-	} : { /* outcome table has same structure as cohort table */
-INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
+} : {	
+INSERT INTO #era_ref (era_type, era_id, era_name)
 SELECT 'hoi',
-	cases.observation_period_id,
-	cohort_definition_id,
-	1,
-	DATEDIFF(dd, start_date, cohort_start_date),
-	DATEDIFF(dd, start_date, cohort_end_date)
-FROM @outcome_database_schema.@outcome_table outcomes
-		{@sampled_cases} ? {
-INNER JOIN #cases cases
-ON outcomes.subject_id = cases.person_id
-	AND cohort_start_date >= observation_period_start_date
-	AND cohort_start_date <= end_date
-INNER JOIN #sampled_cases_per_o sampled_cases_per_o
-	ON cases.observation_period_id = sampled_cases_per_o.observation_period_id
-	AND	cohort_definition_id = outcome_id;
-		} : {
-INNER JOIN #cases cases
-ON outcomes.subject_id = cases.person_id
-	AND cohort_start_date >= observation_period_start_date
-	AND cohort_start_date <= end_date
-WHERE
-	cohort_definition_id IN (@outcome_concept_ids);
-		}
-		
-INSERT INTO #era_ref (era_id, era_name)
-SELECT era_id,
+	era_id,
 	CONCAT('Outcome cohort ', era_id)
 FROM (
 	SELECT DISTINCT era_id
 	FROM #eras
 	WHERE era_type = 'hoi'
 	) eras;		
-		
-	}
 }
 
 /* Create custom eras */
@@ -259,8 +196,9 @@ WHERE condition_era_start_date <= end_date
 }
 ;
 
-INSERT INTO #era_ref (era_id, era_name)
-SELECT concept_id,
+INSERT INTO #era_ref (era_type, era_id, era_name)
+SELECT 'dx',
+	concept_id,
 	concept_name
 FROM @cdm_database_schema.concept
 RIGHT JOIN (
@@ -293,8 +231,9 @@ WHERE cohort_start_date <= end_date
 }
 ;
 
-INSERT INTO #era_ref (era_id, era_name)
-SELECT era_id,
+INSERT INTO #era_ref (era_type, era_id, era_name)
+SELECT 'custom',
+	era_id,
 	CONCAT('Custom cohort ', era_id)
 FROM (
 	SELECT DISTINCT era_id
@@ -319,19 +258,4 @@ WHERE era_id IN (
 		GROUP BY era_id
 	  HAVING COUNT(era_id) < @delete_covariates_small_count
 	);
-}
-
-/**********************************************************************
-					            Cleanup
-***********************************************************************/
-{@has_exposure_ids} ? {
-TRUNCATE TABLE #exposure_ids;
-
-DROP TABLE #exposure_ids;
-}
-
-{@has_custom_covariate_ids} ? {
-TRUNCATE TABLE #custom_covariate_ids;
-
-DROP TABLE #custom_covariate_ids;
 }

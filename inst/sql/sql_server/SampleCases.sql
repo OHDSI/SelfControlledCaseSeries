@@ -19,6 +19,9 @@ limitations under the License.
 ***********************************************************************/
 
 {DEFAULT @max_cases_per_outcome = 1000000}
+{DEFAULT @use_nesting_cohort = FALSE}
+{DEFAULT @study_start_date = '' }
+{DEFAULT @study_end_date = '' }
 
 IF OBJECT_ID('tempdb..#sampled_cases_per_o', 'U') IS NOT NULL
 	DROP TABLE #sampled_cases_per_o;
@@ -30,10 +33,22 @@ SELECT observation_period_id,
 	outcome_id
 INTO #sampled_cases_per_o
 FROM (
-	SELECT observation_period_id,
+	SELECT outcomes.observation_period_id,
 		outcome_id,
 		ROW_NUMBER() OVER (PARTITION BY outcome_id ORDER BY random_id) AS rn 
-	FROM #cases_per_outcome 
+	FROM (
+		SELECT DISTINCT outcome_id,
+			observation_period_id
+{@use_nesting_cohort} ? {
+		FROM #outcomes_in_nesting
+} : { {@study_start_date != '' & @study_end_date != ''} ? {
+		FROM #outcomes_in_period
+} : {
+		FROM #outcomes
+}}			
+	) outcomes
+	INNER JOIN #cases cases
+		ON outcomes.observation_period_id = cases.observation_period_id
 ) temp
 WHERE rn <= @max_cases_per_outcome;
 	

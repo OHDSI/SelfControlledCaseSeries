@@ -174,6 +174,23 @@ getDbSccsData <- function(connectionDetails,
                                    oracleTempSchema = oracleTempSchema)
   }
 
+  ParallelLogger::logInfo("Selecting outcomes")
+  sql <- SqlRender::loadRenderTranslateSql("SelectOutcomes.sql",
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           oracleTempSchema = oracleTempSchema,
+                                           cdm_database_schema = cdmDatabaseSchema,
+                                           outcome_database_schema = outcomeDatabaseSchema,
+                                           outcome_table = outcomeTable,
+                                           outcome_concept_ids = outcomeIds,
+                                           use_nesting_cohort = useNestingCohort,
+                                           nesting_cohort_database_schema = nestingCohortDatabaseSchema,
+                                           nesting_cohort_table = nestingCohortTable,
+                                           nesting_cohort_id = nestingCohortId,
+                                           study_start_date = studyStartDate,
+                                           study_end_date = studyEndDate)
+  DatabaseConnector::executeSql(conn, sql)
+
   ParallelLogger::logInfo("Creating cases")
   sql <- SqlRender::loadRenderTranslateSql("CreateCases.sql",
                                            packageName = "SelfControlledCaseSeries",
@@ -191,27 +208,26 @@ getDbSccsData <- function(connectionDetails,
                                            study_end_date = studyEndDate)
   DatabaseConnector::executeSql(conn, sql)
 
+  ParallelLogger::logInfo("Counting outcomes")
+  sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           oracleTempSchema = oracleTempSchema,
+                                           use_nesting_cohort = useNestingCohort,
+                                           study_start_date = studyStartDate,
+                                           study_end_date = studyEndDate)
+  DatabaseConnector::executeSql(conn, sql)
+
+  sql <- "SELECT * FROM #counts;"
+  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
+  outcomeCounts <- tibble::as_tibble(DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE))
+
   sampledCases <- FALSE
-  casesPerOutcome <- FALSE
   if (maxCasesPerOutcome != 0) {
-    casesPerOutcome <- TRUE
-    ParallelLogger::logInfo("Counting cases per outcome")
-    sql <- SqlRender::loadRenderTranslateSql("CasesPerOutcome.sql",
-                                             packageName = "SelfControlledCaseSeries",
-                                             dbms = connectionDetails$dbms,
-                                             oracleTempSchema = oracleTempSchema,
-                                             outcome_database_schema = outcomeDatabaseSchema,
-                                             outcome_table = outcomeTable,
-                                             outcome_concept_ids = outcomeIds)
-    DatabaseConnector::executeSql(conn, sql)
-
-    sql <- "SELECT outcome_id, COUNT(*) AS case_count FROM #cases_per_outcome GROUP BY outcome_id;"
-    sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
-    caseCounts <- DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE)
-
-    for (i in 1:nrow(caseCounts)) {
-      if (caseCounts$caseCount[i] > maxCasesPerOutcome) {
-        ParallelLogger::logInfo(paste0("Downsampling cases for outcome ", caseCounts$outcomeId[i], " from ", caseCounts$caseCount[i], " to ", maxCasesPerOutcome))
+    for (outcomeId in unique(outcomeCounts$outcomeId)) {
+      count <- min(outcomeCounts$outcomeObsPeriods[outcomeCounts$outcomeId == outcomeId])
+      if (count > maxCasesPerOutcome) {
+        ParallelLogger::logInfo(paste0("Downsampling cases for outcome ID ", outcomeId, " from ", count, " to ", maxCasesPerOutcome))
         sampledCases <- TRUE
       }
     }
@@ -236,6 +252,7 @@ getDbSccsData <- function(connectionDetails,
                                            outcome_concept_ids = outcomeIds,
                                            exposure_database_schema = exposureDatabaseSchema,
                                            exposure_table = exposureTable,
+                                           use_nesting_cohort = useNestingCohort,
                                            use_custom_covariates = useCustomCovariates,
                                            custom_covariate_database_schema = customCovariateDatabaseSchema,
                                            custom_covariate_table = customCovariateTable,
@@ -275,7 +292,6 @@ getDbSccsData <- function(connectionDetails,
                                    TRUE ~ .data$ageInDays))
   }
 
-
   sql <- SqlRender::loadRenderTranslateSql("QueryEras.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
@@ -286,7 +302,7 @@ getDbSccsData <- function(connectionDetails,
                                          andromedaTableName = "eras",
                                          snakeCaseToCamelCase = TRUE)
 
-  sql <- "SELECT era_id, era_name FROM #era_ref"
+  sql <- "SELECT era_type, era_id, era_name FROM #era_ref"
   sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
   DatabaseConnector::querySqlToAndromeda(connection = conn,
                                          sql = sql,
@@ -302,11 +318,32 @@ getDbSccsData <- function(connectionDetails,
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
                                            oracleTempSchema = oracleTempSchema,
-                                           cases_per_outcome = casesPerOutcome,
-                                           sampled_cases = sampledCases)
+                                           study_start_date = studyStartDate,
+                                           study_end_date = studyEndDate,
+                                           sampled_cases = sampledCases,
+                                           has_exposure_ids = hasExposureIds,
+                                           use_nesting_cohort = useNestingCohort,
+                                           has_custom_covariate_ids = hasCustomCovariateIds)
   DatabaseConnector::executeSql(conn, sql, progressBar = FALSE, reportOverallTime = FALSE)
 
-  attr(sccsData, "metaData") <- list(exposureIds = exposureIds, outcomeIds = outcomeIds)
+  if  (sampledCases) {
+    sampledCounts <- sccsData$eras %>%
+      filter(.data$eraType == "hoi") %>%
+      inner_join(sccsData$cases, by = "observationPeriodId") %>%
+      group_by(.data$eraId) %>%
+      summarise(outcomeSubjects = n_distinct(.data$personId),
+                outcomeEvents = count(),
+                outcomeObsPeriods = n_distinct(.data$observationPeriodId)) %>%
+      ungroup() %>%
+      rename(outcomeId = .data$eraId) %>%
+      mutate(description = 'Random sample') %>%
+      collect()
+    outcomeCounts <- bind_rows(outcomeCounts, sampledCounts)
+  }
+
+  attr(sccsData, "metaData") <- list(exposureIds = exposureIds,
+                                     outcomeIds = outcomeIds,
+                                     attrition = outcomeCounts)
   class(sccsData) <- "SccsData"
   attr(class(sccsData), "package") <- "SelfControlledCaseSeries"
   return(sccsData)

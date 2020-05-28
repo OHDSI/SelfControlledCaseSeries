@@ -31,7 +31,7 @@ limitations under the License.
 
 IF OBJECT_ID('tempdb..#cases', 'U') IS NOT NULL
 	DROP TABLE #cases;
-
+	
 SELECT observation_period_id,
 	person.person_id,
 	observation_period_start_date,
@@ -71,11 +71,7 @@ FROM (
 			ELSE observation_period_end_date
 			END AS end_date
 }
-	FROM @cdm_database_schema.observation_period
-{@study_start_date != '' | @study_end_date != ''} ? {	WHERE}
-{@study_start_date != '' } ? {		observation_period_end_date >= CAST('@study_start_date' AS DATE) }
-{@study_start_date != '' | @study_end_date != ''} ? {		AND}
-{@study_end_date != '' } ? {		observation_period_start_date < CAST('@study_end_date' AS DATE) }			
+	FROM @cdm_database_schema.observation_period	
 {@use_nesting_cohort} ? {
 	) temp
 	INNER JOIN @nesting_cohort_database_schema.@nesting_cohort_table nesting
@@ -86,30 +82,15 @@ FROM (
 }
 ) observation_period
 INNER JOIN @cdm_database_schema.person
-ON observation_period.person_id = person.person_id
-WHERE EXISTS (
-{@outcome_table == 'condition_occurrence'} ? {
-		SELECT *
-		FROM @outcome_database_schema.condition_occurrence outcome
-		WHERE outcome.person_id = observation_period.person_id
-			AND	condition_start_date <= end_date
-			AND	condition_start_date >= observation_period_start_date
-			AND	condition_concept_id IN (@outcome_concept_ids)
+	ON observation_period.person_id = person.person_id
+WHERE observation_period_id IN (
+	SELECT DISTINCT observation_period_id 
+{@use_nesting_cohort} ? {
+	FROM #outcomes_in_nesting
+} : { {@study_start_date != '' & @study_end_date != ''} ? {
+	FROM #outcomes_in_period
 } : {
-	{@outcome_table == 'condition_era'} ? {
-		SELECT *
-		FROM @outcome_database_schema.condition_era outcome
-		WHERE outcome.person_id = observation_period.person_id
-			AND	condition_era_start_date <= end_date
-			AND	condition_era_start_date >= observation_period_start_date
-			AND	condition_concept_id IN (@outcome_concept_ids)
-	} : { /* outcome table has same structure as cohort table */
-		SELECT *
-		FROM @outcome_database_schema.@outcome_table outcome
-		WHERE outcome.subject_id = observation_period.person_id
-			AND cohort_start_date <= end_date
-			AND	cohort_start_date >= observation_period_start_date
-			AND	cohort_definition_id IN (@outcome_concept_ids)
-	}
-}
+	FROM #outcomes
+}}	
 );
+	

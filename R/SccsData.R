@@ -115,11 +115,16 @@ setMethod("summary", "SccsData", function(object) {
     count() %>%
     pull()
 
-  outcomeCounts <- object$eras %>%
+
+  outcomeCounts <- sccsData$eras %>%
     filter(.data$eraType == "hoi") %>%
-    group_by(.data$conceptId) %>%
-    transmute(outcomeId = .data$conceptId, personCount = count(distinct(.data$observationPeriodId)), eventCount = count())   %>%
+    inner_join(sccsData$cases, by = "observationPeriodId") %>%
+    group_by(.data$eraId) %>%
+    summarise(outcomeSubjects = n_distinct(.data$personId),
+              outcomeEvents = count(),
+              outcomeObsPeriods = n_distinct(.data$observationPeriodId)) %>%
     ungroup() %>%
+    rename(outcomeId = .data$eraId) %>%
     collect()
 
   result <- list(metaData = attr(object, "metaData"),
@@ -149,7 +154,7 @@ print.summary.SccsData <- function(x, ...) {
   outcomeCounts <- as.data.frame(x$outcomeCounts)
   rownames(outcomeCounts) <- outcomeCounts$outcomeId
   outcomeCounts$outcomeId <- NULL
-  colnames(outcomeCounts) <- c("Event count", "Person count")
+  colnames(outcomeCounts) <- c("Outcome Subjects", "Outcome Events", "Outcome Observation Periods")
   printCoefmat(outcomeCounts)
   writeLines("")
   writeLines("Eras:")
