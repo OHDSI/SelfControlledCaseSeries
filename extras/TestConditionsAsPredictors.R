@@ -64,7 +64,7 @@ counts <- counts[order(-counts$sums), ]
 min(counts$sums)
 
 
-drugs <- ff::as.ram(unique(sccsData$eras$conceptId[sccsData$eras$eraType == 'hei']))
+drugs <- ff::as.ram(unique(sccsData$eras$conceptId[sccsData$eras$eraType == 'rx']))
 conditions <- ff::as.ram(unique(sccsData$eras$conceptId[sccsData$eras$eraType == 'dx']))
 
 diclofenac <- 1124300

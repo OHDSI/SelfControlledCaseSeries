@@ -336,7 +336,7 @@ getDbSccsData <- function(connectionDetails,
                 outcomeObsPeriods = n_distinct(.data$observationPeriodId)) %>%
       ungroup() %>%
       rename(outcomeId = .data$eraId) %>%
-      mutate(description = 'Random sample') %>%
+      mutate(description = "Random sample") %>%
       collect()
     outcomeCounts <- bind_rows(outcomeCounts, sampledCounts)
   }

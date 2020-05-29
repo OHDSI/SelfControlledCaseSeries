@@ -58,7 +58,7 @@ CREATE TABLE #era_ref (
 /* Create exposure eras */
 {@exposure_table == 'drug_era'} ? {
 INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
-SELECT 'hei',
+SELECT 'rx',
 	cases.observation_period_id,
 	drug_concept_id,
 	1,
@@ -80,20 +80,20 @@ WHERE
 ;
 
 INSERT INTO #era_ref (era_type, era_id, era_name)
-SELECT 'hei',
+SELECT 'rx',
 	concept_id,
 	concept_name
 FROM @cdm_database_schema.concept
 RIGHT JOIN (
 	SELECT DISTINCT era_id
 	FROM #eras
-	WHERE era_type = 'hei'
+	WHERE era_type = 'rx'
 	) eras
 ON eras.era_id = concept.concept_id;
 
 } : { /* exposure table has same structure as cohort table */
 INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
-SELECT 'hei',
+SELECT 'rx',
 	cases.observation_period_id,
 	cohort_definition_id,
 	1,
@@ -115,13 +115,13 @@ WHERE
 ;
 
 INSERT INTO #era_ref (era_type, era_id, era_name)
-SELECT 'hei',
+SELECT 'rx',
 	era_id,
 	CONCAT('Exposure cohort ', era_id)
 FROM (
 	SELECT DISTINCT era_id
 	FROM #eras
-	WHERE era_type = 'hei'
+	WHERE era_type = 'rx'
 	) eras;
 }
 
