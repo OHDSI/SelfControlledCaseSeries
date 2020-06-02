@@ -1,5 +1,3 @@
-# @file Plots.R
-#
 # Copyright 2020 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
@@ -18,75 +16,40 @@
 
 #' Plot the age ranges spanned by each observation period.
 #'
-#' @param sccsData                    An object of type \code{sccsData} as created using the
-#'                                    \code{\link{getDbSccsData}} function.
-#' @param outcomeId                   The outcome to create the era data for. If not specified it is
-#'                                    assumed to be the one outcome for which the data was loaded from
-#'                                    the database.
-#' @param naivePeriod                 The number of days at the start of a patient's observation period
-#'                                    that should not be included in the risk calculations. Note that
-#'                                    the naive period can be used to determine current covariate
-#'                                    status right after the naive period, and whether an outcome is
-#'                                    the first one.
-#' @param firstOutcomeOnly            Whether only the first occurrence of an outcome should be
-#'                                    considered.
-#' @param minAge                Minimum age at which patient time will be included in the analysis. Note
-#'                              that information prior to the min age is still used to determine exposure
-#'                              status after the minimum age (e.g. when a prescription was started just prior
-#'                              to reaching the minimum age). Also, outcomes occurring before the minimum age
-#'                              is reached will be considered as prior outcomes when using first outcomes only.
-#'                              Age should be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
-#'                              be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
-#'                    function \code{ggsave} in the ggplot2 package for supported file formats.
+#' @template StudyPopulation
+#' @param maxPersons  The maximum number of persons to plot. If there are more than this number of persons
+#'                    a random sample will be taken to avoid visual clutter.
+#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
+#'                          See the function [ggplot2::ggsave()] for supported file formats.
 #'
 #' @details
-#' If parameters such as naivePeriod, minAge, and maxAge are provided, these will first be applied to curtail the observation period
-#' prior to plotting. Similarly, firstOutcomeOnly can be provided so subjects where the first outcome falls before the true observation
-#' start are removed before plotting.
+#' Plots a line per patient from their age at observation start to their age at observation end.
 #'
 #' @return
-#' A Ggplot object. Use the ggsave function to save to file.
+#' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
+#' format.
 #'
 #' @export
-plotAgeSpans <- function(sccsData,
-                         outcomeId = NULL,
-                         firstOutcomeOnly = FALSE,
-                         naivePeriod = 0,
-                         minAge = NULL,
-                         maxAge = NULL,
+plotAgeSpans <- function(studyPopulation,
+                         maxPersons = 10000,
                          fileName = NULL) {
-  if (is.null(outcomeId)) {
-    outcomeId <- sccsData$metaData$outcomeIds
-    if (length(outcomeId) != 1) {
-      stop("No outcome ID specified, but multiple outcomes found")
-    }
-  }
-  data <- findIncludedOutcomes(sccsData = sccsData,
-                               outcomeId = outcomeId,
-                               firstOutcomeOnly = firstOutcomeOnly,
-                               naivePeriod = naivePeriod,
-                               minAge = minAge,
-                               maxAge = maxAge)
-  cases <- data$cases[, c("trueStartAge", "trueEndAge")]
-  cases <- cases[order(cases$trueStartAge, cases$trueEndAge), ]
-  cases$rank <- 1:nrow(cases)
+  cases <- studyPopulation$cases %>%
+    transmute(startAge = .data$ageInDays, endAge = .data$ageInDays + .data$endDay) %>%
+    arrange(.data$startAge, .data$endAge) %>%
+    mutate(rank = row_number())
 
-  ageLabels <- floor(min(cases$trueStartAge)/365.25):ceiling(max(cases$trueEndAge)/365.25)
+  ageLabels <- floor(min(cases$startAge)/365.25):ceiling(max(cases$endAge)/365.25)
   if (length(ageLabels) > 10) {
-    ageLabels <- 10 * (floor(min(cases$trueStartAge)/3652.5):floor(max(cases$trueEndAge)/3652.5))
+    ageLabels <- 10 * (floor(min(cases$startAge)/3652.5):floor(max(cases$endAge)/3652.5))
   }
   ageBreaks <- ageLabels * 365.25
-  if (nrow(cases) > 10000) {
-    warning(paste("There are", nrow(cases), "cases, but can only reasonably show 10,000. Random sampling 10,000 cases."))
-    cases <- cases[sample.int(nrow(cases), 10000), ]
+  if (nrow(cases) > maxPersons) {
+    warning("There are ", nrow(cases), " cases. Random sampling ", maxPersons, " cases.")
+    cases <- cases[sample.int(nrow(cases), maxPersons), ]
   }
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(cases, ggplot2::aes(x = trueStartAge, xmin = trueStartAge, xmax = trueEndAge, y = rank)) +
+  plot <- ggplot2::ggplot(cases, ggplot2::aes(x = .data$startAge, xmin = .data$startAge, xmax = .data$endAge, y = rank)) +
     ggplot2::geom_vline(xintercept = ageBreaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
     ggplot2::geom_errorbarh(color = rgb(0, 0, 0.8)) +
     ggplot2::scale_x_continuous("Age (years)", breaks = ageBreaks, labels = ageLabels) +
@@ -109,28 +72,9 @@ plotAgeSpans <- function(sccsData,
 
 #' Plot time from event to observation end for censored and uncensored time.
 #'
-#' @param sccsData                    An object of type \code{sccsData} as created using the
-#'                                    \code{\link{getDbSccsData}} function.
-#' @param outcomeId                   The outcome to create the era data for. If not specified it is
-#'                                    assumed to be the one outcome for which the data was loaded from
-#'                                    the database.
-#' @param naivePeriod                 The number of days at the start of a patient's observation period
-#'                                    that should not be included in the risk calculations. Note that
-#'                                    the naive period can be used to determine current covariate
-#'                                    status right after the naive period, and whether an outcome is
-#'                                    the first one.
-#' @param minAge                Minimum age at which patient time will be included in the analysis. Note
-#'                              that information prior to the min age is still used to determine exposure
-#'                              status after the minimum age (e.g. when a prescription was started just prior
-#'                              to reaching the minimum age). Also, outcomes occurring before the minimum age
-#'                              is reached will be considered as prior outcomes when using first outcomes only.
-#'                              Age should be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
-#'                              be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
-#'                    function \code{ggsave} in the ggplot2 package for supported file formats.
+#' @template StudyPopulation
+#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
+#'                          See the function [ggplot2::ggsave()] for supported file formats.
 #'
 #' @details
 #' This plot shows whether there is a difference in time between (first) event and the observation period end for periods that are '
@@ -141,42 +85,26 @@ plotAgeSpans <- function(sccsData,
 #' As proposed by Farrington et al., by comparing the two plots, we can gain some insight into whether the censoring is dependent
 #' on the occurrence of the event.
 #'
-#' If parameters such as naivePeriod, minAge, and maxAge are provided, these will first be applied to curtail the observation period
-#' prior to plotting. Similarly, firstOutcomeOnly can be provided so subjects where the first outcome falls before the true observation
-#' start are removed before plotting.
-#'
 #' @references
 #' Farrington P, Whitaker H, Ghebremichael Weldeselassie Y (2018), Self-controlled case series studies: A modelling guide with R, Taylor &
 #' Francis
 #'
 #' @return
-#' A Ggplot object. Use the ggsave function to save to file.
+#' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
+#' format.
 #'
 #' @export
-plotEventObservationDependence <- function(sccsData,
-                                           outcomeId = NULL,
-                                           naivePeriod = 0,
-                                           minAge = NULL,
-                                           maxAge = NULL,
+plotEventObservationDependence <- function(studyPopulation,
                                            fileName = NULL) {
-  if (is.null(outcomeId)) {
-    outcomeId <- sccsData$metaData$outcomeIds
-    if (length(outcomeId) != 1) {
-      stop("No outcome ID specified, but multiple outcomes found")
-    }
-  }
-  data <- findIncludedOutcomes(sccsData = sccsData,
-                               outcomeId = outcomeId,
-                               firstOutcomeOnly = TRUE,
-                               naivePeriod = naivePeriod,
-                               minAge = minAge,
-                               maxAge = maxAge)
-  uncensored <- isUncensored(sccsData = sccsData, maxAge = maxAge)
-  cases <- data$cases[, c("trueStartAge", "trueEndAge")]
-  outcomes <- data$outcomes[, c("observationPeriodId", "trueEndAge", "outcomeAge")]
-  outcomes$censoring <- "Censored"
-  outcomes$censoring[outcomes$observationPeriodId %in% ff::as.ram(sccsData$cases$observationPeriodId[uncensored])] <- "Uncensored"
-  outcomes$daysFromEvent <- outcomes$trueEndAge - outcomes$outcomeAge
+
+
+  outcomes <- studyPopulation$outcomes %>%
+    group_by(.data$observationPeriodId) %>%
+    summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
+    inner_join(studyPopulation$cases, by = "observationPeriodId") %>%
+    transmute(daysFromEvent = .data$endDay - .data$outcomeDay,
+              censoring = case_when(.data$noninformativeEndCensor == 1 ~ "Uncensored",
+                                    TRUE ~ "Censored"))
 
   ageLabels <- 0:ceiling(max(outcomes$daysFromEvent)/365.25)
 
@@ -184,7 +112,7 @@ plotEventObservationDependence <- function(sccsData,
 
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(outcomes, ggplot2::aes(x = daysFromEvent)) +
+  plot <- ggplot2::ggplot(outcomes, ggplot2::aes(x = .data$daysFromEvent)) +
     ggplot2::geom_vline(xintercept = ageBreaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
     ggplot2::geom_histogram(binwidth = 30.5, fill = rgb(0, 0, 0.8), alpha = 0.8) +
     ggplot2::scale_x_continuous("Years from event", breaks = ageBreaks, labels = ageLabels) +
@@ -200,7 +128,6 @@ plotEventObservationDependence <- function(sccsData,
                    strip.background = ggplot2::element_blank(),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
-  # fileName <- "S:/temp/plot2.png"
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
@@ -208,126 +135,110 @@ plotEventObservationDependence <- function(sccsData,
 
 #' Plot information centered around the start of exposure
 #'
-#' @param sccsData                    An object of type \code{sccsData} as created using the
-#'                                    \code{\link{getDbSccsData}} function.
-#' @param outcomeId                   The outcome to create the era data for. If not specified it is
-#'                                    assumed to be the one outcome for which the data was loaded from
-#'                                    the database.
 #' @param exposureId                  The exposure to create the era data for. If not specified it is
 #'                                    assumed to be the one exposure for which the data was loaded from
 #'                                    the database.
-#' @param naivePeriod                 The number of days at the start of a patient's observation period
-#'                                    that should not be included in the risk calculations. Note that
-#'                                    the naive period can be used to determine current covariate
-#'                                    status right after the naive period, and whether an outcome is
-#'                                    the first one.
-#' @param firstOutcomeOnly            Whether only the first occurrence of an outcome should be
-#'                                    considered.
-#' @param minAge                Minimum age at which patient time will be included in the analysis. Note
-#'                              that information prior to the min age is still used to determine exposure
-#'                              status after the minimum age (e.g. when a prescription was started just prior
-#'                              to reaching the minimum age). Also, outcomes occurring before the minimum age
-#'                              is reached will be considered as prior outcomes when using first outcomes only.
-#'                              Age should be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
-#'                              be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
-#'                    function \code{ggsave} in the ggplot2 package for supported file formats.
+#' @template StudyPopulation
+#' @template SccsData
+#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
+#'                          See the function [ggplot2::ggsave()] for supported file formats.
 #'
 #' @details
 #' This plot shows the number of events and the number of subjects under observation in week-sized intervals relative to the start
 #' of the first exposure.
 #'
-#' If parameters such as naivePeriod, minAge, and maxAge are provided, these will first be applied to curtail the observation period
-#' prior to plotting. Similarly, firstOutcomeOnly can be provided so subjects where the first outcome falls before the true observation
-#' start are removed before plotting.
-#'
 #' @return
-#' A Ggplot object. Use the ggsave function to save to file.
+#' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
+#' format.
 #'
 #' @export
-plotExposureCentered <- function(sccsData,
-                                 outcomeId = NULL,
+plotExposureCentered <- function(studyPopulation,
+                                 sccsData,
                                  exposureId = NULL,
-                                 naivePeriod = 0,
-                                 firstOutcomeOnly = FALSE,
-                                 minAge = NULL,
-                                 maxAge = NULL,
                                  fileName = NULL) {
-  if (is.null(outcomeId)) {
-    outcomeId <- sccsData$metaData$outcomeIds
-    if (length(outcomeId) != 1) {
-      stop("No outcome ID specified, but multiple outcomes found")
-    }
-  }
+
   if (is.null(exposureId)) {
-    exposureId <- sccsData$metaData$exposureIds
+    exposureId <- attr(sccsData, "metaData")$exposureIds
     if (length(exposureId) != 1) {
       stop("No exposure ID specified, but multiple exposures found")
     }
   }
-  data <- findIncludedOutcomes(sccsData = sccsData,
-                               outcomeId = outcomeId,
-                               firstOutcomeOnly = firstOutcomeOnly,
-                               naivePeriod = naivePeriod,
-                               minAge = minAge,
-                               maxAge = maxAge)
-  cases <- data$cases[, c("observationPeriodId", "ageInDays", "trueStartAge", "trueEndAge")]
-  cases$trueStartDay <- cases$trueStartAge - cases$ageInDays
-  cases$trueEndDay <- cases$trueEndAge - cases$ageInDays
-  exposures <- sccsData$eras[sccsData$eras$conceptId == exposureId & sccsData$eras$eraType == "hei", ]
-  exposures <- merge(exposures[, c("observationPeriodId", "startDay", "endDay")], cases[, c("observationPeriodId", "ageInDays", "trueStartDay", "trueEndDay")])
-  exposures <- exposures[exposures$startDay <= exposures$trueEndDay & exposures$endDay >= exposures$trueStartDay, ]
-  exposures$startDay[exposures$startDay < exposures$trueStartDay] <- exposures$trueStartDay[exposures$startDay < exposures$trueStartDay]
-  exposures$endDay[exposures$endDay > exposures$trueEndDay] <- exposures$trueEndDay[exposures$endDay > exposures$trueEndDay]
-  firstExposures <- aggregate(startDay ~ observationPeriodId, exposures, min)
 
-  firstExposures <- merge(firstExposures, cases)
-  firstExposures$exposureAge <- firstExposures$startDay + firstExposures$ageInDays
-  firstExposures$startDelta <- firstExposures$trueStartAge - firstExposures$exposureAge
-  firstExposures$endDelta <- firstExposures$trueEndAge - firstExposures$exposureAge
-  outcomes <- data$outcomes[, c("observationPeriodId", "outcomeAge")]
-  outcomes <- merge(outcomes, firstExposures[, c("observationPeriodId", "exposureAge")])
-  outcomes$delta <- outcomes$outcomeAge - outcomes$exposureAge
+  cases <- studyPopulation$cases %>%
+    select(.data$observationPeriodId, caseEndDay = endDay, offset)
 
-  exposedOutcomes <- merge(outcomes[, c("observationPeriodId", "outcomeAge", "delta")],
-                    exposures[, c("observationPeriodId", "startDay", "endDay", "ageInDays")])
-  exposedOutcomes$outcomeDay <- exposedOutcomes$outcomeAge - exposedOutcomes$ageInDays
-  exposedOutcomes <- exposedOutcomes[exposedOutcomes$outcomeDay >= exposedOutcomes$startDay & exposedOutcomes$outcomeDay <= exposedOutcomes$endDay, ]
-  exposedOutcomes <- exposedOutcomes[, c("observationPeriodId", "outcomeAge")]
-  exposedOutcomes$exposed <- TRUE
+  exposures <- sccsData$eras %>%
+    filter(.data$eraId == exposureId & .data$eraType == "rx") %>%
+    group_by(.data$observationPeriodId) %>%
+    inner_join(cases, by = "observationPeriodId", copy = TRUE) %>%
+    mutate(startDay = .data$startDay - .data$offset,
+           endDay = .data$endDay - .data$offset) %>%
+    filter(.data$startDay >= 0, .data$startDay < .data$caseEndDay) %>%
+    collect()
 
-  outcomes <- merge(outcomes, exposedOutcomes, all.x = TRUE)
-  outcomes$exposed[is.na(outcomes$exposed)] <- FALSE
+  firstExposures <- exposures %>%
+    group_by(.data$observationPeriodId, .data$caseEndDay) %>%
+    summarise(startDay = min(.data$startDay, na.rm = TRUE),
+              endDay = min(.data$endDay, na.rm = TRUE),
+              .groups = "drop_last")
 
-  weeks <- data.frame(number = -26:25)
-  weeks$start <- weeks$number*7
-  weeks$end <- weeks$number*7 + 7
-  weeks$eventsExposed <- 0
-  weeks$eventsUnexposed <- 0
-  weeks$observed <- 0
-  for (i in 1:nrow(weeks)) {
-    weeks$eventsExposed[i] <- sum(outcomes$delta >= weeks$start[i] & outcomes$delta < weeks$end[i] & outcomes$exposed)
-    weeks$eventsUnexposed[i] <- sum(outcomes$delta >= weeks$start[i] & outcomes$delta < weeks$end[i] & !outcomes$exposed)
-    weeks$observed[i] <- sum(firstExposures$startDelta <= weeks$start[i] & firstExposures$endDelta >= weeks$end[i])
-  }
-  events <- weeks
-  events$type <- "Events"
-  events$count1 <- events$eventsUnexposed
-  events$count2 <- events$eventsExposed
-  observed <- weeks
-  observed$type <- "Subjects under observation"
-  observed$count1 <- observed$observed
-  observed$count2 <- rep(NA, nrow(observed))
-  data <- rbind(events, observed)
+  outcomes <- studyPopulation$outcomes %>%
+    inner_join(firstExposures, by = "observationPeriodId") %>%
+    mutate(delta = .data$outcomeDay - .data$startDay) %>%
+    select(.data$observationPeriodId, .data$outcomeDay, .data$delta)
+
+  exposedoutcomes <- exposures %>%
+    inner_join(outcomes, by = "observationPeriodId") %>%
+    filter(.data$outcomeDay >= .data$startDay,
+           .data$outcomeDay <= .data$endDay) %>%
+    select(.data$observationPeriodId, .data$delta) %>%
+    mutate(exposed = 1)
+
+  outcomes <- outcomes %>%
+    left_join(exposedoutcomes, by = c("observationPeriodId", "delta")) %>%
+    mutate(exposed = coalesce(exposed, 0))
+
+  weeks <- dplyr::tibble(number = -26:25) %>%
+    mutate(start = .data$number*7,
+           end = .data$number*7 + 7)
+
+  events <- weeks %>%
+    full_join(select(outcomes, .data$delta, .data$exposed), by = character()) %>%
+    filter(.data$delta >= .data$start, .data$delta < .data$end) %>%
+    group_by(.data$number, .data$start, .data$end) %>%
+    summarise(eventsExposed = sum(.data$exposed),
+              eventsUnexposed = n() - sum(.data$exposed),
+              .groups = "drop_last")
+
+  observed <- weeks %>%
+    full_join(transmute(firstExposures, startDelta = -.data$startDay, endDelta = .data$caseEndDay - .data$startDay), by = character()) %>%
+    filter(.data$endDelta >= .data$start, .data$startDelta < .data$end) %>%
+    group_by(.data$number, .data$start, .data$end) %>%
+    summarise(observed = n(),
+              .groups = "drop_last")
+
+  events <- events %>%
+    transmute(.data$start,
+              .data$end,
+              type = "Events",
+              count1 = .data$eventsUnexposed,
+              count2 = .data$eventsExposed)
+
+  observed <- observed %>%
+    transmute(.data$start,
+              .data$end,
+              type = "Subjects under observation",
+              count1 = .data$observed,
+              count2 = NA)
+
+  data <- bind_rows(events, observed)
+
   breaks <- seq(-150,150, 30)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(data, ggplot2::aes(x = start, xmin = start, xmax = end, ymax = count1, ymin = 0)) +
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$start, xmin = .data$start, xmax = .data$end, ymax = .data$count1, ymin = 0)) +
     ggplot2::geom_rect(fill = rgb(0, 0, 0.8), alpha = 0.8) +
-    ggplot2::geom_rect(ggplot2::aes(ymax = count1 + count2, ymin = count1), fill = rgb(0.8, 0, 0), alpha = 0.8) +
+    ggplot2::geom_rect(ggplot2::aes(ymax = .data$count1 + .data$count2, ymin = .data$count1), fill = rgb(0.8, 0, 0), alpha = 0.8) +
     ggplot2::geom_vline(xintercept = 0, colour = "#000000", lty = 1, size = 1) +
     ggplot2::scale_x_continuous("Days since first exposure start", breaks = breaks, labels = breaks) +
     ggplot2::scale_y_continuous("Count") +
@@ -342,195 +253,31 @@ plotExposureCentered <- function(sccsData,
                    strip.background = ggplot2::element_blank(),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
-  # fileName <- "S:/temp/plot4b.png"
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
 }
 
-#' Plot exposures and outcomes per person
-#'
-#' @param sccsData                    An object of type \code{sccsData} as created using the
-#'                                    \code{\link{getDbSccsData}} function.
-#' @param outcomeId                   The outcome to create the era data for. If not specified it is
-#'                                    assumed to be the one outcome for which the data was loaded from
-#'                                    the database.
-#' @param exposureId                  The exposure to create the era data for. If not specified it is
-#'                                    assumed to be the one exposure for which the data was loaded from
-#'                                    the database.
-#' @param naivePeriod                 The number of days at the start of a patient's observation period
-#'                                    that should not be included in the risk calculations. Note that
-#'                                    the naive period can be used to determine current covariate
-#'                                    status right after the naive period, and whether an outcome is
-#'                                    the first one.
-#' @param firstOutcomeOnly            Whether only the first occurrence of an outcome should be
-#'                                    considered.
-#' @param minAge                Minimum age at which patient time will be included in the analysis. Note
-#'                              that information prior to the min age is still used to determine exposure
-#'                              status after the minimum age (e.g. when a prescription was started just prior
-#'                              to reaching the minimum age). Also, outcomes occurring before the minimum age
-#'                              is reached will be considered as prior outcomes when using first outcomes only.
-#'                              Age should be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
-#'                              be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
-#'                    function \code{ggsave} in the ggplot2 package for supported file formats.
-#'
-#' @details
-#' This plot shows the observation time (black), exposures (red), and outcomes (yellow) per person.
-#'
-#' If parameters such as naivePeriod, minAge, and maxAge are provided, these will first be applied to curtail the observation period
-#' prior to plotting. Similarly, firstOutcomeOnly can be provided so subjects where the first outcome falls before the true observation
-#' start are removed before plotting.
-#'
-#' @return
-#' A Ggplot object. Use the ggsave function to save to file.
-#'
-#' @export
-plotPerPersonData <- function(sccsData,
-                              outcomeId = NULL,
-                              exposureId = NULL,
-                              naivePeriod = 0,
-                              firstOutcomeOnly = FALSE,
-                              minAge = NULL,
-                              maxAge = NULL,
-                              fileName = NULL) {
-  if (is.null(outcomeId)) {
-    outcomeId <- sccsData$metaData$outcomeIds
-    if (length(outcomeId) != 1) {
-      stop("No outcome ID specified, but multiple outcomes found")
-    }
-  }
-  if (is.null(exposureId)) {
-    exposureId <- sccsData$metaData$exposureIds
-    if (length(exposureId) != 1) {
-      stop("No exposure ID specified, but multiple exposures found")
-    }
-  }
-  data <- findIncludedOutcomes(sccsData = sccsData,
-                               outcomeId = outcomeId,
-                               firstOutcomeOnly = firstOutcomeOnly,
-                               naivePeriod = naivePeriod,
-                               minAge = minAge,
-                               maxAge = maxAge)
-
-  cases <- data$cases[, c("observationPeriodId", "ageInDays", "trueStartAge", "trueEndAge")]
-
-  cases$trueStartDay <- cases$trueStartAge - cases$ageInDays
-  cases$trueEndDay <- cases$trueEndAge - cases$ageInDays
-  exposures <- sccsData$eras[sccsData$eras$conceptId == exposureId & sccsData$eras$eraType == "hei", ]
-  exposures <- merge(exposures[, c("observationPeriodId", "startDay", "endDay")], cases[, c("observationPeriodId", "ageInDays", "trueStartDay", "trueEndDay")])
-  exposures <- exposures[exposures$startDay <= exposures$trueEndDay & exposures$endDay >= exposures$trueStartDay, ]
-  exposures$startDay[exposures$startDay < exposures$trueStartDay] <- exposures$trueStartDay[exposures$startDay < exposures$trueStartDay]
-  exposures$endDay[exposures$endDay > exposures$trueEndDay] <- exposures$trueEndDay[exposures$endDay > exposures$trueEndDay]
-  firstExposureStarts <- aggregate(startDay ~ observationPeriodId, exposures, min)
-  firstExposureEnds <- aggregate(endDay ~ observationPeriodId, exposures, min)
-  cases <- merge(firstExposureStarts, cases)
-  cases <- merge(firstExposureEnds, cases)
-  cases$endDay <- cases$endDay - cases$startDay
-  cases$trueStartDay <- cases$trueStartDay - cases$startDay
-  cases$trueEndDay <- cases$trueEndDay - cases$startDay
-  if (nrow(cases) > 100) {
-    warning(paste("There are", nrow(cases), "cases, but can only reasonably show 100. Random sampling 100 cases."))
-    cases <- cases[sample.int(nrow(cases), 100), ]
-  }
-  cases <- cases[order(cases$endDay), ]
-  cases$rank <- 1:nrow(cases)
-
-  exposures <- merge(exposures[, c("observationPeriodId", "startDay", "endDay")], cases[, c("observationPeriodId", "rank","trueStartDay")])
-  exposures$startDay <- exposures$startDay + exposures$trueStartDay
-  exposures$endDay <- exposures$endDay + exposures$trueStartDay
-
-  outcomes <- data$outcomes[, c("observationPeriodId", "outcomeAge")]
-  outcomes <- merge(outcomes, cases[, c("observationPeriodId", "rank", "ageInDays", "trueStartDay")])
-  outcomes$day <- outcomes$outcomeAge - outcomes$ageInDays + outcomes$trueStartDay
-
-  theme <- ggplot2::element_text(colour = "#000000", size = 12)
-  themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(cases, ggplot2::aes(x = trueStartDay, y = rank, yend = rank)) +
-    ggplot2::geom_segment(ggplot2::aes(x = trueStartDay, xend = trueEndDay), colour = rgb(0, 0, 0), size = 2) +
-    ggplot2::geom_segment(ggplot2::aes(x = startDay, xend = endDay), colour = rgb(0.8, 0, 0), data = exposures, size = 2) +
-    ggplot2::geom_point(ggplot2::aes(x = day), colour = rgb(0.8, 0.8, 0), data = outcomes, size = 1) +
-    ggplot2::scale_x_continuous("Days since first exposure start") +
-    ggplot2::scale_y_continuous("Case rank") +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major = ggplot2::element_line(colour = "#AAAAAA"),
-                   axis.ticks = ggplot2::element_blank(),
-                   axis.text.y = themeRA,
-                   axis.text.x = theme,
-                   strip.text.y = theme,
-                   strip.background = ggplot2::element_blank(),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "top")
-  # fileName <- "S:/temp/plot5b.png"
-  if (!is.null(fileName))
-    ggplot2::ggsave(fileName, plot, width = 10, height = 10, dpi = 400)
-  return(plot)
-}
-
-
 #' Plot the count of events over calendar time.
 #'
-#' @param sccsData                    An object of type \code{sccsData} as created using the
-#'                                    \code{\link{getDbSccsData}} function.
-#' @param outcomeId                   The outcome to create the era data for. If not specified it is
-#'                                    assumed to be the one outcome for which the data was loaded from
-#'                                    the database.
-#' @param naivePeriod                 The number of days at the start of a patient's observation period
-#'                                    that should not be included in the risk calculations. Note that
-#'                                    the naive period can be used to determine current covariate
-#'                                    status right after the naive period, and whether an outcome is
-#'                                    the first one.
-#' @param minAge                Minimum age at which patient time will be included in the analysis. Note
-#'                              that information prior to the min age is still used to determine exposure
-#'                              status after the minimum age (e.g. when a prescription was started just prior
-#'                              to reaching the minimum age). Also, outcomes occurring before the minimum age
-#'                              is reached will be considered as prior outcomes when using first outcomes only.
-#'                              Age should be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
-#'                              be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
-#'                    function \code{ggsave} in the ggplot2 package for supported file formats.
+#' @template StudyPopulation
+#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
+#'                          See the function [ggplot2::ggsave()] for supported file formats.
 #'
 #' @return
-#' A Ggplot object. Use the ggsave function to save to file.
+#' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
+#' format.
 #'
 #' @export
-plotEventToCalendarTime <- function(sccsData,
-                                    outcomeId = NULL,
-                                    naivePeriod = 0,
-                                    minAge = NULL,
-                                    maxAge = NULL,
+plotEventToCalendarTime <- function(studyPopulation,
                                     fileName = NULL) {
-  if (is.null(outcomeId)) {
-    outcomeId <- sccsData$metaData$outcomeIds
-    if (length(outcomeId) != 1) {
-      stop("No outcome ID specified, but multiple outcomes found")
-    }
-  }
-  data <- findIncludedOutcomes(sccsData = sccsData,
-                               outcomeId = outcomeId,
-                               firstOutcomeOnly = TRUE,
-                               naivePeriod = naivePeriod,
-                               minAge = minAge,
-                               maxAge = maxAge)
-  outcomes <- merge(ffbase::subset.ffdf(data$cases, select = c("observationPeriodId", "startYear", "startMonth", "startDay")),
-                    ffbase::subset.ffdf(data$outcomes, select = c("observationPeriodId", "outcomeDay")))
-
-  dates <- as.Date(paste(ff::as.ram(outcomes$startYear),
-                         ff::as.ram(outcomes$startMonth),
-                         ff::as.ram(outcomes$startDay),
-                         sep = "-"), format = "%Y-%m-%d")
-  dates <- dates + ff::as.ram(outcomes$outcomeDay)
+  dates <- studyPopulation$outcomes %>%
+    inner_join(studyPopulation$cases , by = "observationPeriodId") %>%
+    transmute(outcomeDate = .data$startDate  + .data$outcomeDay)
 
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(data.frame(dates = dates), ggplot2::aes(x = dates)) +
+  plot <- ggplot2::ggplot(dates, ggplot2::aes(x = .data$outcomeDate)) +
     ggplot2::geom_histogram(binwidth = 30.5, fill = rgb(0, 0, 0.8), alpha = 0.8) +
     ggplot2::scale_x_date("Calendar time") +
     ggplot2::scale_y_continuous("Frequency") +
@@ -544,7 +291,6 @@ plotEventToCalendarTime <- function(sccsData,
                    strip.background = ggplot2::element_blank(),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
-  # fileName <- "S:/temp/plot3.png"
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
@@ -587,7 +333,7 @@ plotAgeEffect <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
   ageBreaks <- ageLabels * 365.25
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(data, ggplot2::aes(x = age, y = rr)) +
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$age, y = .data$rr)) +
     ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
     ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +

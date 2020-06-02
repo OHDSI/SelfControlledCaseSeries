@@ -1,8 +1,8 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 1.4.2
-Date: 2020-04-07
+Version: 2.0.0
+Date: 2020-06-02
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
@@ -28,7 +28,7 @@ Depends:
     Andromeda
 Imports:
     SqlRender (>= 1.6.0),
-    dplyr,
+    dplyr (>= 1.0.0),
     Rcpp (>= 0.11.2),
     ParallelLogger,
     splines,
@@ -43,3 +43,4 @@ License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
 RoxygenNote: 7.1.0
+Roxygen: list(markdown = TRUE)

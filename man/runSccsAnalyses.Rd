@@ -104,7 +104,7 @@ models.}
 \item{cvThreads}{The number of parallel threads to use for the cross-
 validation when estimating the hyperparameter for the
 outcome model. Note that the total number of CV threads at
-one time could be `fitSccsModelThreads * cvThreads`.}
+one time could be \code{fitSccsModelThreads * cvThreads}.}
 }
 \value{
 A data frame with the following columns: \tabular{ll}{ \verb{analysisId} \tab The unique identifier
@@ -119,7 +119,7 @@ Run a list of analyses
 \details{
 Run a list of analyses for the drug-comparator-outcomes of interest. This function will run all
 specified analyses against all hypotheses of interest, meaning that the total number of outcome
-models is `length(cmAnalysisList) * length(drugComparatorOutcomesList)` (if all analyses specify an
+models is \code{length(cmAnalysisList) * length(drugComparatorOutcomesList)} (if all analyses specify an
 outcome model should be fitted). When you provide several analyses it will determine whether any of
 the analyses have anything in common, and will take advantage of this fact. For example, if we
 specify several analyses that only differ in the way the outcome model is fitted, then this

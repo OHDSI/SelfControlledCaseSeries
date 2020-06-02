@@ -31,8 +31,7 @@ getDbSccsData(
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using
-the function \code{createConnectionDetails} in the
-\code{DatabaseConnector} package.}
+the function \code{\link[DatabaseConnector:createConnectionDetails]{DatabaseConnector::createConnectionDetails()}} function.}
 
 \item{cdmDatabaseSchema}{The name of the database schema that contains the OMOP CDM
 instance.  Requires read permissions to this database. On SQL
@@ -119,7 +118,7 @@ outcome cases will be sampled to this size. \code{maxCasesPerOutcome = 0}
 indicates no maximum size.}
 }
 \value{
-An \code{\link{SccsData}} object.
+An \link{SccsData} object.
 }
 \description{
 Load all data needed to perform an SCCS analysis from the database.
@@ -127,20 +126,23 @@ Load all data needed to perform an SCCS analysis from the database.
 \details{
 This function downloads several types of information:
 \itemize{
-  \item {Information on the occurrences of the outcome(s) of interest. Note that information for
-        multiple outcomes can be fetched in one go, and later the specific outcome can be specified
-        for which we want to build a model.}
-  \item {Information on the observation time and age for the people with the outcomes.}
-  \item {Information on exposures of interest which we want to include in the model.}
+\item Information on the occurrences of the outcome(s) of interest. Note that information for
+multiple outcomes can be fetched in one go, and later the specific outcome can be specified
+for which we want to build a model.
+\item Information on the observation time and age for the people with the outcomes.
+\item Information on exposures of interest which we want to include in the model.
 }
+
 Five different database schemas can be specified, for five different types of information: The
-\code{cdmDatabaseSchema} is used to extract patient age and observation period. The
-\code{outcomeDatabaseSchema} is used to extract information about the outcomes, the
-\code{exposureDatabaseSchema} is used to retrieve information on exposures, and the
-\code{customCovariateDatabaseSchema} is optionally used to find additional, user-defined
+\itemize{
+\item \strong{cdmDatabaseSchema} is used to extract patient age and observation period. The
+\item \strong{outcomeDatabaseSchema} is used to extract information about the outcomes, the
+\item \strong{exposureDatabaseSchema} is used to retrieve information on exposures, and the
+\item \strong{customCovariateDatabaseSchema} is optionally used to find additional, user-defined
 covariates. All four locations could point to the same database schema.
-\code{nestingCohortDatabaseSchema} is optionally used to define a cohort in which the analysis is nested,
+\item \strong{nestingCohortDatabaseSchema} is optionally used to define a cohort in which the analysis is nested,
 for example a cohort of diabetics patients.
+}
 
 All five locations could point to the same database schema.
 }

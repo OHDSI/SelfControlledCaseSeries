@@ -80,16 +80,33 @@ saveSccsData(sccsData, file.path(folder, "data1.zip"))
 # sccsData <- loadSccsData(file.path(folder, "data1.zip"))
 sccsData
 summary(sccsData)
-covarDiclofenac <- createCovariateSettings(label = "Exposure of interest",
-                                           includeCovariateIds = diclofenac,
-                                           start = 0,
-                                           end = 0,
-                                           addExposedDaysToEnd = TRUE)
 
-sccsEraData <- createSccsEraData(sccsData,
-                                 naivePeriod = 180,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = covarDiclofenac)
+studyPop <- createStudyPopulation(sccsData = sccsData,
+                                  outcomeId = 1,
+                                  firstOutcomeOnly = FALSE,
+                                  naivePeriod = 180)
+
+plotAgeSpans(studyPop)
+
+plotEventObservationDependence(studyPop)
+
+plotExposureCentered(studyPop, sccsData)
+
+plotEventToCalendarTime(studyPop)
+
+getAttritionTable(studyPop)
+
+
+
+covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
+                                              includeCovariateIds = diclofenac,
+                                              start = 0,
+                                              end = 0,
+                                              addExposedDaysToEnd = TRUE)
+
+sccsEraData <- createSccsEraData(studyPop,
+                                 sccsData,
+                                 eraCovariateSettings = covarDiclofenac)
 saveSccsEraData(sccsEraData, "s:/temp/vignetteSccs/eraData1")
 
 summary(sccsEraData)

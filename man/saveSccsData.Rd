@@ -7,8 +7,8 @@
 saveSccsData(SccsData, file)
 }
 \arguments{
-\item{SccsData}{An object of type [SccsData] as generated using
-[getDbSccsData()].}
+\item{SccsData}{An object of type \link{SccsData} as generated using
+\code{\link[=getDbSccsData]{getDbSccsData()}}.}
 
 \item{file}{The name of the file where the data will be written. If the file already
 exists it will be overwritten.}
@@ -17,5 +17,5 @@ exists it will be overwritten.}
 Returns no output.
 }
 \description{
-Saves an object of type [SccsData] to a file.
+Saves an object of type \link{SccsData} to a file.
 }

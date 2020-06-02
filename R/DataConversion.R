@@ -1,5 +1,3 @@
-# @file DataConversion.R
-#
 # Copyright 2020 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
@@ -15,13 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-in.ff <- function(a, b) {
-  if (length(b) == 0)
-    return(ff::as.ff(rep(FALSE, length(a)))) else return(ffbase::ffmatch(x = a,
-                                                                         table = b,
-                                                                         nomatch = 0L) > 0L)
-}
 
 #' Create SCCS era data
 #'
@@ -190,22 +181,6 @@ findIncludedOutcomes <- function(sccsData, outcomeId, firstOutcomeOnly, naivePer
   return(list(outcomes = outcomes, cases = cases))
 }
 
-isUncensored <- function(sccsData, maxAge) {
-  dates <- as.Date(paste(ff::as.ram(sccsData$cases$startYear),
-                         ff::as.ram(sccsData$cases$startMonth),
-                         ff::as.ram(sccsData$cases$startDay),
-                         sep = "-"), format = "%Y-%m-%d")
-  dates <- dates + ff::as.ram(sccsData$cases$observationDays)
-  studyEndDate <- max(dates)
-  result <- ff::as.ff(dates == studyEndDate)
-  if (!is.null(maxAge)) {
-    maxAgeDays <- (maxAge + 1) * 365.25
-    truncatedByMaxAge <- sccsData$cases$ageInDays + sccsData$cases$observationDays > maxAgeDays
-    result <- result | truncatedByMaxAge
-  }
-  return(result)
-}
-
 addAgeSettings <- function(settings,
                            ageSettings,
                            includedOutcomes) {
@@ -345,7 +320,7 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
     if (!is.null(covariateSettings$excludeCovariateIds) && length(covariateSettings$excludeCovariateIds) !=
         0) {
       covariateSettings$covariateIds <- covariateSettings$covariateIds[!ffbase::`%in%`(covariateSettings$covariateIds,
-                                                                         covariateSettings$excludeCovariateIds)]
+                                                                                       covariateSettings$excludeCovariateIds)]
     }
 
     if (length(covariateSettings$splitPoints) == 0) {
@@ -434,174 +409,7 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
   return(settings)
 }
 
-#' Create covariate settings
-#'
-#' @details
-#' Create an object specifying how to create a (set of) covariates.
-#'
-#' @param includeCovariateIds     One or more IDs of variables in the \code{sccsData} object that
-#'                                should be used to construct this covariate. If no IDs are specified,
-#'                                all variables will be used.
-#' @param excludeCovariateIds     One or more IDs of variables in the \code{sccsData} object that
-#'                                should not be used to construct this covariate.
-#' @param label                   A label used to identify the covariates created using these settings.
-#' @param stratifyById            Should a single covariate be created for every ID in the
-#'                                \code{sccsData} object, or should a single covariate be constructed?
-#'                                For example, if the IDs identify exposures to different drugs, should
-#'                                a covariate be constructed for every drug, or a single covariate for
-#'                                exposure to any of these drugs. Note that overlap will be considered
-#'                                a single exposure.
-#' @param start                   The start of the risk window in days, relative to the exposure start
-#'                                date.
-#' @param addExposedDaysToStart   Should the length of exposure be added to the start date?
-#' @param end                     The start of the risk window in days, relative to the exposure start
-#'                                date.
-#' @param addExposedDaysToEnd     Should the length of exposure be added to the end date?
-#' @param firstOccurrenceOnly     Should only the first occurrence of the exposure be used?
-#' @param splitPoints             To split the risk window into several smaller windows, specify the
-#'                                end of each sub- window relative to the start of the main risk
-#'                                window. If addExposedDaysToStart is TRUE, the split points will be
-#'                                considered to be relative to the end of the main risk window instead.
-#' @param allowRegularization     When fitting the model, should the covariates defined here be allowed
-#'                                to be regularized?
-#'
-#' @return
-#' An object of type \code{covariateSettings}.
-#'
-#' @export
-createCovariateSettings <- function(includeCovariateIds = NULL,
-                                    excludeCovariateIds = NULL,
-                                    label = "Covariates",
-                                    stratifyById = TRUE,
-                                    start = 0,
-                                    addExposedDaysToStart = FALSE,
-                                    end = 0,
-                                    addExposedDaysToEnd = FALSE,
-                                    firstOccurrenceOnly = FALSE,
-                                    splitPoints = c(),
-                                    allowRegularization = FALSE) {
-  if (end < start && !addExposedDaysToEnd)
-    stop("End day always precedes start day. Either pick a later end day, or set addExposedDaysToEnd to TRUE.")
 
-  # First: get default values:
-  analysis <- list()
-  for (name in names(formals(createCovariateSettings))) {
-    analysis[[name]] <- get(name)
-  }
-  # Second: overwrite defaults with actual values:
-  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
-  for (name in names(values)) {
-    if (name %in% names(analysis))
-      analysis[[name]] <- values[[name]]
-  }
-  class(analysis) <- "covariateSettings"
-  return(analysis)
-}
-
-#' Create age settings
-#'
-#' @details
-#' Create an object specifying whether and how age should be included in the model. Age can be included
-#' by splitting patient time into calendar months. During a month, the relative risk attributed to age
-#' is assumed to be constant, and the risk from month to month is modeled using a cubic spline.
-#'
-#' @param includeAge            Should age be included in the model?
-#' @param ageKnots              If a single number is provided this is assumed to indicate the number
-#'                              of knots to use for the spline, and the knots are automatically spaced
-#'                              according to equal percentiles of the data. If more than one number is
-#'                              provided these are assumed to be the exact location of the knots in
-#'                              age-days
-#' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
-#'                              to be regularized?
-#' @param computeConfidenceIntervals  Should confidence intervals be computed for the covariates defined
-#'                                    here? Setting this to FALSE might save computing time when fitting the
-#'                                    model. Will be turned to FALSE  automaticaly when \code{allowRegularization = TRUE}.
-#' @param minAge                Minimum age at which patient time will be included in the analysis. Note
-#'                              that information prior to the min age is still used to determine exposure
-#'                              status after the minimum age (e.g. when a prescription was started just prior
-#'                              to reaching the minimum age). Also, outcomes occurring before the minimum age
-#'                              is reached will be considered as prior outcomes when using first outcomes only.
-#'                              Age should be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
-#'                              be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#'
-#' @return
-#' An object of type \code{ageSettings}.
-#'
-#' @export
-createAgeSettings <- function(includeAge = FALSE,
-                              ageKnots = 5,
-                              allowRegularization = FALSE,
-                              computeConfidenceIntervals = FALSE,
-                              minAge = NULL,
-                              maxAge = NULL) {
-  if (computeConfidenceIntervals && allowRegularization) {
-    computeConfidenceIntervals <- FALSE
-    warning("computeConfidenceIntervals is set to FALSE because allowRegularization is TRUE")
-  }
-  # First: get default values:
-  analysis <- list()
-  for (name in names(formals(createAgeSettings))) {
-    analysis[[name]] <- get(name)
-  }
-  # Second: overwrite defaults with actual values:
-  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
-  for (name in names(values)) {
-    if (name %in% names(analysis))
-      analysis[[name]] <- values[[name]]
-  }
-  class(analysis) <- "ageSettings"
-  return(analysis)
-}
-
-#' Create seasonality settings
-#'
-#' @details
-#' Create an object specifing whether and how seasonality should be included in the model. Seasonality
-#' can be included by splitting patient time into calendar months. During a month, the relative risk
-#' attributed to season is assumed to be constant, and the risk from month to month is modeled using a
-#' cyclic cubic spline.
-#'
-#' @param includeSeasonality    Should seasonality be included in the model?
-#' @param seasonKnots           If a single number is provided this is assumed to indicate the number
-#'                              of knots to use for the spline, and the knots are automatically equally
-#'                              spaced across the year. If more than one number is provided these are
-#'                              assumed to be the exact location of the knots in days relative to the
-#'                              start of the year.
-#' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
-#'                              to be regularized?
-#' @param computeConfidenceIntervals  Should confidence intervals be computed for the covariates defined
-#'                                    here? Setting this to FALSE might save computing time when fitting the
-#'                                    model. Will be turned to FALSE  automatically when \code{allowRegularization = TRUE}.
-#'
-#' @return
-#' An object of type \code{seasonalitySettings}.
-#'
-#' @export
-createSeasonalitySettings <- function(includeSeasonality = FALSE,
-                                      seasonKnots = 5,
-                                      allowRegularization = FALSE,
-                                      computeConfidenceIntervals = FALSE) {
-  if (computeConfidenceIntervals && allowRegularization) {
-    computeConfidenceIntervals <- FALSE
-    warning("computeConfidenceIntervals is set to FALSE because allowRegularization is TRUE")
-  }
-  # First: get default values:
-  analysis <- list()
-  for (name in names(formals(createSeasonalitySettings))) {
-    analysis[[name]] <- get(name)
-  }
-  # Second: overwrite defaults with actual values:
-  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
-  for (name in names(values)) {
-    if (name %in% names(analysis))
-      analysis[[name]] <- values[[name]]
-  }
-  class(analysis) <- "seasonalitySettings"
-  return(analysis)
-}
 
 #' Save the SCCS era data to folder
 #'

@@ -10,8 +10,8 @@ loadSccsData(file)
 \item{file}{The name of the file containing the data.}
 }
 \value{
-An object of class [SccsData].
+An object of class \link{SccsData}.
 }
 \description{
-Loads an object of type [SccsData] from a file in the file system.
+Loads an object of type \link{SccsData} from a file in the file system.
 }

@@ -1,0 +1,77 @@
+DBMS:
+pdw
+
+Error:
+com.microsoft.sqlserver.jdbc.SQLServerException: Parse error at line: 32, column: 11: Incorrect syntax near 'CAST'.
+
+SQL:
+CREATE TABLE  #cases
+  WITH (LOCATION = USER_DB, DISTRIBUTION = HASH(person_id)) AS
+SELECT
+observation_period_id,
+	person. person_id, observation_period_start_date,
+	start_date,
+	end_date,
+	DATEDIFF(DAY, DATEFROMPARTS(year_of_birth, ISNULL(month_of_birth, 1), ISNULL(day_of_birth, 1)), start_date) AS age_in_days,
+	noninformative_end_censor,
+	NEWID() AS random_id
+
+FROM
+(
+
+	SELECT person_id,
+		observation_period_id,
+		observation_period_start_date,
+		observation_period_end_date,
+
+		observation_period_start_date AS start_date,
+
+
+		observation_period_end_date AS end_date,
+		noninformative_end_censor
+
+	FROM (
+		SELECT person_id,
+			observation_period_id,
+			observation_period_start_date,
+			observation_period_end_date,
+			CASE WHEN observation_period_end_date = (SELECT MAX(observation_period_end_date) FROM CDM_IBM_MDCD_V1153.dbo.observation_period)
+				THEN (CAST 1 AS INT)
+				ELSE  CAST(0 AS INT)
+			END AS noninformative_end_censor
+		FROM CDM_IBM_MDCD_V1153.dbo.observation_period
+		WHERE observation_period_id IN (
+			SELECT DISTINCT observation_period_id 
+ 
+				FROM #outcomes
+	
+		) 
+	) observation_period
+
+) observation_period
+INNER JOIN CDM_IBM_MDCD_V1153.dbo.person
+	ON observation_period.person_id = person.person_id
+
+
+R version:
+R version 4.0.0 (2020-04-24)
+
+Platform:
+x86_64-w64-mingw32
+
+Attached base packages:
+- stats
+- graphics
+- grDevices
+- utils
+- datasets
+- methods
+- base
+
+Other attached packages:
+- SelfControlledCaseSeries (2.0.0)
+- SqlRender (1.6.6)
+- Andromeda (0.3.1)
+- dplyr (1.0.0)
+- DatabaseConnector (3.0.0)
+- Cyclops (2.0.3)

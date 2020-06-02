@@ -23,30 +23,29 @@
 #'
 #' @details
 #' This function downloads several types of information:
-#' \itemize{
-#'   \item {Information on the occurrences of the outcome(s) of interest. Note that information for
-#'         multiple outcomes can be fetched in one go, and later the specific outcome can be specified
-#'         for which we want to build a model.}
-#'   \item {Information on the observation time and age for the people with the outcomes.}
-#'   \item {Information on exposures of interest which we want to include in the model.}
-#' }
+#'
+#' - Information on the occurrences of the outcome(s) of interest. Note that information for
+#' multiple outcomes can be fetched in one go, and later the specific outcome can be specified
+#' for which we want to build a model.
+#' - Information on the observation time and age for the people with the outcomes.
+#' - Information on exposures of interest which we want to include in the model.
+#'
 #' Five different database schemas can be specified, for five different types of information: The
-#' \code{cdmDatabaseSchema} is used to extract patient age and observation period. The
-#' \code{outcomeDatabaseSchema} is used to extract information about the outcomes, the
-#' \code{exposureDatabaseSchema} is used to retrieve information on exposures, and the
-#' \code{customCovariateDatabaseSchema} is optionally used to find additional, user-defined
+#' - **cdmDatabaseSchema** is used to extract patient age and observation period. The
+#' - **outcomeDatabaseSchema** is used to extract information about the outcomes, the
+#' - **exposureDatabaseSchema** is used to retrieve information on exposures, and the
+#' - **customCovariateDatabaseSchema** is optionally used to find additional, user-defined
 #' covariates. All four locations could point to the same database schema.
-#' \code{nestingCohortDatabaseSchema} is optionally used to define a cohort in which the analysis is nested,
+#' - **nestingCohortDatabaseSchema** is optionally used to define a cohort in which the analysis is nested,
 #' for example a cohort of diabetics patients.
 #'
 #' All five locations could point to the same database schema.
 #'
 #' @return
-#' An \code{\link{SccsData}} object.
+#' An [SccsData] object.
 #'
-#' @param connectionDetails               An R object of type \code{ConnectionDetails} created using
-#'                                        the function \code{createConnectionDetails} in the
-#'                                        \code{DatabaseConnector} package.
+#' @param connectionDetails               An R object of type `ConnectionDetails` created using
+#'                                        the function [DatabaseConnector::createConnectionDetails()] function.
 #' @param cdmDatabaseSchema               The name of the database schema that contains the OMOP CDM
 #'                                        instance.  Requires read permissions to this database. On SQL
 #'                                        Server, this should specify both the database and the
@@ -108,7 +107,7 @@
 #' @param cdmVersion                      Define the OMOP CDM version used: currently support "4" and
 #'                                        "5".
 #' @param maxCasesPerOutcome              If there are more than this number of cases for a single
-#'                                        outcome cases will be sampled to this size. \code{maxCasesPerOutcome = 0}
+#'                                        outcome cases will be sampled to this size. `maxCasesPerOutcome = 0`
 #'                                        indicates no maximum size.
 #'
 #' @export
@@ -199,7 +198,7 @@ getDbSccsData <- function(connectionDetails,
                                            cdm_database_schema = cdmDatabaseSchema,
                                            outcome_database_schema = outcomeDatabaseSchema,
                                            outcome_table = outcomeTable,
-                                           outcome_concept_ids = outcomeIds,
+                                           outcome_ids = outcomeIds,
                                            use_nesting_cohort = useNestingCohort,
                                            nesting_cohort_database_schema = nestingCohortDatabaseSchema,
                                            nesting_cohort_table = nestingCohortTable,
@@ -333,8 +332,8 @@ getDbSccsData <- function(connectionDetails,
       group_by(.data$eraId) %>%
       summarise(outcomeSubjects = n_distinct(.data$personId),
                 outcomeEvents = count(),
-                outcomeObsPeriods = n_distinct(.data$observationPeriodId)) %>%
-      ungroup() %>%
+                outcomeObsPeriods = n_distinct(.data$observationPeriodId),
+                .groups = "drop_last") %>%
       rename(outcomeId = .data$eraId) %>%
       mutate(description = "Random sample") %>%
       collect()

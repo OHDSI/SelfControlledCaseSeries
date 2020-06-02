@@ -28,7 +28,8 @@ SELECT
 	MONTH(start_date) AS start_month,
 	DAY(start_date) AS start_day,
 	age_in_days,
-	DATEDIFF(DAY, observation_period_start_date, start_date) AS censored_days
+	DATEDIFF(DAY, observation_period_start_date, start_date) AS censored_days,
+	noninformative_end_censor
 {@sampled_cases} ? {
 FROM #sampled_cases
 } : {

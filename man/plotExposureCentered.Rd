@@ -5,54 +5,28 @@
 \title{Plot information centered around the start of exposure}
 \usage{
 plotExposureCentered(
+  studyPopulation,
   sccsData,
-  outcomeId = NULL,
   exposureId = NULL,
-  naivePeriod = 0,
-  firstOutcomeOnly = FALSE,
-  minAge = NULL,
-  maxAge = NULL,
   fileName = NULL
 )
 }
 \arguments{
-\item{sccsData}{An object of type \code{sccsData} as created using the
-\code{\link{getDbSccsData}} function.}
+\item{studyPopulation}{An object created using the \code{\link[=createStudyPopulation]{createStudyPopulation()}} function.}
 
-\item{outcomeId}{The outcome to create the era data for. If not specified it is
-assumed to be the one outcome for which the data was loaded from
-the database.}
+\item{sccsData}{An object of type \link{SccsData} as created using the
+\link{getDbSccsData} function.}
 
 \item{exposureId}{The exposure to create the era data for. If not specified it is
 assumed to be the one exposure for which the data was loaded from
 the database.}
 
-\item{naivePeriod}{The number of days at the start of a patient's observation period
-that should not be included in the risk calculations. Note that
-the naive period can be used to determine current covariate
-status right after the naive period, and whether an outcome is
-the first one.}
-
-\item{firstOutcomeOnly}{Whether only the first occurrence of an outcome should be
-considered.}
-
-\item{minAge}{Minimum age at which patient time will be included in the analysis. Note
-that information prior to the min age is still used to determine exposure
-status after the minimum age (e.g. when a prescription was started just prior
-to reaching the minimum age). Also, outcomes occurring before the minimum age
-is reached will be considered as prior outcomes when using first outcomes only.
-Age should be specified in years, but non-integer values are allowed. If not
-specified, no age restriction will be applied.}
-
-\item{maxAge}{Maximum age at which patient time will be included in the analysis. Age should
-be specified in years, but non-integer values are allowed. If not
-specified, no age restriction will be applied.}
-
-\item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
-function \code{ggsave} in the ggplot2 package for supported file formats.}
+\item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'.
+See the function \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} for supported file formats.}
 }
 \value{
-A Ggplot object. Use the ggsave function to save to file.
+A ggplot object. Use the \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} function to save to file in a different
+format.
 }
 \description{
 Plot information centered around the start of exposure
@@ -60,8 +34,4 @@ Plot information centered around the start of exposure
 \details{
 This plot shows the number of events and the number of subjects under observation in week-sized intervals relative to the start
 of the first exposure.
-
-If parameters such as naivePeriod, minAge, and maxAge are provided, these will first be applied to curtail the observation period
-prior to plotting. Similarly, firstOutcomeOnly can be provided so subjects where the first outcome falls before the true observation
-start are removed before plotting.
 }

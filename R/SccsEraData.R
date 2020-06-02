@@ -14,31 +14,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' SCCS Data
+#' SCCS Era Data
 #'
 #' @description
-#' `SccsData` is an S4 class that inherits from [Andromeda][Andromeda::Andromeda]. It contains information on the cases and their covariates.
+#' SccsEraData` is an S4 class that inherits from [Andromeda][Andromeda::Andromeda]. It contains information on the cases and their covariates.
 #'
-#' A `SccsData` is typically created using [getDbSccsData()], can only be saved using
-#' [saveSccsData()], and loaded using [loadSccsData()].
+#' A `SccsEraData` is typically created using [createSccsEraData()], can only be saved using
+#' [saveSccsEraData()], and loaded using [loadSccsEraData()].
 #'
-#' @name SccsData-class
-#' @aliases SccsData
+#' @name SccsEraData-class
+#' @aliases SccsEraData
 NULL
 
-#' SccsData class.
+#' SccsEraData class.
 #'
 #' @export
 #' @import Andromeda
-setClass("SccsData", contains = "Andromeda")
+setClass("SccsEraData", contains = "Andromeda")
 
 #' Save the cohort method data to file
 #'
 #' @description
-#' Saves an object of type [SccsData] to a file.
+#' Saves an object of type [SccsEraData] to a file.
 #'
-#' @param SccsData   An object of type [SccsData] as generated using
-#'                           [getDbSccsData()].
+#' @param SccsEraData   An object of type [SccsEraData] as generated using
+#'                           [createSccsEraData()].
 #' @param file               The name of the file where the data will be written. If the file already
 #'                           exists it will be overwritten.
 #'
@@ -46,47 +46,47 @@ setClass("SccsData", contains = "Andromeda")
 #' Returns no output.
 #'
 #' @export
-saveSccsData <- function(SccsData, file) {
-  if (missing(SccsData))
-    stop("Must specify SccsData")
+saveSccsEraData <- function(SccsEraData, file) {
+  if (missing(SccsEraData))
+    stop("Must specify SccsEraData")
   if (missing(file))
     stop("Must specify file")
-  if (!inherits(SccsData, "SccsData"))
-    stop("Data not of class SccsData")
+  if (!inherits(SccsEraData, "SccsEraData"))
+    stop("Data not of class SccsEraData")
 
-  Andromeda::saveAndromeda(SccsData, file)
+  Andromeda::saveAndromeda(SccsEraData, file)
 }
 
 #' Load the cohort method data from a file
 #'
 #' @description
-#' Loads an object of type [SccsData] from a file in the file system.
+#' Loads an object of type [SccsEraData] from a file in the file system.
 #'
 #' @param file       The name of the file containing the data.
 #'
 #' @return
-#' An object of class [SccsData].
+#' An object of class [SccsEraData].
 #'
 #' @export
-loadSccsData <- function(file) {
+loadSccsEraData <- function(file) {
   if (!file.exists(file))
     stop("Cannot find file ", file)
   if (file.info(file)$isdir)
     stop(file , " is a folder, but should be a file")
-  SccsData <- Andromeda::loadAndromeda(file)
-  class(SccsData) <- "SccsData"
-  attr(class(SccsData), "package") <- "SelfControlledCaseSeries"
-  return(SccsData)
+  SccsEraData <- Andromeda::loadAndromeda(file)
+  class(SccsEraData) <- "SccsEraData"
+  attr(class(SccsEraData), "package") <- "SelfControlledCaseSeries"
+  return(SccsEraData)
 }
 
 # show()
-#' @param object  An object of type `SccsData`.
+#' @param object  An object of type `SccsEraData`.
 #'
 #' @export
-#' @rdname SccsData-class
-setMethod("show", "SccsData", function(object) {
+#' @rdname SccsEraData-class
+setMethod("show", "SccsEraData", function(object) {
   metaData <- attr(object, "metaData")
-  cli::cat_line(pillar::style_subtle("# SccsData object"))
+  cli::cat_line(pillar::style_subtle("# SccsEraData object"))
   cli::cat_line("")
   if (length(metaData$exposureIds) == 0) {
     cli::cat_line("All exposures")
@@ -104,11 +104,11 @@ setMethod("show", "SccsData", function(object) {
 })
 
 # summary()
-#' @param object  An object of type `SccsData`.
+#' @param object  An object of type `SccsEraData`.
 #'
 #' @export
-#' @rdname SccsData-class
-setMethod("summary", "SccsData", function(object) {
+#' @rdname SccsEraData-class
+setMethod("summary", "SccsEraData", function(object) {
   if (!Andromeda::isValidAndromeda(object))
     stop("Object is not valid. Probably the Andromeda object was closed.")
   caseCount <- object$cases %>%
@@ -116,14 +116,14 @@ setMethod("summary", "SccsData", function(object) {
     pull()
 
 
-  outcomeCounts <- sccsData$eras %>%
+  outcomeCounts <- SccsEraData$eras %>%
     filter(.data$eraType == "hoi") %>%
-    inner_join(sccsData$cases, by = "observationPeriodId") %>%
+    inner_join(SccsEraData$cases, by = "observationPeriodId") %>%
     group_by(.data$eraId) %>%
     summarise(outcomeSubjects = n_distinct(.data$personId),
               outcomeEvents = count(),
-              outcomeObsPeriods = n_distinct(.data$observationPeriodId),
-              .groups = "drop_last") %>%
+              outcomeObsPeriods = n_distinct(.data$observationPeriodId)) %>%
+    ungroup() %>%
     rename(outcomeId = .data$eraId) %>%
     collect()
 
@@ -132,23 +132,23 @@ setMethod("summary", "SccsData", function(object) {
                  outcomeCounts = outcomeCounts,
                  eraTypeCount = object$eraRef %>% count() %>% pull(),
                  eraCount = object$eras %>% count() %>% pull())
-  class(result) <- "summary.SccsData"
+  class(result) <- "summary.SccsEraData"
   return(result)
 })
 
 #' @export
-print.summary.SccsData <- function(x, ...) {
-  writeLines("SccsData object summary")
+print.summary.SccsEraData <- function(x, ...) {
+  writeLines("SccsEraData object summary")
   writeLines("")
   metaData <- x$metaData
   if (length(metaData$exposureIds) == 0) {
     writeLines("All exposures")
   } else {
     writeLines(paste("Exposure cohort ID(s):",
-                        paste(x$metaData$exposureIds, collapse = ",")))
+                     paste(x$metaData$exposureIds, collapse = ",")))
   }
   writeLines(paste("Outcome cohort ID(s):",
-                      paste(metaData$outcomeIds, collapse = ",")))
+                   paste(metaData$outcomeIds, collapse = ",")))
   writeLines("")
   writeLines("Outcome counts:")
   outcomeCounts <- as.data.frame(x$outcomeCounts)
@@ -162,7 +162,7 @@ print.summary.SccsData <- function(x, ...) {
   writeLines(paste("Number of eras:", x$eraCount))
 }
 
-#' Check whether an object is a SccsData object
+#' Check whether an object is a SccsEraData object
 #'
 #' @param x  The object to check.
 #'
@@ -170,6 +170,6 @@ print.summary.SccsData <- function(x, ...) {
 #' A logical value.
 #'
 #' @export
-isSccsData <- function(x) {
-  return(inherits(x, "SccsData"))
+isSccsEraData <- function(x) {
+  return(inherits(x, "SccsEraData"))
 }
