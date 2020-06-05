@@ -17,32 +17,22 @@
 #' Create SCCS era data
 #'
 #' @details
-#' This function creates covariates based on the data in the \code{sccsData} object, according to the
+#' This function creates covariates based on the data in the `sccsData` argument, according to the
 #' provided settings. It chops patient time into periods during which all covariates remain constant.
 #' The output details these periods, their durations, and a sparse representation of the covariate
 #' values.
 #'
-#' @param sccsData                    An object of type \code{sccsData} as created using the
-#'                                    \code{\link{getDbSccsData}} function.
-#' @param outcomeId                   The outcome to create the era data for. If not specified it is
-#'                                    assumed to be the one outcome for which the data was loaded from
-#'                                    the database.
-#' @param naivePeriod                 The number of days at the start of a patient's observation period
-#'                                    that should not be included in the risk calculations. Note that
-#'                                    the naive period can be used to determine current covariate
-#'                                    status right after the naive period, and whether an outcome is
-#'                                    the first one.
-#' @param firstOutcomeOnly            Whether only the first occurrence of an outcome should be
-#'                                    considered.
-#' @param covariateSettings           Either an object of type \code{covariateSettings} as created
-#'                                    using the \code{\link{createCovariateSettings}} function, or a
+#' @template StudyPopulation
+#' @template SccsData
+#' @param eraCovariateSettings        Either an object of type `covariateSettings` as created
+#'                                    using the [createCovariateSettings()] function, or a
 #'                                    list of such objects.
-#' @param ageSettings                 An object of type \code{ageSettings} as created using the
-#'                                    \code{\link{createAgeSettings}} function.
-#' @param seasonalitySettings         An object of type \code{seasonalitySettings} as created using the
-#'                                    \code{\link{createSeasonalitySettings}} function.
-#' @param minCasesForAgeSeason        Minimum number of cases to use to fit age and season splines. IF
-#'                                    needed (and available), cases that are not exposed will be included.#'
+#' @param ageCovariateSettings        An object of type `ageCovariateSettings` as created using the
+#'                                    [createAgeCovariateSettings()] function.
+#' @param seasonalityCovariateSettings An object of type `seasonalityCovariateSettings` as created using the
+#'                                    [createSeasonalityCovariateSettings()] function.
+#' @param minCasesForAgeSeason        Minimum number of cases to use to fit age and season splines. If
+#'                                    needed (and available), cases that are not exposed will be included.
 #' @param eventDependentObservation   Should the extension proposed by Farrington et al. be used to
 #'                                    adjust for event-dependent observation time?
 #'
@@ -52,157 +42,116 @@
 #' the American Statistical Association 106 (494), 417-426
 #'
 #' @return
-#' An object of type \code{sccsEraData}.
+#' An object of type [SccsEraData].
 #'
 #' @export
-createSccsEraData <- function(sccsData,
-                              outcomeId = NULL,
-                              naivePeriod = 0,
-                              firstOutcomeOnly = FALSE,
-                              covariateSettings,
-                              ageSettings = createAgeSettings(includeAge = FALSE),
-                              seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
+createSccsEraData <- function(studyPopulation,
+                              sccsData,
+                              eraCovariateSettings,
+                              ageCovariateSettings = NULL,
+                              seasonalityCovariateSettings = NULL,
                               minCasesForAgeSeason = 10000,
                               eventDependentObservation = FALSE) {
   start <- Sys.time()
-  if (is.null(outcomeId)) {
-    outcomeId <- sccsData$metaData$outcomeIds
-    if (length(outcomeId) != 1) {
-      stop("No outcome ID specified, but multiple outcomes found")
-    }
-  }
-  if (sum(sccsData$eras$eraType == "hoi" & sccsData$eras$conceptId == outcomeId) == 0) {
-    sccsData$metaData$error <- "Error: No cases left"
-    sccsData$metaData$outcomeId <- outcomeId
-    result <- list(metaData = sccsData$metaData)
-    class(result) <- "sccsEraData"
-    return(result)
+  if (nrow(studyPopulation$outcomes) == 0) {
+    sccsEraData <- createEmptySccsEraData()
+    metaData <- studyPopulation$metaData
+    metaData$error <- "Error: No cases left"
+    attr(sccsEraData, "metaData") <- metaData
+
+    class(sccsEraData) <- "SccsEraData"
+    attr(class(sccsEraData), "package") <- "SelfControlledCaseSeries"
+    return(sccsEraData)
   }
 
-  if (eventDependentObservation) {
-    sccsData$cases$uncensored <- isUncensored(sccsData, ageSettings$maxAge)
-  } else {
-    sccsData$cases$uncensored <- ff::ff(FALSE, nrow(sccsData$cases))
+  ageSeasonsCases <- numeric(0)
+  if (!is.null(ageCovariateSettings) || !is.null(seasonalityCovariateSettings)) {
+    if (nrow(studyPopulation$cases) > minCasesForAgeSeason) {
+      set.seed(0)
+      ageSeasonsCases <- sample(studyPopulation$cases$observationPeriodId, minCasesForAgeSeason, replace = FALSE)
+    }
   }
 
   settings <- list()
   settings$metaData <- list()
-  settings$metaData$getDbCall <- sccsData$metaData$call
-  settings$metaData$eraCall <- match.call()
-  settings$metaData$outcomeId <- outcomeId
-  settings$covariateRef <- data.frame()
-  ageSeasonsCases <- numeric(0)
-  if (ageSettings$includeAge || seasonalitySettings$includeSeasonality) {
-    includedOutcomes <- findIncludedOutcomes(sccsData, outcomeId, firstOutcomeOnly, naivePeriod, ageSettings$minAge, ageSettings$maxAge)$outcomes
-    if (nrow(includedOutcomes) > minCasesForAgeSeason) {
-      set.seed(0)
-      ageSeasonsCases <- sample(includedOutcomes$observationPeriodId, minCasesForAgeSeason, replace = FALSE)
-    }
-  }
-  settings <- addAgeSettings(settings,
-                             ageSettings,
-                             includedOutcomes)
-  settings <- addSeasonalitySettings(settings, seasonalitySettings, sccsData)
+  settings$covariateRef <- tibble()
+  settings <- addAgeSettings(settings, ageCovariateSettings, studyPopulation)
+  settings <- addSeasonalitySettings(settings, seasonalityCovariateSettings, sccsData)
   settings <- addEventDependentObservationSettings(settings,
                                                    eventDependentObservation,
-                                                   outcomeId,
-                                                   naivePeriod,
-                                                   sccsData)
-  settings <- addCovariateSettings(settings, covariateSettings, sccsData)
+                                                   studyPopulation)
+  settings <- addEraCovariateSettings(settings, eraCovariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- settings$covariateSettingsList
 
   ParallelLogger::logInfo("Converting person data to SCCS eras. This might take a while.")
-  data <- convertToSccs(sccsData$cases,
-                        sccsData$eras,
-                        outcomeId,
-                        naivePeriod,
-                        firstOutcomeOnly,
-                        ageSettings$includeAge,
+  # Ensure all sorted bv observationPeriodId:
+  cases <- studyPopulation$cases[order(studyPopulation$cases$observationPeriodId), ]
+  outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$observationPeriodId), ]
+  eras <- sccsData$eras %>%
+    arrange(.data$observationPeriodId)
+
+  data <- SelfControlledCaseSeries:::convertToSccs(cases,
+                        outcomes,
+                        eras,
+                        !is.null(ageCovariateSettings),
                         settings$ageOffset,
                         settings$ageDesignMatrix,
-                        settings$minAge,
-                        settings$maxAge,
-                        seasonalitySettings$includeSeasonality,
+                        !is.null(seasonalityCovariateSettings),
                         settings$seasonDesignMatrix,
                         ageSeasonsCases,
                         settings$covariateSettingsList,
                         eventDependentObservation,
                         settings$censorModel)
-  # Using length not nrow to detect empty object:
-  if (length(data$outcomes) == 0) {
+
+  if (is.null(data$outcomes)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
-    result <- list(outcomes = NULL,
-                   covariates = NULL,
-                   covariateRef = NULL,
-                   metaData = settings$metaData)
-  } else {
-    result <- list(outcomes = data$outcomes,
-                   covariates = data$covariates,
-                   covariateRef = ff::as.ffdf(settings$covariateRef),
-                   metaData = settings$metaData)
-    open(result$outcomes)
-    open(result$covariates)
-    open(result$covariateRef)
+    data <- createEmptySccsEraData()
   }
-  class(result) <- "sccsEraData"
+  data$covariateRef = settings$covariateRef
+
+  metaData <- append(studyPopulation$metaData, settings$metaData)
+  attr(data, "metaData") <- metaData
+
+  class(data) <- "SccsEraData"
+  attr(class(data), "package") <- "SelfControlledCaseSeries"
+
   delta <- Sys.time() - start
   ParallelLogger::logInfo(paste("Generating SCCS era data took", signif(delta, 3), attr(delta, "units")))
-  return(result)
+  return(data)
 }
 
-findIncludedOutcomes <- function(sccsData, outcomeId, firstOutcomeOnly, naivePeriod, minAge, maxAge) {
-  outcomes <- ffbase::subset.ffdf(sccsData$eras, eraType == "hoi" & conceptId == outcomeId)
-  if (firstOutcomeOnly) {
-    outcomes <- ff::as.ffdf(aggregate(startDay ~ observationPeriodId, outcomes, min))
-  }
-  colnames(outcomes)[colnames(outcomes) == "startDay"] <- "outcomeDay"
-  cases <- sccsData$cases
-  cases$trueStartAge <- ff::clone.ff(cases$ageInDays)
-  idx <- naivePeriod > cases$censoredDays
-  if (ffbase::any.ff(idx)) {
-    cases$trueStartAge[idx] <- cases$trueStartAge[idx] + (naivePeriod - cases$censoredDays[idx])
-  }
-  cases$trueEndAge <- cases$ageInDays + cases$observationDays
-  if (!is.null(minAge)) {
-    minAgeDays <- minAge * 365.25
-    idx <- cases$trueStartAge < minAgeDays
-    cases$trueStartAge[idx] <- ff::ff(minAgeDays, ffbase::sum.ff(idx))
-  }
-  if (!is.null(maxAge)) {
-    maxAgeDays <- (maxAge + 1) * 365.25
-    idx <- cases$trueEndAge > maxAgeDays
-    cases$trueEndAge[idx] <- ff::ff(maxAgeDays, ffbase::sum.ff(idx))
-  }
-  cases <- cases[cases$trueStartAge <= cases$trueEndAge, ]
-  outcomes <- merge(outcomes, ffbase::subset.ffdf(cases, select = c("observationPeriodId", "ageInDays", "trueStartAge", "trueEndAge")))
-  outcomes$outcomeAge <- outcomes$outcomeDay + outcomes$ageInDays
-  outcomes <- outcomes[outcomes$outcomeAge >= outcomes$trueStartAge & outcomes$outcomeAge <= outcomes$trueEndAge, ]
-  cases <- cases[ffbase::`%in%`(cases$observationPeriodId, outcomes$observationPeriodId), ]
-  return(list(outcomes = outcomes, cases = cases))
+createEmptySccsEraData <- function() {
+  sccsEraData <- Andromeda::andromeda(outcomes = tibble(rowId = 1,
+                                                        stratumId = 1,
+                                                        time = 1,
+                                                        y = 1)[-1, ],
+                                      covariates = tibble(rowId = 1,
+                                                          stratumId = 1,
+                                                          covariateId = 1,
+                                                          covariateValue = 1)[-1, ],
+                                      covariateRef = tibble(covariateId = 1,
+                                                            covariateName = "",
+                                                            originalEraId = 1,
+                                                            originalEraName = "",
+                                                            originalEraType = "")[-1, ])
+  return(sccsEraData)
 }
 
 addAgeSettings <- function(settings,
-                           ageSettings,
-                           includedOutcomes) {
-  if (is.null(ageSettings$minAge)) {
-    settings$minAge <- -1
-  } else {
-    settings$minAge <- ageSettings$minAge * 365.25
-  }
-  if (is.null(ageSettings$maxAge)) {
-    settings$maxAge <- -1
-  } else {
-    settings$maxAge <- (ageSettings$maxAge + 1) * 365.25
-  }
-  if (!ageSettings$includeAge) {
+                           ageCovariateSettings,
+                           studyPopulation) {
+  if (is.null(ageCovariateSettings)) {
     settings$ageOffset <- 0
     settings$ageDesignMatrix <- matrix()
   } else {
-    if (length(ageSettings$ageKnots) == 1) {
-      ageKnots <- ffbase::quantile.ff(includedOutcomes$outcomeAge,
-                                      seq(0.01, 0.99, length.out = ageSettings$ageKnots))
+    if (length(ageCovariateSettings$ageKnots) == 1) {
+      ageKnots <- studyPopulation$outcomes %>%
+        inner_join(studyPopulation$cases, by = "observationPeriodId") %>%
+        transmute(outcomeAge = .data$outcomeDay + .data$ageInDays) %>%
+        pull() %>%
+        quantile(seq(0.01, 0.99, length.out = ageCovariateSettings$ageKnots))
     } else {
-      ageKnots <- ageSettings$ageKnots
+      ageKnots <- ageCovariateSettings$ageKnots
     }
     settings$ageOffset <- ageKnots[1]
     ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)],
@@ -210,44 +159,46 @@ addAgeSettings <- function(settings,
                                    Boundary.knots = ageKnots[c(1, length(ageKnots))])
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$ageDesignMatrix <- ageDesignMatrix[, 2:ncol(ageDesignMatrix)]
-    splineCovariateRef <- data.frame(covariateId = 100:(100 + length(ageKnots) - 1),
-                                     covariateName = paste("Age spline component",
-                                                           1:(length(ageKnots))),
-                                     originalCovariateId = 0,
-                                     originalCovariateName = "")
-    settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
+    splineCovariateRef <- tibble(covariateId = 100:(100 + length(ageKnots) - 1),
+                                 covariateName = paste("Age spline component",
+                                                       1:(length(ageKnots))),
+                                 originalEraId = 0,
+                                 originalEraType = "",
+                                 originalEraName = "")
+    settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
     age <- list(ageKnots = ageKnots,
                 covariateIds = splineCovariateRef$covariateId,
-                allowRegularization = ageSettings$allowRegularization,
-                computeConfidenceIntervals = ageSettings$computeConfidenceIntervals)
+                allowRegularization = ageCovariateSettings$allowRegularization,
+                computeConfidenceIntervals = ageCovariateSettings$computeConfidenceIntervals)
     settings$metaData$age <- age
   }
   return(settings)
 }
 
-addSeasonalitySettings <- function(settings, seasonalitySettings, sccsData) {
-  if (!seasonalitySettings$includeSeasonality) {
+addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsData) {
+  if (is.null(seasonalityCovariateSettings)) {
     settings$seasonDesignMatrix <- matrix()
   } else {
-    if (length(seasonalitySettings$seasonKnots) == 1) {
+    if (length(seasonalityCovariateSettings$seasonKnots) == 1) {
       # Single number, should interpret as number of knots. Spread out knots evenly:
-      seasonKnots <- seq(1, 12, length.out = seasonalitySettings$seasonKnots)
+      seasonKnots <- seq(1, 12, length.out = seasonalityCovariateSettings$seasonKnots)
     } else {
-      seasonKnots <- seasonalitySettings$seasonKnots
+      seasonKnots <- seasonalityCovariateSettings$seasonKnots
     }
     seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$seasonDesignMatrix <- seasonDesignMatrix[, 2:ncol(seasonDesignMatrix)]
-    splineCovariateRef <- data.frame(covariateId = 200:(200 + length(seasonKnots) - 3),
-                                     covariateName = paste("Seasonality spline component",
-                                                           1:(length(seasonKnots) - 2)),
-                                     originalCovariateId = 0,
-                                     originalCovariateName = "")
-    settings$covariateRef <- rbind(settings$covariateRef, splineCovariateRef)
+    splineCovariateRef <- tibble(covariateId = 200:(200 + length(seasonKnots) - 3),
+                                 covariateName = paste("Seasonality spline component",
+                                                       1:(length(seasonKnots) - 2)),
+                                 originalEraId = 0,
+                                 originalEraType = "",
+                                 originalEraName = "")
+    settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
     seasonality <- list(seasonKnots = seasonKnots,
                         covariateIds = splineCovariateRef$covariateId,
-                        allowRegularization = seasonalitySettings$allowRegularization,
-                        computeConfidenceIntervals = seasonalitySettings$computeConfidenceIntervals)
+                        allowRegularization = seasonalityCovariateSettings$allowRegularization,
+                        computeConfidenceIntervals = seasonalityCovariateSettings$computeConfidenceIntervals)
     settings$metaData$seasonality <- seasonality
   }
   return(settings)
@@ -255,105 +206,87 @@ addSeasonalitySettings <- function(settings, seasonalitySettings, sccsData) {
 
 addEventDependentObservationSettings <- function(settings,
                                                  eventDependentObservation,
-                                                 outcomeId,
-                                                 naivePeriod,
-                                                 sccsData) {
-  if (eventDependentObservation) {
-    # Pick first outcome per person
-    t <- sccsData$eras$eraType == "hoi" & sccsData$eras$conceptId == outcomeId
-    rownames(sccsData$eras) <- NULL
-    firstOutcomes <- aggregate(startDay ~ observationPeriodId,
-                               data = sccsData$eras[ffbase::ffwhich(t, t == TRUE), ],
-                               min)
-    colnames(firstOutcomes)[colnames(firstOutcomes) == "startDay"] <- "outcomeDay"
-    m <- ffbase::ffmatch(ff::as.ff(firstOutcomes$observationPeriodId), sccsData$cases$observationPeriodId)
-    firstOutcomes$censoredDays <- ff::as.ram(sccsData$cases$censoredDays[m])
+                                                 studyPopulation) {
+  if (!eventDependentObservation) {
+    settings$censorModel <- list(model = 0, p = c(0))
+  } else {
 
-    # See who has first event in remaining observation period after applying naive period
-    firstOutcomes <- firstOutcomes[firstOutcomes$outcomeDay >= (naivePeriod - firstOutcomes$censoredDays) & firstOutcomes$outcomeDay >= 0, ]
-    rownames(sccsData$cases) <- NULL
-    t <- in.ff(sccsData$cases$observationPeriodId, ff::as.ff(firstOutcomes$observationPeriodId))
-    cases <- ff::as.ram(sccsData$cases[ffbase::ffwhich(t, t == TRUE), ])
-    cases <- merge(cases, firstOutcomes)
-
-    # Fit censoring models
-    data <- data.frame(astart = cases$ageInDays + naivePeriod,
-                       aend = cases$ageInDays + cases$observationDays,
-                       aevent = cases$ageInDays + cases$outcomeDay + 1,
-                       present = cases$uncensored)
-    # data$aend[cases$ageInDays + data$aend == data$aevent] <- data$aend[cases$ageInDays + data$aend ==
-    # data$aevent] + 0.5
+    data <- studyPopulation$outcomes %>%
+      group_by(.data$observationPeriodId) %>%
+      summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
+      inner_join(studyPopulation$cases, by = "observationPeriodId") %>%
+      transmute(astart = .data$ageInDays,
+                aend = .data$ageInDays + .data$endDay,
+                aevent = .data$ageInDays + .data$outcomeDay + 1,
+                present = .data$noninformativeEndCensor)
 
     settings$censorModel <- fitModelsAndPickBest(data)
     settings$metaData$censorModel <- settings$censorModel
-  } else {
-    settings$censorModel <- list(model = 0, p = c(0))
   }
   return(settings)
 }
 
-addCovariateSettings <- function(settings, covariateSettings, sccsData) {
-  if (is.list(covariateSettings) && class(covariateSettings) != "covariateSettings") {
-    covariateSettingsList <- covariateSettings
+addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
+  if (is.list(eraCovariateSettings) && class(eraCovariateSettings) != "EraCovariateSettings") {
+    eraCovariateSettingsList <- eraCovariateSettings
   } else {
-    covariateSettingsList <- list(covariateSettings)
+    eraCovariateSettingsList <- list(eraCovariateSettings)
   }
-  covariateRef <- ff::as.ram(sccsData$covariateRef)
+  eraRef <- sccsData$eraRef %>%
+    collect()
 
   # Iterate over different covariate settings. Assign unique IDs, and store in covariateRef:
   outputId <- 1000
-  for (i in 1:length(covariateSettingsList)) {
-    covariateSettings <- covariateSettingsList[[i]]
+  for (i in 1:length(eraCovariateSettingsList)) {
+    covariateSettings <- eraCovariateSettingsList[[i]]
 
     if (is.null(covariateSettings$label)) {
       covariateSettings$label <- "Covariate"
     }
-    if (is.null(covariateSettings$includeCovariateIds) || length(covariateSettings$includeCovariateIds) ==
-        0) {
-      covariateSettings$covariateIds <- ff::as.ram(sccsData$covariateRef$covariateId)
-      t <- sccsData$eras$eraType == "hoi"
-      t <- ffbase::ffwhich(t, t == FALSE)
-      covariateSettings$covariateIds <- ff::as.ram(ffbase::unique.ff(sccsData$eras$conceptId[t]))
+    if (is.null(covariateSettings$includeCovariateIds) || length(covariateSettings$includeCovariateIds) == 0) {
+      covariateSettings$covariateIds <- eraRef %>%
+        filter(.data$eraType != "hoi") %>%
+        select(.data$eraId) %>%
+        pull()
     } else {
       covariateSettings$covariateIds <- covariateSettings$includeCovariateIds
     }
-    if (!is.null(covariateSettings$excludeCovariateIds) && length(covariateSettings$excludeCovariateIds) !=
-        0) {
-      covariateSettings$covariateIds <- covariateSettings$covariateIds[!ffbase::`%in%`(covariateSettings$covariateIds,
-                                                                                       covariateSettings$excludeCovariateIds)]
+    if (!is.null(covariateSettings$excludeCovariateIds) && length(covariateSettings$excludeCovariateIds) != 0) {
+      covariateSettings$covariateIds <- covariateSettings$covariateIds[!covariateSettings$covariateIds %in% covariateSettings$excludeCovariateIds]
     }
 
     if (length(covariateSettings$splitPoints) == 0) {
       if (!covariateSettings$stratifyById) {
         # Create a single output ID
         covariateSettings$outputIds <- as.matrix(outputId)
-        newCovariateRef <- data.frame(covariateId = outputId,
-                                      covariateName = covariateSettings$label,
-                                      originalCovariateId = 0,
-                                      originalCovariateName = "")
-        settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
+        newCovariateRef <- tibble(covariateId = outputId,
+                                  covariateName = covariateSettings$label,
+                                  originalEraId = 0,
+                                  originalEraType = "",
+                                  originalEraName = "")
+        settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
         outputId <- outputId + 1
       } else {
         # Create a unique output ID for every covariate ID
         outputIds <- outputId:(outputId + length(covariateSettings$covariateIds) - 1)
         covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
         outputId <- outputId + length(outputIds)
-        varNames <- covariateRef[covariateRef$covariateId %in% covariateSettings$covariateIds, ]
+        varNames <- eraRef[eraRef$eraId %in% covariateSettings$covariateIds, ]
         if (nrow(varNames) == 0) {
           warning(paste0("Could not find covariate with ID ", covariateSettings$covariateIds, " in data"))
         } else {
-          names(varNames)[names(varNames) == "covariateId"] <- "originalCovariateId"
-          names(varNames)[names(varNames) == "covariateName"] <- "originalCovariateName"
-          varNames$originalCovariateName <- as.character(varNames$originalCovariateName)
-          varNames$originalCovariateName[varNames$originalCovariateName == ""] <- varNames$originalCovariateId[varNames$originalCovariateName ==
-                                                                                                                 ""]
-          varNames$covariateName <- paste(covariateSettings$label,
-                                          varNames$originalCovariateName,
-                                          sep = ": ")
-          newCovariateRef <- data.frame(covariateId = outputIds,
-                                        originalCovariateId = covariateSettings$covariateIds)
-          newCovariateRef <- merge(newCovariateRef, varNames, by = "originalCovariateId")
-          settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
+          varNames <- varNames %>%
+            transmute(originalEraId = .data$eraId,
+                      originalEraType = .data$eraType,
+                      originalEraName = .data$eraName,
+                      covariateName = paste(covariateSettings$label,
+                                            .data$eraName,
+                                            sep = ": "))
+
+          newCovariateRef <- tibble(covariateId = outputIds,
+                                    originalEraId = covariateSettings$covariateIds) %>%
+            inner_join(varNames, by = "originalEraId")
+          settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
         }
       }
     } else {
@@ -368,24 +301,27 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
         covariateSettings$outputIds <- matrix(outputIds,
                                               ncol = length(covariateSettings$splitPoints) + 1,
                                               byrow = TRUE)
-        newCovariateRef <- data.frame(covariateId = outputIds,
-                                      covariateName = varNames,
-                                      originalCovariateId = 0,
-                                      originalCovariateName = "")
-        settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
+        newCovariateRef <- tibble(covariateId = outputIds,
+                                  covariateName = varNames,
+                                  originaEraId = 0,
+                                  originalEraType = "",
+                                  originalEraName = "")
+        settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
       } else {
         outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$covariateIds) - 1)
         outputId <- max(outputIds) + 1
         covariateSettings$outputIds <- matrix(outputIds,
                                               ncol = length(covariateSettings$splitPoints) + 1,
                                               byrow = TRUE)
-        if (any(covariateSettings$covariateIds %in% covariateRef$covariateId)) {
-          originalCovariateId <- rep(covariateSettings$covariateIds,
-                                     each = length(covariateSettings$splitPoints) + 1)
-          originalCovariateName <- covariateRef$covariateName[match(originalCovariateId,
-                                                                    covariateRef$covariateId)]
-          originalCovariateName[originalCovariateName == ""] <- originalCovariateId[originalCovariateName == ""]
-          varNames <- paste(covariateSettings$label, ": ", originalCovariateName, sep = "")
+        if (any(covariateSettings$covariateIds %in% eraRef$eraId)) {
+          originalEraId <- rep(covariateSettings$covariateIds,
+                               each = length(covariateSettings$splitPoints) + 1)
+          originalEraType <- eraRef$eraType[match(originalEraId,
+                                                  eraRef$eraId)]
+          originalEraName <- eraRef$eraName[match(originalEraId,
+                                                  eraRef$eraId)]
+          originalEraName[originalEraName == ""] <- originalEraId[originalEraName == ""]
+          varNames <- paste(covariateSettings$label, ": ", originalEraName, sep = "")
           varNames <- paste(varNames,
                             ", day ",
                             startDays,
@@ -395,225 +331,17 @@ addCovariateSettings <- function(settings, covariateSettings, sccsData) {
 
           newCovariateRef <- data.frame(covariateId = outputIds,
                                         covariateName = varNames,
-                                        originalCovariateId = originalCovariateId,
-                                        originalCovariateName = originalCovariateName)
-          settings$covariateRef <- rbind(settings$covariateRef, newCovariateRef)
+                                        originalEraId = originalEraId,
+                                        originalEraType = originalEraType,
+                                        originalEraName = originalEraName)
+          settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
         }
       }
     }
-    covariateSettingsList[[i]] <- covariateSettings
+    eraCovariateSettingsList[[i]] <- covariateSettings
   }
-  settings$covariateSettingsList <- covariateSettingsList
-  settings$covariateRef$covariateName <- as.factor(settings$covariateRef$covariateName)
-  settings$covariateRef$originalCovariateName <- as.factor(settings$covariateRef$originalCovariateName)
+  settings$covariateSettingsList <- eraCovariateSettingsList
   return(settings)
-}
-
-
-
-#' Save the SCCS era data to folder
-#'
-#' @description
-#' \code{saveSccsEraData} saves an object of type sccsEraData to folder.
-#'
-#' @param sccsEraData   An object of type \code{sccsEraData} as generated using
-#'                      \code{\link{createSccsEraData}}.
-#' @param folder        The name of the folder where the data will be written. The folder should not
-#'                      yet exist.
-#' @param compress      Should compression be used when saving?
-#'
-#' @details
-#' The data will be written to a set of files in the specified folder.
-#'
-#' @export
-saveSccsEraData <- function(sccsEraData, folder, compress = FALSE) {
-  if (missing(sccsEraData))
-    stop("Must specify sccsEraData")
-  if (missing(folder))
-    stop("Must specify folder")
-  if (class(sccsEraData) != "sccsEraData")
-    stop("Data not of class sccsEraData")
-  ParallelLogger::logTrace("Saving SccsEraData to ", folder)
-
-  dir.create(folder)
-
-  if (is.null(sccsEraData$outcomes)) {
-    outcomes <- ff::as.ffdf(data.frame(error = 1))
-    covariates <- ff::as.ffdf(data.frame(error = 1))
-    covariateRef <- ff::as.ffdf(data.frame(error = 1))
-  } else {
-    outcomes <- sccsEraData$outcomes
-    covariates <- sccsEraData$covariates
-    covariateRef <- sccsEraData$covariateRef
-  }
-  if (compress) {
-    saveCompressedFfdf(outcomes, file.path(folder, "outcomes"))
-    saveCompressedFfdf(covariates, file.path(folder, "covariates"))
-    saveCompressedFfdf(covariateRef, file.path(folder, "covariateRef"))
-  } else {
-    ffbase::save.ffdf(outcomes, covariates, covariateRef, dir = folder)
-    # Open all ffdfs to prevent annoying messages later:
-    if (!is.null(sccsEraData$outcomes)) {
-      open(sccsEraData$outcomes)
-      open(sccsEraData$covariates)
-      open(sccsEraData$covariateRef)
-    }
-  }
-  metaData <- sccsEraData$metaData
-  save(metaData, file = file.path(folder, "metaData.Rdata"))
-  invisible(TRUE)
-}
-
-#' Load the SCCS era data from a folder
-#'
-#' @description
-#' \code{loadSccsEraData} loads an object of type sccsEraData from a folder in the file system.
-#'
-#' @param folder     The name of the folder containing the data.
-#' @param readOnly   If true, the data is opened read only.
-#'
-#' @details
-#' The data will be written to a set of files in the folder specified by the user.
-#'
-#' @return
-#' An object of class sccsEraData
-#'
-#' @export
-loadSccsEraData <- function(folder, readOnly = FALSE) {
-  if (!file.exists(folder))
-    stop(paste("Cannot find folder", folder))
-  if (!file.info(folder)$isdir)
-    stop(paste("Not a folder:", folder))
-  ParallelLogger::logTrace("Loading SccsEraData from ", folder)
-
-  temp <- setwd(folder)
-  absolutePath <- setwd(temp)
-  e <- new.env()
-  if (file.exists(file.path(absolutePath, "outcomes.zip"))) {
-    outcomes <- loadCompressedFfdf(file.path(absolutePath, "outcomes"))
-    covariates <- loadCompressedFfdf(file.path(absolutePath, "covariates"))
-    covariateRef <- loadCompressedFfdf(file.path(absolutePath, "covariateRef"))
-  } else {
-    ffbase::load.ffdf(absolutePath, e)
-    outcomes = get("outcomes", envir = e)
-    covariates = get("covariates", envir = e)
-    covariateRef = get("covariateRef", envir = e)
-    open(outcomes, readonly = readOnly)
-    open(covariates, readonly = readOnly)
-    open(covariateRef, readonly = readOnly)
-  }
-  load(file.path(absolutePath, "metaData.Rdata"), e)
-  result <- list(outcomes = outcomes,
-                 covariates = covariates,
-                 covariateRef = covariateRef,
-                 metaData = get("metaData", envir = e))
-  if (!is.null(result$outcomes$error)) {
-    result$outcomes <- NULL
-    result$covariates <- NULL
-    result$covariateRef <- NULL
-  }
-  class(result) <- "sccsEraData"
-  rm(e)
-  return(result)
-}
-
-
-#' Force a loaded SCCS era data in RAM
-#'
-#' @description
-#' \code{forceSccsEraDataIntoRam} converts the ffdf components of an sccsEraData object
-#' into data.table components
-#'
-#' @param sccsEraData     Existing sccsEraData object.
-#'
-#' @details
-#' Uses ff::as.ram() to move virtual data into data.table objects
-#'
-#' @return
-#' An object of class sccsEraData
-#'
-#' @export
-forceSccsEraDataIntoRam <- function(sccsEraData) {
-  if (!inherits(sccsEraData$outcomes , "ffdf")) {
-    stop("sccsEraData must contain virtual ffdf objects")
-  }
-  sccsEraData$outcomes <- ff::as.ram(sccsEraData$outcomes)
-  sccsEraData$covariates <- ff::as.ram(sccsEraData$covariates)
-  sccsEraData$covariateRef <- ff::as.ram(sccsEraData$covariateRef)
-
-  return(sccsEraData)
-}
-
-#' @export
-print.sccsEraData <- function(x, ...) {
-  writeLines("sccsEraData object")
-  writeLines("")
-  writeLines(paste("Outcome ID:", paste(x$metaData$outcomeId, collapse = ",")))
-}
-
-#' @export
-summary.sccsEraData <- function(object, ...) {
-  if (is.null(object$outcomes)) {
-    outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
-                                eventCount = 0,
-                                caseCount = 0)
-
-    result <- list(metaData = object$metaData,
-                   outcomeCounts = outcomeCounts,
-                   covariateCount = 0,
-                   covariateValueCount = 0,
-                   covariateRef = ff::as.ram(object$covariateRef))
-  } else {
-
-    eventCount <- ifelse(inherits(object$outcomes, "ffdf"),
-                         ffbase::sum.ff(object$outcomes$y),
-                         sum(object$outcomes$y))
-
-    caseCount <- ifelse(inherits(object$outcomes, "ffdf"),
-                        length(ffbase::unique.ff(object$outcomes$stratumId)),
-                        length(unique(object$outcomes$stratumId)))
-
-    outcomeCounts <- data.frame(outcomeConceptId = object$metaData$outcomeId,
-                                eventCount = eventCount,
-                                caseCount = caseCount)
-
-    result <- list(metaData = object$metaData,
-                   outcomeCounts = outcomeCounts,
-                   covariateCount = nrow(object$covariateRef),
-                   covariateValueCount = nrow(object$covariates),
-                   covariateRef = ff::as.ram(object$covariateRef))
-
-  }
-
-  class(result) <- "summary.sccsEraData"
-  return(result)
-}
-
-#' @export
-print.summary.sccsEraData <- function(x, ...) {
-  writeLines("sccsEraData object summary")
-  writeLines("")
-  writeLines(paste("Outcome ID:", paste(x$metaData$outcomeId, collapse = ",")))
-  writeLines("")
-  writeLines("Outcome count:")
-  outcomeCounts <- x$outcomeCounts
-  rownames(outcomeCounts) <- outcomeCounts$outcomeConceptId
-  outcomeCounts$outcomeConceptId <- NULL
-  colnames(outcomeCounts) <- c("Event count", "Case count")
-  printCoefmat(outcomeCounts)
-  writeLines("")
-  writeLines("Covariates:")
-  writeLines(paste("Number of covariates:", x$covariateCount))
-  writeLines(paste("Number of covariate eras:", x$covariateValueCount))
-  writeLines("")
-  covariateRef <- x$covariateRef
-  if (nrow(covariateRef) > 10)
-    covariateRef <- covariateRef[1:10, ]
-  rownames(covariateRef) <- as.character(covariateRef$covariateName)
-  covariateRef$covariateName <- NULL
-  covariateRef$originalCovariateName <- NULL
-  colnames(covariateRef) <- c("Original covariate ID", "Current covariate ID")
-  printCoefmat(covariateRef)
 }
 
 #' Create a design matrix for a cyclic spline
@@ -646,33 +374,4 @@ cyclicSplineDesign <- function(x, knots, ord = 4) {
     X1[ind, ] <- X1[ind, ] + X2
   }
   X1
-}
-
-saveCompressedFfdf <- function(ffdf, fileName) {
-  dir.create(dirname(fileName), showWarnings = FALSE, recursive = TRUE)
-  saveRDS(ffdf, paste0(fileName, ".rds"))
-  fileNames <- sapply(bit::physical(ffdf), function(x) bit::physical(x)$filename)
-  sourceDir <- dirname(fileNames[1])
-  oldWd <- setwd(sourceDir)
-  on.exit(setwd(oldWd))
-  sourceNames <- basename(fileNames)
-  ff::close.ffdf(ffdf)
-  DatabaseConnector::createZipFile(zipFile = paste0(fileName, ".zip"), files = sourceNames)
-  ff::open.ffdf(ffdf)
-}
-
-loadCompressedFfdf <- function(fileName) {
-  ffdf <- readRDS(paste0(fileName, ".rds"))
-  tempRoot <- ff::fftempfile("temp")
-  utils::unzip(zipfile = paste0(fileName, ".zip"), exdir = tempRoot)
-  for (ff in bit::physical(ffdf)) {
-    newFileName <- ff::fftempfile("")
-    file.rename(file.path(tempRoot, basename(bit::physical(ff)$filename)), newFileName)
-    bit::physical(ff)$filename <- newFileName
-    bit::physical(ff)$finalizer <- "delete"
-    ff::open.ff(ff)
-    reg.finalizer(attr(ff,"physical"), ff::finalize.ff_pointer, onexit = bit::physical(ff)$finonexit)
-  }
-  unlink(tempRoot, recursive = TRUE)
-  return(ffdf)
 }

@@ -22,17 +22,16 @@
 #' Fits the SCCS model as a conditional Poisson regression. When allowed, coefficients for some or all
 #' covariates can be regularized.
 #'
-#' @param sccsEraData   An object of type \code{sccsEraData} as created using the
-#'                      \code{\link{createSccsEraData}} function.
-#' @param prior         The prior used to fit the model. See \code{\link[Cyclops]{createPrior}} for
+#' @template SccsEraData
+#' @param prior         The prior used to fit the model. See [Cyclops::createPrior] for
 #'                      details.
 #' @param control       The control object used to control the cross-validation used to determine the
 #'                      hyperparameters of the prior (if applicable). See
-#'                      \code{\link[Cyclops]{createControl}} for details.
+#'                      [Cyclops::createControl] for details.
 #'
 #' @return
-#' An object of type \code{sccsModel}. Generic functions \code{summary}, \code{coef}, and
-#' \code{confint} are available.
+#' An object of type `SccsModel`. Generic functions `print`, `coef`, and
+#' `confint` are available.
 #'
 #' @references
 #' Suchard, M.A., Simpson, S.E., Zorych, I., Ryan, P., and Madigan, D. (2013). Massive parallelization
@@ -54,7 +53,7 @@ fitSccsModel <- function(sccsEraData,
     return(result)
   }
   start <- Sys.time()
-  if (is.null(sccsEraData$outcomes)) {
+  if (sccsEraData$outcomes %>% count() %>% pull() == 0) {
     coefficients <- c(0)
     estimates <- NULL
     priorVariance <- 0
@@ -65,7 +64,7 @@ fitSccsModel <- function(sccsEraData,
     nonRegularized <- c()
     needRegularization <- FALSE
     needCi <- c()
-    covariateSettingsList <- sccsEraData$metaData$covariateSettingsList
+    covariateSettingsList <- attr(sccsEraData, "metaData")$covariateSettingsList
     for (i in 1:length(covariateSettingsList)) {
       if (covariateSettingsList[[i]]$allowRegularization) {
         needRegularization <- TRUE
@@ -130,7 +129,7 @@ fitSccsModel <- function(sccsEraData,
       status <- "OK"
       estimates <- coef(fit)
       estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
-      estimates <- merge(estimates, ff::as.ram(sccsEraData$covariateRef), all.x = TRUE)
+      estimates <- merge(estimates, collect(sccsEraData$covariateRef), all.x = TRUE)
       if (length(needCi) == 0) {
         estimates$logLb95 <- NA
         estimates$logUb95 <- NA
@@ -161,9 +160,8 @@ fitSccsModel <- function(sccsEraData,
   result <- list(estimates = estimates,
                  priorVariance = priorVariance,
                  status = status,
-                 metaData = sccsEraData$metaData)
-  result$metaData$counts <- summary(sccsEraData)$outcomeCounts
-  class(result) <- "sccsModel"
+                 metaData = attr(sccsEraData, "metaData"))
+  class(result) <- "SccsModel"
   delta <- Sys.time() - start
   ParallelLogger::logInfo(paste("Fitting the model took", signif(delta, 3), attr(delta, "units")))
   ParallelLogger::logDebug("Model fitting status is: ", status)
@@ -172,28 +170,23 @@ fitSccsModel <- function(sccsEraData,
 
 
 #' @export
-coef.sccsModel <- function(object, ...) {
+coef.SccsModel <- function(object, ...) {
   return(object$estimates$logRr)
 }
 
 #' @export
-summary.sccsModel <- function(object, ...) {
-  class(object) <- "summary.sccsModel"
-  return(object)
-}
-
-#' @export
-print.summary.sccsModel <- function(x, ...) {
-  writeLines("sccsModel object summary")
+print.SccsModel <- function(x, ...) {
+  writeLines("SccsModel object")
   writeLines("")
   writeLines(paste("Outcome ID:", paste(x$metaData$outcomeId, collapse = ",")))
   writeLines("")
   writeLines("Outcome count:")
-  outcomeCounts <- x$metaData$counts
-  rownames(outcomeCounts) <- outcomeCounts$outcomeConceptId
-  outcomeCounts$outcomeConceptId <- NULL
-  colnames(outcomeCounts) <- c("Event count", "Case count")
-  printCoefmat(outcomeCounts)
+  attrition <- as.data.frame(x$metaData$attrition)
+  attrition <- attrition[nrow(attrition), ]
+  rownames(attrition) <- attrition$outcomeId
+  attrition$outcomeId <- NULL
+  attrition$description <- NULL
+  printCoefmat(attrition)
   writeLines("")
   writeLines("Estimates:")
   d <- x$estimates

@@ -23,7 +23,7 @@
 
 #include <Rcpp.h>
 #include "PersonDataIterator.h"
-#include "FfdfBuilder.h"
+#include "AndromedaBuilder.h"
 #include "WeightFunctions.h"
 using namespace Rcpp;
 
@@ -31,10 +31,16 @@ namespace ohdsi {
 namespace sccs {
 
 struct CovariateSettings {
-  CovariateSettings(const List& _covariateSettings) : stratifyById(as<bool>(_covariateSettings["stratifyById"])),
-  firstOccurrenceOnly(as<bool>(_covariateSettings["firstOccurrenceOnly"])), covariateIds(as<NumericVector>(_covariateSettings["covariateIds"])),
-  outputIds(as<NumericMatrix>(_covariateSettings["outputIds"])), start(as<int>(_covariateSettings["start"])), addExposedDaysToStart(as<bool>(_covariateSettings["addExposedDaysToStart"])), end(as<int>(_covariateSettings["end"])),
+  CovariateSettings(const List& _covariateSettings) :
+  stratifyById(as<bool>(_covariateSettings["stratifyById"])),
+  firstOccurrenceOnly(as<bool>(_covariateSettings["firstOccurrenceOnly"])),
+  covariateIds(as<NumericVector>(_covariateSettings["covariateIds"])),
+  outputIds(as<NumericMatrix>(_covariateSettings["outputIds"])),
+  start(as<int>(_covariateSettings["start"])),
+  addExposedDaysToStart(as<bool>(_covariateSettings["addExposedDaysToStart"])),
+  end(as<int>(_covariateSettings["end"])),
   addExposedDaysToEnd(as<bool>(_covariateSettings["addExposedDaysToEnd"])){
+
     if (_covariateSettings.containsElementNamed("splitPoints")){
       NumericVector splitPointsList = _covariateSettings["splitPoints"];
       for (int i = 0; i < splitPointsList.size(); i++){
@@ -61,7 +67,7 @@ struct CovariateSettings {
 
 struct ConcomitantEra {
   ConcomitantEra() :
-  start(0), end(0) {
+  start(0), end(0), weight(0) {
   }
 
   bool operator <(const ConcomitantEra &era) const {
@@ -73,26 +79,26 @@ struct ConcomitantEra {
   }
 
   void print() {
-    std::cout << "Start: " << start << ", end: " << end << ", size: " << conceptIdToValue.size() << std::endl;
-    for (unsigned int i = 0; i < conceptIdToValue.size(); i++) {
-      std::cout << "CID: " << conceptIdToValue[i] << std::endl;
+    std::cout << "Start: " << start << ", end: " << end << ", size: " << eraIdToValue.size() << std::endl;
+    for (unsigned int i = 0; i < eraIdToValue.size(); i++) {
+      std::cout << "CID: " << eraIdToValue[i] << std::endl;
     }
   }
 
   int start;
   int end;
   double weight;
-  std::map<int64_t, double> conceptIdToValue;
+  std::map<int64_t, double> eraIdToValue;
 };
 
 struct ConcomitantEraCovariateComparator {
   bool operator()(const ConcomitantEra& era1, const ConcomitantEra& era2) const {
-    if (era1.conceptIdToValue.size() != era2.conceptIdToValue.size() || era1.conceptIdToValue.size() == 0) {
-      return  era1.conceptIdToValue.size() < era2.conceptIdToValue.size();
+    if (era1.eraIdToValue.size() != era2.eraIdToValue.size() || era1.eraIdToValue.size() == 0) {
+      return  era1.eraIdToValue.size() < era2.eraIdToValue.size();
     } else {
-      std::map<int64_t, double>::const_iterator iter1 = era1.conceptIdToValue.begin();
-      std::map<int64_t, double>::const_iterator iter2 = era2.conceptIdToValue.begin();
-      while (iter1 != era1.conceptIdToValue.end()) {
+      std::map<int64_t, double>::const_iterator iter1 = era1.eraIdToValue.begin();
+      std::map<int64_t, double>::const_iterator iter2 = era2.eraIdToValue.begin();
+      while (iter1 != era1.eraIdToValue.end()) {
         if (iter1->first != iter2->first){
           return (iter1->first < iter2->first);
         }
@@ -135,17 +141,17 @@ struct ResultStruct {
     outcomeTime->push_back(time);
     outcomeStratumId->push_back(stratumId);
     if (outcomeRowId->size() > 1000000){
-      flushOutcomesToFfdf();
+      flushOutcomesToAndromeda();
     }
   }
 
-  void addToCovariates(const int64_t &stratumId, const int64_t &conceptId, const double &value){
+  void addToCovariates(const int64_t &stratumId, const int64_t &eraId, const double &value){
     eraRowId->push_back(rowId);
     eraStratumId->push_back(stratumId);
-    eraCovariateId->push_back(conceptId);
+    eraCovariateId->push_back(eraId);
     eraCovariateValue ->push_back(value);
     if (eraRowId->size() > 1000000){
-      flushErasToFfdf();
+      flushErasToAndromeda();
     }
   }
 
@@ -153,28 +159,32 @@ struct ResultStruct {
     rowId++;
   }
 
-  List convertToRList() {
-    flushOutcomesToFfdf();
-    flushErasToFfdf();
-    return List::create(Named("outcomes") = outcomesBuilder.getFfdf(), Named("covariates") = erasBuilder.getFfdf());
+  S4 convertToAndromeda() {
+    flushOutcomesToAndromeda();
+    flushErasToAndromeda();
+    return andromedaBuilder.getAndromeda();
   }
 private:
-  void flushOutcomesToFfdf(){
+  void flushOutcomesToAndromeda(){
     if (outcomeRowId->size() > 0){
-      List outcomes = List::create(Named("rowId") = wrap(*outcomeRowId), Named("stratumId") = wrap(*outcomeStratumId),
-                                   Named("time") = wrap(*outcomeTime), Named("y") = wrap(*outcomeY));
-      outcomesBuilder.append(outcomes);
+      DataFrame outcomes = DataFrame::create(Named("rowId") = wrap(*outcomeRowId),
+                                             Named("stratumId") = wrap(*outcomeStratumId),
+                                             Named("time") = wrap(*outcomeTime),
+                                             Named("y") = wrap(*outcomeY));
+      andromedaBuilder.appendToTable("outcomes", outcomes);
       outcomeRowId->clear();
       outcomeStratumId->clear();
       outcomeY->clear();
       outcomeTime->clear();
     }
   }
-  void flushErasToFfdf(){
+  void flushErasToAndromeda(){
     if (eraRowId->size() > 0){
-      List covariates = List::create(Named("rowId") = wrap(*eraRowId), Named("stratumId") = wrap(*eraStratumId), Named("covariateId") =
-        wrap(*eraCovariateId), Named("covariateValue") = wrap(*eraCovariateValue));
-      erasBuilder.append(covariates);
+      DataFrame covariates = DataFrame::create(Named("rowId") = wrap(*eraRowId),
+                                               Named("stratumId") = wrap(*eraStratumId),
+                                               Named("covariateId") = wrap(*eraCovariateId),
+                                               Named("covariateValue") = wrap(*eraCovariateValue));
+      andromedaBuilder.appendToTable("covariates", covariates);
       eraRowId->clear();
       eraStratumId->clear();
       eraCovariateId->clear();
@@ -182,8 +192,7 @@ private:
     }
   }
 
-  FfdfBuilder outcomesBuilder;
-  FfdfBuilder erasBuilder;
+  AndromedaBuilder andromedaBuilder;
   std::vector<int64_t>* outcomeRowId;
   std::vector<int64_t>* outcomeStratumId;
   std::vector<int64_t>* outcomeY;
@@ -197,39 +206,41 @@ private:
 
 class SccsConverter {
 public:
-  SccsConverter(const List& _cases, const List& _eras, const int64_t _outcomeId, const int _naivePeriod,
-                bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const double m_inAge, const double _maxAge,
-                const bool _includeSeason, const NumericMatrix& _seasonDesignMatrix, const NumericVector _ageSeasonsCases, const List& _covariateSettingsList, const bool _eventDependentObservation,const List& _censorModel);
-  List convertToSccs();
+  SccsConverter(const DataFrame& _cases,
+                const DataFrame& _outcomes,
+                const List& _eras,
+                const bool _includeAge,
+                const int _ageOffset,
+                const Rcpp::NumericMatrix& _ageDesignMatrix,
+                const bool _includeSeason,
+                const NumericMatrix& _seasonDesignMatrix,
+                const NumericVector _ageSeasonsCases,
+                const List& _covariateSettingsList,
+                const bool _eventDependentObservation,
+                const List& _censorModel);
+  S4 convertToSccs();
   static const int ageIdOffset = 100;
   static const int seasonIdOffset = 200;
 private:
   void processPerson(PersonData& personData);
   void clipEras(std::vector<Era>& eras, const int startDay, const int endDay);
-  void removeAllButFirstOutcome(std::vector<Era>& eras);
   std::vector<Era> mergeOverlapping(std::vector<Era>& eras);
-  std::vector<Era> extractOutcomes(std::vector<Era>& eras);
   std::vector<ConcomitantEra> buildConcomitantEras(std::vector<Era>& eras, const int startDay, const int endDay);
   void addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId);
   void addToResult(const ConcomitantEra& era, int outcomeCount, const double duration, const int64_t& observationPeriodId);
   void computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData);
   int dateDifference(struct tm &date1, struct tm &date2);
   struct tm addMonth(const struct tm &date);
-  void addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData);
+  void addMonthEras(std::vector<Era>& eras, const PersonData& personData);
   void addCovariateEra(std::vector<Era>& outputEras, int start, int end, int leftCensor, int rightCensor, int covariateIdRow, const CovariateSettings& covariateSettings);
   void addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings);
   bool isNanOrInf(const double x);
 
   PersonDataIterator personDataIterator;
   ResultStruct resultStruct;
-  int64_t outcomeId;
-  int naivePeriod;
-  bool firstOutcomeOnly;
   bool includeAge;
   int ageOffset;
   NumericMatrix ageDesignMatrix;
-  double minAge;
-  double maxAge;
   bool includeSeason;
   NumericMatrix seasonDesignMatrix;
   std::vector<CovariateSettings> covariateSettingsVector;

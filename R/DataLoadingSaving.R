@@ -219,7 +219,7 @@ getDbSccsData <- function(connectionDetails,
 
   sql <- "SELECT * FROM #counts;"
   sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
-  outcomeCounts <- tibble::as_tibble(DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE))
+  outcomeCounts <- as_tibble(DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE))
 
   sampledCases <- FALSE
   if (maxCasesPerOutcome != 0) {

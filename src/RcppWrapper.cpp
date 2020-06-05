@@ -29,19 +29,31 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-List convertToSccs(const List& cases, const List& eras, double outcomeId, int naivePeriod, bool firstOutcomeOnly, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, double minAge, double maxAge, bool includeSeason, NumericMatrix seasonDesignMatrix, NumericVector ageSeasonsCases, List& covariateSettingsList, bool eventDependentObservation, List& censorModel) {
+S4 convertToSccs(const DataFrame& cases,
+                 const DataFrame& outcomes,
+                 const List& eras,
+                 bool includeAge,
+                 int ageOffset,
+                 NumericMatrix ageDesignMatrix,
+                 bool includeSeason,
+                 NumericMatrix seasonDesignMatrix,
+                 NumericVector ageSeasonsCases,
+                 List& covariateSettingsList,
+                 bool eventDependentObservation,
+                 List& censorModel) {
 
-	using namespace ohdsi::sccs;
+  using namespace ohdsi::sccs;
 
-	try {
-	  SccsConverter sccsConverter(cases, eras, outcomeId, naivePeriod, firstOutcomeOnly, includeAge, ageOffset, ageDesignMatrix, minAge, maxAge, includeSeason, seasonDesignMatrix, ageSeasonsCases, covariateSettingsList, eventDependentObservation, censorModel);
-		return (sccsConverter.convertToSccs());
-	} catch (std::exception &e) {
-		forward_exception_to_r(e);
-	} catch (...) {
-		::Rf_error("c++ exception (unknown reason)");
-	}
-	return List::create();
+  try {
+    SccsConverter sccsConverter(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason,
+                                seasonDesignMatrix, ageSeasonsCases, covariateSettingsList, eventDependentObservation, censorModel);
+    return (sccsConverter.convertToSccs());
+  } catch (std::exception &e) {
+    forward_exception_to_r(e);
+  } catch (...) {
+    ::Rf_error("c++ exception (unknown reason)");
+  }
+  return as<S4>(R_NilValue);
 }
 
 // [[Rcpp::export]]

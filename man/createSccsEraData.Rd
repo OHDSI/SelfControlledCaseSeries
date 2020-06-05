@@ -5,58 +5,45 @@
 \title{Create SCCS era data}
 \usage{
 createSccsEraData(
+  studyPopulation,
   sccsData,
-  outcomeId = NULL,
-  naivePeriod = 0,
-  firstOutcomeOnly = FALSE,
-  covariateSettings,
-  ageSettings = createAgeSettings(includeAge = FALSE),
-  seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
+  eraCovariateSettings,
+  ageCovariateSettings = NULL,
+  seasonalityCovariateSettings = NULL,
   minCasesForAgeSeason = 10000,
   eventDependentObservation = FALSE
 )
 }
 \arguments{
-\item{sccsData}{An object of type \code{sccsData} as created using the
-\code{\link{getDbSccsData}} function.}
+\item{studyPopulation}{An object created using the \code{\link[=createStudyPopulation]{createStudyPopulation()}} function.}
 
-\item{outcomeId}{The outcome to create the era data for. If not specified it is
-assumed to be the one outcome for which the data was loaded from
-the database.}
+\item{sccsData}{An object of type \link{SccsData} as created using the
+\link{getDbSccsData} function.}
 
-\item{naivePeriod}{The number of days at the start of a patient's observation period
-that should not be included in the risk calculations. Note that
-the naive period can be used to determine current covariate
-status right after the naive period, and whether an outcome is
-the first one.}
-
-\item{firstOutcomeOnly}{Whether only the first occurrence of an outcome should be
-considered.}
-
-\item{covariateSettings}{Either an object of type \code{covariateSettings} as created
-using the \code{\link{createCovariateSettings}} function, or a
+\item{eraCovariateSettings}{Either an object of type \code{covariateSettings} as created
+using the \code{\link[=createCovariateSettings]{createCovariateSettings()}} function, or a
 list of such objects.}
 
-\item{ageSettings}{An object of type \code{ageSettings} as created using the
-\code{\link{createAgeSettings}} function.}
+\item{ageCovariateSettings}{An object of type \code{ageCovariateSettings} as created using the
+\code{\link[=createAgeCovariateSettings]{createAgeCovariateSettings()}} function.}
 
-\item{seasonalitySettings}{An object of type \code{seasonalitySettings} as created using the
-\code{\link{createSeasonalitySettings}} function.}
+\item{seasonalityCovariateSettings}{An object of type \code{seasonalityCovariateSettings} as created using the
+\code{\link[=createSeasonalityCovariateSettings]{createSeasonalityCovariateSettings()}} function.}
 
-\item{minCasesForAgeSeason}{Minimum number of cases to use to fit age and season splines. IF
-needed (and available), cases that are not exposed will be included.#'}
+\item{minCasesForAgeSeason}{Minimum number of cases to use to fit age and season splines. If
+needed (and available), cases that are not exposed will be included.}
 
 \item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to
 adjust for event-dependent observation time?}
 }
 \value{
-An object of type \code{sccsEraData}.
+An object of type \link{SccsEraData}.
 }
 \description{
 Create SCCS era data
 }
 \details{
-This function creates covariates based on the data in the \code{sccsData} object, according to the
+This function creates covariates based on the data in the \code{sccsData} argument, according to the
 provided settings. It chops patient time into periods during which all covariates remain constant.
 The output details these periods, their durations, and a sparse representation of the covariate
 values.

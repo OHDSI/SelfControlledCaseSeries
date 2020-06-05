@@ -93,6 +93,9 @@ createStudyPopulation <- function(sccsData,
       filter(.data$startDay >= .data$startAgeInDays - .data$ageInDays) %>%
       select(-.data$startAgeInDays, -.data$ageInDays)
 
+    cases <- cases %>%
+      filter(.data$observationPeriodId %in% unique(outcomes$observationPeriodId))
+
     attrition <- bind_rows(attrition,
                            countOutcomes(outcomes, cases, sprintf("%s days naive period", naivePeriod)))
   }
@@ -146,6 +149,9 @@ createStudyPopulation <- function(sccsData,
     select(.data$observationPeriodId, outcomeDay = .data$startDay)
 
   result <- list(outcomes = outcomes, cases = cases, metaData = metaData)
+  if (nrow(outcomes) == 0) {
+    warning("No cases left in study population.")
+  }
   return(result)
 }
 

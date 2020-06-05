@@ -12,18 +12,18 @@ fitSccsModel(
 )
 }
 \arguments{
-\item{sccsEraData}{An object of type \code{sccsEraData} as created using the
-\code{\link{createSccsEraData}} function.}
+\item{sccsEraData}{An object of type \link{SccsEraData} as created using the
+\link{createSccsEraData} function.}
 
-\item{prior}{The prior used to fit the model. See \code{\link[Cyclops]{createPrior}} for
+\item{prior}{The prior used to fit the model. See \link[Cyclops:createPrior]{Cyclops::createPrior} for
 details.}
 
 \item{control}{The control object used to control the cross-validation used to determine the
 hyperparameters of the prior (if applicable). See
-\code{\link[Cyclops]{createControl}} for details.}
+\link[Cyclops:createControl]{Cyclops::createControl} for details.}
 }
 \value{
-An object of type \code{sccsModel}. Generic functions \code{summary}, \code{coef}, and
+An object of type \code{SccsModel}. Generic functions \code{print}, \code{coef}, and
 \code{confint} are available.
 }
 \description{

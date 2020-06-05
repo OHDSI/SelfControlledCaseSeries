@@ -77,7 +77,7 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmVersion = cdmVersion,
                           maxCasesPerOutcome = 1000)
 saveSccsData(sccsData, file.path(folder, "data1.zip"))
-# sccsData <- loadSccsData(file.path(folder, "data1.zip"))
+sccsData <- loadSccsData(file.path(folder, "data1.zip"))
 sccsData
 summary(sccsData)
 
@@ -97,7 +97,6 @@ plotEventToCalendarTime(studyPop)
 getAttritionTable(studyPop)
 
 
-
 covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
                                               includeCovariateIds = diclofenac,
                                               start = 0,
@@ -107,8 +106,12 @@ covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
 sccsEraData <- createSccsEraData(studyPop,
                                  sccsData,
                                  eraCovariateSettings = covarDiclofenac)
-saveSccsEraData(sccsEraData, "s:/temp/vignetteSccs/eraData1")
 
+
+
+saveSccsEraData(sccsEraData, "s:/temp/vignetteSccs/eraData1")
+sccsEraData <- loadSccsEraData("s:/temp/vignetteSccs/eraData1")
+sccsEraData
 summary(sccsEraData)
 
 model <- fitSccsModel(sccsEraData, control = createControl(threads = 10))
@@ -161,15 +164,15 @@ summary(model)
 
 ### Adding age and seasonality ###
 
-ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
+ageCovariateSettings <- createAgeCovariateSettings(ageKnots = 5)
 
-seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE, seasonKnots = 5)
+seasonalityCovariateSettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
 
-sccsEraData <- createSccsEraData(sccsData,
-                                 naivePeriod = 180,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = list(covarDiclofenacSplit,
+sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+                                 sccsData = sccsData,
+                                 eraCovariateSettings = list(covarDiclofenacSplit,
                                                           covarPreDiclofenacSplit),
+
                                  ageSettings = ageSettings,
                                  seasonalitySettings = seasonalitySettings)
 

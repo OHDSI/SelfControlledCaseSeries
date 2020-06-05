@@ -1,5 +1,5 @@
 /**
- * @file FfdfIterator.h
+ * @file AndromedaTableIterator.h
  *
  * This file is part of SelfControlledCaseSeries
  *
@@ -18,8 +18,8 @@
  * limitations under the License.
  */
 
-#ifndef __FfdfIterator_h__
-#define __FfdfIterator_h__
+#ifndef __AndromedaTableIterator_h__
+#define __AndromedaTableIterator_h__
 
 #include <Rcpp.h>
 
@@ -29,19 +29,20 @@ namespace ohdsi {
 namespace sccs {
 
 
-class FfdfIterator {
+class AndromedaTableIterator {
 public:
-  FfdfIterator(const List& _ffdf, const bool &_showProgressBar);
+  AndromedaTableIterator(const List& _andromedaTable, const bool& _showProgressBar);
   bool hasNext();
   List next();
 private:
-  List ffdf;
-  List chunks;
   List progressBar;
-  int cursor;
+  S4 resultSet;
   bool showProgressBar;
+  int total;
+  int completed;
+  bool done;
 };
 }
 }
 
-#endif // __FfdfIterator_h__
+#endif // __AndromedaTableIterator_h__

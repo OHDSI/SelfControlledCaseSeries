@@ -32,17 +32,32 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace sccs {
 
-SccsConverter::SccsConverter(const List& _cases, const List& _eras, const int64_t _outcomeId, const int _naivePeriod,
-                             bool _firstOutcomeOnly, const bool _includeAge, const int _ageOffset, const Rcpp::NumericMatrix& _ageDesignMatrix, const double _minAge, const double _maxAge, const bool _includeSeason,
-                             const NumericMatrix& _seasonDesignMatrix, const NumericVector _ageSeasonsCases, const List& _covariateSettingsList, const bool _eventDependentObservation,const List& _censorModel) : personDataIterator(_cases, _eras),
-                             outcomeId(_outcomeId), naivePeriod(_naivePeriod),
-                             firstOutcomeOnly(_firstOutcomeOnly), includeAge(_includeAge), ageOffset(_ageOffset), minAge(_minAge), maxAge(_maxAge), includeSeason(_includeSeason), eventDependentObservation(_eventDependentObservation) {
+SccsConverter::SccsConverter(const DataFrame& _cases,
+                             const DataFrame& _outcomes,
+                             const List& _eras,
+                             const bool _includeAge,
+                             const int _ageOffset,
+                             const Rcpp::NumericMatrix& _ageDesignMatrix,
+                             const bool _includeSeason,
+                             const NumericMatrix& _seasonDesignMatrix,
+                             const NumericVector _ageSeasonsCases,
+                             const List& _covariateSettingsList,
+                             const bool _eventDependentObservation,
+                             const List& _censorModel) :
+                             personDataIterator(_cases, _outcomes, _eras),
+                             includeAge(_includeAge),
+                             ageOffset(_ageOffset),
+                             includeSeason(_includeSeason),
+                             eventDependentObservation(_eventDependentObservation) {
+
                                ageDesignMatrix = _ageDesignMatrix;
                                seasonDesignMatrix = _seasonDesignMatrix;
+
                                for (int i = 0; i < _covariateSettingsList.size(); i++) {
                                  CovariateSettings covariateSettings(as<List>(_covariateSettingsList[i]));
                                  covariateSettingsVector.push_back(covariateSettings);
                                }
+
                                if (eventDependentObservation) {
                                  std::vector<double> p = _censorModel["p"];
                                  double model = _censorModel["model"];
@@ -65,24 +80,12 @@ SccsConverter::SccsConverter(const List& _cases, const List& _eras, const int64_
                                  hasAgeSeasonsCases = false;
                              }
 
-std::vector<Era> SccsConverter::extractOutcomes(std::vector<Era>& eras) {
-  std::vector<Era> outcomes;
-  std::vector<Era>::iterator iterator;
-  for (iterator = eras.begin(); iterator != eras.end();++iterator) {
-    if (iterator->isOutcome && iterator->conceptId == outcomeId) {
-      iterator->end =  iterator->start;
-      outcomes.push_back((*iterator));
-    }
-  }
-  return outcomes;
-}
-
 std::vector<Era> SccsConverter::mergeOverlapping(std::vector<Era>& eras) {
   std::vector<Era> mergedEras;
-  std::map<int64_t, Era> conceptIdToRunningEra;
+  std::map<int64_t, Era> eraIdToRunningEra;
   for (std::vector<Era>::iterator era = eras.begin(); era != eras.end(); ++era) {
-    std::map<int64_t, Era>::iterator found = conceptIdToRunningEra.find(era->conceptId);
-    if (found != conceptIdToRunningEra.end()) {
+    std::map<int64_t, Era>::iterator found = eraIdToRunningEra.find(era->eraId);
+    if (found != eraIdToRunningEra.end()) {
       Era* runningEra = &(found->second);
       if (runningEra->end >= era->start - 1) {
         if (runningEra->end < era->end) {
@@ -93,25 +96,13 @@ std::vector<Era> SccsConverter::mergeOverlapping(std::vector<Era>& eras) {
         found->second = *era;
       }
     } else {
-      conceptIdToRunningEra.insert(std::pair<int, Era>(era->conceptId, *era));
+      eraIdToRunningEra.insert(std::pair<int, Era>(era->eraId, *era));
     }
   }
-  for (std::map<int64_t, Era>::iterator iterator = conceptIdToRunningEra.begin(); iterator != conceptIdToRunningEra.end(); ++iterator) {
+  for (std::map<int64_t, Era>::iterator iterator = eraIdToRunningEra.begin(); iterator != eraIdToRunningEra.end(); ++iterator) {
     mergedEras.push_back(iterator->second);
   }
   return mergedEras;
-}
-
-void SccsConverter::removeAllButFirstOutcome(std::vector<Era>& outcomes) {
-  std::set<int64_t> seenOutcomes;
-  std::vector<Era>::iterator iterator;
-  for (iterator = outcomes.begin(); iterator != outcomes.end();) {
-    if (!seenOutcomes.insert((*iterator).conceptId).second) {
-      iterator = outcomes.erase(iterator);
-    } else {
-      ++iterator;
-    }
-  }
 }
 
 void SccsConverter::clipEras(std::vector<Era>& eras, const int startDay, const int endDay) {
@@ -161,7 +152,7 @@ std::vector<ConcomitantEra> SccsConverter::buildConcomitantEras(std::vector<Era>
     }
     startIndex = index;
     while (index < concomitantEras.size() && concomitantEras[index].end <= era->end && index < concomitantEras.size()) {
-      concomitantEras[index].conceptIdToValue[era->conceptId] = era->value;
+      concomitantEras[index].eraIdToValue[era->eraId] = era->value;
       index++;
     }
   }
@@ -174,7 +165,7 @@ void SccsConverter::addToResult(const ConcomitantEra& era, int outcomeCount, con
 
 
   // Add to covariates table:
-  for(std::map<int64_t, double>::const_iterator iterator = era.conceptIdToValue.begin(); iterator != era.conceptIdToValue.end(); iterator++) {
+  for(std::map<int64_t, double>::const_iterator iterator = era.eraIdToValue.begin(); iterator != era.eraIdToValue.end(); iterator++) {
     resultStruct.addToCovariates(observationPeriodId, iterator->first, iterator->second);
   }
   resultStruct.incRowId();
@@ -189,8 +180,8 @@ void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, st
   double duration = 0;
   int outcomeCount = 0;
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
-    if (previousPattern == NULL || era->conceptIdToValue.size() != previousPattern->conceptIdToValue.size() ||
-        !std::equal(era->conceptIdToValue.begin(), era->conceptIdToValue.end(), previousPattern->conceptIdToValue.begin())) {
+    if (previousPattern == NULL || era->eraIdToValue.size() != previousPattern->eraIdToValue.size() ||
+        !std::equal(era->eraIdToValue.begin(), era->eraIdToValue.end(), previousPattern->eraIdToValue.begin())) {
         if (previousPattern != NULL) {
           addToResult(*previousPattern, outcomeCount, duration, observationPeriodId);
         }
@@ -218,9 +209,9 @@ bool SccsConverter::isNanOrInf(const double x) {
 }
 
 void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData) {
-  double astart = (personData.ageInDays + naivePeriod) / 365.25;
-  double aend = (personData.ageInDays + personData.daysOfObservation) / 365.25;
-  double present = personData.uncensored?1.0:0;
+  double astart = (personData.ageInDays) / 365.25;
+  double aend = (personData.ageInDays + personData.endDay) / 365.25;
+  double present = personData.noninformativeEndCensor?1.0:0;
   weightFunction->set(present, astart, aend);
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
     double start = (personData.ageInDays + era->start) / 365.25;
@@ -283,19 +274,19 @@ int SccsConverter::dateDifference(struct tm &date1, struct tm &date2) {
   return difference;
 }
 
-void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, const int endDay, const PersonData& personData){
+void SccsConverter::addMonthEras(std::vector<Era>& eras, const PersonData& personData){
   struct tm startDate = {0, 0, 12};
   startDate.tm_year = personData.startYear - 1900;
   startDate.tm_mon = personData.startMonth - 1;
-  startDate.tm_mday = personData.startDay + startDay;
+  startDate.tm_mday = personData.startDay;
   mktime(&startDate); //Normalize after adding days
   struct tm startOfMonth(startDate);
   startOfMonth.tm_mday = 1;
   struct tm startOfNextMonth = addMonth(startOfMonth);
-  int eraStartDay = startDay;
-  int nextEraStartDay = std::min(startDay + dateDifference(startOfNextMonth, startDate), endDay + 1);
+  int eraStartDay = 0;
+  int nextEraStartDay = std::min(0 + dateDifference(startOfNextMonth, startDate), personData.endDay + 1);
   int month = startOfMonth.tm_mon;
-  while (eraStartDay <= endDay) {
+  while (eraStartDay <= personData.endDay) {
     if (includeAge){
       int ageIndex = personData.ageInDays + eraStartDay - ageOffset;
       if (ageIndex < 0) {
@@ -304,20 +295,20 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const int startDay, con
         ageIndex = ageDesignMatrix.nrow() - 1;
       }
       for (int i = 0; i < ageDesignMatrix.ncol(); i++){
-        Era era(eraStartDay, nextEraStartDay - 1, ageIdOffset + i, ageDesignMatrix(ageIndex, i), false);
+        Era era(eraStartDay, nextEraStartDay - 1, ageIdOffset + i, ageDesignMatrix(ageIndex, i));
         eras.push_back(era);
       }
     }
     if (includeSeason){
       for (int i = 0; i < seasonDesignMatrix.ncol(); i++){
-        Era era(eraStartDay, nextEraStartDay - 1, seasonIdOffset + i, seasonDesignMatrix(month, i), false);
+        Era era(eraStartDay, nextEraStartDay - 1, seasonIdOffset + i, seasonDesignMatrix(month, i));
         eras.push_back(era);
       }
     }
     eraStartDay = nextEraStartDay;
     month = startOfNextMonth.tm_mon;
     startOfNextMonth = addMonth(startOfNextMonth);
-    nextEraStartDay = std::min(startDay + dateDifference(startOfNextMonth, startDate), endDay + 1);
+    nextEraStartDay = std::min(dateDifference(startOfNextMonth, startDate), personData.endDay + 1);
   }
 }
 
@@ -334,7 +325,7 @@ void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int
   if (newEnd < newStart)
     return;
   if (covariateSettings.splitPoints.size() == 0) {
-    Era era(newStart, newEnd, covariateSettings.outputIds(covariateIdRow,0), 1, false);
+    Era era(newStart, newEnd, covariateSettings.outputIds(covariateIdRow,0), 1);
     outputEras.push_back(era);
   } else {
     int splitStart = newStart;
@@ -349,7 +340,7 @@ void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int
         }
       }
       if (splitEnd > newStart) {
-        Era era(splitStart, splitEnd, covariateSettings.outputIds(covariateIdRow, j), 1, false);
+        Era era(splitStart, splitEnd, covariateSettings.outputIds(covariateIdRow, j), 1);
         outputEras.push_back(era);
       }
       splitStart = splitEnd + 1;
@@ -369,9 +360,9 @@ void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::ve
       int end = -9999;
       bool first = true;
       for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
-        if (era->conceptId == covariateId) {
+        if (era->eraId == covariateId) {
           if (era->start > (end + 1) && end != -9999) {
-            Era mergedEra(start, end, 0, 1, false);
+            Era mergedEra(start, end, 0, 1);
             // std::cout << "Start: " << start << ", end: " << end<< ", eraStart: " << era->start<< ", eraEnd: " << era->end << "\n";
             covariateEras.push_back(mergedEra);
             if (covariateSettings.firstOccurrenceOnly) {
@@ -390,7 +381,7 @@ void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::ve
         }
       }
       if (end != -9999 && (!covariateSettings.firstOccurrenceOnly || first)){
-        Era mergedEra(start, end, 0, 1, false);
+        Era mergedEra(start, end, 0, 1);
         covariateEras.push_back(mergedEra);
       }
       // std::cout << "Count: " << covariateEras.size() << "\n";
@@ -411,9 +402,9 @@ void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::ve
     int end = -9999;
     bool first = true;
     for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
-      if (covariateSettings.covariateIdSet.find(era->conceptId) != covariateSettings.covariateIdSet.end()) {
+      if (covariateSettings.covariateIdSet.find(era->eraId) != covariateSettings.covariateIdSet.end()) {
         if (era->start > (end + 1) && end != -9999) {
-          Era mergedEra(start, end, 0, 1, false);
+          Era mergedEra(start, end, 0, 1);
           covariateEras.push_back(mergedEra);
           if (covariateSettings.firstOccurrenceOnly) {
             first = false;
@@ -430,7 +421,7 @@ void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::ve
       }
     }
     if (end != -9999 && (!covariateSettings.firstOccurrenceOnly || first)){
-      Era mergedEra(start, end, 0, 1, false);
+      Era mergedEra(start, end, 0, 1);
       covariateEras.push_back(mergedEra);
 
     }
@@ -448,64 +439,38 @@ void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::ve
 }
 
 void SccsConverter::processPerson(PersonData& personData) {
-  std::vector<Era> *eras = personData.eras;
+  std::vector<Era>* eras = personData.eras;
   std::sort(eras->begin(), eras->end()); // Sort by start date
-  std::vector<Era> outcomes = extractOutcomes(*eras);
-  if (firstOutcomeOnly) {
-    removeAllButFirstOutcome(outcomes);
-  }
-  if (outcomes.size() == 0) {// No outcomes left. Probably case without this particulary outcome
-    return;
-  }
-  //Naive period can use censored days (ie days prior to study start date):
-  int startDay = std::max(0, naivePeriod - personData.censoredDays);
-  if (personData.ageInDays + startDay < minAge) {
-    // std::cout << "personData.ageInDays:" << personData.ageInDays << ", startDay:" << startDay << ", minAge:" << minAge << "\n";
-    startDay = minAge - personData.ageInDays;
-
-  }
-  int endDay = personData.daysOfObservation - 1;
-  if (maxAge > 0 && personData.ageInDays + endDay > maxAge)
-    endDay = maxAge - personData.ageInDays;
-  //std::cout << "startDay:" << startDay << "endDay:" << endDay << "\n";
-  if (startDay > endDay) {// No more days of observation
-    return;
-  }
-  //std::cout << "outcome day:" << outcomes[0].start << "\n";
-  clipEras(outcomes, startDay, endDay);
-  //std::cout << "outcomes:" << outcomes.size() << "\n";
-  if (outcomes.size() == 0) {// We lost all outcomes in the clipping
-    return;
-  }
+  std::vector<Era>* outcomes = personData.outcomes;
   std::vector<Era> outputEras;
   for (CovariateSettings covariateSettings : covariateSettingsVector){
     addCovariateEras(outputEras, *eras, covariateSettings);
   }
-  clipEras(outputEras, startDay, endDay);
+  clipEras(outputEras, 0, personData.endDay);
   outputEras = mergeOverlapping(outputEras);
   if (includeAge || includeSeason) {
     if (outputEras.size() == 0)  // No exposures: still use to fit age and/or season splines?
       if (hasAgeSeasonsCases && ageSeasonsCases.find(personData.observationPeriodId) == ageSeasonsCases.end())
         return;
-    addMonthEras(outputEras, startDay, endDay, personData);
+    addMonthEras(outputEras, personData);
   }
-  std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, startDay, endDay);
+  std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, 0, personData.endDay);
   if (concomitantEras.size() == 1) { // Not informative
     return;
   }
   if (eventDependentObservation) {
     computeEventDepObsWeights(concomitantEras, personData);
   }
-  addToResult(concomitantEras, outcomes, personData.observationPeriodId);
+  addToResult(concomitantEras, *outcomes, personData.observationPeriodId);
 }
 
-List SccsConverter::convertToSccs() {
-  //std::cout << "check1\n";
+S4 SccsConverter::convertToSccs() {
+  std::cout << "check0\n";
   while (personDataIterator.hasNext()) {
     PersonData personData = personDataIterator.next();
     processPerson(personData);
   }
-  return resultStruct.convertToRList();
+  return resultStruct.convertToAndromeda();
 }
 
 }

@@ -22,15 +22,21 @@
 #define PERSONDATAITERATOR_H_
 
 #include <Rcpp.h>
-#include "FfdfIterator.h"
+#include "AndromedaTableIterator.h"
 
 using namespace Rcpp;
 
 namespace ohdsi {
 namespace sccs {
 struct Era {
-  Era(int _start, int _end, int _conceptId, double _value, bool _isOutcome) :
-  start(_start), end(_end), conceptId(_conceptId), value(_value),isOutcome(_isOutcome) {
+  Era(int _start,
+      int _end,
+      int _eraId,
+      double _value) :
+  start(_start),
+  end(_end),
+  eraId(_eraId),
+  value(_value) {
   }
 
   bool operator <(const Era& era) const {
@@ -39,60 +45,77 @@ struct Era {
 
   int start;
   int end;
-  int64_t conceptId;
+  int64_t eraId;
   double value;
-  bool isOutcome;
 };
 
 struct PersonData {
-  PersonData(int64_t _personId, int64_t _observationPeriodId, int _daysOfObservation, int _ageInDays, int _startYear, int _startMonth, int _startDay, bool _uncensored, int _censoredDays) :
-  personId(_personId), observationPeriodId(_observationPeriodId), daysOfObservation(_daysOfObservation), ageInDays(_ageInDays), startYear(_startYear), startMonth(_startMonth),
-  startDay(_startDay), uncensored(_uncensored), censoredDays(_censoredDays) {
+  PersonData(int64_t _personId,
+             int64_t _observationPeriodId,
+             Date _startDate,
+             int _ageInDays,
+             int _endDay,
+             int _offset,
+             bool _noninformativeEndCensor) :
+  personId(_personId),
+  observationPeriodId(_observationPeriodId),
+  endDay(_endDay),
+  ageInDays(_ageInDays),
+  startYear(_startDate.getYear()),
+  startMonth(_startDate.getMonth()),
+  startDay(_startDate.getDay()),
+  noninformativeEndCensor(_noninformativeEndCensor),
+  eras(0),
+  outcomes(0) {
     eras = new std::vector<Era>;
+    outcomes = new std::vector<Era>;
   }
 
   ~PersonData() {
     delete eras;
+    delete outcomes;
   }
 
-  std::vector<Era> *eras;
   int64_t personId;
   int64_t observationPeriodId;
-  int daysOfObservation;
+  int endDay;
   int ageInDays;
   int startYear;
   int startMonth;
   int startDay;
-  bool uncensored;
-  int censoredDays;
+  bool noninformativeEndCensor;
+  std::vector<Era>* eras;
+  std::vector<Era>* outcomes;
 };
 
 class PersonDataIterator {
 public:
-  PersonDataIterator(const List& _cases, const List& _eras);
+  PersonDataIterator(const DataFrame& _cases, const DataFrame& _outcomes, const List& _eras);
   bool hasNext();
   PersonData next();
 private:
-  FfdfIterator casesIterator;
-  FfdfIterator erasIterator;
+  AndromedaTableIterator erasIterator;
   NumericVector casesPersonId;
   NumericVector casesObservationPeriodId;
-  NumericVector casesObservationDays;
-  NumericVector casesCensoredDays;
+  DateVector casesStartDate;
+  NumericVector casesEndDay;
   NumericVector casesAgeInDays;
-  NumericVector casesStartYear;
-  NumericVector casesStartMonth;
-  NumericVector casesStartDay;
-  LogicalVector casesUncensored;
+  NumericVector casesOffset;
+  LogicalVector casesNoninformativeEndCensor;
+
+  NumericVector outcomesObservationPeriodId;
+  NumericVector outcomesOutcomeDay;
+
   NumericVector erasObservationPeriodId;
   NumericVector erasStartDay;
   NumericVector erasEndDay;
-  NumericVector erasConceptId;
+  NumericVector erasEraId;
   NumericVector erasValue;
   CharacterVector erasEraType;
+
   int casesCursor;
+  int outcomesCursor;
   int erasCursor;
-  void loadNextCases();
   void loadNextEras();
 };
 }

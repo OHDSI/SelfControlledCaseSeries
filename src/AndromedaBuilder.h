@@ -1,5 +1,5 @@
 /**
- * @file FfdfBuilder.h
+ * @file AndromedaBuilder.h
  *
  * This file is part of SelfControlledCaseSeries
  *
@@ -18,8 +18,8 @@
  * limitations under the License.
  */
 
-#ifndef __FfdfBuilder_h__
-#define __FfdfBuilder_h__
+#ifndef __AndromedaBuilder_h__
+#define __AndromedaBuilder_h__
 
 #include <Rcpp.h>
 
@@ -29,16 +29,15 @@ namespace ohdsi {
 namespace sccs {
 
 
-class FfdfBuilder {
+class AndromedaBuilder {
 public:
-  FfdfBuilder();
-  void append(const List& listOfVectors);
-  List getFfdf();
+  AndromedaBuilder();
+  void appendToTable(const String& tableName, const DataFrame& data);
+  S4 getAndromeda();
 private:
-  bool uninitialized;
-  List ffs;
+  S4 andromeda;
 };
 }
 }
 
-#endif // __FfdfBuilder_h__
+#endif // __AndromedaBuilder_h__
