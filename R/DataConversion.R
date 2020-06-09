@@ -82,6 +82,7 @@ createSccsEraData <- function(studyPopulation,
                                                    studyPopulation)
   settings <- addEraCovariateSettings(settings, eraCovariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- settings$covariateSettingsList
+  metaData <- append(studyPopulation$metaData, settings$metaData)
 
   ParallelLogger::logInfo("Converting person data to SCCS eras. This might take a while.")
   # Ensure all sorted bv observationPeriodId:
@@ -106,10 +107,11 @@ createSccsEraData <- function(studyPopulation,
   if (is.null(data$outcomes)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
     data <- createEmptySccsEraData()
+  } else {
+    metaData$covariateStatistics <- collect(data$covariateStatistics)
+    data$covariateStatistics <- NULL
   }
   data$covariateRef = settings$covariateRef
-
-  metaData <- append(studyPopulation$metaData, settings$metaData)
   attr(data, "metaData") <- metaData
 
   class(data) <- "SccsEraData"

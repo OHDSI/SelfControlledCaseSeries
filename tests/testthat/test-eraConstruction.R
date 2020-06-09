@@ -1,67 +1,73 @@
-library("testthat")
+library(testthat)
+library(dplyr)
 
 convertToSccsDataWrapper <- function(cases,
                                      eras,
                                      exposureId = NULL,
                                      covariateSettings = NULL,
-                                     ageSettings = createAgeSettings(includeAge = FALSE),
-                                     seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
+                                     ageSettings = NULL,
+                                     seasonalitySettings = NULL,
                                      naivePeriod = 0,
                                      firstOutcomeOnly = FALSE,
-                                     excludeConceptIds = NULL,
-                                     placeInRam = TRUE) {
+                                     excludeeraIds = NULL,
+                                     minAge = NULL,
+                                     maxAge = NULL) {
   if (is.null(covariateSettings)) {
-    covariateSettings <- createCovariateSettings(includeCovariateIds = exposureId,
-                                                 start = 0,
-                                                 end = 0,
-                                                 addExposedDaysToEnd = TRUE)
+    covariateSettings <- createEraCovariateSettings(includeCovariateIds = exposureId,
+                                                    start = 0,
+                                                    end = 0,
+                                                    addExposedDaysToEnd = TRUE)
   }
 
   covariateIds <- c()
-  if (is.list(covariateSettings) && class(covariateSettings) != "covariateSettings") {
+  if (is.list(covariateSettings) && class(covariateSettings) != "EraCovariateSettings") {
     for (i in 1:length(covariateSettings)) {
       covariateIds <- c(covariateIds, covariateSettings[[i]]$includeCovariateIds)
     }
   } else {
     covariateIds <- covariateSettings$includeCovariateIds
   }
+  eraRef <- eras %>%
+    distinct(.data$eraId, .data$eraType) %>%
+    mutate(eraName = "")
 
-  data <- list(cases = ff::as.ffdf(cases),
-               eras = ff::as.ffdf(eras),
-               metaData = list(outcomeIds = 10),
-               covariateRef = ff::as.ffdf(data.frame(covariateId = covariateIds,
-                                                     covariateName = "",
-                                                     stringsAsFactors = TRUE)))
-  result <- createSccsEraData(sccsData = data,
-                              naivePeriod = naivePeriod,
-                              firstOutcomeOnly = firstOutcomeOnly,
-                              ageSettings = ageSettings,
-                              seasonalitySettings = seasonalitySettings,
-                              covariateSettings = covariateSettings)
-  if (placeInRam) {
-    result$outcomes <- ff::as.ram(result$outcomes)
-    result$covariates <- ff::as.ram(result$covariates)
-  }
+  data <- Andromeda::andromeda(cases = cases,
+                               eras = eras,
+                               eraRef = eraRef)
+  attr(data, "metaData") <- list(outcomeIds = 10,
+                                 attrition = tibble(outcomeId = 10))
 
-  return(list(outcomes = result$outcomes, covariates = result$covariates))
+  studyPop <- createStudyPopulation(sccsData = data,
+                                    outcomeId = 10,
+                                    firstOutcomeOnly = firstOutcomeOnly,
+                                    naivePeriod = naivePeriod,
+                                    minAge = minAge,
+                                    maxAge = maxAge)
+
+  result <- createSccsEraData(studyPopulation = studyPop,
+                              sccsData = data,
+                              ageCovariateSettings = ageSettings,
+                              seasonalityCovariateSettings = seasonalitySettings,
+                              eraCovariateSettings = covariateSettings)
+  return(list(outcomes = collect(result$outcomes), covariates = collect(result$covariates)))
 }
 
 test_that("Simple era construction", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(50, 25),
-                     endDay = c(50, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(50, 25),
+                 endDay = c(50, 75))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = 11)
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -72,28 +78,26 @@ test_that("Simple era construction", {
   expect_equal(result$covariates$covariateId, c(1000))
 })
 
-
-
 test_that("Age restriction", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 10000,
-                      ageInDays = 365,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(500, 525),
-                     endDay = c(500, 575),
-                     stringsAsFactors = TRUE)
-  result <- convertToSccsDataWrapper(cases, eras, exposureId = 11, ageSettings = createAgeSettings(includeAge = FALSE, minAge = 2, maxAge = 3))
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 10000,
+                  ageInDays = 365,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(500, 525),
+                 endDay = c(500, 575))
+  result <- convertToSccsDataWrapper(cases, eras, exposureId = 11, minAge = 2, maxAge = 3)
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
-  expect_equal(result$outcomes$time, c(681, 51))
+  expect_equal(result$outcomes$time, c(680, 51))
   expect_equal(result$outcomes$y, c(1, 0))
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
@@ -101,21 +105,21 @@ test_that("Age restriction", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(25, 25),
-                     endDay = c(25, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(25, 25),
+                 endDay = c(25, 75))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -127,21 +131,21 @@ test_that("Outcome on boundary", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(24, 25),
-                     endDay = c(24, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(24, 25),
+                 endDay = c(24, 75))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -153,21 +157,21 @@ test_that("Outcome on boundary", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(75, 25),
-                     endDay = c(75, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(75, 25),
+                 endDay = c(75, 75))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -178,23 +182,22 @@ test_that("Outcome on boundary", {
   expect_equal(result$covariates$covariateId, c(1000))
 })
 
-
 test_that("Outcome on boundary", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(76, 25),
-                     endDay = c(76, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(76, 25),
+                 endDay = c(76, 75))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -206,21 +209,21 @@ test_that("Outcome on boundary", {
 })
 
 test_that("One day era", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(50, 25),
-                     endDay = c(50, 25),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(50, 25),
+                 endDay = c(50, 25))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -232,21 +235,21 @@ test_that("One day era", {
 })
 
 test_that("Merging overlapping eras", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei", "hei"),
-                     observationPeriodId = c(1, 1, 1),
-                     conceptId = c(10, 11, 11),
-                     value = c(1, 1, 1),
-                     startDay = c(50, 25, 70),
-                     endDay = c(50, 75, 80),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei", "hei"),
+                 observationPeriodId = c(1, 1, 1),
+                 eraId = c(10, 11, 11),
+                 value = c(1, 1, 1),
+                 startDay = c(50, 25, 70),
+                 endDay = c(50, 75, 80))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -258,21 +261,21 @@ test_that("Merging overlapping eras", {
 })
 
 test_that("Merging overlapping eras with same start date", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei", "hei"),
-                     observationPeriodId = c(1, 1, 1),
-                     conceptId = c(10, 11, 11),
-                     value = c(1, 1, 1),
-                     startDay = c(50, 25, 25),
-                     endDay = c(50, 75, 50),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei", "hei"),
+                 observationPeriodId = c(1, 1, 1),
+                 eraId = c(10, 11, 11),
+                 value = c(1, 1, 1),
+                 startDay = c(50, 25, 25),
+                 endDay = c(50, 75, 50))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -285,21 +288,21 @@ test_that("Merging overlapping eras with same start date", {
 
 
 test_that("Concomitant drug use", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei", "hei"),
-                     observationPeriodId = c(1, 1, 1),
-                     conceptId = c(10, 11, 12),
-                     value = c(1, 1, 1),
-                     startDay = c(50, 25, 60),
-                     endDay = c(50, 75, 70),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei", "hei"),
+                 observationPeriodId = c(1, 1, 1),
+                 eraId = c(10, 11, 12),
+                 value = c(1, 1, 1),
+                 startDay = c(50, 25, 60),
+                 endDay = c(50, 75, 70))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11, 12))
   expect_equal(result$outcomes$rowId, c(0, 1, 2))
   expect_equal(result$outcomes$stratumId, c(1, 1, 1))
@@ -311,21 +314,21 @@ test_that("Concomitant drug use", {
 })
 
 test_that("Concomitant drug use (3 drugs)", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hoi", "hei", "hei", "hei"),
-                     observationPeriodId = c(1, 1, 1, 1, 1),
-                     conceptId = c(10, 10, 11, 12, 13),
-                     value = c(1, 1, 1, 1, 1),
-                     startDay = c(50, 85, 25, 70, 70),
-                     endDay = c(NA, NA, 75, 80, 77),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hoi", "hei", "hei", "hei"),
+                 observationPeriodId = c(1, 1, 1, 1, 1),
+                 eraId = c(10, 10, 11, 12, 13),
+                 value = c(1, 1, 1, 1, 1),
+                 startDay = c(50, 85, 25, 70, 70),
+                 endDay = c(NA, NA, 75, 80, 77))
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11, 12, 13))
   expect_equal(result$outcomes$rowId, c(0, 1, 2, 3, 4))
   expect_equal(result$outcomes$stratumId, c(1, 1, 1, 1, 1))
@@ -337,27 +340,27 @@ test_that("Concomitant drug use (3 drugs)", {
 })
 
 test_that("Start risk window at day 1 not 0", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(50, 50),
-                     endDay = c(50, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(50, 50),
+                 endDay = c(50, 75))
   result <- convertToSccsDataWrapper(cases,
                                      eras,
-                                     covariateSettings = createCovariateSettings(includeCovariateIds = c(11, 12, 13),
-                                                                                 start = 1,
-                                                                                 end = 0,
-                                                                                 addExposedDaysToEnd = TRUE))
+                                     covariateSettings = createEraCovariateSettings(includeCovariateIds = c(11, 12, 13),
+                                                                                    start = 1,
+                                                                                    end = 0,
+                                                                                    addExposedDaysToEnd = TRUE))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
   expect_equal(result$outcomes$time, c(75, 25))
@@ -368,21 +371,21 @@ test_that("Start risk window at day 1 not 0", {
 })
 
 test_that("Two HOIs, keeping both", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hoi", "hei"),
-                     observationPeriodId = c(1, 1, 1),
-                     conceptId = c(10, 10, 11),
-                     value = c(1, 1, 1),
-                     startDay = c(25, 50, 30),
-                     endDay = c(25, 50, 60),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hoi", "hei"),
+                 observationPeriodId = c(1, 1, 1),
+                 eraId = c(10, 10, 11),
+                 value = c(1, 1, 1),
+                 startDay = c(25, 50, 30),
+                 endDay = c(25, 50, 60))
   result <- convertToSccsDataWrapper(cases, eras, firstOutcomeOnly = FALSE, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -394,21 +397,21 @@ test_that("Two HOIs, keeping both", {
 })
 
 test_that("Two HOIs, keeping first", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hoi", "hei"),
-                     observationPeriodId = c(1, 1, 1),
-                     conceptId = c(10, 10, 11),
-                     value = c(1, 1, 1),
-                     startDay = c(25, 50, 30),
-                     endDay = c(25, 50, 60),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hoi", "hei"),
+                 observationPeriodId = c(1, 1, 1),
+                 eraId = c(10, 10, 11),
+                 value = c(1, 1, 1),
+                 startDay = c(25, 50, 30),
+                 endDay = c(25, 50, 60))
   result <- convertToSccsDataWrapper(cases, eras, firstOutcomeOnly = TRUE, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -420,28 +423,28 @@ test_that("Two HOIs, keeping first", {
 })
 
 test_that("Removal of risk windows where end before start", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(50, 50),
-                     endDay = c(50, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(50, 50),
+                 endDay = c(50, 75))
   result <- convertToSccsDataWrapper(cases,
                                      eras,
-                                     covariateSettings = createCovariateSettings(includeCovariateIds = c(11),
-                                                                                 start = 0,
-                                                                                 end = 7,
-                                                                                 addExposedDaysToStart = TRUE))
-  expect_null(result$outcomes)
+                                     covariateSettings = createEraCovariateSettings(includeCovariateIds = c(11),
+                                                                                    start = 0,
+                                                                                    end = 7,
+                                                                                    addExposedDaysToStart = TRUE))
+  expect_equal(result$outcomes %>% count() %>% pull(), 0)
 })
 
 test_that("Aggregates on large set", {
@@ -452,8 +455,8 @@ test_that("Aggregates on large set", {
                                    firstOutcomeOnly = FALSE,
                                    covariateSettings = createCovariateSettings(includeCovariateIds = c(1, 2),
                                                                                addExposedDaysToEnd = TRUE))
-  x <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 1))
-  y <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 10))
+  x <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, eraId == 1))
+  y <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, eraId == 10))
   z <- merge(x, y, by = c("observationPeriodId"))
   z <- subset(z, startDay.y >= startDay.x & startDay.y <= endDay.x)
   z <- unique(z$observationPeriodId)
@@ -470,8 +473,8 @@ test_that("Aggregates on large set", {
   # Same people have the event during exposure to 1:
   expect_equal(z, z2)
 
-  x <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 2))
-  y <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, conceptId == 10))
+  x <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, eraId == 2))
+  y <- ff::as.ram(ffbase::subset.ffdf(sccsData$eras, eraId == 10))
   z <- merge(x, y, by = c("observationPeriodId"))
   z <- subset(z, startDay.y >= startDay.x & startDay.y <= endDay.x)
   z <- unique(z$observationPeriodId)
@@ -486,21 +489,21 @@ test_that("Aggregates on large set", {
 })
 
 test_that("Exposure splitting", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(50, 25),
-                     endDay = c(50, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(50, 25),
+                 endDay = c(50, 75),
+                 stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = 11,
@@ -518,21 +521,21 @@ test_that("Exposure splitting", {
 })
 
 test_that("Exposure splitting twice", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(50, 25),
-                     endDay = c(50, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(50, 25),
+                 endDay = c(50, 75),
+                 stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = 11,
@@ -551,21 +554,21 @@ test_that("Exposure splitting twice", {
 })
 
 test_that("Merging exposures (stratifyById=FALSE)", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei", "hei"),
-                     observationPeriodId = c(1, 1, 1),
-                     conceptId = c(10, 11, 12),
-                     value = c(1, 1, 1),
-                     startDay = c(50, 25, 70),
-                     endDay = c(50, 75, 100),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0)
+  eras <- tibble(eraType = c("hoi", "hei", "hei"),
+                 observationPeriodId = c(1, 1, 1),
+                 eraId = c(10, 11, 12),
+                 value = c(1, 1, 1),
+                 startDay = c(50, 25, 70),
+                 endDay = c(50, 75, 100),
+                 stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = c(11,12),
@@ -584,21 +587,21 @@ test_that("Merging exposures (stratifyById=FALSE)", {
 
 
 test_that("Exposure splitting without stratifyById", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei", "hei"),
-                     observationPeriodId = c(1, 1, 1),
-                     conceptId = c(10, 11, 12),
-                     value = c(1, 1, 1),
-                     startDay = c(50, 25, 70),
-                     endDay = c(50, 75, 100),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0)
+  eras <- tibble(eraType = c("hoi", "hei", "hei"),
+                 observationPeriodId = c(1, 1, 1),
+                 eraId = c(10, 11, 12),
+                 value = c(1, 1, 1),
+                 startDay = c(50, 25, 70),
+                 endDay = c(50, 75, 100),
+                 stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases,
                                      eras,
                                      covariateSettings = createCovariateSettings(includeCovariateIds = c(11,12),
@@ -617,21 +620,21 @@ test_that("Exposure splitting without stratifyById", {
 })
 
 test_that("Pre-exposure window", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(50, 25),
-                     endDay = c(50, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(50, 25),
+                 endDay = c(50, 75),
+                 stringsAsFactors = TRUE)
   result <- convertToSccsDataWrapper(cases, eras, covariateSettings = list(createCovariateSettings(includeCovariateIds = 11,
                                                                                                    start = 0,
                                                                                                    end = 0,
@@ -649,32 +652,32 @@ test_that("Pre-exposure window", {
 })
 
 test_that("Simple era construction", {
-  cases <- data.frame(observationPeriodId = 1,
-                      personId = 1,
-                      observationDays = 100,
-                      ageInDays = 0,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  eras <- data.frame(eraType = c("hoi", "hei"),
-                     observationPeriodId = c(1, 1),
-                     conceptId = c(10, 11),
-                     value = c(1, 1),
-                     startDay = c(50, 25),
-                     endDay = c(50, 75),
-                     stringsAsFactors = TRUE)
+  cases <- tibble(observationPeriodId = 1,
+                  personId = 1,
+                  observationDays = 100,
+                  ageInDays = 0,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0)
+  eras <- tibble(eraType = c("hoi", "hei"),
+                 observationPeriodId = c(1, 1),
+                 eraId = c(10, 11),
+                 value = c(1, 1),
+                 startDay = c(50, 25),
+                 endDay = c(50, 75),
+                 stringsAsFactors = TRUE)
   ffResult <- convertToSccsDataWrapper(cases, eras, exposureId = 11, placeInRam = FALSE)
   expect_equal(class(ffResult$outcomes), "ffdf")
   expect_equal(class(ffResult$covariates), "ffdf")
   ramResult <- forceSccsEraDataIntoRam(ffResult)
-  expect_equal(class(ramResult$outcomes), "data.frame")
-  expect_equal(class(ramResult$covariates), "data.frame")
+  expect_equal(class(ramResult$outcomes), "tibble")
+  expect_equal(class(ramResult$covariates), "tibble")
 })
 
-# test_that('Age', { cases <- data.frame(observationPeriodId = 1, personId = 1, observationDays =
+# test_that('Age', { cases <- tibble(observationPeriodId = 1, personId = 1, observationDays =
 # 100, ageInDays = 0, startYear = 2000, startMonth = 5, startDay =
-# 1) eras <- data.frame(eraType = c('hoi', 'hoi', 'hei'), observationPeriodId = c(1, 1, 1), conceptId
+# 1) eras <- tibble(eraType = c('hoi', 'hoi', 'hei'), observationPeriodId = c(1, 1, 1), eraId
 # = c(10, 10, 11), value = c(1,1,1), startDay = c(25, 50,30), endDay = c(25, 50, 60)) result <-
 # convertToSccsDataWrapper(cases, eras, exposureId = c(11), ageEffectSettings =
 # createAgeEffectSettings(includeAge = TRUE)) expect_equal(nrow(result$covariates), 22) })

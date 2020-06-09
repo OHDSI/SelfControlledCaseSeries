@@ -65,6 +65,15 @@ struct CovariateSettings {
 
 };
 
+struct CovariateStatistics {
+  CovariateStatistics() :
+  observationPeriodCount(0), eraCount(0), personIds() {}
+  int observationPeriodCount;
+  int eraCount;
+  std::set<int64_t> personIds;
+
+};
+
 struct ConcomitantEra {
   ConcomitantEra() :
   start(0), end(0), weight(0) {
@@ -113,7 +122,7 @@ struct ConcomitantEraCovariateComparator {
 struct ResultStruct {
 
   ResultStruct() :
-  rowId(0) {
+  rowId(0), covariateIdToCovariateStatistics() {
     outcomeRowId = new std::vector<int64_t>;
     outcomeStratumId = new std::vector<int64_t>;
     outcomeY = new std::vector<int64_t>;
@@ -155,6 +164,19 @@ struct ResultStruct {
     }
   }
 
+  void computeCovariateStatistics(std::vector<Era>& eras, const int& personId) {
+    std::map<int64_t, int> covariateEraCounts;
+    for (std::vector<Era>::iterator i = eras.begin(); i != eras.end(); ++i)
+      ++covariateEraCounts[i->eraId];
+
+    for (std::map<int64_t, int>::iterator count = covariateEraCounts.begin(); count != covariateEraCounts.end(); ++count) {
+      CovariateStatistics& covariateStatistics = covariateIdToCovariateStatistics[count->first];
+      covariateStatistics.eraCount += count->second;
+      covariateStatistics.observationPeriodCount++;
+      covariateStatistics.personIds.insert(personId);
+    }
+  }
+
   void incRowId(){
     rowId++;
   }
@@ -162,9 +184,31 @@ struct ResultStruct {
   S4 convertToAndromeda() {
     flushOutcomesToAndromeda();
     flushErasToAndromeda();
+    writeCovariateStatisticsToAndromeda();
     return andromedaBuilder.getAndromeda();
   }
 private:
+  void writeCovariateStatisticsToAndromeda() {
+    int size = covariateIdToCovariateStatistics.size();
+    std::vector<int64_t> covariateId(size);
+    std::vector<int> personCount(size);
+    std::vector<int64_t> eraCount(size);
+    std::vector<int> observationPeriodCount(size);
+    int cursor(0);
+    for (std::map<int64_t, CovariateStatistics>::iterator i = covariateIdToCovariateStatistics.begin(); i != covariateIdToCovariateStatistics.end(); ++i) {
+      covariateId[cursor] = i->first;
+      CovariateStatistics covariateStatistics = i->second;
+      personCount[cursor] = covariateStatistics.personIds.size();
+      eraCount[cursor] = covariateStatistics.eraCount;
+      observationPeriodCount[cursor] = covariateStatistics.observationPeriodCount;
+    }
+    DataFrame covariateStatistics = DataFrame::create(Named("covariateId") = wrap(covariateId),
+                                                      Named("personCount") = wrap(personCount),
+                                                      Named("eraCount") = wrap(eraCount),
+                                                      Named("observationPeriodCount") = wrap(observationPeriodCount));
+    andromedaBuilder.appendToTable("covariateStatistics", covariateStatistics);
+  }
+
   void flushOutcomesToAndromeda(){
     if (outcomeRowId->size() > 0){
       DataFrame outcomes = DataFrame::create(Named("rowId") = wrap(*outcomeRowId),
@@ -202,6 +246,7 @@ private:
   std::vector<int64_t>* eraCovariateId;
   std::vector<double>* eraCovariateValue;
   int64_t rowId;
+  std::map<int64_t, CovariateStatistics> covariateIdToCovariateStatistics;
 };
 
 class SccsConverter {

@@ -80,7 +80,7 @@ createStudyPopulation <- function(sccsData,
 
   cases <- cases %>%
     mutate(startAgeInDays = .data$ageInDays,
-           endAgeInDays = .data$ageInDays + .data$observationDays)
+           endAgeInDays = .data$ageInDays + .data$observationDays - 1)
 
   if (naivePeriod != 0) {
     cases <- cases %>%

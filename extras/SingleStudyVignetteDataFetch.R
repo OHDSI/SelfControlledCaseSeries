@@ -108,6 +108,19 @@ sccsEraData <- createSccsEraData(studyPop,
                                  eraCovariateSettings = covarDiclofenac)
 
 
+library(dplyr)
+x1 <- sccsEraData$outcomes %>%
+  group_by(stratumId) %>%
+  summarise(time = sum(time, na.rm = TRUE)) %>%
+  arrange(stratumId) %>%
+  collect()
+
+x0 <- sccsData$cases %>%
+  select(stratumId = observationPeriodId, observationDays) %>%
+  arrange(stratumId) %>%
+  collect()
+
+x <- inner_join(x0, x1)
 
 saveSccsEraData(sccsEraData, "s:/temp/vignetteSccs/eraData1")
 sccsEraData <- loadSccsEraData("s:/temp/vignetteSccs/eraData1")
