@@ -7,7 +7,7 @@
 createSimulationRiskWindow(
   start = 0,
   end = 0,
-  addExposedDaysToEnd = TRUE,
+  endAnchor = "era end",
   splitPoints = c(),
   relativeRisks = c(0)
 )
@@ -15,12 +15,10 @@ createSimulationRiskWindow(
 \arguments{
 \item{start}{Start of the risk window relative to exposure start.}
 
-\item{end}{End of risk window relative to exposure start, or if
-\code{addExposedDaysToEnd} is TRUE, relative to the end date.}
+\item{end}{The end of the risk window (in days) relative to the \code{endAnchor}.}
 
-\item{addExposedDaysToEnd}{Should the length of exposure be added to the end date? In other words,
-should the exposure end date be used as reference point for the risk
-window end?}
+\item{endAnchor}{The anchor point for the end of the risk window. Can be \code{"era start"}
+or \code{"era end"}.}
 
 \item{splitPoints}{Subdivision of the risk window in to smaller sub-windows.}
 

@@ -11,7 +11,7 @@ createSccsSimulationSettings(
   maxAge = 65 * 365,
   minBaselineRate = 0.001,
   maxBaselineRate = 0.01,
-  covariateIds = c(1, 2),
+  eraIds = c(1, 2),
   patientUsages = c(0.2, 0.1),
   usageRate = c(0.01, 0.01),
   meanPrescriptionDurations = c(14, 30),
@@ -38,7 +38,7 @@ createSccsSimulationSettings(
 
 \item{maxBaselineRate}{The maximum baseline rate (per day).}
 
-\item{covariateIds}{The IDs for the covariates to be generated.}
+\item{eraIds}{The IDs for the covariates to be generated.}
 
 \item{patientUsages}{The fraction of patients that use the drugs.}
 

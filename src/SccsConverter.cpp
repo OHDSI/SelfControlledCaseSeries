@@ -353,14 +353,14 @@ void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int
 
 void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings) {
   if (covariateSettings.stratifyById) {
-    for (int i = 0; i < covariateSettings.covariateIds.size(); i++) {
-      int64_t covariateId = covariateSettings.covariateIds[i];
+    for (int i = 0; i < covariateSettings.eraIds.size(); i++) {
+      int64_t eraId = covariateSettings.eraIds[i];
       std::vector<Era> covariateEras;
       int start = -9999;
       int end = -9999;
       bool first = true;
       for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
-        if (era->eraId == covariateId) {
+        if (era->eraId == eraId) {
           if (era->start > (end + 1) && end != -9999) {
             Era mergedEra(start, end, 0, 1);
             // std::cout << "Start: " << start << ", end: " << end<< ", eraStart: " << era->start<< ", eraEnd: " << era->end << "\n";
@@ -402,7 +402,7 @@ void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::ve
     int end = -9999;
     bool first = true;
     for (std::vector<Era>::const_iterator era = eras.begin(); era != eras.end(); ++era) {
-      if (covariateSettings.covariateIdSet.find(era->eraId) != covariateSettings.covariateIdSet.end()) {
+      if (covariateSettings.eraIdSet.find(era->eraId) != covariateSettings.eraIdSet.end()) {
         if (era->start > (end + 1) && end != -9999) {
           Era mergedEra(start, end, 0, 1);
           covariateEras.push_back(mergedEra);
@@ -467,7 +467,6 @@ void SccsConverter::processPerson(PersonData& personData) {
 }
 
 S4 SccsConverter::convertToSccs() {
-  std::cout << "check0\n";
   while (personDataIterator.hasNext()) {
     PersonData personData = personDataIterator.next();
     processPerson(personData);

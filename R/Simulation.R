@@ -19,11 +19,9 @@
 #' Create a risk window definition for simulation
 #'
 #' @param start                 Start of the risk window relative to exposure start.
-#' @param end                   End of risk window relative to exposure start, or if
-#'                              \code{addExposedDaysToEnd} is TRUE, relative to the end date.
-#' @param addExposedDaysToEnd   Should the length of exposure be added to the end date? In other words,
-#'                              should the exposure end date be used as reference point for the risk
-#'                              window end?
+#' @param end                     The end of the risk window (in days) relative to the `endAnchor`.
+#' @param endAnchor               The anchor point for the end of the risk window. Can be `"era start"`
+#'                                or `"era end"`.
 #' @param splitPoints           Subdivision of the risk window in to smaller sub-windows.
 #' @param relativeRisks         Either a single number representing the relative risk in the risk
 #'                              window, or when splitPoints have been defined a vector of relative
@@ -35,9 +33,16 @@
 #' @export
 createSimulationRiskWindow <- function(start = 0,
                                        end = 0,
-                                       addExposedDaysToEnd = TRUE,
+                                       endAnchor = "era end",
                                        splitPoints = c(),
                                        relativeRisks = c(0)) {
+  if (!grepl("start$|end$", endAnchor, ignore.case = TRUE)) {
+    stop("endAnchor should have value 'era start' or 'era end'")
+  }
+  isEnd <- function(anchor) {
+    return(grepl("end$", anchor, ignore.case = TRUE))
+  }
+
   # First: get default values:
   analysis <- list()
   for (name in names(formals(createSimulationRiskWindow))) {
@@ -64,7 +69,7 @@ createSimulationRiskWindow <- function(start = 0,
 #' @param maxAge                      The maximum age in days.
 #' @param minBaselineRate             The minimum baseline rate (per day).
 #' @param maxBaselineRate             The maximum baseline rate (per day).
-#' @param covariateIds                The IDs for the covariates to be generated.
+#' @param eraIds                The IDs for the covariates to be generated.
 #' @param patientUsages               The fraction of patients that use the drugs.
 #' @param usageRate                   The rate of prescriptions per person that uses the drug.
 #' @param meanPrescriptionDurations   The mean duration of a prescription, per drug.
@@ -89,7 +94,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          maxAge = 65 * 365,
                                          minBaselineRate = 0.001,
                                          maxBaselineRate = 0.01,
-                                         covariateIds = c(1, 2),
+                                         eraIds = c(1, 2),
                                          patientUsages = c(0.2, 0.1),
                                          usageRate = c(0.01, 0.01),
                                          meanPrescriptionDurations = c(14, 30),
@@ -129,18 +134,19 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
   startYear <- round(runif(n, 2000, 2010))
   startMonth <- round(runif(n, 1, 12))
   startDay <- round(runif(n, 1, 28))
-  cases <- data.frame(observationPeriodId = 1:n,
-                      personId = 1:n,
-                      observationDays = observationDays,
-                      ageInDays = ageInDays,
-                      startYear = startYear,
-                      startMonth = startMonth,
-                      startDay = startDay,
-                      censoredDays = 0)
+  cases <- tibble(observationPeriodId = 1:n,
+                  personId = 1:n,
+                  observationDays = observationDays,
+                  ageInDays = ageInDays,
+                  startYear = startYear,
+                  startMonth = startMonth,
+                  startDay = startDay,
+                  censoredDays = 0,
+                  noninformativeEndCensor = 0)
 
   ### Generate eras ###
-  eras <- data.frame()
-  for (i in 1:length(settings$covariateIds)) {
+  eras <- tibble()
+  for (i in 1:length(settings$eraIds)) {
     # i <- 1
     patientsOnDrug <- sample.int(nrow(cases),
                                  settings$patientUsages[i] * nrow(cases),
@@ -157,16 +163,16 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
     endDay <- startDay + duration
     endDay[endDay > cases$observationDays[observationPeriodId]] <- cases$observationDays[observationPeriodId][endDay >
                                                                                                                 cases$observationDays[observationPeriodId]]
-    newEras <- data.frame(eraType = "hei",
-                          observationPeriodId = observationPeriodId,
-                          conceptId = settings$covariateIds[i],
-                          value = 1,
-                          startDay = startDay,
-                          endDay = endDay,
-                          stringsAsFactors = TRUE)
+    newEras <- tibble(eraType = "hei",
+                      observationPeriodId = observationPeriodId,
+                      eraId = settings$eraIds[i],
+                      value = 1,
+                      startDay = startDay,
+                      endDay = endDay,
+                      stringsAsFactors = TRUE)
     eras <- rbind(eras, newEras)
   }
-  eras <- eras[order(eras$observationPeriodId, eras$conceptId), ]
+  eras <- eras[order(eras$observationPeriodId, eras$eraId), ]
 
   ### Generate outcomes ###
   baselineRates <- runif(n, min = settings$minBaselineRate, max = settings$maxBaselineRate)
@@ -181,15 +187,15 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
     seasonRrs <- c(0)
   }
   # Apply risk windows:
-  newEras <- data.frame()
-  conceptIds <- c()
+  newEras <- tibble()
+  eraIds <- c()
   rrs <- c()
-  conceptId <- 1000
+  eraId <- 1000
   for (i in 1:length(settings$simulationRiskWindows)) {
     simulationRiskWindow <- settings$simulationRiskWindows[[i]]
-    sourceEras <- eras[eras$conceptId == settings$covariateIds[i], ]
+    sourceEras <- eras[eras$eraId == settings$eraIds[i], ]
     riskEnds <- rep(simulationRiskWindow$end, nrow(sourceEras))
-    if (simulationRiskWindow$addExposedDaysToEnd) {
+    if (simulationRiskWindow$endAnchor == "era end") {
       riskEnds <- riskEnds + sourceEras$endDay - sourceEras$startDay
     }
     start <- simulationRiskWindow$start
@@ -202,23 +208,22 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
       truncatedEnds <- riskEnds
       truncatedEnds[truncatedEnds > end] <- end
       filteredIndex <- truncatedEnds >= start
-      riskEras <- data.frame(eraType = "hei",
-                             observationPeriodId = sourceEras$observationPeriodId[filteredIndex],
-                             conceptId = conceptId,
-                             value = 1,
-                             startDay = sourceEras$startDay[filteredIndex] + start,
-                             endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex],
-                             stringsAsFactors = TRUE)
+      riskEras <- tibble(eraType = "hei",
+                         observationPeriodId = sourceEras$observationPeriodId[filteredIndex],
+                         eraId = eraId,
+                         value = 1,
+                         startDay = sourceEras$startDay[filteredIndex] + start,
+                         endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex],
+                         stringsAsFactors = TRUE)
       newEras <- rbind(newEras, riskEras)
-      conceptIds <- c(conceptIds, conceptId)
+      eraIds <- c(eraIds, eraId)
       rrs <- c(rrs, simulationRiskWindow$relativeRisks[j])
-      conceptId <- conceptId + 1
+      eraId <- eraId + 1
       start <- end + 1
     }
   }
-  newEras <- newEras[order(newEras$observationPeriodId, newEras$conceptId), ]
-  eraRrs <- data.frame(conceptId = conceptIds, rr = rrs,
-                       stringsAsFactors = TRUE)
+  newEras <- newEras[order(newEras$observationPeriodId, newEras$eraId), ]
+  eraRrs <- tibble(eraId = eraIds, rr = rrs)
   outcomes <- simulateSccsOutcomes(cases,
                                    newEras,
                                    baselineRates,
@@ -228,13 +233,13 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                                    ageRrs,
                                    settings$includeSeasonality,
                                    seasonRrs)
-  outcomes <- data.frame(eraType = "hoi",
-                         observationPeriodId = outcomes$observationPeriodId,
-                         conceptId = settings$outcomeId,
-                         value = 1,
-                         startDay = outcomes$startDay,
-                         endDay = outcomes$startDay,
-                         stringsAsFactors = TRUE)
+  outcomes <- tibble(eraType = "hoi",
+                     observationPeriodId = outcomes$observationPeriodId,
+                     eraId = settings$outcomeId,
+                     value = 1,
+                     startDay = outcomes$startDay,
+                     endDay = outcomes$startDay,
+                     stringsAsFactors = TRUE)
 
   # ** Remove non-cases ***
   caseIds <- unique(outcomes$observationPeriodId)
@@ -278,8 +283,8 @@ simulateSccsData <- function(nCases, settings) {
   } else {
     seasonFun <- NULL
   }
-  cases <- data.frame()
-  eras <- data.frame()
+  cases <- tibble()
+  eras <- tibble()
   lastCaseId <- 0
   while (nrow(cases) < nCases) {
     batch <- simulateBatch(settings, ageFun, seasonFun, lastCaseId)
@@ -294,18 +299,20 @@ simulateSccsData <- function(nCases, settings) {
                     batch$eras[batch$eras$observationPeriodId %in% batch$cases$observationPeriodId[1:need],])
     }
   }
-  data <- list(cases = ff::as.ffdf(cases),
-               eras = ff::as.ffdf(eras),
-               metaData = list(sccsSimulationSettings = settings,
-                               ageFun = ageFun,
-                               seasonFun = seasonFun,
-                               exposureIds = settings$covariateIds,
-                               outcomeIds = settings$outcomeId),
-               covariateRef = ff::as.ffdf(data.frame(covariateId = settings$covariateIds,
-                                                     covariateName = c(""),
-                                                     stringsAsFactors = TRUE)))
-  rownames(data$cases) <- NULL
-  rownames(data$eras) <- NULL
-  class(data) <- "sccsData"
+  data <- Andromeda::andromeda(cases = cases,
+                               eras = eras,
+                               eraRef = tibble(eraId = settings$eraIds,
+                                               eraType = "",
+                                               eraName = ""))
+
+  attr(data, "metaData") <- list(sccsSimulationSettings = settings,
+                                 ageFun = ageFun,
+                                 seasonFun = seasonFun,
+                                 exposureIds = settings$eraIds,
+                                 outcomeIds = settings$outcomeId,
+                                 attrition = tibble(outcomeId = settings$outcomeId))
+
+  class(data) <- "SccsData"
+  attr(class(data), "package") <- "SelfControlledCaseSeries"
   return(data)
 }

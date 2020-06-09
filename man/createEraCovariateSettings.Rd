@@ -5,25 +5,25 @@
 \title{Create era covariate settings}
 \usage{
 createEraCovariateSettings(
-  includeCovariateIds = NULL,
-  excludeCovariateIds = NULL,
+  includeEraIds = NULL,
+  excludeEraIds = NULL,
   label = "Covariates",
   stratifyById = TRUE,
   start = 0,
-  addExposedDaysToStart = FALSE,
+  startAnchor = "era start",
   end = 0,
-  addExposedDaysToEnd = FALSE,
+  endAnchor = "era end",
   firstOccurrenceOnly = FALSE,
   splitPoints = c(),
   allowRegularization = FALSE
 )
 }
 \arguments{
-\item{includeCovariateIds}{One or more IDs of variables in the \code{sccsData} object that
+\item{includeEraIds}{One or more IDs of variables in the \link{SccsData} object that
 should be used to construct this covariate. If no IDs are specified,
 all variables will be used.}
 
-\item{excludeCovariateIds}{One or more IDs of variables in the \code{sccsData} object that
+\item{excludeEraIds}{One or more IDs of variables in the [SccsData] object that
 should not be used to construct this covariate.}
 
 \item{label}{A label used to identify the covariates created using these settings.}
@@ -35,15 +35,15 @@ a covariate be constructed for every drug, or a single covariate for
 exposure to any of these drugs. Note that overlap will be considered
 a single exposure.}
 
-\item{start}{The start of the risk window in days, relative to the exposure start
-date.}
+\item{start}{The start of the risk window (in days) relative to the \code{startAnchor}.}
 
-\item{addExposedDaysToStart}{Should the length of exposure be added to the start date?}
+\item{startAnchor}{The anchor point for the start of the risk window. Can be \code{"era start"}
+or \code{"era end"}.}
 
-\item{end}{The start of the risk window in days, relative to the exposure start
-date.}
+\item{end}{The end of the risk window (in days) relative to the \code{endAnchor}.}
 
-\item{addExposedDaysToEnd}{Should the length of exposure be added to the end date?}
+\item{endAnchor}{The anchor point for the end of the risk window. Can be \code{"era start"}
+or \code{"era end"}.}
 
 \item{firstOccurrenceOnly}{Should only the first occurrence of the exposure be used?}
 

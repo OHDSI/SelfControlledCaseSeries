@@ -42,13 +42,13 @@ private:
   NumericVector casesStartMonth;
   NumericVector casesStartDay;
   NumericVector erasObservationPeriodId;
-  NumericVector erasConceptId;
+  NumericVector erasEraId;
   NumericVector erasStartDay;
   NumericVector erasEndDay;
   std::vector<int> outcomeObservationPeriodIds;
   std::vector<int> outcomeStartDays;
   std::vector<double> baselineRates;
-  std::map<int, double> conceptIdToRr;
+  std::map<int, double> eraIdToRr;
   bool includeAge;
   int ageOffset;
   std::vector<double> ageRrs;

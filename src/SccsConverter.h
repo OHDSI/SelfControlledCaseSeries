@@ -34,28 +34,26 @@ struct CovariateSettings {
   CovariateSettings(const List& _covariateSettings) :
   stratifyById(as<bool>(_covariateSettings["stratifyById"])),
   firstOccurrenceOnly(as<bool>(_covariateSettings["firstOccurrenceOnly"])),
-  covariateIds(as<NumericVector>(_covariateSettings["covariateIds"])),
+  eraIds(as<NumericVector>(_covariateSettings["eraIds"])),
   outputIds(as<NumericMatrix>(_covariateSettings["outputIds"])),
   start(as<int>(_covariateSettings["start"])),
-  addExposedDaysToStart(as<bool>(_covariateSettings["addExposedDaysToStart"])),
+  addExposedDaysToStart(as<std::string>(_covariateSettings["startAnchor"]).compare("era end") == 0),
   end(as<int>(_covariateSettings["end"])),
-  addExposedDaysToEnd(as<bool>(_covariateSettings["addExposedDaysToEnd"])){
-
+  addExposedDaysToEnd(as<std::string>(_covariateSettings["endAnchor"]).compare("era end") == 0){
     if (_covariateSettings.containsElementNamed("splitPoints")){
       NumericVector splitPointsList = _covariateSettings["splitPoints"];
       for (int i = 0; i < splitPointsList.size(); i++){
         splitPoints.push_back(splitPointsList[i]);
       }
     }
-    for (int i = 0; i < covariateIds.size(); i++){
-      covariateIdSet.insert(covariateIds[i]);
+    for (int i = 0; i < eraIds.size(); i++){
+      eraIdSet.insert(eraIds[i]);
     }
-
   }
   bool stratifyById;
   bool firstOccurrenceOnly;
-  NumericVector covariateIds;
-  std::set<int64_t> covariateIdSet;
+  NumericVector eraIds;
+  std::set<int64_t> eraIdSet;
   NumericMatrix outputIds;
   int start;
   bool addExposedDaysToStart;

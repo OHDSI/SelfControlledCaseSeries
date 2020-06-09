@@ -1,5 +1,5 @@
 library("testthat")
-# options(fftempdir = 's:/fftemp') Simulation:
+# Simulation:
 set.seed(123)
 n <- 2e+05
 observationDays <- 100
@@ -7,7 +7,7 @@ rr <- 2
 minBaselineRate <- 5e-05
 maxBaselineRate <- 1e-04
 
-data <- data.frame(personId = 1:n)
+data <- tibble(personId = 1:n)
 data$observationStartDate <- 1
 data$observationEndDate <- observationDays
 data$exposureStartDate <- round(runif(n, 1, observationDays))
@@ -28,7 +28,7 @@ data$eventDate[peopleUnexpEvent] <- round(runif(sum(peopleUnexpEvent),
                                                 data$daysUnexposed[peopleUnexpEvent]))
 # If day greater than exposure start day, at exposure time so it falls in period post exposure:
 data$eventDate[peopleUnexpEvent & data$eventDate > data$exposureStartDate] <- data$eventDate[peopleUnexpEvent &
-  data$eventDate > data$exposureStartDate] + data$daysExposed[peopleUnexpEvent & data$eventDate > data$exposureStartDate]
+                                                                                               data$eventDate > data$exposureStartDate] + data$daysExposed[peopleUnexpEvent & data$eventDate > data$exposureStartDate]
 
 # For people with event during exposure, and no event in the period prior exposure, randomly pick an
 # event date during exposure:
@@ -50,7 +50,7 @@ data$censorDate <- round(rexp(nrow(data), preEventCensorRate))
 # Post event censoring
 notCensored <- data$censorDate > data$eventDate
 data$censorDate[notCensored] <- data$eventDate[notCensored] +
-                                round(rexp(sum(notCensored), postEventCensorRate))
+  round(rexp(sum(notCensored), postEventCensorRate))
 
 # Remove patients where outcome or exposure falls after censor date:
 data <- data[data$exposureStartDate <= data$censorDate, ]
@@ -58,7 +58,7 @@ data <- data[data$eventDate <= data$censorDate, ]
 
 # Truncate exposure end date at censor date:
 data$exposureEndDate[data$exposureEndDate > data$censorDate] <- data$censorDate[data$exposureEndDate >
-  data$censorDate]
+                                                                                  data$censorDate]
 
 data$censorDate[data$censorDate > observationDays] <- observationDays
 nrow(data)
@@ -74,7 +74,7 @@ nrow(data)
 # x <- eventdepenobs(formula = event ~ exposure + strata(indivL) + offset(logw),
 #                    adrug = data$ageInDays + data$exposureStartDate - data$observationStartDate,
 #                    aedrug = data$ageInDays + data$exposureEndDate - data$observationStartDate + 1,
-#                    data = data.frame(Indiv = data$personId,
+#                    data = tibble(Indiv = data$personId,
 #                                      aevent = data$ageInDays + data$eventDate - data$observationStartDate + 1,
 #                                      astart = data$ageInDays,
 #                                      aend = data$ageInDays + data$censorDate - data$observationStartDate + 1,
@@ -86,42 +86,62 @@ x$summary$coefficients <- c(0.762933)
 x$modelfit <- matrix(c(-3122.776, -3122.776, -3122.776, -3122.776), nrow = 2)
 
 test_that("Produces same results as SCCS package when using event-dependent observation periods", {
-  cases <- data.frame(observationPeriodId = data$personId,
-                      personId = data$personId,
-                      observationDays = data$censorDate - data$observationStartDate + 1,
-                      ageInDays = data$ageInDays,
-                      startYear = 2000,
-                      startMonth = 5,
-                      startDay = 1,
-                      censoredDays = 0)
-  heiEras <- data.frame(eraType = "hei",
-                        observationPeriodId = data$personId,
-                        conceptId = 1,
-                        value = 1,
-                        startDay = data$exposureStartDate - data$observationStartDate,
-                        endDay = data$exposureEndDate - data$observationStartDate)
-  hoiEras <- data.frame(eraType = "hoi",
-                        observationPeriodId = data$personId,
-                        conceptId = 2,
-                        value = 1,
-                        startDay = data$eventDate - data$observationStartDate,
-                        endDay = data$eventDate - data$observationStartDate)
+  cases <- tibble(observationPeriodId = data$personId,
+                  personId = data$personId,
+                  observationDays = data$censorDate - data$observationStartDate + 1,
+                  ageInDays = data$ageInDays,
+                  startYear = 2000,
+                  startMonth = 5,
+                  startDay = 1,
+                  censoredDays = 0)
+
+  cases$noninformativeEndCensor <- cases$observationDays == max(cases$observationDays)
+  heiEras <- tibble(eraType = "rx",
+                    observationPeriodId = data$personId,
+                    eraId = 1,
+                    value = 1,
+                    startDay = data$exposureStartDate - data$observationStartDate,
+                    endDay = data$exposureEndDate - data$observationStartDate)
+  hoiEras <- tibble(eraType = "hoi",
+                    observationPeriodId = data$personId,
+                    eraId = 2,
+                    value = 1,
+                    startDay = data$eventDate - data$observationStartDate,
+                    endDay = data$eventDate - data$observationStartDate)
   eras <- rbind(heiEras, hoiEras)
   eras <- eras[order(eras$observationPeriodId), ]
-  sccsData <- list(cases = ff::as.ffdf(cases),
-                   eras = ff::as.ffdf(eras),
-                   metaData = list(outcomeIds = 2),
-                   covariateRef = ff::as.ffdf(data.frame(covariateId = c(1),
-                                                         covariateName = c(""))))
-  sccsEraData <- createSccsEraData(sccsData = sccsData,
-                                   covariateSettings = createCovariateSettings(includeCovariateIds = 1,
-                                                                               start = 0,
-                                                                               end = 0,
-                                                                               addExposedDaysToEnd = TRUE),
-                                   naivePeriod = 0,
+
+
+  eraRef <- eras %>%
+    distinct(.data$eraId, .data$eraType) %>%
+    mutate(eraName = "")
+
+  sccsData <- Andromeda::andromeda(cases = cases,
+                                   eras = eras,
+                                   eraRef = eraRef)
+  attr(sccsData, "metaData") <- list(outcomeIds = 2,
+                                     attrition = tibble(outcomeId = 2))
+
+
+  # sccsData <- list(cases = ff::as.ffdf(cases),
+  #                  eras = ff::as.ffdf(eras),
+  #                  metaData = list(outcomeIds = 2),
+  #                  covariateRef = ff::as.ffdf(tibble(eraId = c(1),
+  #                                                        covariateName = c(""))))
+
+  studyPop <- createStudyPopulation(sccsData = sccsData)
+
+
+
+  sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+                                   sccsData = sccsData,
+                                   eraCovariateSettings = createEraCovariateSettings(includeEraIds = 1,
+                                                                                     start = 0,
+                                                                                     end = 0,
+                                                                                     endAnchor = "era end"),
                                    eventDependentObservation = TRUE)
 
-  expect_equal(sccsEraData$metaData$censorModel$aic, min(x$modelfit[2, ]), tolerance = 1e-04)
+  expect_equal(attr(sccsEraData, "metaData")$censorModel$aic, min(x$modelfit[2, ]), tolerance = 1e-04)
 
   fit <- fitSccsModel(sccsEraData)
 
@@ -133,7 +153,7 @@ test_that("Produces same results as SCCS package when using event-dependent obse
 #
 # myData <- merge(ff::as.ram(sccsEraData$outcomes), ff::as.ram(sccsEraData$covariates), all.x = TRUE)
 # myData$covariateValue[is.na(myData$covariateValue)] <- 0
-# myData <- data.frame(stratumId = myData$stratumId, exposure = myData$covariateValue,
+# myData <- tibble(stratumId = myData$stratumId, exposure = myData$covariateValue,
 #                      w = myData$time, event = myData$y)
 # clogit(event ~ exposure + strata(stratumId) + offset(log(w)), data = myData)
 #
@@ -153,7 +173,7 @@ test_that("Produces same results as SCCS package when using event-dependent obse
 # which(myData$w > 10000)
 # myData[myData$w > 100000,]
 # (cd$w[1] - myData$w[1])
-# sccsData = data.frame(Indiv = as.factor(data$personId),
+# sccsData = tibble(Indiv = as.factor(data$personId),
 #                       aevent = data$ageInDays + data$eventDate - data$observationStartDate + 1,
 #                       astart = data$ageInDays,
 #                       aend = data$ageInDays + data$censorDate - data$observationStartDate + 1,
@@ -172,7 +192,7 @@ test_that("Produces same results as SCCS package when using event-dependent obse
 #
 #
 #
-# sccsData = data.frame(Indiv = c(1,2,3),
+# sccsData = tibble(Indiv = c(1,2,3),
 #                       aevent = c(2,3,4),
 #                       astart = c(1,1,1),
 #                       aend = c(10,10,10),

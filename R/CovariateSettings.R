@@ -19,10 +19,10 @@
 #' @details
 #' Create an object specifying how to create a (set of) era-based covariates.
 #'
-#' @param includeCovariateIds     One or more IDs of variables in the \code{sccsData} object that
+#' @param includeEraIds           One or more IDs of variables in the [SccsData] object that
 #'                                should be used to construct this covariate. If no IDs are specified,
 #'                                all variables will be used.
-#' @param excludeCovariateIds     One or more IDs of variables in the \code{sccsData} object that
+#' @param excludeEraIds           One or more IDs of variables in the \[SccsData] object that
 #'                                should not be used to construct this covariate.
 #' @param label                   A label used to identify the covariates created using these settings.
 #' @param stratifyById            Should a single covariate be created for every ID in the
@@ -31,12 +31,12 @@
 #'                                a covariate be constructed for every drug, or a single covariate for
 #'                                exposure to any of these drugs. Note that overlap will be considered
 #'                                a single exposure.
-#' @param start                   The start of the risk window in days, relative to the exposure start
-#'                                date.
-#' @param addExposedDaysToStart   Should the length of exposure be added to the start date?
-#' @param end                     The start of the risk window in days, relative to the exposure start
-#'                                date.
-#' @param addExposedDaysToEnd     Should the length of exposure be added to the end date?
+#' @param start                   The start of the risk window (in days) relative to the `startAnchor`.
+#' @param startAnchor             The anchor point for the start of the risk window. Can be `"era start"`
+#'                                or `"era end"`.
+#' @param end                     The end of the risk window (in days) relative to the `endAnchor`.
+#' @param endAnchor               The anchor point for the end of the risk window. Can be `"era start"`
+#'                                or `"era end"`.
 #' @param firstOccurrenceOnly     Should only the first occurrence of the exposure be used?
 #' @param splitPoints             To split the risk window into several smaller windows, specify the
 #'                                end of each sub- window relative to the start of the main risk
@@ -49,20 +49,40 @@
 #' An object of type `EraCovariateSettings`.
 #'
 #' @export
-createEraCovariateSettings <- function(includeCovariateIds = NULL,
-                                       excludeCovariateIds = NULL,
+createEraCovariateSettings <- function(includeEraIds = NULL,
+                                       excludeEraIds = NULL,
                                        label = "Covariates",
                                        stratifyById = TRUE,
                                        start = 0,
-                                       addExposedDaysToStart = FALSE,
+                                       startAnchor = "era start",
                                        end = 0,
-                                       addExposedDaysToEnd = FALSE,
+                                       endAnchor = "era end",
                                        firstOccurrenceOnly = FALSE,
                                        splitPoints = c(),
                                        allowRegularization = FALSE) {
-  if (end < start && !addExposedDaysToEnd)
-    stop("End day always precedes start day. Either pick a later end day, or set addExposedDaysToEnd to TRUE.")
+  if (!grepl("start$|end$", startAnchor, ignore.case = TRUE)) {
+    stop("startAnchor should have value 'era start' or 'era end'")
+  }
+  if (!grepl("start$|end$", endAnchor, ignore.case = TRUE)) {
+    stop("endAnchor should have value 'era start' or 'era end'")
+  }
+  isEnd <- function(anchor) {
+    return(grepl("end$", anchor, ignore.case = TRUE))
+  }
+  if (end < start && !isEnd(endAnchor))
+    stop("End day always precedes start day. Either pick a later end day, or set endAnchor to 'era end'.")
 
+  # Make sure string is exact:
+  if (isEnd(startAnchor)) {
+    startAnchor <- "era end"
+  } else {
+    startAnchor <- "era start"
+  }
+  if (isEnd(endAnchor)) {
+    endAnchor <- "era end"
+  } else {
+    endAnchor <- "era start"
+  }
   analysis <- list()
   for (name in names(formals(createEraCovariateSettings))) {
     analysis[[name]] <- get(name)

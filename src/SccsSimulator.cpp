@@ -40,13 +40,13 @@ baselineRates(_baselineRates), includeAge(_includeAge), ageOffset(_ageOffset), a
   casesStartMonth = _cases["startMonth"];
   casesStartDay = _cases["startDay"];
   erasObservationPeriodId = _eras["observationPeriodId"];
-  erasConceptId = _eras["conceptId"];
+  erasEraId = _eras["eraId"];
   erasStartDay = _eras["startDay"];
   erasEndDay = _eras["endDay"];
-  NumericVector conceptId = _eraRrs["conceptId"];
+  NumericVector eraId = _eraRrs["eraId"];
   NumericVector rr = _eraRrs["rr"];
-  for (int i = 0; i < conceptId.size(); i++){
-    conceptIdToRr[conceptId[i]] = rr[i];
+  for (int i = 0; i < eraId.size(); i++){
+    eraIdToRr[eraId[i]] = rr[i];
   }
 }
 
@@ -71,10 +71,10 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
     // Multiply by era RRs:
     int previousId = -1;
     for (int eraIndex = eraStartIndex; eraIndex < eraEndIndex; eraIndex++){
-      if (erasConceptId[eraIndex] != previousId){
+      if (erasEraId[eraIndex] != previousId){
         if (day >= erasStartDay[eraIndex] && day <= erasEndDay[eraIndex]){
-          previousId = erasConceptId[eraIndex];
-          dailyRate *= conceptIdToRr[previousId];
+          previousId = erasEraId[eraIndex];
+          dailyRate *= eraIdToRr[previousId];
         }
       }
     }

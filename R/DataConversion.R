@@ -218,9 +218,9 @@ addEventDependentObservationSettings <- function(settings,
       summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
       inner_join(studyPopulation$cases, by = "observationPeriodId") %>%
       transmute(astart = .data$ageInDays,
-                aend = .data$ageInDays + .data$endDay,
+                aend = .data$ageInDays + .data$endDay + 1,
                 aevent = .data$ageInDays + .data$outcomeDay + 1,
-                present = .data$noninformativeEndCensor)
+                present = .data$noninformativeEndCensor == 1)
 
     settings$censorModel <- fitModelsAndPickBest(data)
     settings$metaData$censorModel <- settings$censorModel
@@ -245,16 +245,16 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
     if (is.null(covariateSettings$label)) {
       covariateSettings$label <- "Covariate"
     }
-    if (is.null(covariateSettings$includeCovariateIds) || length(covariateSettings$includeCovariateIds) == 0) {
-      covariateSettings$covariateIds <- eraRef %>%
+    if (is.null(covariateSettings$includeEraIds) || length(covariateSettings$includeEraIds) == 0) {
+      covariateSettings$eraIds <- eraRef %>%
         filter(.data$eraType != "hoi") %>%
         select(.data$eraId) %>%
         pull()
     } else {
-      covariateSettings$covariateIds <- covariateSettings$includeCovariateIds
+      covariateSettings$eraIds <- covariateSettings$includeEraIds
     }
-    if (!is.null(covariateSettings$excludeCovariateIds) && length(covariateSettings$excludeCovariateIds) != 0) {
-      covariateSettings$covariateIds <- covariateSettings$covariateIds[!covariateSettings$covariateIds %in% covariateSettings$excludeCovariateIds]
+    if (!is.null(covariateSettings$excludeEraIds) && length(covariateSettings$excludeEraIds) != 0) {
+      covariateSettings$eraIds <- covariateSettings$eraIds[!covariateSettings$eraIds %in% covariateSettings$excludeEraIds]
     }
 
     if (length(covariateSettings$splitPoints) == 0) {
@@ -270,12 +270,12 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
         outputId <- outputId + 1
       } else {
         # Create a unique output ID for every covariate ID
-        outputIds <- outputId:(outputId + length(covariateSettings$covariateIds) - 1)
+        outputIds <- outputId:(outputId + length(covariateSettings$eraIds) - 1)
         covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
         outputId <- outputId + length(outputIds)
-        varNames <- eraRef[eraRef$eraId %in% covariateSettings$covariateIds, ]
+        varNames <- eraRef[eraRef$eraId %in% covariateSettings$eraIds, ]
         if (nrow(varNames) == 0) {
-          warning(paste0("Could not find covariate with ID ", covariateSettings$covariateIds, " in data"))
+          warning(paste0("Could not find era with ID ", covariateSettings$eraIds, " in data"))
         } else {
           varNames <- varNames %>%
             transmute(originalEraId = .data$eraId,
@@ -286,7 +286,7 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
                                             sep = ": "))
 
           newCovariateRef <- tibble(covariateId = outputIds,
-                                    originalEraId = covariateSettings$covariateIds) %>%
+                                    originalEraId = covariateSettings$eraIds) %>%
             inner_join(varNames, by = "originalEraId")
           settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
         }
@@ -310,13 +310,13 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
                                   originalEraName = "")
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
       } else {
-        outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$covariateIds) - 1)
+        outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$eraIds) - 1)
         outputId <- max(outputIds) + 1
         covariateSettings$outputIds <- matrix(outputIds,
                                               ncol = length(covariateSettings$splitPoints) + 1,
                                               byrow = TRUE)
-        if (any(covariateSettings$covariateIds %in% eraRef$eraId)) {
-          originalEraId <- rep(covariateSettings$covariateIds,
+        if (any(covariateSettings$eraIds %in% eraRef$eraId)) {
+          originalEraId <- rep(covariateSettings$eraIds,
                                each = length(covariateSettings$splitPoints) + 1)
           originalEraType <- eraRef$eraType[match(originalEraId,
                                                   eraRef$eraId)]
