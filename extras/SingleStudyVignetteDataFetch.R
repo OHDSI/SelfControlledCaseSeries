@@ -105,22 +105,8 @@ covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
 
 sccsEraData <- createSccsEraData(studyPop,
                                  sccsData,
-                                 eraCovariateSettings = covarDiclofenac, eventDependentObservation = TRUE)
+                                 eraCovariateSettings = covarDiclofenac)
 
-
-# library(dplyr)
-# x1 <- sccsEraData$outcomes %>%
-#   group_by(stratumId) %>%
-#   summarise(time = sum(time, na.rm = TRUE)) %>%
-#   arrange(stratumId) %>%
-#   collect()
-#
-# x0 <- sccsData$cases %>%
-#   select(stratumId = observationPeriodId, observationDays) %>%
-#   arrange(stratumId) %>%
-#   collect()
-#
-# x <- inner_join(x0, x1)
 
 saveSccsEraData(sccsEraData, "s:/temp/vignetteSccs/eraData1")
 sccsEraData <- loadSccsEraData("s:/temp/vignetteSccs/eraData1")
@@ -131,49 +117,47 @@ model <- fitSccsModel(sccsEraData, control = createControl(threads = 10))
 saveRDS(model, "s:/temp/vignetteSccs/simpleModel.rds")
 
 coef(model)
-summary(model)
 
 ### Risk windows: Adding pre-exposure window ###
 
-covarPreDiclofenac <- createCovariateSettings(label = "Pre-exposure",
-                                              includeCovariateIds = diclofenac,
-                                              start = -60,
-                                              end = -1)
+covarPreDiclofenac <- createEraCovariateSettings(label = "Pre-exposure",
+                                                 includeEraIds = diclofenac,
+                                                 start = -60,
+                                                 end = -1,
+                                                 endAnchor = "era start")
 
-sccsEraData <- createSccsEraData(sccsData,
-                                 naivePeriod = 180,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = list(covarDiclofenac, covarPreDiclofenac))
+sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+                                 sccsData,
+                                 eraCovariateSettings = list(covarDiclofenac, covarPreDiclofenac))
 
 model <- fitSccsModel(sccsEraData)
 saveRDS(model, "s:/temp/vignetteSccs/preExposureModel.rds")
 coef(model)
-summary(model)
+
 ### Risk windows: Adding window splits ###
 
-covarDiclofenacSplit <- createCovariateSettings(label = "Exposure of interest",
-                                                includeCovariateIds = diclofenac,
+covarDiclofenacSplit <- createEraCovariateSettings(label = "Exposure of interest",
+                                                includeEraIds = diclofenac,
                                                 start = 0,
                                                 end = 0,
-                                                addExposedDaysToEnd = TRUE,
+                                                endAnchor = "era end",
                                                 splitPoints = c(7, 14))
 
-covarPreDiclofenacSplit <- createCovariateSettings(label = "Pre-exposure",
-                                                   includeCovariateIds = diclofenac,
+covarPreDiclofenacSplit <- createEraCovariateSettings(label = "Pre-exposure",
+                                                   includeEraIds = diclofenac,
                                                    start = -60,
                                                    end = -1,
+                                                   endAnchor = "era start",
                                                    splitPoints = c(-30))
 
-sccsEraData <- createSccsEraData(sccsData,
-                                 naivePeriod = 180,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = list(covarDiclofenacSplit,
+sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+                                 sccsData,
+                                 eraCovariateSettings = list(covarDiclofenacSplit,
                                                           covarPreDiclofenacSplit))
 
 model <- fitSccsModel(sccsEraData)
 saveRDS(model, "s:/temp/vignetteSccs/splitModel.rds")
 coef(model)
-summary(model)
 
 ### Adding age and seasonality ###
 
@@ -184,10 +168,10 @@ seasonalityCovariateSettings <- createSeasonalityCovariateSettings(seasonKnots =
 sccsEraData <- createSccsEraData(studyPopulation = studyPop,
                                  sccsData = sccsData,
                                  eraCovariateSettings = list(covarDiclofenacSplit,
-                                                          covarPreDiclofenacSplit),
+                                                             covarPreDiclofenacSplit),
 
-                                 ageSettings = ageSettings,
-                                 seasonalitySettings = seasonalitySettings)
+                                 ageCovariateSettings = ageCovariateSettings,
+                                 seasonalityCovariateSettings = seasonalityCovariateSettings)
 
 model <- fitSccsModel(sccsEraData, control = createControl(cvType = "auto",
                                                            selectorType = "byPid",
@@ -204,14 +188,15 @@ plotSeasonality(model)
 
 ### Adding time-dependent observation periods
 
-sccsEraData <- createSccsEraData(sccsData,
-                                 naivePeriod = 180,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = list(covarDiclofenacSplit,
-                                                          covarPreDiclofenacSplit),
-                                 ageSettings = ageSettings,
-                                 seasonalitySettings = seasonalitySettings,
+sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+                                 sccsData = sccsData,
+                                 eraCovariateSettings = list(covarDiclofenacSplit,
+                                                             covarPreDiclofenacSplit),
+
+                                 ageCovariateSettings = ageCovariateSettings,
+                                 seasonalityCovariateSettings = seasonalityCovariateSettings,
                                  eventDependentObservation = TRUE)
+
 model <- fitSccsModel(sccsEraData, control = createControl(cvType = "auto",
                                                            selectorType = "byPid",
                                                            startingVariance = 0.1,
@@ -234,23 +219,29 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureIds = c(diclofenac, ppis),
                           cdmVersion = cdmVersion)
 saveSccsData(sccsData, "s:/temp/vignetteSccs/data2")
-# sccsData <- loadSccsData('s:/temp/vignetteSccs/data2')
-covarPpis <- createCovariateSettings(label = "PPIs",
-                                     includeCovariateIds = ppis,
+sccsData <- loadSccsData('s:/temp/vignetteSccs/data2')
+summary(sccsData)
+
+studyPop <- createStudyPopulation(sccsData = sccsData,
+                                  outcomeId = 1,
+                                  firstOutcomeOnly = FALSE,
+                                  naivePeriod = 180)
+
+covarPpis <- createEraCovariateSettings(label = "PPIs",
+                                     includeEraIds = ppis,
                                      stratifyById = FALSE,
                                      start = 1,
                                      end = 0,
-                                     addExposedDaysToEnd = TRUE)
+                                     endAnchor = "era end")
 
-sccsEraData <- createSccsEraData(sccsData,
-                                 naivePeriod = 180,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = list(covarDiclofenacSplit,
-                                                          covarPreDiclofenacSplit,
-                                                          covarPpis),
-                                 ageSettings = ageSettings,
-                                 seasonalitySettings = seasonalitySettings,
-                                 eventDependentObservation = TRUE)
+sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+                                 sccsData = sccsData,
+                                 eraCovariateSettings = list(covarDiclofenacSplit,
+                                                             covarPreDiclofenacSplit,
+                                                             covarPpis),
+                                 ageCovariateSettings = ageCovariateSettings,
+                                 seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                 eventDependentObservation = F)
 
 model <- fitSccsModel(sccsEraData, control = createControl(cvType = "auto",
                                                            selectorType = "byPid",
@@ -271,24 +262,30 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureIds = c(),
                           cdmVersion = cdmVersion)
 saveSccsData(sccsData, "s:/temp/vignetteSccs/data3")
-# sccsData <- loadSccsData('s:/temp/vignetteSccs/data3')
+sccsData <- loadSccsData('s:/temp/vignetteSccs/data3')
 
-covarAllDrugs <- createCovariateSettings(label = "Other exposures",
-                                         excludeCovariateIds = diclofenac,
+summary(sccsData)
+
+studyPop <- createStudyPopulation(sccsData = sccsData,
+                                  outcomeId = 1,
+                                  firstOutcomeOnly = FALSE,
+                                  naivePeriod = 180)
+
+covarAllDrugs <- createEraCovariateSettings(label = "Other exposures",
+                                         excludeEraIds = diclofenac,
                                          stratifyById = TRUE,
                                          start = 1,
                                          end = 0,
-                                         addExposedDaysToEnd = TRUE,
+                                         endAnchor = "era end",
                                          allowRegularization = TRUE)
 
-sccsEraData <- createSccsEraData(sccsData,
-                                 naivePeriod = 180,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = list(covarDiclofenacSplit,
-                                                          covarPreDiclofenacSplit,
-                                                          covarAllDrugs),
-                                 ageSettings = ageSettings,
-                                 seasonalitySettings = seasonalitySettings,
+sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+                                 sccsData = sccsData,
+                                 eraCovariateSettings = list(covarDiclofenacSplit,
+                                                             covarPreDiclofenacSplit,
+                                                             covarAllDrugs),
+                                 ageCovariateSettings = ageCovariateSettings,
+                                 seasonalityCovariateSettings = seasonalityCovariateSettings,
                                  eventDependentObservation = TRUE)
 
 saveSccsEraData(sccsEraData, "s:/temp/vignetteSccs/sccsEraDataAllDrugs")

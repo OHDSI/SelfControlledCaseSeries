@@ -215,7 +215,7 @@ addEventDependentObservationSettings <- function(settings,
 
     data <- studyPopulation$outcomes %>%
       group_by(.data$observationPeriodId) %>%
-      summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
+      summarise(outcomeDay = min(.data$outcomeDay)) %>%
       inner_join(studyPopulation$cases, by = "observationPeriodId") %>%
       transmute(astart = .data$ageInDays,
                 aend = .data$ageInDays + .data$endDay + 1,

@@ -65,18 +65,18 @@ bool AndromedaTableIterator::hasNext() {
   else {
     Environment dbi = Environment::namespace_env("DBI");
     Function dbHasCompleted = dbi["dbHasCompleted"];
-    if (dbHasCompleted(resultSet)) {
+    if (as<bool>(dbHasCompleted(resultSet))) {
       Function dbClearResult = dbi["dbClearResult"];
       dbClearResult(resultSet);
       done = true;
       return false;
-    } else
+    } else {
       return true;
+    }
   }
 }
 
 List AndromedaTableIterator::next() {
-
   Environment dbi = Environment::namespace_env("DBI");
   Function dbFetch = dbi["dbFetch"];
   DataFrame batch = dbFetch(resultSet, 100000);

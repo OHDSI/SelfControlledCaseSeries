@@ -116,14 +116,13 @@ setMethod("summary", "SccsData", function(object) {
     pull()
 
 
-  outcomeCounts <- sccsData$eras %>%
+  outcomeCounts <- object$eras %>%
     filter(.data$eraType == "hoi") %>%
-    inner_join(sccsData$cases, by = "observationPeriodId") %>%
+    inner_join(object$cases, by = "observationPeriodId") %>%
     group_by(.data$eraId) %>%
     summarise(outcomeSubjects = n_distinct(.data$personId),
               outcomeEvents = count(),
-              outcomeObsPeriods = n_distinct(.data$observationPeriodId),
-              .groups = "drop_last") %>%
+              outcomeObsPeriods = n_distinct(.data$observationPeriodId)) %>%
     rename(outcomeId = .data$eraId) %>%
     collect()
 
