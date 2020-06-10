@@ -24,9 +24,7 @@
 #' sampling proportion, binomial proportion, 2 signed root likelihood ratio methods, and likelihood extension for
 #' age effects. The expressions by Musonda (2006) are used.
 #'
-#' @param sccsEraData       An object containing study population observation time, outcomesa and covariates as created
-#'                          using the \code{\link{createSccsEraData}} function. This should include the following dataframes:
-#'                          outcomes, covariates, and covariateRef.
+#' @template SccsIntervalData
 #' @param exposureCovariateId Covariate Id for the health exposure of interest.
 #' @param alpha             Type I error.
 #' @param power             1 - beta, where beta is the type II error.
@@ -43,7 +41,7 @@
 #' A data frame with the MDRR, number of events, time at risk, and total time.
 #'
 #' @export
-computeMdrr <- function(sccsEraData,
+computeMdrr <- function(sccsIntervalData,
                         exposureCovariateId,
                         alpha = 0.05,
                         power = 0.8,
@@ -52,15 +50,15 @@ computeMdrr <- function(sccsEraData,
 {
 
   #gets all covariateIds associated with conceptId for exposure of interest - wrong
-  #exposureCovariateIds <- sccsEraData$covariateRef[ffbase::`%in%`(sccsEraData$covariateRef$originalCovariateId, exposureConceptId), ]$covariateId
-  mapping <- ffbase::ffmatch(ffbase::unique.ff(sccsEraData$covariates$rowId[ffbase::`%in%`(sccsEraData$covariates$covariateId, exposureCovariateId)]), sccsEraData$outcomes$rowId)
-  timeExposed <- ffbase::sum.ff(sccsEraData$outcomes$time[mapping])              # exposed time
-  timeTotal <- ffbase::sum.ff(sccsEraData$outcomes$time)                         # total time
+  #exposureCovariateIds <- sccsIntervalData$covariateRef[ffbase::`%in%`(sccsIntervalData$covariateRef$originalCovariateId, exposureConceptId), ]$covariateId
+  mapping <- ffbase::ffmatch(ffbase::unique.ff(sccsIntervalData$covariates$rowId[ffbase::`%in%`(sccsIntervalData$covariates$covariateId, exposureCovariateId)]), sccsIntervalData$outcomes$rowId)
+  timeExposed <- ffbase::sum.ff(sccsIntervalData$outcomes$time[mapping])              # exposed time
+  timeTotal <- ffbase::sum.ff(sccsIntervalData$outcomes$time)                         # total time
   r <- timeExposed / timeTotal                                                   # exposed time / total time
-  nExposed <- length(ffbase::unique.ff(sccsEraData$outcomes$stratumId[mapping])) # n exposed
-  nTotal <- length(ffbase::unique.ff(sccsEraData$outcomes$stratumId))            # n total
+  nExposed <- length(ffbase::unique.ff(sccsIntervalData$outcomes$stratumId[mapping])) # n exposed
+  nTotal <- length(ffbase::unique.ff(sccsIntervalData$outcomes$stratumId))            # n total
   pr <- nExposed / nTotal                                                        # proportion of population exposed
-  n <- ffbase::sum.ff(sccsEraData$outcomes$y)                                    # number of events
+  n <- ffbase::sum.ff(sccsIntervalData$outcomes$y)                                    # number of events
   if (twoSided) {
     alpha <- alpha / 2                                                           # alpha
   }

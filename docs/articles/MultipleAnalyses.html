@@ -110,7 +110,7 @@
 <p>An analysis will be executed by calling these functions in sequence:</p>
 <ol style="list-style-type: decimal">
 <li><code><a href="../reference/getDbSccsData.html">getDbSccsData()</a></code></li>
-<li><code><a href="../reference/createSccsEraData.html">createSccsEraData()</a></code></li>
+<li><code><a href="../reference/createSccsIntervalData.html">createSccsIntervalData()</a></code></li>
 <li><code><a href="../reference/fitSccsModel.html">fitSccsModel()</a></code></li>
 </ol>
 <p>When you provide several analyses to the <code>SelfControlledCaseSeries</code> package, it will determine whether any of the analyses and exposure-outcome pairs have anything in common, and will take advantage of this fact. For example, if we specify several exposure-outcome pairs with the same outcome, the data for the outcome will be extracted only once.</p>
@@ -120,7 +120,7 @@
 <strong>Hypothesis of interest</strong>: arguments that are specific to a hypothesis of interest, in the case of the self-controlled case series this is a combination of exposure and outcome.</li>
 <li>
 <strong>Analyses</strong>: arguments that are not directly specific to a hypothesis of interest, such as the washout window, whether to adjust for age and seasonality, etc.</li>
-<li>Arguments that are the output of a previous function in the <code>SelfControlledCaseSeries</code> package, such as the <code>sccsData</code> argument of the <code>createSccsEraData</code> function. These cannot be specified by the user.</li>
+<li>Arguments that are the output of a previous function in the <code>SelfControlledCaseSeries</code> package, such as the <code>sccsData</code> argument of the <code>createSccsIntervalData</code> function. These cannot be specified by the user.</li>
 <li>Arguments that are specific to an environment, such as the connection details for connecting to the server, and the name of the schema holding the CDM data.</li>
 </ol>
 </div>
@@ -212,7 +212,7 @@
                                               <span class="kw">end</span> <span class="kw">=</span> <span class="fl">0</span>,
                                               <span class="kw">addExposedDaysToEnd</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
 
-<span class="no">createEraDataArgs1</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsEraDataArgs.html">createCreateSccsEraDataArgs</a></span>(<span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
+<span class="no">createEraDataArgs1</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span>(<span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                                   <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                                   <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="no">covarEoi</span>)
 
@@ -222,7 +222,7 @@
 <div class="sourceCode" id="cb6"><html><body><pre class="r"><span class="no">sccsAnalysis1</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span>(<span class="kw">analysisId</span> <span class="kw">=</span> <span class="fl">1</span>,
                                     <span class="kw">description</span> <span class="kw">=</span> <span class="st">"Simplest model"</span>,
                                     <span class="kw">getDbSccsDataArgs</span> <span class="kw">=</span> <span class="no">getDbSccsDataArgs1</span>,
-                                    <span class="kw">createSccsEraDataArgs</span> <span class="kw">=</span> <span class="no">createEraDataArgs1</span>,
+                                    <span class="kw">createSccsIntervalDataArgs</span> <span class="kw">=</span> <span class="no">createEraDataArgs1</span>,
                                     <span class="kw">fitSccsModelArgs</span> <span class="kw">=</span> <span class="no">fitSccsModelArgs</span>)</pre></body></html></div>
 <p>Note that we have assigned an analysis ID (1) to this set of arguments. We can use this later to link the results back to this specific set of choices. We also include a short description of the analysis.</p>
 <p>We can easily create more analyses, for example by including adjustments for age and seasonality, or for including other drugs in the model:</p>
@@ -232,7 +232,7 @@
                                               <span class="kw">end</span> <span class="kw">=</span> <span class="fl">0</span>,
                                               <span class="kw">addExposedDaysToEnd</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
 
-<span class="no">createSccsEraDataArgs2</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsEraDataArgs.html">createCreateSccsEraDataArgs</a></span>(<span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
+<span class="no">createSccsIntervalDataArgs2</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span>(<span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                                       <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                                       <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">covarEoi</span>,
                                                                                <span class="no">covarProp</span>))
@@ -240,7 +240,7 @@
 <span class="no">sccsAnalysis2</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span>(<span class="kw">analysisId</span> <span class="kw">=</span> <span class="fl">2</span>,
                                     <span class="kw">description</span> <span class="kw">=</span> <span class="st">"Including prophylactics"</span>,
                                     <span class="kw">getDbSccsDataArgs</span> <span class="kw">=</span> <span class="no">getDbSccsDataArgs1</span>,
-                                    <span class="kw">createSccsEraDataArgs</span> <span class="kw">=</span> <span class="no">createSccsEraDataArgs2</span>,
+                                    <span class="kw">createSccsIntervalDataArgs</span> <span class="kw">=</span> <span class="no">createSccsIntervalDataArgs2</span>,
                                     <span class="kw">fitSccsModelArgs</span> <span class="kw">=</span> <span class="no">fitSccsModelArgs</span>)
 
 <span class="no">ageSettings</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createAgeSettings.html">createAgeSettings</a></span>(<span class="kw">includeAge</span> <span class="kw">=</span> <span class="fl">TRUE</span>, <span class="kw">ageKnots</span> <span class="kw">=</span> <span class="fl">5</span>)
@@ -252,7 +252,7 @@
                                        <span class="kw">start</span> <span class="kw">=</span> -<span class="fl">30</span>,
                                        <span class="kw">end</span> <span class="kw">=</span> -<span class="fl">1</span>)
 
-<span class="no">createSccsEraDataArgs3</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsEraDataArgs.html">createCreateSccsEraDataArgs</a></span>(<span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
+<span class="no">createSccsIntervalDataArgs3</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span>(<span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                                       <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                                       <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">covarEoi</span>,
                                                                                <span class="no">covarPreExp</span>,
@@ -264,7 +264,7 @@
 <span class="no">sccsAnalysis3</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span>(<span class="kw">analysisId</span> <span class="kw">=</span> <span class="fl">3</span>,
                                     <span class="kw">description</span> <span class="kw">=</span> <span class="st">"Inc. prop., age, season, pre-exp., censor."</span>,
                                     <span class="kw">getDbSccsDataArgs</span> <span class="kw">=</span> <span class="no">getDbSccsDataArgs1</span>,
-                                    <span class="kw">createSccsEraDataArgs</span> <span class="kw">=</span> <span class="no">createSccsEraDataArgs3</span>,
+                                    <span class="kw">createSccsIntervalDataArgs</span> <span class="kw">=</span> <span class="no">createSccsIntervalDataArgs3</span>,
                                     <span class="kw">fitSccsModelArgs</span> <span class="kw">=</span> <span class="no">fitSccsModelArgs</span>)
 
 <span class="no">covarAllDrugs</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createCovariateSettings.html">createCovariateSettings</a></span>(<span class="kw">label</span> <span class="kw">=</span> <span class="st">"Other exposures"</span>,
@@ -275,7 +275,7 @@
                                          <span class="kw">addExposedDaysToEnd</span> <span class="kw">=</span> <span class="fl">TRUE</span>,
                                          <span class="kw">allowRegularization</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
 
-<span class="no">createSccsEraDataArgs4</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsEraDataArgs.html">createCreateSccsEraDataArgs</a></span>(<span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
+<span class="no">createSccsIntervalDataArgs4</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span>(<span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                                       <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                                       <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">covarEoi</span>,
                                                                                <span class="no">covarPreExp</span>,
@@ -287,7 +287,7 @@
 <span class="no">sccsAnalysis4</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span>(<span class="kw">analysisId</span> <span class="kw">=</span> <span class="fl">4</span>,
                                     <span class="kw">description</span> <span class="kw">=</span> <span class="st">"Including all other drugs"</span>,
                                     <span class="kw">getDbSccsDataArgs</span> <span class="kw">=</span> <span class="no">getDbSccsDataArgs1</span>,
-                                    <span class="kw">createSccsEraDataArgs</span> <span class="kw">=</span> <span class="no">createSccsEraDataArgs4</span>,
+                                    <span class="kw">createSccsIntervalDataArgs</span> <span class="kw">=</span> <span class="no">createSccsIntervalDataArgs4</span>,
                                     <span class="kw">fitSccsModelArgs</span> <span class="kw">=</span> <span class="no">fitSccsModelArgs</span>)</pre></body></html></div>
 <p>These analyses can be combined in a list:</p>
 <div class="sourceCode" id="cb8"><html><body><pre class="r"><span class="no">sccsAnalysisList</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">sccsAnalysis1</span>, <span class="no">sccsAnalysis2</span>, <span class="no">sccsAnalysis3</span>, <span class="no">sccsAnalysis4</span>)</pre></body></html></div>
@@ -307,14 +307,14 @@
                                     <span class="kw">description</span> <span class="kw">=</span> <span class="st">"Simplest model, using narrow def."</span>,
                                     <span class="kw">outcomeType</span> <span class="kw">=</span> <span class="st">"narrowDefinition"</span>,
                                     <span class="kw">getDbSccsDataArgs</span> <span class="kw">=</span> <span class="no">getDbSccsDataArgs1</span>,
-                                    <span class="kw">createSccsEraDataArgs</span> <span class="kw">=</span> <span class="no">createEraDataArgs1</span>,
+                                    <span class="kw">createSccsIntervalDataArgs</span> <span class="kw">=</span> <span class="no">createEraDataArgs1</span>,
                                     <span class="kw">fitSccsModelArgs</span> <span class="kw">=</span> <span class="no">fitSccsModelArgs</span>)
 
 <span class="no">sccsAnalysisB</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span>(<span class="kw">analysisId</span> <span class="kw">=</span> <span class="fl">2</span>,
                                     <span class="kw">description</span> <span class="kw">=</span> <span class="st">"Simplest model, using broad def."</span>,
                                     <span class="kw">outcomeType</span> <span class="kw">=</span> <span class="st">"broadDefinition"</span>,
                                     <span class="kw">getDbSccsDataArgs</span> <span class="kw">=</span> <span class="no">getDbSccsDataArgs1</span>,
-                                    <span class="kw">createSccsEraDataArgs</span> <span class="kw">=</span> <span class="no">createEraDataArgs1</span>,
+                                    <span class="kw">createSccsIntervalDataArgs</span> <span class="kw">=</span> <span class="no">createEraDataArgs1</span>,
                                     <span class="kw">fitSccsModelArgs</span> <span class="kw">=</span> <span class="no">fitSccsModelArgs</span>)
 
 <span class="no">sccsAnalysisList2</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">sccsAnalysisA</span>, <span class="no">sccsAnalysisB</span>)</pre></body></html></div>
@@ -339,7 +339,7 @@
                           <span class="kw">exposureOutcomeList</span> <span class="kw">=</span> <span class="no">exposureOutcomeList</span>,
                           <span class="kw">sccsAnalysisList</span> <span class="kw">=</span> <span class="no">sccsAnalysisList</span>,
                           <span class="kw">getDbSccsDataThreads</span> <span class="kw">=</span> <span class="fl">1</span>,
-                          <span class="kw">createSccsEraDataThreads</span> <span class="kw">=</span> <span class="fl">5</span>,
+                          <span class="kw">createSccsIntervalDataThreads</span> <span class="kw">=</span> <span class="fl">5</span>,
                           <span class="kw">fitSccsModelThreads</span> <span class="kw">=</span> <span class="fl">3</span>,
                           <span class="kw">cvThreads</span> <span class="kw">=</span> <span class="fl">10</span>)</pre></body></html></div>
 <p>In the code above, we provide the arguments for connecting to the database, which schemas and tables to use, as well as the analyses and hypotheses of interest. The <code>outputFolder</code> specifies where the outcome models and intermediate files will be written. We also instruct <code>SelfControlledCaseSeries</code> to use multiple threads for various stages in the analyses, meaning these will be executed in parallel on multiple CPUs in the computer. Multithreading can significantly reduce execution time, but will require more system resources such as memory and temporary disk space.</p>

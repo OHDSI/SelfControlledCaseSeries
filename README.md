@@ -33,11 +33,11 @@ covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
                                           start = 0,
                                           end = 0,
                                           addExposedDaysToEnd = TRUE)
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarDiclofenac)
-model <- fitSccsModel(sccsEraData)
+model <- fitSccsModel(sccsIntervalData)
 summary(model)
 # sccsModel object summary
 # 

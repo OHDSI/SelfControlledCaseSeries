@@ -21,9 +21,9 @@ runSccsAnalyses(
   sccsAnalysisList,
   exposureOutcomeList,
   combineDataFetchAcrossOutcomes = TRUE,
-  compressSccsEraDataFiles = FALSE,
+  compressSccsIntervalDataFiles = FALSE,
   getDbSccsDataThreads = 1,
-  createSccsEraDataThreads = 1,
+  createSccsIntervalDataThreads = 1,
   fitSccsModelThreads = 1,
   cvThreads = 1
 )
@@ -90,13 +90,13 @@ at a time, or for all outcomes in one fetch? Combining
 fetches will be more efficient if there is large overlap in
 the subjects that have the different outcomes.}
 
-\item{compressSccsEraDataFiles}{Should compression be used when saving?}
+\item{compressSccsIntervalDataFiles}{Should compression be used when saving?}
 
 \item{getDbSccsDataThreads}{The number of parallel threads to use for building the
 sccsData objects.}
 
-\item{createSccsEraDataThreads}{The number of parallel threads to use for building the
-sccsEraData objects.}
+\item{createSccsIntervalDataThreads}{The number of parallel threads to use for building the
+sccsIntervalData objects.}
 
 \item{fitSccsModelThreads}{The number of parallel threads to use for fitting the
 models.}
@@ -110,7 +110,7 @@ one time could be \code{fitSccsModelThreads * cvThreads}.}
 A data frame with the following columns: \tabular{ll}{ \verb{analysisId} \tab The unique identifier
 for a set of analysis choices.\cr \verb{exposureId} \tab The ID of the target drug.\cr
 \verb{outcomeId} \tab The ID of the outcome.\cr \verb{sccsDataFolder} \tab The folder where the
-sccsData object is stored.\cr \verb{sccsEraDataFolder} \tab The folder where the sccsEraData object
+sccsData object is stored.\cr \verb{sccsIntervalDataFolder} \tab The folder where the sccsIntervalData object
 is stored.\cr \verb{sccsModelFile} \tab The file where the fitted SCCS model is stored.\cr }
 }
 \description{

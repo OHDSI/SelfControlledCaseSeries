@@ -21,13 +21,13 @@ covarSettings <- createCovariateSettings(label = "Exposure of interest",
                                          end = 0,
                                          addExposedDaysToEnd = TRUE)
 
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 0,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarSettings)
 
-summary(sccsEraData)
-model <- fitSccsModel(sccsEraData)
+summary(sccsIntervalData)
+model <- fitSccsModel(sccsIntervalData)
 exp(coef(model))
 
 # Censor at event:
@@ -36,12 +36,12 @@ firstHois <- aggregate(startDay ~ observationPeriodId, data = hois, min)
 cases <- merge(sccsData$cases, ff::as.ffdf(firstHois))
 cases$observationDays <- cases$startDay
 sccsData$cases <- cases
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 0,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarSettings)
-summary(sccsEraData)
+summary(sccsIntervalData)
 
-model <- fitSccsModel(sccsEraData)
+model <- fitSccsModel(sccsIntervalData)
 exp(coef(model))
 

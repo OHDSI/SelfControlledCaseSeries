@@ -73,11 +73,11 @@
 #'                                         at a time, or for all outcomes in one fetch? Combining
 #'                                         fetches will be more efficient if there is large overlap in
 #'                                         the subjects that have the different outcomes.
-#' @param compressSccsEraDataFiles         Should compression be used when saving?
+#' @param compressSccsIntervalDataFiles         Should compression be used when saving?
 #' @param getDbSccsDataThreads             The number of parallel threads to use for building the
 #'                                         sccsData objects.
-#' @param createSccsEraDataThreads         The number of parallel threads to use for building the
-#'                                         sccsEraData objects.
+#' @param createSccsIntervalDataThreads         The number of parallel threads to use for building the
+#'                                         sccsIntervalData objects.
 #' @param fitSccsModelThreads              The number of parallel threads to use for fitting the
 #'                                         models.
 #' @param cvThreads                        The number of parallel threads to use for the cross-
@@ -89,7 +89,7 @@
 #' A data frame with the following columns: \tabular{ll}{ \verb{analysisId} \tab The unique identifier
 #' for a set of analysis choices.\cr \verb{exposureId} \tab The ID of the target drug.\cr
 #' \verb{outcomeId} \tab The ID of the outcome.\cr \verb{sccsDataFolder} \tab The folder where the
-#' sccsData object is stored.\cr \verb{sccsEraDataFolder} \tab The folder where the sccsEraData object
+#' sccsData object is stored.\cr \verb{sccsIntervalDataFolder} \tab The folder where the sccsIntervalData object
 #' is stored.\cr \verb{sccsModelFile} \tab The file where the fitted SCCS model is stored.\cr }
 #'
 #' @export
@@ -109,9 +109,9 @@ runSccsAnalyses <- function(connectionDetails,
                             sccsAnalysisList,
                             exposureOutcomeList,
                             combineDataFetchAcrossOutcomes = TRUE,
-                            compressSccsEraDataFiles = FALSE,
+                            compressSccsIntervalDataFiles = FALSE,
                             getDbSccsDataThreads = 1,
-                            createSccsEraDataThreads = 1,
+                            createSccsIntervalDataThreads = 1,
                             fitSccsModelThreads = 1,
                             cvThreads = 1) {
   for (exposureOutcome in exposureOutcomeList) stopifnot(class(exposureOutcome) == "exposureOutcome")
@@ -280,20 +280,20 @@ runSccsAnalyses <- function(connectionDetails,
 
   ### Creation of era data objects ###
   rowId <- 1
-  sccsEraDataObjectsToCreate <- list()
-  outcomeReference$sccsEraDataFolder <- ""
+  sccsIntervalDataObjectsToCreate <- list()
+  outcomeReference$sccsIntervalDataFolder <- ""
   for (sccsAnalysis in sccsAnalysisList) {
     analysisFolder <- paste("Analysis_", sccsAnalysis$analysisId, sep = "")
     if (!file.exists(file.path(outputFolder, analysisFolder)))
       dir.create(file.path(outputFolder, analysisFolder))
     for (exposureOutcome in exposureOutcomeList) {
-      sccsEraDataFileName <- .createSccsEraDataFileName(analysisFolder,
+      sccsIntervalDataFileName <- .createSccsIntervalDataFileName(analysisFolder,
                                                         outcomeReference$exposureId[rowId],
                                                         outcomeReference$outcomeId[rowId])
-      outcomeReference$sccsEraDataFolder[rowId] <- sccsEraDataFileName
-      if (!file.exists(file.path(outputFolder, sccsEraDataFileName))) {
+      outcomeReference$sccsIntervalDataFolder[rowId] <- sccsIntervalDataFileName
+      if (!file.exists(file.path(outputFolder, sccsIntervalDataFileName))) {
 
-        args <- sccsAnalysis$createSccsEraDataArgs
+        args <- sccsAnalysis$createSccsIntervalDataArgs
         covariateSettings <- args$covariateSettings
         if (is(covariateSettings, "covariateSettings"))
           covariateSettings <- list(covariateSettings)
@@ -330,10 +330,10 @@ runSccsAnalyses <- function(connectionDetails,
         args$covariateSettings <- instantiatedSettings
         args$outcomeId <- outcomeReference$outcomeId[rowId]
         sccsDataFileName <- outcomeReference$sccsDataFolder[rowId]
-        sccsEraDataObjectsToCreate[[length(sccsEraDataObjectsToCreate) + 1]] <- list(args = args,
-                                                                                     compressSccsEraDataFiles = compressSccsEraDataFiles,
+        sccsIntervalDataObjectsToCreate[[length(sccsIntervalDataObjectsToCreate) + 1]] <- list(args = args,
+                                                                                     compressSccsIntervalDataFiles = compressSccsIntervalDataFiles,
                                                                                      sccsDataFileName = file.path(outputFolder, sccsDataFileName),
-                                                                                     sccsEraDataFileName = file.path(outputFolder, sccsEraDataFileName))
+                                                                                     sccsIntervalDataFileName = file.path(outputFolder, sccsIntervalDataFileName))
       }
       rowId <- rowId + 1
     }
@@ -353,10 +353,10 @@ runSccsAnalyses <- function(connectionDetails,
       if (!file.exists(file.path(outputFolder, sccsModelFileName))) {
         args <- sccsAnalysis$fitSccsModelArgs
         args$control$threads <- cvThreads
-        sccsEraDataFileName <- outcomeReference$sccsEraDataFolder[rowId]
+        sccsIntervalDataFileName <- outcomeReference$sccsIntervalDataFolder[rowId]
 
         sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(args = args,
-                                                                                 sccsEraDataFileName = file.path(outputFolder, sccsEraDataFileName),
+                                                                                 sccsIntervalDataFileName = file.path(outputFolder, sccsIntervalDataFileName),
                                                                                  sccsModelFileName = file.path(outputFolder, sccsModelFileName))
       }
       rowId <- rowId + 1
@@ -374,11 +374,11 @@ runSccsAnalyses <- function(connectionDetails,
     ParallelLogger::stopCluster(cluster)
   }
 
-  ParallelLogger::logInfo("*** Creating sccsEraData objects ***")
-  if (length(sccsEraDataObjectsToCreate) != 0) {
-    cluster <- ParallelLogger::makeCluster(createSccsEraDataThreads)
+  ParallelLogger::logInfo("*** Creating sccsIntervalData objects ***")
+  if (length(sccsIntervalDataObjectsToCreate) != 0) {
+    cluster <- ParallelLogger::makeCluster(createSccsIntervalDataThreads)
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
-    dummy <- ParallelLogger::clusterApply(cluster, sccsEraDataObjectsToCreate, createSccsEraDataObject)
+    dummy <- ParallelLogger::clusterApply(cluster, sccsIntervalDataObjectsToCreate, createSccsIntervalDataObject)
     ParallelLogger::stopCluster(cluster)
   }
 
@@ -410,21 +410,21 @@ createSccsDataObject <- function(params) {
   return(NULL)
 }
 
-createSccsEraDataObject <- function(params) {
+createSccsIntervalDataObject <- function(params) {
   sccsData <- getSccsData(params$sccsDataFileName)
   params$args$sccsData <- sccsData
-  sccsEraData <- do.call("createSccsEraData", params$args)
-  saveSccsEraData(sccsEraData = sccsEraData,
-                  folder = params$sccsEraDataFileName,
-                  compress = params$compressSccsEraDataFiles)
+  sccsIntervalData <- do.call("createSccsIntervalData", params$args)
+  saveSccsIntervalData(sccsIntervalData = sccsIntervalData,
+                  folder = params$sccsIntervalDataFileName,
+                  compress = params$compressSccsIntervalDataFiles)
   return(NULL)
 }
 
 createSccsModelObject <- function(params) {
-  sccsEraData <- loadSccsEraData(params$sccsEraDataFileName, readOnly = TRUE)
-  params$args$sccsEraData <- sccsEraData
+  sccsIntervalData <- loadSccsIntervalData(params$sccsIntervalDataFileName, readOnly = TRUE)
+  params$args$sccsIntervalData <- sccsIntervalData
   # sccsModel <- do.call("fitSccsModel", params$args)
-  sccsModel <- fitSccsModel(sccsEraData = sccsEraData,
+  sccsModel <- fitSccsModel(sccsIntervalData = sccsIntervalData,
                             prior = params$args$prior,
                             control = params$args$control)
   saveRDS(sccsModel, params$sccsModelFileName)
@@ -436,8 +436,8 @@ createSccsModelObject <- function(params) {
   return(name)
 }
 
-.createSccsEraDataFileName <- function(analysisFolder, exposureId, outcomeId) {
-  name <- paste("SccsEraData_e", exposureId, "_o", outcomeId, sep = "")
+.createSccsIntervalDataFileName <- function(analysisFolder, exposureId, outcomeId) {
+  name <- paste("SccsIntervalData_e", exposureId, "_o", outcomeId, sep = "")
   return(file.path(analysisFolder, name))
 }
 
@@ -491,8 +491,8 @@ summarizeSccsAnalyses <- function(outcomeReference, outputFolder) {
   result$eventCount <- 0
 
   for (i in 1:nrow(outcomeReference)) {
-    # sccsEraData <- loadSccsEraData(as.character(outcomeReference$sccsEraDataFolder[i]))
-    # s <- summary(sccsEraData)
+    # sccsIntervalData <- loadSccsIntervalData(as.character(outcomeReference$sccsIntervalDataFolder[i]))
+    # s <- summary(sccsIntervalData)
     # result$caseCount[i] <- s$outcomeCounts$caseCount
     # result$eventCount[i] <- s$outcomeCounts$eventCount
     sccsModel <- readRDS(file.path(outputFolder, as.character(outcomeReference$sccsModelFile[i])))

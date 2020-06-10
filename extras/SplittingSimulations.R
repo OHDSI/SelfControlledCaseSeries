@@ -19,11 +19,11 @@ covarSettings <- createCovariateSettings(label = "Exposures of interest",
                                          addExposedDaysToEnd = TRUE,
                                          splitPoints = 7)
 
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 0,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarSettings)
 
-model <- fitSccsModel(sccsEraData)
+model <- fitSccsModel(sccsIntervalData)
 
 summary(model)

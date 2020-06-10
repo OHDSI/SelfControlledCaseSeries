@@ -114,7 +114,7 @@ covarExposureOfInt <- createCovariateSettings(label = "Exposure of interest",
                                               end = 0,
                                               addExposedDaysToEnd = TRUE)
 
-createSccsEraDataArgs1 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+createSccsIntervalDataArgs1 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
                                                       covariateSettings = covarExposureOfInt)
 
@@ -123,7 +123,7 @@ fitSccsModelArgs <- createFitSccsModelArgs()
 sccsAnalysis1 <- createSccsAnalysis(analysisId = 1,
                                     description = "Simplest model",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createSccsEraDataArgs1,
+                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs1,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 covarProphylactics <- createCovariateSettings(label = "Prophylactics",
@@ -132,7 +132,7 @@ covarProphylactics <- createCovariateSettings(label = "Prophylactics",
                                               end = 0,
                                               addExposedDaysToEnd = TRUE)
 
-createSccsEraDataArgs2 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+createSccsIntervalDataArgs2 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
                                                       covariateSettings = list(covarExposureOfInt,
                                                                                covarProphylactics))
@@ -140,7 +140,7 @@ createSccsEraDataArgs2 <- createCreateSccsEraDataArgs(naivePeriod = 180,
 sccsAnalysis2 <- createSccsAnalysis(analysisId = 2,
                                     description = "Including prophylactics",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createSccsEraDataArgs2,
+                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs2,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
@@ -152,7 +152,7 @@ covarPreExp <- createCovariateSettings(label = "Pre-exposure",
                                        start = -30,
                                        end = -1)
 
-createSccsEraDataArgs3 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
                                                       covariateSettings = list(covarExposureOfInt,
                                                                                covarPreExp,
@@ -164,7 +164,7 @@ createSccsEraDataArgs3 <- createCreateSccsEraDataArgs(naivePeriod = 180,
 sccsAnalysis3 <- createSccsAnalysis(analysisId = 3,
                                     description = "Including prophylactics, age, season, pre-exposure, and censoring",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createSccsEraDataArgs3,
+                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs3,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 covarAllDrugs <- createCovariateSettings(label = "Other exposures",
@@ -175,7 +175,7 @@ covarAllDrugs <- createCovariateSettings(label = "Other exposures",
                                          addExposedDaysToEnd = TRUE,
                                          allowRegularization = TRUE)
 
-createSccsEraDataArgs4 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
                                                       covariateSettings = list(covarExposureOfInt,
                                                                                covarPreExp,
@@ -187,7 +187,7 @@ createSccsEraDataArgs4 <- createCreateSccsEraDataArgs(naivePeriod = 180,
 sccsAnalysis4 <- createSccsAnalysis(analysisId = 4,
                                     description = "Including all other drugs",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createSccsEraDataArgs4,
+                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs4,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4)
@@ -211,10 +211,10 @@ result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           exposureOutcomeList = exposureOutcomeList,
                           sccsAnalysisList = sccsAnalysisList,
                           getDbSccsDataThreads = 1,
-                          createSccsEraDataThreads = 3,
+                          createSccsIntervalDataThreads = 3,
                           fitSccsModelThreads = 4,
                           cvThreads = 10,
-                          compressSccsEraDataFiles = TRUE)
+                          compressSccsIntervalDataFiles = TRUE)
 
 # result <- readRDS('s:/temp/sccsVignette2/outcomeModelReference.rds')
 

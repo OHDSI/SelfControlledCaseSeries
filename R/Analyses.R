@@ -32,8 +32,8 @@
 #'                                analysis.
 #' @param getDbSccsDataArgs       An object representing the arguments to be used when calling the
 #'                                \code{\link{getDbSccsData}} function.
-#' @param createSccsEraDataArgs   An object representing the arguments to be used when calling the
-#'                                \code{\link{createSccsEraData}} function.
+#' @param createSccsIntervalDataArgs   An object representing the arguments to be used when calling the
+#'                                \code{\link{createSccsIntervalData}} function.
 #' @param fitSccsModelArgs        An object representing the arguments to be used when calling the
 #'                                \code{\link{fitSccsModel}} function.
 #' @export
@@ -42,7 +42,7 @@ createSccsAnalysis <- function(analysisId = 1,
                                exposureType = NULL,
                                outcomeType = NULL,
                                getDbSccsDataArgs,
-                               createSccsEraDataArgs,
+                               createSccsIntervalDataArgs,
                                fitSccsModelArgs) {
   # First: get the default values:
   analysis <- list()

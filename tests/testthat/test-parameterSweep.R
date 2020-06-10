@@ -20,16 +20,16 @@ test_that("Support functions", {
   seasonSettings <- createSeasonalityCovariateSettings(allowRegularization = TRUE)
   studyPop <- createStudyPopulation(sccsData = sccsData,
                                     outcomeId = 10)
-  sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+  sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                    sccsData = sccsData,
                                    eraCovariateSettings = covar,
                                    ageCovariateSettings = ageSettings,
                                    seasonalityCovariateSettings = seasonSettings)
 
-  s <- summary(sccsEraData)
-  expect_equal(class(s), "summary.SccsEraData")
+  s <- summary(sccsIntervalData)
+  expect_equal(class(s), "summary.SccsIntervalData")
 
-  model <- fitSccsModel(sccsEraData, prior = createPrior("laplace", 0.001))
+  model <- fitSccsModel(sccsIntervalData, prior = createPrior("laplace", 0.001))
 
   expect_equal(class(model), "SccsModel")
 
@@ -56,16 +56,16 @@ test_that("Parameter sweep", {
                                               outcomeId = 10,
                                               naivePeriod = naivePeriod,
                                               firstOutcomeOnly = firstOutcomeOnly)
-            sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+            sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                              sccsData = sccsData,
                                              eraCovariateSettings = covar,
                                              ageCovariateSettings = if (includeAgeAndSeason) ageSettings else NULL,
                                              seasonalityCovariateSettings = if (includeAgeAndSeason) seasonSettings else NULL,
                                              eventDependentObservation = eventDependentObservation)
-            expect_equivalent(class(sccsEraData), "SccsEraData")
+            expect_equivalent(class(sccsIntervalData), "SccsIntervalData")
             # Not enough data to fit age and season:
             if (!includeAgeAndSeason) {
-              model <- fitSccsModel(sccsEraData)
+              model <- fitSccsModel(sccsIntervalData)
               coefs <- c(coefs, coef(model)[1])
             }
           }

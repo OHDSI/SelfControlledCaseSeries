@@ -13,7 +13,7 @@ covarSettings <- createCovariateSettings(label = "Exposure of interest",
                                          end = 0,
                                          addExposedDaysToEnd = TRUE)
 
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 0,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarSettings,
@@ -21,9 +21,9 @@ sccsEraData <- createSccsEraData(sccsData,
                                  seasonalitySettings = seasonalitySettings,
                                  minCasesForAgeSeason = 500)
 
-length(unique(sccsEraData$outcomes$stratumId))
+length(unique(sccsIntervalData$outcomes$stratumId))
 
-model <- fitSccsModel(sccsEraData, prior = createPrior("none"))
+model <- fitSccsModel(sccsIntervalData, prior = createPrior("none"))
 
 summary(model)
 plotSeasonality(model)

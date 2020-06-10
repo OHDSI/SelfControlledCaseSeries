@@ -54,7 +54,7 @@ createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
   return(analysis)
 }
 
-#' Create a parameter object for the function createSccsEraData
+#' Create a parameter object for the function createSccsIntervalData
 #'
 #' @details
 #' Create an object defining the parameter values.
@@ -79,7 +79,7 @@ createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
 #'                                    toadjust for event-dependent observation time?
 #'
 #' @export
-createCreateSccsEraDataArgs <- function(naivePeriod = 0,
+createCreateSccsIntervalDataArgs <- function(naivePeriod = 0,
                                         firstOutcomeOnly = FALSE,
                                         covariateSettings,
                                         ageSettings = createAgeSettings(includeAge = FALSE),
@@ -88,7 +88,7 @@ createCreateSccsEraDataArgs <- function(naivePeriod = 0,
                                         eventDependentObservation = FALSE) {
   # First: get default values:
   analysis <- list()
-  for (name in names(formals(createCreateSccsEraDataArgs))) {
+  for (name in names(formals(createCreateSccsIntervalDataArgs))) {
     analysis[[name]] <- get(name)
   }
   # Second: overwrite defaults with actual values:

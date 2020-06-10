@@ -152,9 +152,9 @@
   <span class='no'>sccsAnalysisList</span>,
   <span class='no'>exposureOutcomeList</span>,
   <span class='kw'>combineDataFetchAcrossOutcomes</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>compressSccsEraDataFiles</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>compressSccsIntervalDataFiles</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>getDbSccsDataThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>createSccsEraDataThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>createSccsIntervalDataThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
   <span class='kw'>fitSccsModelThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
   <span class='kw'>cvThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>
 )</pre>
@@ -256,7 +256,7 @@ fetches will be more efficient if there is large overlap in
 the subjects that have the different outcomes.</p></td>
     </tr>
     <tr>
-      <th>compressSccsEraDataFiles</th>
+      <th>compressSccsIntervalDataFiles</th>
       <td><p>Should compression be used when saving?</p></td>
     </tr>
     <tr>
@@ -265,9 +265,9 @@ the subjects that have the different outcomes.</p></td>
 sccsData objects.</p></td>
     </tr>
     <tr>
-      <th>createSccsEraDataThreads</th>
+      <th>createSccsIntervalDataThreads</th>
       <td><p>The number of parallel threads to use for building the
-sccsEraData objects.</p></td>
+sccsIntervalData objects.</p></td>
     </tr>
     <tr>
       <th>fitSccsModelThreads</th>
@@ -292,7 +292,7 @@ for a set of analysis choices.</td></tr>
 <tr><td><code>outcomeId</code></td><td>The ID of the outcome.</td></tr>
 <tr><td><code>sccsDataFolder</code></td><td>The folder where the
 sccsData object is stored.</td></tr>
-<tr><td><code>sccsEraDataFolder</code></td><td>The folder where the sccsEraData object
+<tr><td><code>sccsIntervalDataFolder</code></td><td>The folder where the sccsIntervalData object
 is stored.</td></tr>
 <tr><td><code>sccsModelFile</code></td><td>The file where the fitted SCCS model is stored.</td></tr>
 </table>

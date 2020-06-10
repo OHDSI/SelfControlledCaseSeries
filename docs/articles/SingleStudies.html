@@ -252,13 +252,13 @@ executeSql(connection, sql)</pre></body></html></div>
                                           <span class="kw">end</span> <span class="kw">=</span> <span class="fl">0</span>,
                                           <span class="kw">addExposedDaysToEnd</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
 
-<span class="no">sccsEraData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsEraData.html">createSccsEraData</a></span>(<span class="no">sccsData</span>,
+<span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">sccsData</span>,
                                  <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                  <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                  <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="no">covarDiclofenac</span>)
 
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(<span class="no">sccsEraData</span>)</pre></body></html></div>
-<pre><code>#&gt; sccsEraData object summary
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(<span class="no">sccsIntervalData</span>)</pre></body></html></div>
+<pre><code>#&gt; sccsIntervalData object summary
 #&gt; 
 #&gt; Outcome ID: 1
 #&gt; 
@@ -273,23 +273,23 @@ executeSql(connection, sql)</pre></body></html></div>
 #&gt;                                  Original covariate ID Current covariate ID
 #&gt; Exposure of interest: Diclofenac               1124300                 1000</code></pre>
 <p>In this example, we use the <code>createCovariateSettings</code> to define a single covariate: exposure to diclofenac. We specify that the risk window is from start of exposure to the end by setting start and end to 0, and requiring that the length of exposure is added to the end date.</p>
-<p>We then use the covariate definition in the <code>createSccsEraData</code>, and also specify that the first 180 days of observation of every person, the so-called ‘naive period’, will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person.</p>
+<p>We then use the covariate definition in the <code>createSccsIntervalData</code>, and also specify that the first 180 days of observation of every person, the so-called ‘naive period’, will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person.</p>
 </div>
 <div id="power-calculations" class="section level2">
 <h2 class="hasAnchor">
 <a href="#power-calculations" class="anchor"></a>Power calculations</h2>
-<p>Before we start fitting an outcome model, we might be interested to know whether we have sufficient power to detect a particular effect size. It makes sense to perform these power calculations once the study population has been fully defined, so taking into account loss to the various inclusion and exclusion criteria. This means we will use the sccsEraData object we’ve just created as the basis for our power calculations. Since the sample size is fixed in retrospective studies (the data has already been collected), and the true effect size is unknown, the SelfControlledCaseSeries package provides a function to compute the minimum detectable relative risk (MDRR) instead:</p>
-<div class="sourceCode" id="cb14"><html><body><pre class="r"><span class="fu"><a href="../reference/computeMdrr.html">computeMdrr</a></span>(<span class="no">sccsEraData</span>, <span class="kw">exposureCovariateId</span> <span class="kw">=</span> <span class="fl">1000</span>, <span class="kw">alpha</span> <span class="kw">=</span> <span class="fl">0.05</span>, <span class="kw">power</span> <span class="kw">=</span> <span class="fl">0.8</span>, <span class="kw">twoSided</span> <span class="kw">=</span> <span class="fl">TRUE</span>,
+<p>Before we start fitting an outcome model, we might be interested to know whether we have sufficient power to detect a particular effect size. It makes sense to perform these power calculations once the study population has been fully defined, so taking into account loss to the various inclusion and exclusion criteria. This means we will use the sccsIntervalData object we’ve just created as the basis for our power calculations. Since the sample size is fixed in retrospective studies (the data has already been collected), and the true effect size is unknown, the SelfControlledCaseSeries package provides a function to compute the minimum detectable relative risk (MDRR) instead:</p>
+<div class="sourceCode" id="cb14"><html><body><pre class="r"><span class="fu"><a href="../reference/computeMdrr.html">computeMdrr</a></span>(<span class="no">sccsIntervalData</span>, <span class="kw">exposureCovariateId</span> <span class="kw">=</span> <span class="fl">1000</span>, <span class="kw">alpha</span> <span class="kw">=</span> <span class="fl">0.05</span>, <span class="kw">power</span> <span class="kw">=</span> <span class="fl">0.8</span>, <span class="kw">twoSided</span> <span class="kw">=</span> <span class="fl">TRUE</span>,
     <span class="kw">method</span> <span class="kw">=</span> <span class="st">"binomial"</span>)</pre></body></html></div>
 <pre><code>#&gt;   timeExposed timeTotal propTimeExposed propPopExposued events   mdrr
 #&gt; 1     1661649  30008800          0.0554               1  34101 1.0676</code></pre>
-<p>Note that we have to provide the covariate ID of the exposure of interest, which we learned by calling <code>summary</code> on sccsEraData earlier. This is because we may have many covariates in our model, but will likely only be interested in the MDRR of one.</p>
+<p>Note that we have to provide the covariate ID of the exposure of interest, which we learned by calling <code>summary</code> on sccsIntervalData earlier. This is because we may have many covariates in our model, but will likely only be interested in the MDRR of one.</p>
 </div>
 <div id="model-fitting" class="section level2">
 <h2 class="hasAnchor">
 <a href="#model-fitting" class="anchor"></a>Model fitting</h2>
 <p>The <code>fitSccsModel</code> function is used to fit the model:</p>
-<div class="sourceCode" id="cb16"><html><body><pre class="r"><span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsEraData</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb16"><html><body><pre class="r"><span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsIntervalData</span>)</pre></body></html></div>
 <p>We can inspect the resulting model:</p>
 <div class="sourceCode" id="cb17"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(<span class="no">model</span>)</pre></body></html></div>
 <pre><code>#&gt; sccsModel object summary
@@ -316,14 +316,14 @@ executeSql(connection, sql)</pre></body></html></div>
                                                <span class="kw">start</span> <span class="kw">=</span> -<span class="fl">60</span>,
                                                <span class="kw">end</span> <span class="kw">=</span> -<span class="fl">1</span>)
 
-  <span class="no">sccsEraData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsEraData.html">createSccsEraData</a></span>(<span class="no">sccsData</span>,
+  <span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">sccsData</span>,
                                    <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                    <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                    <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">covarDiclofenac</span>,
                                                             <span class="no">covarPreDiclofenac</span>))
 
-  <span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsEraData</span>)</pre></body></html></div>
-<p>Here we created a new covariate definition in addition to the first one. We define the risk window to start 60 days prior to exposure, and end on the day just prior to exposure. We combine the two covariate settings in a list for the <code>createSccsEraData</code> function. Again, we can take a look at the results:</p>
+  <span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsIntervalData</span>)</pre></body></html></div>
+<p>Here we created a new covariate definition in addition to the first one. We define the risk window to start 60 days prior to exposure, and end on the day just prior to exposure. We combine the two covariate settings in a list for the <code>createSccsIntervalData</code> function. Again, we can take a look at the results:</p>
 <div class="sourceCode" id="cb20"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(<span class="no">model</span>)</pre></body></html></div>
 <pre><code>#&gt; sccsModel object summary
 #&gt; 
@@ -359,7 +359,7 @@ executeSql(connection, sql)</pre></body></html></div>
                                                     <span class="kw">end</span> <span class="kw">=</span> -<span class="fl">1</span>,
                                                     <span class="kw">splitPoints</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(-<span class="fl">30</span>))
 
-  <span class="no">sccsEraData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsEraData.html">createSccsEraData</a></span>(<span class="no">sccsData</span>,
+  <span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">sccsData</span>,
                                    <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                    <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                    <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">covarDiclofenacSplit</span>,
@@ -402,7 +402,7 @@ executeSql(connection, sql)</pre></body></html></div>
 <span class="no">seasonalitySettings</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSeasonalitySettings.html">createSeasonalitySettings</a></span>(<span class="kw">includeSeasonality</span> <span class="kw">=</span> <span class="fl">TRUE</span>,
                                                  <span class="kw">seasonKnots</span> <span class="kw">=</span> <span class="fl">5</span>)
 
-<span class="no">sccsEraData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsEraData.html">createSccsEraData</a></span>(<span class="no">sccsData</span>,
+<span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">sccsData</span>,
                                  <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                  <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                  <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">covarDiclofenacSplit</span>,
@@ -410,7 +410,7 @@ executeSql(connection, sql)</pre></body></html></div>
                                  <span class="kw">ageSettings</span> <span class="kw">=</span> <span class="no">ageSettings</span>,
                                  <span class="kw">seasonalitySettings</span> <span class="kw">=</span> <span class="no">seasonalitySettings</span>)
 
-<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsEraData</span>)</pre></body></html></div>
+<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsIntervalData</span>)</pre></body></html></div>
 <p>Again, we can inspect the model:</p>
 <div class="sourceCode" id="cb26"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(<span class="no">model</span>)</pre></body></html></div>
 <pre><code>#&gt; sccsModel object summary
@@ -461,8 +461,8 @@ executeSql(connection, sql)</pre></body></html></div>
 <div id="considering-event-dependent-observation-time" class="section level2">
 <h2 class="hasAnchor">
 <a href="#considering-event-dependent-observation-time" class="anchor"></a>Considering event-dependent observation time</h2>
-<p>The SCCS method requires that observation periods are independent of outcome times. This requirement is violated when outcomes increase the mortality rate, since censoring of the observation periods is then event-dependent. A modification to the SCCS has been proposed that attempts to correct for this. First, several models are fitted to estimate the amount and shape of the event-dependent censoring, and the best fitting model is selected. Next, this model is used to reweigh various parts of the observation time. This approach is also implemented in this package, and can be turned on using the <code>eventDependentObservation</code> argument of the <code>createSccsEraData</code> function:</p>
-<div class="sourceCode" id="cb31"><html><body><pre class="r"><span class="no">sccsEraData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsEraData.html">createSccsEraData</a></span>(<span class="no">sccsData</span>,
+<p>The SCCS method requires that observation periods are independent of outcome times. This requirement is violated when outcomes increase the mortality rate, since censoring of the observation periods is then event-dependent. A modification to the SCCS has been proposed that attempts to correct for this. First, several models are fitted to estimate the amount and shape of the event-dependent censoring, and the best fitting model is selected. Next, this model is used to reweigh various parts of the observation time. This approach is also implemented in this package, and can be turned on using the <code>eventDependentObservation</code> argument of the <code>createSccsIntervalData</code> function:</p>
+<div class="sourceCode" id="cb31"><html><body><pre class="r"><span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">sccsData</span>,
                                  <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                  <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                  <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">covarDiclofenacSplit</span>,
@@ -471,7 +471,7 @@ executeSql(connection, sql)</pre></body></html></div>
                                  <span class="kw">seasonalitySettings</span> <span class="kw">=</span> <span class="no">seasonalitySettings</span>,
                                  <span class="kw">eventDependentObservation</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
 
-<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsEraData</span>)</pre></body></html></div>
+<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsIntervalData</span>)</pre></body></html></div>
 <p>Again, we can inspect the model:</p>
 <div class="sourceCode" id="cb32"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(<span class="no">model</span>)</pre></body></html></div>
 <pre><code>#&gt; sccsModel object summary
@@ -547,7 +547,7 @@ executeSql(connection, sql)</pre></body></html></div>
                                     <span class="kw">end</span> <span class="kw">=</span> <span class="fl">0</span>,
                                     <span class="kw">addExposedDaysToEnd</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
 
-<span class="no">sccsEraData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsEraData.html">createSccsEraData</a></span>(<span class="no">sccsData</span>,
+<span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">sccsData</span>,
                                  <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                  <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                  <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">covarDiclofenacSplit</span>,
@@ -557,7 +557,7 @@ executeSql(connection, sql)</pre></body></html></div>
                                  <span class="kw">seasonalitySettings</span> <span class="kw">=</span> <span class="no">seasonalitySettings</span>,
                                  <span class="kw">eventDependentObservation</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
 
-<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsEraData</span>)</pre></body></html></div>
+<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsIntervalData</span>)</pre></body></html></div>
 <p>Here, we added a new covariate based on the list of concept IDs for the various PPIs. In this example we set <code>stratifyById</code> to FALSE, meaning that we will estimate a single incidence rate ratio for all PPIs, so one estimate for the entire class of drugs. Note that duplicates will be removed: if a person is exposed to two PPIs on the same day, this will be counted only once when fitting the model. Furthermore, we have set the <code>start</code> day to 1 instead of 0. The reason for this is that PPIs will also be used to treat GI bleeds, and are likely to be prescribed on the same day as the event. If we would include day 0, the risk of the outcome would be attributed to the PPI used for treatment, not the other factors that caused the GI bleed such as any exposure to our drug of interest. Again, we can inspect the model:</p>
 <div class="sourceCode" id="cb37"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(<span class="no">model</span>)</pre></body></html></div>
 <pre><code>#&gt; sccsModel object summary
@@ -624,7 +624,7 @@ executeSql(connection, sql)</pre></body></html></div>
                                         <span class="kw">addExposedDaysToEnd</span> <span class="kw">=</span> <span class="fl">TRUE</span>,
                                         <span class="kw">allowRegularization</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
 
-<span class="no">sccsEraData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsEraData.html">createSccsEraData</a></span>(<span class="no">sccsData</span>,
+<span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">sccsData</span>,
                                  <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                  <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                  <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="no">covarDiclofenacSplit</span>,
@@ -634,7 +634,7 @@ executeSql(connection, sql)</pre></body></html></div>
                                  <span class="kw">seasonalitySettings</span> <span class="kw">=</span> <span class="no">seasonalitySettings</span>,
                                  <span class="kw">eventDependentObservation</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
 
-<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsEraData</span>)</pre></body></html></div>
+<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsIntervalData</span>)</pre></body></html></div>
 <p>The first thing to note is that we have defined the new covariates to be all drugs except diclofenac by not specifying the <code>includeCovariateIds</code> and setting the <code>excludeCovariateIds</code> to the concept ID of diclofenac. Furthermore, we have specified that <code>stratifyById</code> is TRUE, meaning an estimate will be produced for each drug.</p>
 <p>We have set <code>allowRegularization</code> to TRUE, meaning we will use regularization for all estimates in this new covariate set. Regularization means we will impose a prior distribution on the effect size, effectually penalizing large estimates. This helps fit the model, for example when some drugs are rare, and when drugs are almost often prescribed together and their individual effects are difficult to untangle.</p>
 <p>Because there are now so many estimates, we will not use the <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> function but instead export all estimates to a data frame using <code><a href="../reference/getModel.html">getModel()</a></code>:</p>

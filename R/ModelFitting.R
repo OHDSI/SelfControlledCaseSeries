@@ -22,7 +22,7 @@
 #' Fits the SCCS model as a conditional Poisson regression. When allowed, coefficients for some or all
 #' covariates can be regularized.
 #'
-#' @template SccsEraData
+#' @template SccsIntervalData
 #' @param prior         The prior used to fit the model. See [Cyclops::createPrior] for
 #'                      details.
 #' @param control       The control object used to control the cross-validation used to determine the
@@ -39,21 +39,21 @@
 #' and Computer Simulation 23, 10
 #'
 #' @export
-fitSccsModel <- function(sccsEraData,
+fitSccsModel <- function(sccsIntervalData,
                          prior = createPrior("laplace", useCrossValidation = TRUE),
                          control = createControl(cvType = "auto",
                                                  selectorType = "byPid",
                                                  startingVariance = 0.1,
                                                  noiseLevel = "quiet")) {
   ParallelLogger::logTrace("Fitting SCCS model")
-  if (!is.null(sccsEraData$metaData$error)) {
-    result <- list(status = sccsEraData$metaData$error,
-                   metaData = sccsEraData$metaData)
+  if (!is.null(sccsIntervalData$metaData$error)) {
+    result <- list(status = sccsIntervalData$metaData$error,
+                   metaData = sccsIntervalData$metaData)
     class(result) <- "sccsModel"
     return(result)
   }
   start <- Sys.time()
-  if (sccsEraData$outcomes %>% count() %>% pull() == 0) {
+  if (sccsIntervalData$outcomes %>% count() %>% pull() == 0) {
     coefficients <- c(0)
     estimates <- NULL
     priorVariance <- 0
@@ -64,7 +64,7 @@ fitSccsModel <- function(sccsEraData,
     nonRegularized <- c()
     needRegularization <- FALSE
     needCi <- c()
-    covariateSettingsList <- attr(sccsEraData, "metaData")$covariateSettingsList
+    covariateSettingsList <- attr(sccsIntervalData, "metaData")$covariateSettingsList
     for (i in 1:length(covariateSettingsList)) {
       if (covariateSettingsList[[i]]$allowRegularization) {
         needRegularization <- TRUE
@@ -73,23 +73,23 @@ fitSccsModel <- function(sccsEraData,
         needCi <- c(needCi, covariateSettingsList[[i]]$outputIds)
       }
     }
-    if (!is.null(sccsEraData$metaData$age)) {
-      if (sccsEraData$metaData$age$allowRegularization) {
+    if (!is.null(sccsIntervalData$metaData$age)) {
+      if (sccsIntervalData$metaData$age$allowRegularization) {
         needRegularization <- TRUE
       } else {
-        nonRegularized <- c(nonRegularized, sccsEraData$metaData$age$covariateIds)
-        if (sccsEraData$metaData$age$computeConfidenceIntervals) {
-          needCi <- c(needCi, sccsEraData$metaData$age$covariateIds)
+        nonRegularized <- c(nonRegularized, sccsIntervalData$metaData$age$covariateIds)
+        if (sccsIntervalData$metaData$age$computeConfidenceIntervals) {
+          needCi <- c(needCi, sccsIntervalData$metaData$age$covariateIds)
         }
       }
     }
-    if (!is.null(sccsEraData$metaData$seasonality)) {
-      if (sccsEraData$metaData$seasonality$allowRegularization) {
+    if (!is.null(sccsIntervalData$metaData$seasonality)) {
+      if (sccsIntervalData$metaData$seasonality$allowRegularization) {
         needRegularization <- TRUE
       } else {
-        nonRegularized <- c(nonRegularized, sccsEraData$metaData$seasonality$covariateIds)
-        if (sccsEraData$metaData$seasonality$computeConfidenceIntervals) {
-          needCi <- c(needCi, sccsEraData$metaData$seasonality$covariateIds)
+        nonRegularized <- c(nonRegularized, sccsIntervalData$metaData$seasonality$covariateIds)
+        if (sccsIntervalData$metaData$seasonality$computeConfidenceIntervals) {
+          needCi <- c(needCi, sccsIntervalData$metaData$seasonality$covariateIds)
         }
       }
     }
@@ -99,8 +99,8 @@ fitSccsModel <- function(sccsEraData,
     } else {
       prior$exclude <- nonRegularized
     }
-    cyclopsData <- Cyclops::convertToCyclopsData(sccsEraData$outcomes,
-                                                 sccsEraData$covariates,
+    cyclopsData <- Cyclops::convertToCyclopsData(sccsIntervalData$outcomes,
+                                                 sccsIntervalData$covariates,
                                                  modelType = "cpr",
                                                  addIntercept = FALSE,
                                                  checkRowIds = FALSE,
@@ -129,7 +129,7 @@ fitSccsModel <- function(sccsEraData,
       status <- "OK"
       estimates <- coef(fit)
       estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
-      estimates <- merge(estimates, collect(sccsEraData$covariateRef), all.x = TRUE)
+      estimates <- merge(estimates, collect(sccsIntervalData$covariateRef), all.x = TRUE)
       if (length(needCi) == 0) {
         estimates$logLb95 <- NA
         estimates$logUb95 <- NA
@@ -160,7 +160,7 @@ fitSccsModel <- function(sccsEraData,
   result <- list(estimates = estimates,
                  priorVariance = priorVariance,
                  status = status,
-                 metaData = attr(sccsEraData, "metaData"))
+                 metaData = attr(sccsIntervalData, "metaData"))
   class(result) <- "SccsModel"
   delta <- Sys.time() - start
   ParallelLogger::logInfo(paste("Fitting the model took", signif(delta, 3), attr(delta, "units")))

@@ -5,15 +5,15 @@
 \title{Fit the SCCS model}
 \usage{
 fitSccsModel(
-  sccsEraData,
+  sccsIntervalData,
   prior = createPrior("laplace", useCrossValidation = TRUE),
   control = createControl(cvType = "auto", selectorType = "byPid", startingVariance =
     0.1, noiseLevel = "quiet")
 )
 }
 \arguments{
-\item{sccsEraData}{An object of type \link{SccsEraData} as created using the
-\link{createSccsEraData} function.}
+\item{sccsIntervalData}{An object of type \link{SccsIntervalData} as created using the
+\link{createSccsIntervalData} function.}
 
 \item{prior}{The prior used to fit the model. See \link[Cyclops:createPrior]{Cyclops::createPrior} for
 details.}

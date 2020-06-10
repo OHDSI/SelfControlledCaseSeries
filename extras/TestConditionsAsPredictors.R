@@ -101,27 +101,27 @@ covarAllConditions30d <- createCovariateSettings(label = "Conditions 30 days pri
 #                                               addExposedDaysToEnd = TRUE,
 #                                               allowRegularization = TRUE)
 
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = list(covarDoi,
                                                           covarAllDrugs,
                                                           covarAllConditions30d))
 
-saveSccsEraData(sccsEraData, "s:/temp/sccsConditions/sccsEraData")
-sccsEraData <- loadSccsEraData("s:/temp/sccsConditions/sccsEraData")
-summary(sccsEraData)
-sccsEraData$covariates
-sccsEraData$outcomes
-rownames(sccsEraData$covariates) <- NULL #Needs to be null or the ordering of ffdf will fail
-temp <- sccsEraData$covariates[c("covariateId", "stratumId","rowId")]
-idx <- ff::ffdforder(sccsEraData$covariates[c("covariateId", "stratumId","rowId")])
-covariates <- sccsEraData$covariates[idx,]
+saveSccsIntervalData(sccsIntervalData, "s:/temp/sccsConditions/sccsIntervalData")
+sccsIntervalData <- loadSccsIntervalData("s:/temp/sccsConditions/sccsIntervalData")
+summary(sccsIntervalData)
+sccsIntervalData$covariates
+sccsIntervalData$outcomes
+rownames(sccsIntervalData$covariates) <- NULL #Needs to be null or the ordering of ffdf will fail
+temp <- sccsIntervalData$covariates[c("covariateId", "stratumId","rowId")]
+idx <- ff::ffdforder(sccsIntervalData$covariates[c("covariateId", "stratumId","rowId")])
+covariates <- sccsIntervalData$covariates[idx,]
 
-x <- Cyclops:::.bySum(sccsEraData$covariates$covariateValue, sccsEraData$covariates$covariateId)
+x <- Cyclops:::.bySum(sccsIntervalData$covariates$covariateValue, sccsIntervalData$covariates$covariateId)
 x <- x[order(-x$sums),]
 
-m <- merge(x, sccsEraData$covariateRef, by.x = "bins", by.y = "covariateId")
+m <- merge(x, sccsIntervalData$covariateRef, by.x = "bins", by.y = "covariateId")
 m <- m[order(-m$sums),]
 
 control <- createControl(cvType = "auto",
@@ -132,7 +132,7 @@ control <- createControl(cvType = "auto",
 # variance <- 0.00283335
 debug(Cyclops:::convertToCyclopsData.ffdf)
 #debug(fitSccsModel)
-model <- fitSccsModel(sccsEraData, control = control)
+model <- fitSccsModel(sccsIntervalData, control = control)
 saveRDS(model, "s:/temp/sccsConditions/model.rds")
 summary(model)
 estimates <- getModel(model)

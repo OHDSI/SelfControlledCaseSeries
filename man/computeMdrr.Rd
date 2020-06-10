@@ -5,7 +5,7 @@
 \title{Compute the minimum detectable relative risk}
 \usage{
 computeMdrr(
-  sccsEraData,
+  sccsIntervalData,
   exposureCovariateId,
   alpha = 0.05,
   power = 0.8,
@@ -14,8 +14,8 @@ computeMdrr(
 )
 }
 \arguments{
-\item{sccsEraData}{An object containing study population observation time, outcomesa and covariates as created
-using the \code{\link{createSccsEraData}} function. This should include the following dataframes:
+\item{sccsIntervalData}{An object containing study population observation time, outcomesa and covariates as created
+using the \code{\link{createSccsIntervalData}} function. This should include the following dataframes:
 outcomes, covariates, and covariateRef.}
 
 \item{exposureCovariateId}{Covariate Id for the health exposure of interest.}

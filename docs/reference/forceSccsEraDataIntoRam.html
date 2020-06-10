@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Force a loaded SCCS era data in RAM — forceSccsEraDataIntoRam • SelfControlledCaseSeries</title>
+<title>Force a loaded SCCS era data in RAM — forceSccsIntervalDataIntoRam • SelfControlledCaseSeries</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Force a loaded SCCS era data in RAM — forceSccsEraDataIntoRam" />
-<meta property="og:description" content="forceSccsEraDataIntoRam converts the ffdf components of an sccsEraData object
+<meta property="og:title" content="Force a loaded SCCS era data in RAM — forceSccsIntervalDataIntoRam" />
+<meta property="og:description" content="forceSccsIntervalDataIntoRam converts the ffdf components of an sccsIntervalData object
 into data.table components" />
 
 
@@ -129,28 +129,28 @@ into data.table components" />
     <div class="page-header">
     <h1>Force a loaded SCCS era data in RAM</h1>
     <small class="dont-index">Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/R/DataConversion.R'><code>R/DataConversion.R</code></a></small>
-    <div class="hidden name"><code>forceSccsEraDataIntoRam.Rd</code></div>
+    <div class="hidden name"><code>forceSccsIntervalDataIntoRam.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p><code>forceSccsEraDataIntoRam</code> converts the ffdf components of an sccsEraData object
+    <p><code>forceSccsIntervalDataIntoRam</code> converts the ffdf components of an sccsIntervalData object
 into data.table components</p>
     </div>
 
-    <pre class="usage"><span class='fu'>forceSccsEraDataIntoRam</span>(<span class='no'>sccsEraData</span>)</pre>
+    <pre class="usage"><span class='fu'>forceSccsIntervalDataIntoRam</span>(<span class='no'>sccsIntervalData</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>sccsEraData</th>
-      <td><p>Existing sccsEraData object.</p></td>
+      <th>sccsIntervalData</th>
+      <td><p>Existing sccsIntervalData object.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An object of class sccsEraData</p>
+    <p>An object of class sccsIntervalData</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>Uses ff::as.ram() to move virtual data into data.table objects</p>

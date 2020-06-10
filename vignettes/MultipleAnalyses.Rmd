@@ -37,7 +37,7 @@ The general approach to running a set of analyses is that you specify all the fu
 An analysis will be executed by calling these functions in sequence:
 
 1. `getDbSccsData()`
-2. `createSccsEraData()`
+2. `createSccsIntervalData()`
 2. `fitSccsModel()` 
 
 When you provide several analyses to the `SelfControlledCaseSeries` package, it will determine whether any of the analyses and exposure-outcome pairs have anything in common, and will take advantage of this fact. For example, if we specify several exposure-outcome pairs with the same outcome, the data for the outcome will be extracted only once.
@@ -46,7 +46,7 @@ The function arguments you need to define have been divided into four groups:
 
 1. **Hypothesis of interest**: arguments that are specific to a hypothesis of interest, in the case of the self-controlled case series this is a combination of exposure and outcome.
 2. **Analyses**: arguments that are not directly specific to a hypothesis of interest, such as the washout window, whether to adjust for age and seasonality, etc.
-3. Arguments that are the output of a previous function in the `SelfControlledCaseSeries` package, such as the `sccsData` argument of the `createSccsEraData` function. These cannot be specified by the user.
+3. Arguments that are the output of a previous function in the `SelfControlledCaseSeries` package, such as the `sccsData` argument of the `createSccsIntervalData` function. These cannot be specified by the user.
 4. Arguments that are specific to an environment, such as the connection details for connecting to the server, and the name of the schema holding the CDM data.
 
 # Preparation for the example
@@ -155,7 +155,7 @@ covarEoi <- createCovariateSettings(label = "Exposure of interest",
                                               end = 0,
                                               addExposedDaysToEnd = TRUE)
 
-createEraDataArgs1 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+createEraDataArgs1 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
                                                   firstOutcomeOnly = FALSE,
                                                   covariateSettings = covarEoi)
 
@@ -170,7 +170,7 @@ We can now combine the arguments for the various functions into a single analysi
 sccsAnalysis1 <- createSccsAnalysis(analysisId = 1,
                                     description = "Simplest model",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createEraDataArgs1,
+                                    createSccsIntervalDataArgs = createEraDataArgs1,
                                     fitSccsModelArgs = fitSccsModelArgs)
 ```
 
@@ -185,7 +185,7 @@ covarProp <- createCovariateSettings(label = "Prophylactics",
                                               end = 0,
                                               addExposedDaysToEnd = TRUE)
 
-createSccsEraDataArgs2 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+createSccsIntervalDataArgs2 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
                                                       covariateSettings = list(covarEoi,
                                                                                covarProp))
@@ -193,7 +193,7 @@ createSccsEraDataArgs2 <- createCreateSccsEraDataArgs(naivePeriod = 180,
 sccsAnalysis2 <- createSccsAnalysis(analysisId = 2,
                                     description = "Including prophylactics",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createSccsEraDataArgs2,
+                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs2,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
@@ -205,7 +205,7 @@ covarPreExp <- createCovariateSettings(label = "Pre-exposure",
                                        start = -30,
                                        end = -1)
 
-createSccsEraDataArgs3 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
                                                       covariateSettings = list(covarEoi,
                                                                                covarPreExp,
@@ -217,7 +217,7 @@ createSccsEraDataArgs3 <- createCreateSccsEraDataArgs(naivePeriod = 180,
 sccsAnalysis3 <- createSccsAnalysis(analysisId = 3,
                                     description = "Inc. prop., age, season, pre-exp., censor.",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createSccsEraDataArgs3,
+                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs3,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 covarAllDrugs <- createCovariateSettings(label = "Other exposures",
@@ -228,7 +228,7 @@ covarAllDrugs <- createCovariateSettings(label = "Other exposures",
                                          addExposedDaysToEnd = TRUE,
                                          allowRegularization = TRUE)
 
-createSccsEraDataArgs4 <- createCreateSccsEraDataArgs(naivePeriod = 180,
+createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
                                                       firstOutcomeOnly = FALSE,
                                                       covariateSettings = list(covarEoi,
                                                                                covarPreExp,
@@ -240,7 +240,7 @@ createSccsEraDataArgs4 <- createCreateSccsEraDataArgs(naivePeriod = 180,
 sccsAnalysis4 <- createSccsAnalysis(analysisId = 4,
                                     description = "Including all other drugs",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createSccsEraDataArgs4,
+                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs4,
                                     fitSccsModelArgs = fitSccsModelArgs)
 ```
 
@@ -273,14 +273,14 @@ sccsAnalysisA <- createSccsAnalysis(analysisId = 1,
                                     description = "Simplest model, using narrow def.",
                                     outcomeType = "narrowDefinition",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createEraDataArgs1,
+                                    createSccsIntervalDataArgs = createEraDataArgs1,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 sccsAnalysisB <- createSccsAnalysis(analysisId = 2,
                                     description = "Simplest model, using broad def.",
                                     outcomeType = "broadDefinition",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsEraDataArgs = createEraDataArgs1,
+                                    createSccsIntervalDataArgs = createEraDataArgs1,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
 sccsAnalysisList2 <- list(sccsAnalysisA, sccsAnalysisB)
@@ -308,7 +308,7 @@ result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           exposureOutcomeList = exposureOutcomeList,
                           sccsAnalysisList = sccsAnalysisList,
                           getDbSccsDataThreads = 1,
-                          createSccsEraDataThreads = 5,
+                          createSccsIntervalDataThreads = 5,
                           fitSccsModelThreads = 3,
                           cvThreads = 10)
 ```

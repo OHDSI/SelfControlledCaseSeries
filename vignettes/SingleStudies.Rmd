@@ -208,30 +208,30 @@ covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
                                           end = 0,
                                           addExposedDaysToEnd = TRUE)
 
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = covarDiclofenac)
 
-summary(sccsEraData)
+summary(sccsIntervalData)
 ```
 ```{r echo=FALSE,message=FALSE}
 if (file.exists("s:/temp/vignetteSccs")) {
-  sccsEraData <- loadSccsEraData("s:/temp/vignetteSccs/eraData1")
-  summary(sccsEraData)
+  sccsIntervalData <- loadSccsIntervalData("s:/temp/vignetteSccs/eraData1")
+  summary(sccsIntervalData)
 }
 ```
 
 In this example, we use the `createCovariateSettings` to define a single covariate: exposure to diclofenac. We specify that the risk window is from start of exposure to the end by setting start and end to 0, and requiring that the length of exposure is added to the end date. 
 
-We then use the covariate definition in the `createSccsEraData`, and also specify that the first 180 days of observation of every person, the so-called 'naive period', will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person. 
+We then use the covariate definition in the `createSccsIntervalData`, and also specify that the first 180 days of observation of every person, the so-called 'naive period', will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person. 
 
 ## Power calculations
 
-Before we start fitting an outcome model, we might be interested to know whether we have sufficient power to detect a particular effect size. It makes sense to perform these power calculations once the study population has been fully defined, so taking into account loss to the various inclusion and exclusion criteria. This means we will use the sccsEraData object we've just created as the basis for our power calculations. Since the sample size is fixed in retrospective studies (the data has already been collected), and the true effect size is unknown, the SelfControlledCaseSeries package provides a function to compute the minimum detectable relative risk (MDRR) instead:
+Before we start fitting an outcome model, we might be interested to know whether we have sufficient power to detect a particular effect size. It makes sense to perform these power calculations once the study population has been fully defined, so taking into account loss to the various inclusion and exclusion criteria. This means we will use the sccsIntervalData object we've just created as the basis for our power calculations. Since the sample size is fixed in retrospective studies (the data has already been collected), and the true effect size is unknown, the SelfControlledCaseSeries package provides a function to compute the minimum detectable relative risk (MDRR) instead:
 
 ```{r tidy=TRUE,eval=FALSE}
-computeMdrr(sccsEraData,
+computeMdrr(sccsIntervalData,
             exposureCovariateId = 1000,
             alpha = 0.05,
             power = 0.8,
@@ -240,7 +240,7 @@ computeMdrr(sccsEraData,
 ```
 ```{r echo=FALSE,message=FALSE}
 if (file.exists("s:/temp/vignetteSccs")) {
-  computeMdrr(sccsEraData,
+  computeMdrr(sccsIntervalData,
               exposureCovariateId = 1000,
               alpha = 0.05,
               power = 0.8,
@@ -249,14 +249,14 @@ if (file.exists("s:/temp/vignetteSccs")) {
 }
 ```
 
-Note that we have to provide the covariate ID of the exposure of interest, which we learned by calling `summary` on sccsEraData earlier. This is because we may have many covariates in our model, but will likely only be interested in the MDRR of one.
+Note that we have to provide the covariate ID of the exposure of interest, which we learned by calling `summary` on sccsIntervalData earlier. This is because we may have many covariates in our model, but will likely only be interested in the MDRR of one.
 
 ## Model fitting
 
 The `fitSccsModel` function is used to fit the model:
 
 ```{r tidy=FALSE,eval=FALSE}
-model <- fitSccsModel(sccsEraData)
+model <- fitSccsModel(sccsIntervalData)
 ```
 
 We can inspect the resulting model:
@@ -283,16 +283,16 @@ The fact that NSAIDs like diclofenac can cause GI bleeds is well known to doctor
                                                start = -60,
                                                end = -1)
 
-  sccsEraData <- createSccsEraData(sccsData,
+  sccsIntervalData <- createSccsIntervalData(sccsData,
                                    naivePeriod = 180,
                                    firstOutcomeOnly = FALSE,
                                    covariateSettings = list(covarDiclofenac,
                                                             covarPreDiclofenac))
 
-  model <- fitSccsModel(sccsEraData)
+  model <- fitSccsModel(sccsIntervalData)
 ```
 
-Here we created a new covariate definition in addition to the first one. We define the risk window to start 60 days prior to exposure, and end on the day just prior to exposure. We combine the two covariate settings in a list for the `createSccsEraData` function. Again, we can take a look at the results:
+Here we created a new covariate definition in addition to the first one. We define the risk window to start 60 days prior to exposure, and end on the day just prior to exposure. We combine the two covariate settings in a list for the `createSccsIntervalData` function. Again, we can take a look at the results:
 
 ```{r tidy=TRUE,eval=FALSE}
 summary(model)
@@ -324,7 +324,7 @@ Often we will want to split the risk windows into smaller parts and compute esti
                                                     end = -1,
                                                     splitPoints = c(-30))
 
-  sccsEraData <- createSccsEraData(sccsData,
+  sccsIntervalData <- createSccsIntervalData(sccsData,
                                    naivePeriod = 180,
                                    firstOutcomeOnly = FALSE,
                                    covariateSettings = list(covarDiclofenacSplit,
@@ -365,7 +365,7 @@ ageSettings <- createAgeSettings(includeAge = TRUE,
 seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE,
                                                  seasonKnots = 5)
   
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = list(covarDiclofenacSplit,
@@ -373,7 +373,7 @@ sccsEraData <- createSccsEraData(sccsData,
                                  ageSettings = ageSettings,
                                  seasonalitySettings = seasonalitySettings)
   
-model <- fitSccsModel(sccsEraData)
+model <- fitSccsModel(sccsIntervalData)
 ```
 
 Again, we can inspect the model:
@@ -413,10 +413,10 @@ We see a strong effect for age on the outcome, but this effect is spread out ove
 
 ## Considering event-dependent observation time
 
-The SCCS method requires that observation periods are independent of outcome times. This requirement is violated when outcomes increase the mortality rate, since censoring of the observation periods is then event-dependent. A modification to the SCCS has been proposed that attempts to correct for this. First, several models are fitted to estimate the amount and shape of the event-dependent censoring, and the best fitting model is selected. Next, this model is used to reweigh various parts of the observation time. This approach is also implemented in this package, and can be turned on using the `eventDependentObservation` argument of the `createSccsEraData` function:
+The SCCS method requires that observation periods are independent of outcome times. This requirement is violated when outcomes increase the mortality rate, since censoring of the observation periods is then event-dependent. A modification to the SCCS has been proposed that attempts to correct for this. First, several models are fitted to estimate the amount and shape of the event-dependent censoring, and the best fitting model is selected. Next, this model is used to reweigh various parts of the observation time. This approach is also implemented in this package, and can be turned on using the `eventDependentObservation` argument of the `createSccsIntervalData` function:
 
 ```{r tidy=FALSE,eval=FALSE}
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = list(covarDiclofenacSplit,
@@ -425,7 +425,7 @@ sccsEraData <- createSccsEraData(sccsData,
                                  seasonalitySettings = seasonalitySettings,
                                  eventDependentObservation = TRUE)
 
-model <- fitSccsModel(sccsEraData)
+model <- fitSccsModel(sccsIntervalData)
 ```
 
 Again, we can inspect the model:
@@ -486,7 +486,7 @@ covarPpis = createCovariateSettings(label = "PPIs",
                                     end = 0,
                                     addExposedDaysToEnd = TRUE)
 
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = list(covarDiclofenacSplit,
@@ -496,7 +496,7 @@ sccsEraData <- createSccsEraData(sccsData,
                                  seasonalitySettings = seasonalitySettings,
                                  eventDependentObservation = TRUE)
 
-model <- fitSccsModel(sccsEraData)
+model <- fitSccsModel(sccsIntervalData)
 ```
 
 Here, we added a new covariate based on the list of concept IDs for the various PPIs. In this example we set `stratifyById` to FALSE, meaning that we will estimate a single incidence rate ratio for all PPIs, so one estimate for the entire class of drugs. Note that duplicates will be removed: if a person is exposed to two PPIs on the same day, this will be counted only once when fitting the model. Furthermore, we have set the `start` day to 1 instead of 0. The reason for this is that PPIs will also be used to treat GI bleeds, and are likely to be prescribed on the same day as the event. If we would include day 0, the risk of the outcome would be attributed to the PPI used for treatment, not the other factors that caused the GI bleed such as any exposure to our drug of interest. Again, we can inspect the model:
@@ -541,7 +541,7 @@ covarAllDrugs = createCovariateSettings(label = "All other exposures",
                                         addExposedDaysToEnd = TRUE,
                                         allowRegularization = TRUE)
 
-sccsEraData <- createSccsEraData(sccsData,
+sccsIntervalData <- createSccsIntervalData(sccsData,
                                  naivePeriod = 180,
                                  firstOutcomeOnly = FALSE,
                                  covariateSettings = list(covarDiclofenacSplit,
@@ -551,7 +551,7 @@ sccsEraData <- createSccsEraData(sccsData,
                                  seasonalitySettings = seasonalitySettings,
                                  eventDependentObservation = TRUE)
 
-model <- fitSccsModel(sccsEraData)
+model <- fitSccsModel(sccsIntervalData)
 ```
 
 The first thing to note is that we have defined the new covariates to be all drugs except diclofenac by not specifying the `includeCovariateIds` and setting the `excludeCovariateIds` to the concept ID of diclofenac. Furthermore, we have specified that `stratifyById` is TRUE, meaning an estimate will be produced for each drug. 

@@ -136,7 +136,7 @@
     </div>
 
     <pre class="usage"><span class='fu'>fitSccsModel</span>(
-  <span class='no'>sccsEraData</span>,
+  <span class='no'>sccsIntervalData</span>,
   <span class='kw'>prior</span> <span class='kw'>=</span> <span class='fu'>createPrior</span>(<span class='st'>"laplace"</span>, <span class='kw'>useCrossValidation</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>),
   <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'>createControl</span>(<span class='kw'>cvType</span> <span class='kw'>=</span> <span class='st'>"auto"</span>, <span class='kw'>selectorType</span> <span class='kw'>=</span> <span class='st'>"byPid"</span>, <span class='kw'>startingVariance</span> <span class='kw'>=</span>
     <span class='fl'>0.1</span>, <span class='kw'>noiseLevel</span> <span class='kw'>=</span> <span class='st'>"quiet"</span>)
@@ -146,9 +146,9 @@
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>sccsEraData</th>
-      <td><p>An object of type <code>sccsEraData</code> as created using the
-<code><a href='createSccsEraData.html'>createSccsEraData</a></code> function.</p></td>
+      <th>sccsIntervalData</th>
+      <td><p>An object of type <code>sccsIntervalData</code> as created using the
+<code><a href='createSccsIntervalData.html'>createSccsIntervalData</a></code> function.</p></td>
     </tr>
     <tr>
       <th>prior</th>

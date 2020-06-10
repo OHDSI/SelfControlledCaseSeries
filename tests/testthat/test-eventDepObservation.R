@@ -133,7 +133,7 @@ test_that("Produces same results as SCCS package when using event-dependent obse
 
 
 
-  sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+  sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                    sccsData = sccsData,
                                    eraCovariateSettings = createEraCovariateSettings(includeEraIds = 1,
                                                                                      start = 0,
@@ -141,9 +141,9 @@ test_that("Produces same results as SCCS package when using event-dependent obse
                                                                                      endAnchor = "era end"),
                                    eventDependentObservation = TRUE)
 
-  expect_equal(attr(sccsEraData, "metaData")$censorModel$aic, min(x$modelfit[2, ]), tolerance = 1e-04)
+  expect_equal(attr(sccsIntervalData, "metaData")$censorModel$aic, min(x$modelfit[2, ]), tolerance = 1e-04)
 
-  fit <- fitSccsModel(sccsEraData)
+  fit <- fitSccsModel(sccsIntervalData)
 
   expect_equal(x$summary$coefficients[1], as.vector(coef(fit)), tolerance = 1e-04)
 })
@@ -151,7 +151,7 @@ test_that("Produces same results as SCCS package when using event-dependent obse
 # exp(x$summary$coefficients[1])
 # exp(coef(fit))
 #
-# myData <- merge(ff::as.ram(sccsEraData$outcomes), ff::as.ram(sccsEraData$covariates), all.x = TRUE)
+# myData <- merge(ff::as.ram(sccsIntervalData$outcomes), ff::as.ram(sccsIntervalData$covariates), all.x = TRUE)
 # myData$covariateValue[is.na(myData$covariateValue)] <- 0
 # myData <- tibble(stratumId = myData$stratumId, exposure = myData$covariateValue,
 #                      w = myData$time, event = myData$y)
@@ -209,7 +209,7 @@ test_that("Produces same results as SCCS package when using event-dependent obse
 # data[data$personId == 99141,]
 # chopdat[chopdat$indivL == which(levels(sccsData$Indiv) == 99141),]
 #
-# sccsEraData <- createSccsEraData(sccsData = sccsData,
+# sccsIntervalData <- createSccsIntervalData(sccsData = sccsData,
 #                                  exposureId = 1,
 #                                  exposureOfInterestSettings = createCovariateSettings(start = 0,
 #                                                                                       end = 0,
@@ -220,6 +220,6 @@ test_that("Produces same results as SCCS package when using event-dependent obse
 #                                  includePreExposureOfInterest = FALSE,
 #                                  eventDependentObservation = FALSE)
 #
-# fit <- fitSccsModel(sccsEraData, exposureId = 1, prior = createPrior("none"))
+# fit <- fitSccsModel(sccsIntervalData, exposureId = 1, prior = createPrior("none"))
 # exp(coef(fit))
 # # })

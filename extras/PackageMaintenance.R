@@ -69,11 +69,11 @@ rCode <- OhdsiRTools::createArgFunction("getDbSccsData",
                                         addArgs = list(exposureIds = "exposureId",
                                                        customCovariateIds = ""),
                                         rCode = rCode)
-rCode <- OhdsiRTools::createArgFunction("createSccsEraData",
+rCode <- OhdsiRTools::createArgFunction("createSccsIntervalData",
                                         excludeArgs = c("sccsData", "outcomeId"),
                                         rCode = rCode)
 rCode <- OhdsiRTools::createArgFunction("fitSccsModel",
-                                        excludeArgs = c("sccsEraData", "population"),
+                                        excludeArgs = c("sccsIntervalData", "population"),
                                         rCode = rCode)
 writeLines(rCode, "r/CreateArgFunctions.R")
 OhdsiRTools::formatRFile("r/CreateArgFunctions.R")

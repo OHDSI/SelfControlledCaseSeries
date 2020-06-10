@@ -128,11 +128,11 @@
                                           <span class="kw">start</span> <span class="kw">=</span> <span class="fl">0</span>,
                                           <span class="kw">end</span> <span class="kw">=</span> <span class="fl">0</span>,
                                           <span class="kw">addExposedDaysToEnd</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
-<span class="no">sccsEraData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/createSccsEraData.html">createSccsEraData</a></span>(<span class="no">sccsData</span>,
+<span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">sccsData</span>,
                                  <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
                                  <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                  <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="no">covarDiclofenac</span>)
-<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsEraData</span>)
+<span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsIntervalData</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(<span class="no">model</span>)
 <span class="co"># sccsModel object summary</span>
 <span class="co"># </span>

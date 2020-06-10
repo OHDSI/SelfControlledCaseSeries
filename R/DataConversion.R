@@ -42,10 +42,10 @@
 #' the American Statistical Association 106 (494), 417-426
 #'
 #' @return
-#' An object of type [SccsEraData].
+#' An object of type [SccsIntervalData].
 #'
 #' @export
-createSccsEraData <- function(studyPopulation,
+createSccsIntervalData <- function(studyPopulation,
                               sccsData,
                               eraCovariateSettings,
                               ageCovariateSettings = NULL,
@@ -54,14 +54,14 @@ createSccsEraData <- function(studyPopulation,
                               eventDependentObservation = FALSE) {
   start <- Sys.time()
   if (nrow(studyPopulation$outcomes) == 0) {
-    sccsEraData <- createEmptySccsEraData()
+    sccsIntervalData <- createEmptySccsIntervalData()
     metaData <- studyPopulation$metaData
     metaData$error <- "Error: No cases left"
-    attr(sccsEraData, "metaData") <- metaData
+    attr(sccsIntervalData, "metaData") <- metaData
 
-    class(sccsEraData) <- "SccsEraData"
-    attr(class(sccsEraData), "package") <- "SelfControlledCaseSeries"
-    return(sccsEraData)
+    class(sccsIntervalData) <- "SccsIntervalData"
+    attr(class(sccsIntervalData), "package") <- "SelfControlledCaseSeries"
+    return(sccsIntervalData)
   }
 
   ageSeasonsCases <- numeric(0)
@@ -84,7 +84,7 @@ createSccsEraData <- function(studyPopulation,
   settings$metaData$covariateSettingsList <- settings$covariateSettingsList
   metaData <- append(studyPopulation$metaData, settings$metaData)
 
-  ParallelLogger::logInfo("Converting person data to SCCS eras. This might take a while.")
+  ParallelLogger::logInfo("Converting person data to SCCS intervals. This might take a while.")
   # Ensure all sorted bv observationPeriodId:
   cases <- studyPopulation$cases[order(studyPopulation$cases$observationPeriodId), ]
   outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$observationPeriodId), ]
@@ -106,7 +106,7 @@ createSccsEraData <- function(studyPopulation,
 
   if (is.null(data$outcomes)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
-    data <- createEmptySccsEraData()
+    data <- createEmptySccsIntervalData()
   } else {
     metaData$covariateStatistics <- collect(data$covariateStatistics)
     data$covariateStatistics <- NULL
@@ -114,16 +114,16 @@ createSccsEraData <- function(studyPopulation,
   data$covariateRef = settings$covariateRef
   attr(data, "metaData") <- metaData
 
-  class(data) <- "SccsEraData"
+  class(data) <- "SccsIntervalData"
   attr(class(data), "package") <- "SelfControlledCaseSeries"
 
   delta <- Sys.time() - start
-  ParallelLogger::logInfo(paste("Generating SCCS era data took", signif(delta, 3), attr(delta, "units")))
+  ParallelLogger::logInfo(paste("Generating SCCS interval data took", signif(delta, 3), attr(delta, "units")))
   return(data)
 }
 
-createEmptySccsEraData <- function() {
-  sccsEraData <- Andromeda::andromeda(outcomes = tibble(rowId = 1,
+createEmptySccsIntervalData <- function() {
+  sccsIntervalData <- Andromeda::andromeda(outcomes = tibble(rowId = 1,
                                                         stratumId = 1,
                                                         time = 1,
                                                         y = 1)[-1, ],
@@ -136,7 +136,7 @@ createEmptySccsEraData <- function() {
                                                             originalEraId = 1,
                                                             originalEraName = "",
                                                             originalEraType = "")[-1, ])
-  return(sccsEraData)
+  return(sccsIntervalData)
 }
 
 addAgeSettings <- function(settings,

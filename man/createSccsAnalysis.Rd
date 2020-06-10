@@ -10,7 +10,7 @@ createSccsAnalysis(
   exposureType = NULL,
   outcomeType = NULL,
   getDbSccsDataArgs,
-  createSccsEraDataArgs,
+  createSccsIntervalDataArgs,
   fitSccsModelArgs
 )
 }
@@ -31,8 +31,8 @@ analysis.}
 \item{getDbSccsDataArgs}{An object representing the arguments to be used when calling the
 \code{\link{getDbSccsData}} function.}
 
-\item{createSccsEraDataArgs}{An object representing the arguments to be used when calling the
-\code{\link{createSccsEraData}} function.}
+\item{createSccsIntervalDataArgs}{An object representing the arguments to be used when calling the
+\code{\link{createSccsIntervalData}} function.}
 
 \item{fitSccsModelArgs}{An object representing the arguments to be used when calling the
 \code{\link{fitSccsModel}} function.}

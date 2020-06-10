@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Create SCCS era data — createSccsEraData • SelfControlledCaseSeries</title>
+<title>Create SCCS era data — createSccsIntervalData • SelfControlledCaseSeries</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,7 @@
 
 
 
-<meta property="og:title" content="Create SCCS era data — createSccsEraData" />
+<meta property="og:title" content="Create SCCS era data — createSccsIntervalData" />
 <meta property="og:description" content="Create SCCS era data" />
 
 
@@ -128,14 +128,14 @@
     <div class="page-header">
     <h1>Create SCCS era data</h1>
     <small class="dont-index">Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/R/DataConversion.R'><code>R/DataConversion.R</code></a></small>
-    <div class="hidden name"><code>createSccsEraData.Rd</code></div>
+    <div class="hidden name"><code>createSccsIntervalData.Rd</code></div>
     </div>
 
     <div class="ref-description">
     <p>Create SCCS era data</p>
     </div>
 
-    <pre class="usage"><span class='fu'>createSccsEraData</span>(
+    <pre class="usage"><span class='fu'>createSccsIntervalData</span>(
   <span class='no'>sccsData</span>,
   <span class='kw'>outcomeId</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>naivePeriod</span> <span class='kw'>=</span> <span class='fl'>0</span>,
@@ -204,7 +204,7 @@ adjust for event-dependent observation time?</p></td>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An object of type <code>sccsEraData</code>.</p>
+    <p>An object of type <code>sccsIntervalData</code>.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>This function creates covariates based on the data in the <code>sccsData</code> object, according to the

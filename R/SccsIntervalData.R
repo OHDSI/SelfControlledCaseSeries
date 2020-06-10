@@ -14,31 +14,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' SCCS Era Data
+#' SCCS Interval Data
 #'
 #' @description
-#' SccsEraData` is an S4 class that inherits from [Andromeda][Andromeda::Andromeda]. It contains information on the cases and their covariates.
+#' SccsIntervalData` is an S4 class that inherits from [Andromeda][Andromeda::Andromeda]. It contains
+#' information on the cases and their covariates, divided in non-overlapping time intervals.
 #'
-#' A `SccsEraData` is typically created using [createSccsEraData()], can only be saved using
-#' [saveSccsEraData()], and loaded using [loadSccsEraData()].
+#' A `SccsIntervalData` is typically created using [createSccsIntervalData()], can only be saved using
+#' [saveSccsIntervalData()], and loaded using [loadSccsIntervalData()].
 #'
-#' @name SccsEraData-class
-#' @aliases SccsEraData
+#' @name SccsIntervalData-class
+#' @aliases SccsIntervalData
 NULL
 
-#' SccsEraData class.
+#' SccsIntervalData class.
 #'
 #' @export
 #' @import Andromeda
-setClass("SccsEraData", contains = "Andromeda")
+setClass("SccsIntervalData", contains = "Andromeda")
 
 #' Save the cohort method data to file
 #'
 #' @description
-#' Saves an object of type [SccsEraData] to a file.
+#' Saves an object of type [SccsIntervalData] to a file.
 #'
-#' @param SccsEraData   An object of type [SccsEraData] as generated using
-#'                           [createSccsEraData()].
+#' @param SccsIntervalData   An object of type [SccsIntervalData] as generated using
+#'                           [createSccsIntervalData()].
 #' @param file               The name of the file where the data will be written. If the file already
 #'                           exists it will be overwritten.
 #'
@@ -46,47 +47,47 @@ setClass("SccsEraData", contains = "Andromeda")
 #' Returns no output.
 #'
 #' @export
-saveSccsEraData <- function(SccsEraData, file) {
-  if (missing(SccsEraData))
-    stop("Must specify SccsEraData")
+saveSccsIntervalData <- function(SccsIntervalData, file) {
+  if (missing(SccsIntervalData))
+    stop("Must specify SccsIntervalData")
   if (missing(file))
     stop("Must specify file")
-  if (!inherits(SccsEraData, "SccsEraData"))
-    stop("Data not of class SccsEraData")
+  if (!inherits(SccsIntervalData, "SccsIntervalData"))
+    stop("Data not of class SccsIntervalData")
 
-  Andromeda::saveAndromeda(SccsEraData, file)
+  Andromeda::saveAndromeda(SccsIntervalData, file)
 }
 
 #' Load the cohort method data from a file
 #'
 #' @description
-#' Loads an object of type [SccsEraData] from a file in the file system.
+#' Loads an object of type [SccsIntervalData] from a file in the file system.
 #'
 #' @param file       The name of the file containing the data.
 #'
 #' @return
-#' An object of class [SccsEraData].
+#' An object of class [SccsIntervalData].
 #'
 #' @export
-loadSccsEraData <- function(file) {
+loadSccsIntervalData <- function(file) {
   if (!file.exists(file))
     stop("Cannot find file ", file)
   if (file.info(file)$isdir)
     stop(file , " is a folder, but should be a file")
-  SccsEraData <- Andromeda::loadAndromeda(file)
-  class(SccsEraData) <- "SccsEraData"
-  attr(class(SccsEraData), "package") <- "SelfControlledCaseSeries"
-  return(SccsEraData)
+  SccsIntervalData <- Andromeda::loadAndromeda(file)
+  class(SccsIntervalData) <- "SccsIntervalData"
+  attr(class(SccsIntervalData), "package") <- "SelfControlledCaseSeries"
+  return(SccsIntervalData)
 }
 
 # show()
-#' @param object  An object of type `SccsEraData`.
+#' @param object  An object of type `SccsIntervalData`.
 #'
 #' @export
-#' @rdname SccsEraData-class
-setMethod("show", "SccsEraData", function(object) {
+#' @rdname SccsIntervalData-class
+setMethod("show", "SccsIntervalData", function(object) {
   metaData <- attr(object, "metaData")
-  cli::cat_line(pillar::style_subtle("# SccsEraData object"))
+  cli::cat_line(pillar::style_subtle("# SccsIntervalData object"))
   cli::cat_line("")
   cli::cat_line(paste("Outcome cohort ID:", metaData$outcomeId))
   cli::cat_line("")
@@ -97,11 +98,11 @@ setMethod("show", "SccsEraData", function(object) {
 })
 
 # summary()
-#' @param object  An object of type `SccsEraData`.
+#' @param object  An object of type `SccsIntervalData`.
 #'
 #' @export
-#' @rdname SccsEraData-class
-setMethod("summary", "SccsEraData", function(object) {
+#' @rdname SccsIntervalData-class
+setMethod("summary", "SccsIntervalData", function(object) {
   if (!Andromeda::isValidAndromeda(object))
     stop("Object is not valid. Probably the Andromeda object was closed.")
 
@@ -118,13 +119,13 @@ setMethod("summary", "SccsEraData", function(object) {
                  covariateCount = covariateCount,
                  covariateValueCount = covariateValueCount)
 
-  class(result) <- "summary.SccsEraData"
+  class(result) <- "summary.SccsIntervalData"
   return(result)
 })
 
 #' @export
-print.summary.SccsEraData <- function(x, ...) {
-  writeLines("SccsEraData object summary")
+print.summary.SccsIntervalData <- function(x, ...) {
+  writeLines("SccsIntervalData object summary")
   writeLines("")
   writeLines(paste("Outcome cohort ID:", x$metaData$outcomeId))
   writeLines("")
@@ -135,7 +136,7 @@ print.summary.SccsEraData <- function(x, ...) {
   writeLines(paste("Number of non-zero covariate values:", x$covariateValueCount))
 }
 
-#' Check whether an object is a SccsEraData object
+#' Check whether an object is a SccsIntervalData object
 #'
 #' @param x  The object to check.
 #'
@@ -143,6 +144,6 @@ print.summary.SccsEraData <- function(x, ...) {
 #' A logical value.
 #'
 #' @export
-isSccsEraData <- function(x) {
-  return(inherits(x, "SccsEraData"))
+isSccsIntervalData <- function(x) {
+  return(inherits(x, "SccsIntervalData"))
 }

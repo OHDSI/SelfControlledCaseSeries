@@ -44,7 +44,7 @@ convertToSccsDataWrapper <- function(cases,
                                     minAge = minAge,
                                     maxAge = maxAge)
 
-  result <- createSccsEraData(studyPopulation = studyPop,
+  result <- createSccsIntervalData(studyPopulation = studyPop,
                               sccsData = data,
                               ageCovariateSettings = ageSettings,
                               seasonalityCovariateSettings = seasonalitySettings,
@@ -456,7 +456,7 @@ test_that("Aggregates on large set", {
   studyPop <- createStudyPopulation(sccsData = sccsData,
                                     naivePeriod = 0,
                                     firstOutcomeOnly = FALSE,)
-  sccsEraData <- createSccsEraData(studyPopulation = studyPop,
+  sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                    sccsData,
                                    eraCovariateSettings = createEraCovariateSettings(includeEraIds = c(1, 2),
                                                                                      endAnchor = "era end"))
@@ -472,10 +472,10 @@ test_that("Aggregates on large set", {
     distinct(.data$observationPeriodId) %>%
     pull()
 
-  x <- sccsEraData$covariates %>%
+  x <- sccsIntervalData$covariates %>%
     filter(.data$covariateId == 1000) %>%
     collect()
-  y <- sccsEraData$outcomes %>%
+  y <- sccsIntervalData$outcomes %>%
     filter(.data$y != 0) %>%
     collect()
   z2 <- inner_join(x, y, by = c("rowId")) %>%
@@ -496,10 +496,10 @@ test_that("Aggregates on large set", {
     distinct(.data$observationPeriodId) %>%
     pull()
 
-  x <- sccsEraData$covariates %>%
+  x <- sccsIntervalData$covariates %>%
     filter(.data$covariateId == 1001) %>%
     collect()
-  y <- sccsEraData$outcomes %>%
+  y <- sccsIntervalData$outcomes %>%
     filter(.data$y != 0) %>%
     collect()
   z2 <- inner_join(x, y, by = c("rowId")) %>%
@@ -510,7 +510,7 @@ test_that("Aggregates on large set", {
   expect_equal(z, z2)
 
 
-  outcomes <- sccsEraData$outcomes %>%
+  outcomes <- sccsIntervalData$outcomes %>%
     group_by(.data$stratumId) %>%
     summarise(time = sum(.data$time, na.rm = TRUE)) %>%
     collect()
