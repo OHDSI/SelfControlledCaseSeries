@@ -22,6 +22,7 @@ limitations under the License.
 
 SELECT
 	observation_period_id,
+	case_id,
 	person_id,
 	DATEDIFF(DAY, start_date, end_date) + 1 AS observation_days,
 	YEAR(start_date) AS start_year,
@@ -35,5 +36,4 @@ FROM #sampled_cases
 } : {
 FROM #cases
 }
-ORDER BY
-	observation_period_id;
+ORDER BY case_id;

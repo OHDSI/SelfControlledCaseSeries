@@ -135,6 +135,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
   startMonth <- round(runif(n, 1, 12))
   startDay <- round(runif(n, 1, 28))
   cases <- tibble(observationPeriodId = 1:n,
+                  caseId = 1:n,
                   personId = 1:n,
                   observationDays = observationDays,
                   ageInDays = ageInDays,
@@ -164,7 +165,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
     endDay[endDay > cases$observationDays[observationPeriodId]] <- cases$observationDays[observationPeriodId][endDay >
                                                                                                                 cases$observationDays[observationPeriodId]]
     newEras <- tibble(eraType = "hei",
-                      observationPeriodId = observationPeriodId,
+                      caseId = observationPeriodId,
                       eraId = settings$eraIds[i],
                       value = 1,
                       startDay = startDay,
@@ -172,7 +173,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                       stringsAsFactors = TRUE)
     eras <- rbind(eras, newEras)
   }
-  eras <- eras[order(eras$observationPeriodId, eras$eraId), ]
+  eras <- eras[order(eras$caseId, eras$eraId), ]
 
   ### Generate outcomes ###
   baselineRates <- runif(n, min = settings$minBaselineRate, max = settings$maxBaselineRate)
@@ -209,7 +210,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
       truncatedEnds[truncatedEnds > end] <- end
       filteredIndex <- truncatedEnds >= start
       riskEras <- tibble(eraType = "hei",
-                         observationPeriodId = sourceEras$observationPeriodId[filteredIndex],
+                         caseId = sourceEras$caseId[filteredIndex],
                          eraId = eraId,
                          value = 1,
                          startDay = sourceEras$startDay[filteredIndex] + start,
@@ -222,7 +223,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
       start <- end + 1
     }
   }
-  newEras <- newEras[order(newEras$observationPeriodId, newEras$eraId), ]
+  newEras <- newEras[order(newEras$caseId, newEras$eraId), ]
   eraRrs <- tibble(eraId = eraIds, rr = rrs)
   outcomes <- simulateSccsOutcomes(cases,
                                    newEras,
@@ -234,7 +235,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                                    settings$includeSeasonality,
                                    seasonRrs)
   outcomes <- tibble(eraType = "hoi",
-                     observationPeriodId = outcomes$observationPeriodId,
+                     caseId = outcomes$caseId,
                      eraId = settings$outcomeId,
                      value = 1,
                      startDay = outcomes$startDay,
@@ -242,15 +243,15 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                      stringsAsFactors = TRUE)
 
   # ** Remove non-cases ***
-  caseIds <- unique(outcomes$observationPeriodId)
-  cases <- cases[cases$observationPeriodId %in% caseIds, ]
-  eras <- eras[eras$observationPeriodId %in% caseIds, ]
+  caseIds <- unique(outcomes$caseId)
+  cases <- cases[cases$caseId %in% caseIds, ]
+  eras <- eras[eras$caseId %in% caseIds, ]
 
   eras <- rbind(eras, outcomes)
-  eras <- eras[order(eras$observationPeriodId), ]
-  cases$observationPeriodId <- cases$observationPeriodId + caseIdOffset
+  eras <- eras[order(eras$caseId), ]
+  cases$caseId <- cases$caseId + caseIdOffset
   cases$personId <- cases$personId + caseIdOffset
-  eras$observationPeriodId <- eras$observationPeriodId + caseIdOffset
+  eras$caseId <- eras$caseId + caseIdOffset
   result <- list(cases = cases, eras = eras)
   return(result)
 }
@@ -287,7 +288,7 @@ simulateSccsData <- function(nCases, settings) {
   eras <- tibble()
   lastCaseId <- 0
   while (nrow(cases) < nCases) {
-    batch <- simulateBatch(settings, ageFun, seasonFun, lastCaseId)
+    batch <- SelfControlledCaseSeries:::simulateBatch(settings, ageFun, seasonFun, lastCaseId)
     need <- nCases - nrow(cases)
     if (nrow(batch$cases) < need) {
       cases <- rbind(cases, batch$cases)
@@ -296,7 +297,7 @@ simulateSccsData <- function(nCases, settings) {
     } else {
       cases <- rbind(cases, batch$cases[1:need, ])
       eras <- rbind(eras,
-                    batch$eras[batch$eras$observationPeriodId %in% batch$cases$observationPeriodId[1:need],])
+                    batch$eras[batch$eras$caseId %in% batch$cases$caseId[1:need],])
     }
   }
   data <- Andromeda::andromeda(cases = cases,

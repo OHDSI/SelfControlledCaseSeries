@@ -64,7 +64,7 @@ DatabaseConnector::disconnect(connection)
 diclofenac <- 1124300
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
 
-### Main section: one drug in the model ### Simple model ###
+# Main section: one drug in the model ### Simple model ### ----------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           oracleTempSchema = oracleTempSchema,
@@ -74,8 +74,7 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
                           exposureIds = diclofenac,
-                          cdmVersion = cdmVersion,
-                          maxCasesPerOutcome = 1000)
+                          cdmVersion = cdmVersion)
 saveSccsData(sccsData, file.path(folder, "data1.zip"))
 sccsData <- loadSccsData(file.path(folder, "data1.zip"))
 sccsData
@@ -90,7 +89,7 @@ plotAgeSpans(studyPop)
 
 plotEventObservationDependence(studyPop)
 
-plotExposureCentered(studyPop, sccsData)
+plotExposureCentered(studyPop, sccsData, exposureEraId = diclofenac)
 
 plotEventToCalendarTime(studyPop)
 
@@ -118,7 +117,7 @@ saveRDS(model, "s:/temp/vignetteSccs/simpleModel.rds")
 
 coef(model)
 
-### Risk windows: Adding pre-exposure window ###
+# Risk windows: Adding pre-exposure window --------------------------------------------------------
 
 covarPreDiclofenac <- createEraCovariateSettings(label = "Pre-exposure",
                                                  includeEraIds = diclofenac,
@@ -134,7 +133,7 @@ model <- fitSccsModel(sccsIntervalData)
 saveRDS(model, "s:/temp/vignetteSccs/preExposureModel.rds")
 coef(model)
 
-### Risk windows: Adding window splits ###
+# Risk windows: Adding window splits --------------------------------
 
 covarDiclofenacSplit <- createEraCovariateSettings(label = "Exposure of interest",
                                                    includeEraIds = diclofenac,
@@ -159,7 +158,7 @@ model <- fitSccsModel(sccsIntervalData)
 saveRDS(model, "s:/temp/vignetteSccs/splitModel.rds")
 coef(model)
 
-### Adding age and seasonality ###
+# Adding age and seasonality -------------------------------------------------
 
 ageCovariateSettings <- createAgeCovariateSettings(ageKnots = 5)
 
@@ -186,7 +185,7 @@ plotAgeEffect(model)
 
 plotSeasonality(model)
 
-### Adding time-dependent observation periods
+# Adding time-dependent observation periods ----------------------------------------------
 
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
@@ -206,7 +205,7 @@ saveRDS(model, "s:/temp/vignetteSccs/eventDepModel.rds")
 summary(model)
 
 
-### Add PPIs ###
+# Add PPIs ------------------------------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           oracleTempSchema = oracleTempSchema,
@@ -240,7 +239,7 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                                                        covarPpis),
                                            ageCovariateSettings = ageCovariateSettings,
                                            seasonalityCovariateSettings = seasonalityCovariateSettings,
-                                           eventDependentObservation = F)
+                                           eventDependentObservation = TRUE)
 
 model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
                                                                 selectorType = "byPid",
@@ -249,7 +248,7 @@ model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
                                                                 threads = 30))
 saveRDS(model, "s:/temp/vignetteSccs/ppiModel.rds")
 summary(model)
-### Add all drugs ###
+# Add all drugs -------------------------------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           oracleTempSchema = oracleTempSchema,
@@ -297,9 +296,8 @@ control <- createControl(cvType = "auto",
 # variance <- 0.0120081
 model <- fitSccsModel(sccsIntervalData, control = control)
 saveRDS(model, "s:/temp/vignetteSccs/allDrugsModel.rds")
-summary(model)
+model
 estimates <- getModel(model)
-estimates[estimates$originalCovariateId == diclofenac, ]
-estimates[estimates$originalCovariateId %in% ppis, ]
-grep("diclofenac", as.character(model$estimates$covariateName))
+estimates[estimates$originalEraId == diclofenac, ]
+estimates[estimates$originalEraId %in% ppis, ]
 

@@ -35,17 +35,17 @@ public:
   List simulateOutcomes();
 private:
   void processPerson(const int caseIndex, const int eraStartIndex, const int eraEndIndex);
-  NumericVector casesObservationPeriodId;
+  NumericVector casesCaseId;
   NumericVector casesObservationDays;
   NumericVector casesAgeInDays;
   NumericVector casesStartYear;
   NumericVector casesStartMonth;
   NumericVector casesStartDay;
-  NumericVector erasObservationPeriodId;
+  NumericVector erasCaseId;
   NumericVector erasEraId;
   NumericVector erasStartDay;
   NumericVector erasEndDay;
-  std::vector<int> outcomeObservationPeriodIds;
+  std::vector<int> outcomeCaseIds;
   std::vector<int> outcomeStartDays;
   std::vector<double> baselineRates;
   std::map<int, double> eraIdToRr;

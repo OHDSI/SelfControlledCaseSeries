@@ -159,19 +159,19 @@ std::vector<ConcomitantEra> SccsConverter::buildConcomitantEras(std::vector<Era>
   return concomitantEras;
 }
 
-void SccsConverter::addToResult(const ConcomitantEra& era, int outcomeCount, const double duration, const int64_t& observationPeriodId) {
+void SccsConverter::addToResult(const ConcomitantEra& era, int outcomeCount, const double duration, const int64_t& caseId) {
   // Add to outcome table:
-  resultStruct.addToOutcomes(outcomeCount, duration, observationPeriodId);
+  resultStruct.addToOutcomes(outcomeCount, duration, caseId);
 
 
   // Add to covariates table:
   for(std::map<int64_t, double>::const_iterator iterator = era.eraIdToValue.begin(); iterator != era.eraIdToValue.end(); iterator++) {
-    resultStruct.addToCovariates(observationPeriodId, iterator->first, iterator->second);
+    resultStruct.addToCovariates(caseId, iterator->first, iterator->second);
   }
   resultStruct.incRowId();
 }
 
-void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId) {
+void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& caseId) {
   // Sort eras based on covariate pattern:
   std::sort(concomitantEras.begin(), concomitantEras.end(), ConcomitantEraCovariateComparator());
 
@@ -183,7 +183,7 @@ void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, st
     if (previousPattern == NULL || era->eraIdToValue.size() != previousPattern->eraIdToValue.size() ||
         !std::equal(era->eraIdToValue.begin(), era->eraIdToValue.end(), previousPattern->eraIdToValue.begin())) {
         if (previousPattern != NULL) {
-          addToResult(*previousPattern, outcomeCount, duration, observationPeriodId);
+          addToResult(*previousPattern, outcomeCount, duration, caseId);
         }
         previousPattern = &*era;
         outcomeCount = 0;
@@ -201,7 +201,7 @@ void SccsConverter::addToResult(std::vector<ConcomitantEra>& concomitantEras, st
     }
   }
   if (previousPattern != NULL) {
-    addToResult(*previousPattern, outcomeCount, duration, observationPeriodId);
+    addToResult(*previousPattern, outcomeCount, duration, caseId);
   }
 }
 bool SccsConverter::isNanOrInf(const double x) {
@@ -210,7 +210,7 @@ bool SccsConverter::isNanOrInf(const double x) {
 
 void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData) {
   double astart = (personData.ageInDays) / 365.25;
-  double aend = (personData.ageInDays + personData.endDay) / 365.25;
+  double aend = (personData.ageInDays + personData.endDay + 1) / 365.25;
   double present = personData.noninformativeEndCensor?1.0:0;
   weightFunction->set(present, astart, aend);
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
@@ -238,6 +238,7 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
         break;
       } else {
         warning("\nCannot compute full weight function for observation period " + std::to_string(personData.observationPeriodId) + ", assuming constant weight for last " + std::to_string((end-lastComputable)*365.25) + " days", Named("call.", false));
+        Rcout << "CaseID: " << std::to_string(personData.caseId) << ", start: " << start*365.25 << ", end: " << end*365.25 << "\n";
         weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, lastComputable, 1.490116e-08);
         weight += (end-lastComputable) * value;
       }
@@ -450,7 +451,7 @@ void SccsConverter::processPerson(PersonData& personData) {
   outputEras = mergeOverlapping(outputEras);
   if (includeAge || includeSeason) {
     if (outputEras.size() == 0)  // No exposures: still use to fit age and/or season splines?
-      if (hasAgeSeasonsCases && ageSeasonsCases.find(personData.observationPeriodId) == ageSeasonsCases.end())
+      if (hasAgeSeasonsCases && ageSeasonsCases.find(personData.caseId) == ageSeasonsCases.end())
         return;
     addMonthEras(outputEras, personData);
   }
@@ -463,7 +464,7 @@ void SccsConverter::processPerson(PersonData& personData) {
   if (eventDependentObservation) {
     computeEventDepObsWeights(concomitantEras, personData);
   }
-  addToResult(concomitantEras, *outcomes, personData.observationPeriodId);
+  addToResult(concomitantEras, *outcomes, personData.caseId);
 }
 
 S4 SccsConverter::convertToSccs() {

@@ -30,6 +30,7 @@ IF OBJECT_ID('tempdb..#cases', 'U') IS NOT NULL
 	DROP TABLE #cases;
 	
 SELECT observation_period_id,
+	ROW_NUMBER() OVER (ORDER BY observation_period_id) AS case_id,
 	person.person_id,
 	observation_period_start_date,
 	start_date,

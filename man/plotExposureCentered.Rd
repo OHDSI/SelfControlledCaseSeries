@@ -7,7 +7,7 @@
 plotExposureCentered(
   studyPopulation,
   sccsData,
-  exposureId = NULL,
+  exposureEraId = NULL,
   fileName = NULL
 )
 }
@@ -17,7 +17,7 @@ plotExposureCentered(
 \item{sccsData}{An object of type \link{SccsData} as created using the
 \link{getDbSccsData} function.}
 
-\item{exposureId}{The exposure to create the era data for. If not specified it is
+\item{exposureEraId}{The exposure to create the era data for. If not specified it is
 assumed to be the one exposure for which the data was loaded from
 the database.}
 

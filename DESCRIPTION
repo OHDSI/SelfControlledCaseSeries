@@ -11,34 +11,36 @@ Authors@R: c(
   )
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
 Description: SelfControlledCaseSeries is an R package for performing self-
-    controlled case series (SCCS) analyses in an observational database in the OMOP
-    Common Data Model. It extracts all necessary data from the database and 
-    transforms it to the format required for SCCS. Age and season can be modeled
-    using splines assuming constant hazard within calendar months. Event-dependent 
-    censoring of the observation period can be corrected for. Many exposures can be
-    included at once (MSCCS), with regularization on all coefficients except for the
-    exposure of interest.
+	controlled case series (SCCS) analyses in an observational database in the OMOP
+	Common Data Model. It extracts all necessary data from the database and 
+	transforms it to the format required for SCCS. Age and season can be modeled
+	using splines assuming constant hazard within calendar months. Event-dependent 
+	censoring of the observation period can be corrected for. Many exposures can be
+	included at once (MSCCS), with regularization on all coefficients except for the
+	exposure of interest.
 VignetteBuilder: knitr
 URL: https://github.com/OHDSI/SelfControlledCaseSeries
 BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
-    R (>= 3.2.2),
-    Cyclops (>= 1.2.0),
-    DatabaseConnector (>= 2.2.0),
-    Andromeda
+	R (>= 3.2.2),
+	Cyclops (>= 1.2.0),
+	DatabaseConnector (>= 2.2.0),
+	Andromeda
 Imports:
-    SqlRender (>= 1.6.0),
-    dplyr (>= 1.0.0),
-    Rcpp (>= 0.11.2),
-    ParallelLogger,
-    splines,
-    ggplot2,
-    methods
+	SqlRender (>= 1.6.0),
+	dplyr (>= 1.0.0),
+	Rcpp (>= 0.11.2),
+	ParallelLogger,
+	splines,
+	ggplot2,
+	methods
 Suggests:
-    testthat,
-    knitr,
-    rmarkdown,
-    EmpiricalCalibration
+	testthat,
+	knitr,
+	rmarkdown,
+	EmpiricalCalibration
+Remotes:
+  ohdsi/EmpiricalCalibration
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes

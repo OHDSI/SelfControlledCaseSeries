@@ -46,12 +46,12 @@
 #'
 #' @export
 createSccsIntervalData <- function(studyPopulation,
-                              sccsData,
-                              eraCovariateSettings,
-                              ageCovariateSettings = NULL,
-                              seasonalityCovariateSettings = NULL,
-                              minCasesForAgeSeason = 10000,
-                              eventDependentObservation = FALSE) {
+                                   sccsData,
+                                   eraCovariateSettings,
+                                   ageCovariateSettings = NULL,
+                                   seasonalityCovariateSettings = NULL,
+                                   minCasesForAgeSeason = 10000,
+                                   eventDependentObservation = FALSE) {
   start <- Sys.time()
   if (nrow(studyPopulation$outcomes) == 0) {
     sccsIntervalData <- createEmptySccsIntervalData()
@@ -68,7 +68,7 @@ createSccsIntervalData <- function(studyPopulation,
   if (!is.null(ageCovariateSettings) || !is.null(seasonalityCovariateSettings)) {
     if (nrow(studyPopulation$cases) > minCasesForAgeSeason) {
       set.seed(0)
-      ageSeasonsCases <- sample(studyPopulation$cases$observationPeriodId, minCasesForAgeSeason, replace = FALSE)
+      ageSeasonsCases <- sample(studyPopulation$cases$caseId, minCasesForAgeSeason, replace = FALSE)
     }
   }
 
@@ -85,24 +85,24 @@ createSccsIntervalData <- function(studyPopulation,
   metaData <- append(studyPopulation$metaData, settings$metaData)
 
   ParallelLogger::logInfo("Converting person data to SCCS intervals. This might take a while.")
-  # Ensure all sorted bv observationPeriodId:
-  cases <- studyPopulation$cases[order(studyPopulation$cases$observationPeriodId), ]
-  outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$observationPeriodId), ]
+  # Ensure all sorted bv caseId:
+  cases <- studyPopulation$cases[order(studyPopulation$cases$caseId), ]
+  outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$caseId), ]
   eras <- sccsData$eras %>%
-    arrange(.data$observationPeriodId)
+    arrange(.data$caseId)
 
   data <- SelfControlledCaseSeries:::convertToSccs(cases,
-                        outcomes,
-                        eras,
-                        !is.null(ageCovariateSettings),
-                        settings$ageOffset,
-                        settings$ageDesignMatrix,
-                        !is.null(seasonalityCovariateSettings),
-                        settings$seasonDesignMatrix,
-                        ageSeasonsCases,
-                        settings$covariateSettingsList,
-                        eventDependentObservation,
-                        settings$censorModel)
+                                                   outcomes,
+                                                   eras,
+                                                   !is.null(ageCovariateSettings),
+                                                   settings$ageOffset,
+                                                   settings$ageDesignMatrix,
+                                                   !is.null(seasonalityCovariateSettings),
+                                                   settings$seasonDesignMatrix,
+                                                   ageSeasonsCases,
+                                                   settings$covariateSettingsList,
+                                                   eventDependentObservation,
+                                                   settings$censorModel)
 
   if (is.null(data$outcomes)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
@@ -124,18 +124,18 @@ createSccsIntervalData <- function(studyPopulation,
 
 createEmptySccsIntervalData <- function() {
   sccsIntervalData <- Andromeda::andromeda(outcomes = tibble(rowId = 1,
-                                                        stratumId = 1,
-                                                        time = 1,
-                                                        y = 1)[-1, ],
-                                      covariates = tibble(rowId = 1,
-                                                          stratumId = 1,
-                                                          covariateId = 1,
-                                                          covariateValue = 1)[-1, ],
-                                      covariateRef = tibble(covariateId = 1,
-                                                            covariateName = "",
-                                                            originalEraId = 1,
-                                                            originalEraName = "",
-                                                            originalEraType = "")[-1, ])
+                                                             stratumId = 1,
+                                                             time = 1,
+                                                             y = 1)[-1, ],
+                                           covariates = tibble(rowId = 1,
+                                                               stratumId = 1,
+                                                               covariateId = 1,
+                                                               covariateValue = 1)[-1, ],
+                                           covariateRef = tibble(covariateId = 1,
+                                                                 covariateName = "",
+                                                                 originalEraId = 1,
+                                                                 originalEraName = "",
+                                                                 originalEraType = "")[-1, ])
   return(sccsIntervalData)
 }
 
@@ -148,7 +148,7 @@ addAgeSettings <- function(settings,
   } else {
     if (length(ageCovariateSettings$ageKnots) == 1) {
       ageKnots <- studyPopulation$outcomes %>%
-        inner_join(studyPopulation$cases, by = "observationPeriodId") %>%
+        inner_join(studyPopulation$cases, by = "caseId") %>%
         transmute(outcomeAge = .data$outcomeDay + .data$ageInDays) %>%
         pull() %>%
         quantile(seq(0.01, 0.99, length.out = ageCovariateSettings$ageKnots))
@@ -214,9 +214,9 @@ addEventDependentObservationSettings <- function(settings,
   } else {
 
     data <- studyPopulation$outcomes %>%
-      group_by(.data$observationPeriodId) %>%
+      group_by(.data$caseId) %>%
       summarise(outcomeDay = min(.data$outcomeDay)) %>%
-      inner_join(studyPopulation$cases, by = "observationPeriodId") %>%
+      inner_join(studyPopulation$cases, by = "caseId") %>%
       transmute(astart = .data$ageInDays,
                 aend = .data$ageInDays + .data$endDay + 1,
                 aevent = .data$ageInDays + .data$outcomeDay + 1,

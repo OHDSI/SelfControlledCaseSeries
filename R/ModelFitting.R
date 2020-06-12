@@ -190,26 +190,23 @@ print.SccsModel <- function(x, ...) {
   writeLines("")
   writeLines("Estimates:")
   d <- x$estimates
-  output <- data.frame(d$covariateName,
-                       d$covariateId,
-                       format(exp(d$logRr), digits = 4, scientific = FALSE),
-                       format(exp(d$logLb95), digits = 4, scientific = FALSE),
-                       format(exp(d$logUb95), digits = 4, scientific = FALSE),
-                       d$logRr,
-                       d$seLogRr)
+  # output <- tibble(d$covariateName,
+  #                  d$covariateId,
+  #                  format(exp(d$logRr), digits = 4, scientific = FALSE),
+  #                  format(exp(d$logLb95), digits = 4, scientific = FALSE),
+  #                  format(exp(d$logUb95), digits = 4, scientific = FALSE),
+  #                  d$logRr,
+  #                  d$seLogRr)
+  output <- tibble(d$covariateName,
+                   d$covariateId,
+                   exp(d$logRr),
+                   exp(d$logLb95),
+                   exp(d$logUb95),
+                   d$logRr,
+                   d$seLogRr)
 
-  colnames(output) <- c("Name", "ID", "Estimate", "lower .95", "upper .95", "logRr", "seLogRr")
-  if (nrow(output) > 100) {
-    print.data.frame(output[1:100,],
-                     row.names = F,
-                     print.gap = 2,
-                     quote = F,
-                     right = T,
-                     digits = 4)
-    writeLines(paste("... (omitting", nrow(output) - 100, "rows)"))
-  } else {
-    print.data.frame(output, row.names = F, print.gap = 2, quote = F, right = T, digits = 4)
-  }
+  colnames(output) <- c("Name", "ID", "Estimate", "LB95CI", "UB95CI", "logRr", "seLogRr")
+  print(output, n = 25)
 }
 
 #' Output the full model
@@ -225,15 +222,16 @@ print.SccsModel <- function(x, ...) {
 getModel <- function(sccsModel) {
   d <- sccsModel$estimates
   # d$seLogRr <- (d$logUb95 - d$logRr)/qnorm(0.975)
-  output <- data.frame(d$covariateName,
-                       d$covariateId,
-                       exp(d$logRr),
-                       exp(d$logLb95),
-                       exp(d$logUb95),
-                       d$logRr,
-                       d$seLogRr,
-                       d$originalCovariateId,
-                       d$originalCovariateName)
+  output <- tibble(d$covariateName,
+                   d$covariateId,
+                   exp(d$logRr),
+                   exp(d$logLb95),
+                   exp(d$logUb95),
+                   d$logRr,
+                   d$seLogRr,
+                   d$originalEraId,
+                   d$originalEraType,
+                   d$originalEraName)
   colnames(output) <- c("name",
                         "id",
                         "estimate",
@@ -241,7 +239,8 @@ getModel <- function(sccsModel) {
                         "ub95Ci",
                         "logRr",
                         "seLogRr",
-                        "originalCovariateId",
-                        "originalCovariateName")
+                        "originalEraId",
+                        "originalEraType",
+                        "originalEraName")
   return(output)
 }

@@ -42,7 +42,7 @@ IF OBJECT_ID('tempdb..#era_ref', 'U') IS NOT NULL
 
 CREATE TABLE #eras (
 	era_type VARCHAR(3),
-	observation_period_id BIGINT,
+	case_id INT,
 	era_id INT,
 	era_value FLOAT,
 	start_day INT,
@@ -57,9 +57,9 @@ CREATE TABLE #era_ref (
 
 /* Create exposure eras */
 {@exposure_table == 'drug_era'} ? {
-INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
+INSERT INTO #eras (era_type, case_id, era_id, era_value, start_day, end_day)
 SELECT 'rx',
-	cases.observation_period_id,
+	cases.case_id,
 	drug_concept_id,
 	1,
 	DATEDIFF(dd, start_date, drug_era_start_date),
@@ -92,9 +92,9 @@ RIGHT JOIN (
 ON eras.era_id = concept.concept_id;
 
 } : { /* exposure table has same structure as cohort table */
-INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
+INSERT INTO #eras (era_type, case_id, era_id, era_value, start_day, end_day)
 SELECT 'rx',
-	cases.observation_period_id,
+	cases.case_id,
 	cohort_definition_id,
 	1,
 	DATEDIFF(dd, start_date, cohort_start_date),
@@ -126,9 +126,9 @@ FROM (
 }
 
 /* Create outcome eras */
-INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
+INSERT INTO #eras (era_type, case_id, era_id, era_value, start_day, end_day)
 SELECT 'hoi',
-	cases.observation_period_id,
+	cases.case_id,
 	outcome_id,
 	1,
 	DATEDIFF(dd, start_date, outcome_date),
@@ -175,9 +175,9 @@ FROM (
 {@use_custom_covariates} ? {
 {@custom_covariate_table == 'condition_era'} ? {
 
-INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
+INSERT INTO #eras (era_type, case_id, era_id, era_value, start_day, end_day)
 SELECT 'dx',
-	cases.observation_period_id,
+	cases.case_id,
 	condition_concept_id,
 	1,
 	DATEDIFF(dd, start_date, condition_era_start_date),
@@ -210,9 +210,9 @@ ON eras.era_id = concept.concept_id;
 
 } : {
 
-INSERT INTO #eras (era_type, observation_period_id, era_id, era_value, start_day, end_day)
+INSERT INTO #eras (era_type, case_id, era_id, era_value, start_day, end_day)
 SELECT 'custom',
-	cases.observation_period_id,
+	cases.case_id,
 	cohort_definition_id,
 	1,
 	DATEDIFF(dd, start_date, cohort_start_date),

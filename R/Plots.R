@@ -99,9 +99,9 @@ plotEventObservationDependence <- function(studyPopulation,
 
 
   outcomes <- studyPopulation$outcomes %>%
-    group_by(.data$observationPeriodId) %>%
+    group_by(.data$caseId) %>%
     summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
-    inner_join(studyPopulation$cases, by = "observationPeriodId") %>%
+    inner_join(studyPopulation$cases, by = "caseId") %>%
     transmute(daysFromEvent = .data$endDay - .data$outcomeDay,
               censoring = case_when(.data$noninformativeEndCensor == 1 ~ "Uncensored",
                                     TRUE ~ "Censored"))
@@ -135,7 +135,7 @@ plotEventObservationDependence <- function(studyPopulation,
 
 #' Plot information centered around the start of exposure
 #'
-#' @param exposureId                  The exposure to create the era data for. If not specified it is
+#' @param exposureEraId               The exposure to create the era data for. If not specified it is
 #'                                    assumed to be the one exposure for which the data was loaded from
 #'                                    the database.
 #' @template StudyPopulation
@@ -154,48 +154,48 @@ plotEventObservationDependence <- function(studyPopulation,
 #' @export
 plotExposureCentered <- function(studyPopulation,
                                  sccsData,
-                                 exposureId = NULL,
+                                 exposureEraId = NULL,
                                  fileName = NULL) {
 
-  if (is.null(exposureId)) {
-    exposureId <- attr(sccsData, "metaData")$exposureIds
-    if (length(exposureId) != 1) {
+  if (is.null(exposureEraId)) {
+    exposureEraId <- attr(sccsData, "metaData")$exposureEraIds
+    if (length(exposureEraId) != 1) {
       stop("No exposure ID specified, but multiple exposures found")
     }
   }
 
   cases <- studyPopulation$cases %>%
-    select(.data$observationPeriodId, caseEndDay = endDay, offset)
+    select(.data$caseId, caseEndDay = endDay, offset)
 
   exposures <- sccsData$eras %>%
-    filter(.data$eraId == exposureId & .data$eraType == "rx") %>%
-    group_by(.data$observationPeriodId) %>%
-    inner_join(cases, by = "observationPeriodId", copy = TRUE) %>%
+    filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
+    group_by(.data$caseId) %>%
+    inner_join(cases, by = "caseId", copy = TRUE) %>%
     mutate(startDay = .data$startDay - .data$offset,
            endDay = .data$endDay - .data$offset) %>%
     filter(.data$startDay >= 0, .data$startDay < .data$caseEndDay) %>%
     collect()
 
   firstExposures <- exposures %>%
-    group_by(.data$observationPeriodId, .data$caseEndDay) %>%
+    group_by(.data$caseId, .data$caseEndDay) %>%
     summarise(startDay = min(.data$startDay, na.rm = TRUE),
               endDay = min(.data$endDay, na.rm = TRUE),
               .groups = "drop_last")
 
   outcomes <- studyPopulation$outcomes %>%
-    inner_join(firstExposures, by = "observationPeriodId") %>%
+    inner_join(firstExposures, by = "caseId") %>%
     mutate(delta = .data$outcomeDay - .data$startDay) %>%
-    select(.data$observationPeriodId, .data$outcomeDay, .data$delta)
+    select(.data$caseId, .data$outcomeDay, .data$delta)
 
   exposedoutcomes <- exposures %>%
-    inner_join(outcomes, by = "observationPeriodId") %>%
+    inner_join(outcomes, by = "caseId") %>%
     filter(.data$outcomeDay >= .data$startDay,
            .data$outcomeDay <= .data$endDay) %>%
-    select(.data$observationPeriodId, .data$delta) %>%
+    select(.data$caseId, .data$delta) %>%
     mutate(exposed = 1)
 
   outcomes <- outcomes %>%
-    left_join(exposedoutcomes, by = c("observationPeriodId", "delta")) %>%
+    left_join(exposedoutcomes, by = c("caseId", "delta")) %>%
     mutate(exposed = coalesce(exposed, 0))
 
   weeks <- dplyr::tibble(number = -26:25) %>%
@@ -272,7 +272,7 @@ plotExposureCentered <- function(studyPopulation,
 plotEventToCalendarTime <- function(studyPopulation,
                                     fileName = NULL) {
   dates <- studyPopulation$outcomes %>%
-    inner_join(studyPopulation$cases , by = "observationPeriodId") %>%
+    inner_join(studyPopulation$cases , by = "caseId") %>%
     transmute(outcomeDate = .data$startDate  + .data$outcomeDay)
 
   theme <- ggplot2::element_text(colour = "#000000", size = 12)

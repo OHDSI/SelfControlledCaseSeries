@@ -144,6 +144,7 @@ getDbSccsData <- function(connectionDetails,
   if (useCustomCovariates && !is.null(customCovariateIds) && length(customCovariateIds) > 0 && !is.numeric(customCovariateIds))
     stop("customCovariateIds must be a (vector of) numeric")
 
+  start <- Sys.time()
   conn <- DatabaseConnector::connect(connectionDetails)
   on.exit(DatabaseConnector::disconnect(conn))
 
@@ -261,7 +262,6 @@ getDbSccsData <- function(connectionDetails,
   DatabaseConnector::executeSql(conn, sql)
 
   ParallelLogger::logInfo("Fetching data from server")
-  start <- Sys.time()
   sccsData <- Andromeda::andromeda()
   sql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
                                            packageName = "SelfControlledCaseSeries",
@@ -306,9 +306,6 @@ getDbSccsData <- function(connectionDetails,
                                          andromedaTableName = "eraRef",
                                          snakeCaseToCamelCase = TRUE)
 
-  delta <- Sys.time() - start
-  ParallelLogger::logInfo(paste("Loading took", signif(delta, 3), attr(delta, "units")))
-
   # Delete temp tables
   sql <- SqlRender::loadRenderTranslateSql("RemoveTempTables.sql",
                                            packageName = "SelfControlledCaseSeries",
@@ -325,7 +322,7 @@ getDbSccsData <- function(connectionDetails,
   if  (sampledCases) {
     sampledCounts <- sccsData$eras %>%
       filter(.data$eraType == "hoi") %>%
-      inner_join(sccsData$cases, by = "observationPeriodId") %>%
+      inner_join(sccsData$cases, by = "caseId") %>%
       group_by(.data$eraId) %>%
       summarise(outcomeSubjects = n_distinct(.data$personId),
                 outcomeEvents = count(),
@@ -342,5 +339,9 @@ getDbSccsData <- function(connectionDetails,
                                      attrition = outcomeCounts)
   class(sccsData) <- "SccsData"
   attr(class(sccsData), "package") <- "SelfControlledCaseSeries"
+
+  delta <- Sys.time() - start
+  ParallelLogger::logInfo("Getting SCCS data from server took ", signif(delta, 3), " ", attr(delta, "units"))
+
   return(sccsData)
 }

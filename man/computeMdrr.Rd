@@ -14,9 +14,8 @@ computeMdrr(
 )
 }
 \arguments{
-\item{sccsIntervalData}{An object containing study population observation time, outcomesa and covariates as created
-using the \code{\link{createSccsIntervalData}} function. This should include the following dataframes:
-outcomes, covariates, and covariateRef.}
+\item{sccsIntervalData}{An object of type \link{SccsIntervalData} as created using the
+\link{createSccsIntervalData} function.}
 
 \item{exposureCovariateId}{Covariate Id for the health exposure of interest.}
 

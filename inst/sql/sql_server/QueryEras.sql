@@ -18,10 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ***********************************************************************/
 SELECT era_type,
-	observation_period_id,
+	case_id,
 	era_id,
 	era_value AS value,
 	start_day,
 	end_day
 FROM #eras
-ORDER BY observation_period_id;
+ORDER BY case_id;

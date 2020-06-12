@@ -45,15 +45,16 @@ convertToSccsDataWrapper <- function(cases,
                                     maxAge = maxAge)
 
   result <- createSccsIntervalData(studyPopulation = studyPop,
-                              sccsData = data,
-                              ageCovariateSettings = ageSettings,
-                              seasonalityCovariateSettings = seasonalitySettings,
-                              eraCovariateSettings = covariateSettings)
+                                   sccsData = data,
+                                   ageCovariateSettings = ageSettings,
+                                   seasonalityCovariateSettings = seasonalitySettings,
+                                   eraCovariateSettings = covariateSettings)
   return(list(outcomes = collect(result$outcomes), covariates = collect(result$covariates)))
 }
 
 test_that("Simple era construction", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -63,7 +64,7 @@ test_that("Simple era construction", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(50, 25),
@@ -79,7 +80,8 @@ test_that("Simple era construction", {
 })
 
 test_that("Age restriction", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 10000,
                   ageInDays = 365,
@@ -89,7 +91,7 @@ test_that("Age restriction", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(500, 525),
@@ -105,7 +107,8 @@ test_that("Age restriction", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -115,7 +118,7 @@ test_that("Outcome on boundary", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(25, 25),
@@ -131,7 +134,8 @@ test_that("Outcome on boundary", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -141,7 +145,7 @@ test_that("Outcome on boundary", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(24, 25),
@@ -157,7 +161,8 @@ test_that("Outcome on boundary", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -167,7 +172,7 @@ test_that("Outcome on boundary", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(75, 25),
@@ -183,7 +188,8 @@ test_that("Outcome on boundary", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -193,7 +199,7 @@ test_that("Outcome on boundary", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(76, 25),
@@ -209,7 +215,8 @@ test_that("Outcome on boundary", {
 })
 
 test_that("One day era", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -219,7 +226,7 @@ test_that("One day era", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(50, 25),
@@ -235,7 +242,8 @@ test_that("One day era", {
 })
 
 test_that("Merging overlapping eras", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -245,7 +253,7 @@ test_that("Merging overlapping eras", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei", "hei"),
-                 observationPeriodId = c(1, 1, 1),
+                 caseId = c(1, 1, 1),
                  eraId = c(10, 11, 11),
                  value = c(1, 1, 1),
                  startDay = c(50, 25, 70),
@@ -261,7 +269,8 @@ test_that("Merging overlapping eras", {
 })
 
 test_that("Merging overlapping eras with same start date", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -271,7 +280,7 @@ test_that("Merging overlapping eras with same start date", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei", "hei"),
-                 observationPeriodId = c(1, 1, 1),
+                 caseId = c(1, 1, 1),
                  eraId = c(10, 11, 11),
                  value = c(1, 1, 1),
                  startDay = c(50, 25, 25),
@@ -288,7 +297,8 @@ test_that("Merging overlapping eras with same start date", {
 
 
 test_that("Concomitant drug use", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -298,7 +308,7 @@ test_that("Concomitant drug use", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei", "hei"),
-                 observationPeriodId = c(1, 1, 1),
+                 caseId = c(1, 1, 1),
                  eraId = c(10, 11, 12),
                  value = c(1, 1, 1),
                  startDay = c(50, 25, 60),
@@ -314,7 +324,8 @@ test_that("Concomitant drug use", {
 })
 
 test_that("Concomitant drug use (3 drugs)", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -324,7 +335,7 @@ test_that("Concomitant drug use (3 drugs)", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hoi", "hei", "hei", "hei"),
-                 observationPeriodId = c(1, 1, 1, 1, 1),
+                 caseId = c(1, 1, 1, 1, 1),
                  eraId = c(10, 10, 11, 12, 13),
                  value = c(1, 1, 1, 1, 1),
                  startDay = c(50, 85, 25, 70, 70),
@@ -340,7 +351,8 @@ test_that("Concomitant drug use (3 drugs)", {
 })
 
 test_that("Start risk window at day 1 not 0", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -350,7 +362,7 @@ test_that("Start risk window at day 1 not 0", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(50, 50),
@@ -371,7 +383,8 @@ test_that("Start risk window at day 1 not 0", {
 })
 
 test_that("Two HOIs, keeping both", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -381,7 +394,7 @@ test_that("Two HOIs, keeping both", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hoi", "hei"),
-                 observationPeriodId = c(1, 1, 1),
+                 caseId = c(1, 1, 1),
                  eraId = c(10, 10, 11),
                  value = c(1, 1, 1),
                  startDay = c(25, 50, 30),
@@ -397,7 +410,8 @@ test_that("Two HOIs, keeping both", {
 })
 
 test_that("Two HOIs, keeping first", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -407,7 +421,7 @@ test_that("Two HOIs, keeping first", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hoi", "hei"),
-                 observationPeriodId = c(1, 1, 1),
+                 caseId = c(1, 1, 1),
                  eraId = c(10, 10, 11),
                  value = c(1, 1, 1),
                  startDay = c(25, 50, 30),
@@ -423,7 +437,8 @@ test_that("Two HOIs, keeping first", {
 })
 
 test_that("Removal of risk windows where end before start", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -433,7 +448,7 @@ test_that("Removal of risk windows where end before start", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(50, 50),
@@ -457,9 +472,9 @@ test_that("Aggregates on large set", {
                                     naivePeriod = 0,
                                     firstOutcomeOnly = FALSE,)
   sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                   sccsData,
-                                   eraCovariateSettings = createEraCovariateSettings(includeEraIds = c(1, 2),
-                                                                                     endAnchor = "era end"))
+                                             sccsData,
+                                             eraCovariateSettings = createEraCovariateSettings(includeEraIds = c(1, 2),
+                                                                                               endAnchor = "era end"))
 
   x <- sccsData$eras %>%
     filter(.data$eraId == 1) %>%
@@ -467,9 +482,9 @@ test_that("Aggregates on large set", {
   y <- sccsData$eras %>%
     filter(.data$eraId == 10) %>%
     collect()
-  z <- inner_join(x, y, by = c("observationPeriodId")) %>%
+  z <- inner_join(x, y, by = c("caseId")) %>%
     filter(.data$startDay.y >= .data$startDay.x & .data$startDay.y <= .data$endDay.x) %>%
-    distinct(.data$observationPeriodId) %>%
+    distinct(.data$caseId) %>%
     pull()
 
   x <- sccsIntervalData$covariates %>%
@@ -491,9 +506,9 @@ test_that("Aggregates on large set", {
   y <- sccsData$eras %>%
     filter(.data$eraId == 10) %>%
     collect()
-  z <- inner_join(x, y, by = c("observationPeriodId")) %>%
+  z <- inner_join(x, y, by = c("caseId")) %>%
     filter(.data$startDay.y >= .data$startDay.x & .data$startDay.y <= .data$endDay.x) %>%
-    distinct(.data$observationPeriodId) %>%
+    distinct(.data$caseId) %>%
     pull()
 
   x <- sccsIntervalData$covariates %>%
@@ -516,7 +531,7 @@ test_that("Aggregates on large set", {
     collect()
 
   z3 <- sccsData$cases %>%
-    select(stratumId = .data$observationPeriodId, .data$observationDays) %>%
+    select(stratumId = .data$caseId, .data$observationDays) %>%
     inner_join(outcomes, by = "stratumId", copy = TRUE) %>%
     collect()
 
@@ -525,7 +540,8 @@ test_that("Aggregates on large set", {
 })
 
 test_that("Exposure splitting", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -535,7 +551,7 @@ test_that("Exposure splitting", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(50, 25),
@@ -557,7 +573,8 @@ test_that("Exposure splitting", {
 })
 
 test_that("Exposure splitting twice", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -567,7 +584,7 @@ test_that("Exposure splitting twice", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(50, 25),
@@ -589,7 +606,8 @@ test_that("Exposure splitting twice", {
 })
 
 test_that("Merging exposures (stratifyById=FALSE)", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -599,7 +617,7 @@ test_that("Merging exposures (stratifyById=FALSE)", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei", "hei"),
-                 observationPeriodId = c(1, 1, 1),
+                 caseId = c(1, 1, 1),
                  eraId = c(10, 11, 12),
                  value = c(1, 1, 1),
                  startDay = c(50, 25, 70),
@@ -622,7 +640,8 @@ test_that("Merging exposures (stratifyById=FALSE)", {
 
 
 test_that("Exposure splitting without stratifyById", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -632,7 +651,7 @@ test_that("Exposure splitting without stratifyById", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei", "hei"),
-                 observationPeriodId = c(1, 1, 1),
+                 caseId = c(1, 1, 1),
                  eraId = c(10, 11, 12),
                  value = c(1, 1, 1),
                  startDay = c(50, 25, 70),
@@ -655,7 +674,8 @@ test_that("Exposure splitting without stratifyById", {
 })
 
 test_that("Pre-exposure window", {
-  cases <- tibble(observationPeriodId = 1,
+  cases <- tibble(observationPeriodId = 1000,
+                  caseId = 1,
                   personId = 1,
                   observationDays = 100,
                   ageInDays = 0,
@@ -665,7 +685,7 @@ test_that("Pre-exposure window", {
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
   eras <- tibble(eraType = c("hoi", "hei"),
-                 observationPeriodId = c(1, 1),
+                 caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
                  startDay = c(50, 25),

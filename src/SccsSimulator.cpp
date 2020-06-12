@@ -33,13 +33,13 @@ namespace sccs {
 
 SccsSimulator::SccsSimulator(const List& _cases, const List& _eras,  const std::vector<double>& _baselineRates, const List& _eraRrs, const bool _includeAge, const int _ageOffset, const std::vector<double> _ageRrs, const bool _includeSeasonality, const std::vector<double> _seasonRrs) :
 baselineRates(_baselineRates), includeAge(_includeAge), ageOffset(_ageOffset), ageRrs(_ageRrs), includeSeasonality(_includeSeasonality), seasonRrs(_seasonRrs) {
-  casesObservationPeriodId = _cases["observationPeriodId"];
+  casesCaseId = _cases["caseId"];
   casesObservationDays = _cases["observationDays"];
   casesAgeInDays = _cases["ageInDays"];
   casesStartYear = _cases["startYear"];
   casesStartMonth = _cases["startMonth"];
   casesStartDay = _cases["startDay"];
-  erasObservationPeriodId = _eras["observationPeriodId"];
+  erasCaseId = _eras["caseId"];
   erasEraId = _eras["eraId"];
   erasStartDay = _eras["startDay"];
   erasEndDay = _eras["endDay"];
@@ -95,7 +95,7 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
     std::poisson_distribution<int> distribution(dailyRate);
     int count = distribution(generator);
     for (int i = 0; i < count; i++){
-      outcomeObservationPeriodIds.push_back(casesObservationPeriodId[caseIndex]);
+      outcomeCaseIds.push_back(casesCaseId[caseIndex]);
       outcomeStartDays.push_back(day);
     }
   }
@@ -104,15 +104,15 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
 List SccsSimulator::simulateOutcomes(){
   int eraStartIndex = 0;
   int eraEndIndex = 0;
-  for (int caseIndex = 0; caseIndex < casesObservationPeriodId.size(); caseIndex++){
-    int observationPeriodId = casesObservationPeriodId[caseIndex];
-    while (erasObservationPeriodId[eraEndIndex] == observationPeriodId){
+  for (int caseIndex = 0; caseIndex < casesCaseId.size(); caseIndex++){
+    int caseId = casesCaseId[caseIndex];
+    while (erasCaseId[eraEndIndex] == caseId){
       eraEndIndex++;
     }
     processPerson(caseIndex, eraStartIndex, eraEndIndex);
     eraStartIndex = eraEndIndex;
   }
-  return List::create(Named("observationPeriodId") = outcomeObservationPeriodIds, Named("startDay") = outcomeStartDays);
+  return List::create(Named("caseId") = outcomeCaseIds, Named("startDay") = outcomeStartDays);
 }
 
 }

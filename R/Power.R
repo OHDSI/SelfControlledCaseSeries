@@ -46,31 +46,36 @@ computeMdrr <- function(sccsIntervalData,
                         alpha = 0.05,
                         power = 0.8,
                         twoSided = TRUE,
-                        method = "binomial") # distribution, binomial, SRL1, SRL2, ageEffects
-{
+                        method = "binomial") {
+  if (!method %in% c("proportion", "binomial", "SRL1", "SRL2", "ageEffects"))
+    stop("Method must be either 'proportion', 'binomial', 'SRL1', 'SRL2', or 'ageEffects'.")
 
-  #gets all covariateIds associated with conceptId for exposure of interest - wrong
-  #exposureCovariateIds <- sccsIntervalData$covariateRef[ffbase::`%in%`(sccsIntervalData$covariateRef$originalCovariateId, exposureConceptId), ]$covariateId
-  mapping <- ffbase::ffmatch(ffbase::unique.ff(sccsIntervalData$covariates$rowId[ffbase::`%in%`(sccsIntervalData$covariates$covariateId, exposureCovariateId)]), sccsIntervalData$outcomes$rowId)
-  timeExposed <- ffbase::sum.ff(sccsIntervalData$outcomes$time[mapping])              # exposed time
-  timeTotal <- ffbase::sum.ff(sccsIntervalData$outcomes$time)                         # total time
-  r <- timeExposed / timeTotal                                                   # exposed time / total time
-  nExposed <- length(ffbase::unique.ff(sccsIntervalData$outcomes$stratumId[mapping])) # n exposed
-  nTotal <- length(ffbase::unique.ff(sccsIntervalData$outcomes$stratumId))            # n total
-  pr <- nExposed / nTotal                                                        # proportion of population exposed
-  n <- ffbase::sum.ff(sccsIntervalData$outcomes$y)                                    # number of events
+  overall <- sccsIntervalData$outcomes %>%
+    summarise(time = sum(.data$time, na.rm = TRUE),
+              observationPeriods = n_distinct(.data$stratumId),
+              events = sum(.data$y, na.rm = TRUE)) %>%
+    collect()
+
+  exposed <- sccsIntervalData$outcomes %>%
+    inner_join(sccsIntervalData$covariates, by = c("rowId", "stratumId")) %>%
+    filter(.data$covariateId == exposureCovariateId) %>%
+    summarise(time = sum(.data$time, na.rm = TRUE), observationPeriods = n_distinct(.data$stratumId)) %>%
+    collect()
+
+  timeExposed <- exposed$time
+  timeTotal <- overall$time
+  r <- timeExposed / timeTotal
+  pr <- exposed$observationPeriods / overall$observationPeriods
+  n <- overall$events
+
   if (twoSided) {
-    alpha <- alpha / 2                                                           # alpha
+    alpha <- alpha / 2
   }
-  z <- qnorm(1 - alpha)                                                            # z alpha
 
-  if (method != "distribution" && method != "binomial" && method != "SRL1" && method != "SRL2" && method != "ageEffects")
-    stop(paste0("Unknown method '",
-                method,
-                "', please choose either 'distribution', 'binomial', 'SRL1', 'SRL2', or 'ageEffects'"))
+  z <- qnorm(1 - alpha)
 
-  if (method == "distribution") # expression 5
-  {
+  if (method == "distribution") {
+    # expression 5
     computePower <- function(p, z, r, n, alpha)
     {
       zbnum <- log(p) * sqrt(n * p * r * (1 - r)) - z * sqrt(p)
@@ -83,8 +88,8 @@ computeMdrr <- function(sccsIntervalData,
     }
   }
 
-  if (method == "binomial") # expression 6
-  {
+  if (method == "binomial") {
+    # expression 6
     computePower <- function(p, z, r, n, alpha)
     {
       pi <- p*r/(p*r + 1 - r)
@@ -98,8 +103,8 @@ computeMdrr <- function(sccsIntervalData,
     }
   }
 
-  if (method == "SRL1") # expression 7
-  {
+  if (method == "SRL1") {
+    # expression 7
     computePowerSrl <- function(b, z, r, n, alpha)
     {
       A <- 2 * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
@@ -112,8 +117,8 @@ computeMdrr <- function(sccsIntervalData,
     }
   }
 
-  if (method == "SRL2") # expression 8
-  {
+  if (method == "SRL2") {
+    # expression 8
     computePowerSrl <- function(b, z, r, n, alpha)
     {
       A <- 2 * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
@@ -126,17 +131,14 @@ computeMdrr <- function(sccsIntervalData,
     }
   }
 
-  if (method == "ageEffects")
-  {
+  if (method == "ageEffects") {
     stop("Age effects method not currently supported")
   }
 
-  binarySearch <- function(z, r, n, power, alpha, precision = 1e-6)
-  {
+  binarySearch <- function(z, r, n, power, alpha, precision = 1e-6) {
     L <- 0
     H <- 10
-    while (H >= L)
-    {
+    while (H >= L) {
       M <- L + (H - L) / 2
       if (method %in% c("SRL1", "SRL2")) {
         powerM <- computePowerSrl(M, z, r, n, alpha)
@@ -145,7 +147,7 @@ computeMdrr <- function(sccsIntervalData,
         powerM <- computePower(exp(M), z, r, n, alpha)
       }
       d <- powerM - power
-      if (d > precision){
+      if (d > precision) {
         H <- M
       } else if (-d > precision) {
         L <- M
@@ -159,11 +161,11 @@ computeMdrr <- function(sccsIntervalData,
   mdLogRr <- binarySearch(z, r, n, power, alpha)
   mdrr <- exp(mdLogRr)
 
-  result <- data.frame(timeExposed = timeExposed,
-                       timeTotal = timeTotal,
-                       propTimeExposed = round(r, 4),
-                       propPopExposued = round(pr, 4),
-                       events = n,
-                       mdrr = round(mdrr, 4))
+  result <- tibble(timeExposed = timeExposed,
+                   timeTotal = timeTotal,
+                   propTimeExposed = round(r, 4),
+                   propPopExposued = round(pr, 4),
+                   events = n,
+                   mdrr = round(mdrr, 4))
   return(result)
 }

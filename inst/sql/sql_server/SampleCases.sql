@@ -30,11 +30,13 @@ IF OBJECT_ID('tempdb..#sampled_cases', 'U') IS NOT NULL
 	DROP TABLE #sampled_cases;
 
 SELECT observation_period_id,
+	case_id,
 	outcome_id
 INTO #sampled_cases_per_o
 FROM (
 	SELECT outcomes.observation_period_id,
 		outcome_id,
+		case_id,
 		ROW_NUMBER() OVER (PARTITION BY outcome_id ORDER BY random_id) AS rn 
 	FROM (
 		SELECT DISTINCT outcome_id,
@@ -53,6 +55,7 @@ FROM (
 WHERE rn <= @max_cases_per_outcome;
 	
 SELECT cases.observation_period_id,
+	cases.case_id,
 	cases.person_id,
 	cases.observation_period_start_date,
 	cases.start_date,

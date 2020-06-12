@@ -52,6 +52,7 @@ struct Era {
 struct PersonData {
   PersonData(int64_t _personId,
              int64_t _observationPeriodId,
+             int _caseId,
              Date _startDate,
              int _ageInDays,
              int _endDay,
@@ -59,6 +60,7 @@ struct PersonData {
              bool _noninformativeEndCensor) :
   personId(_personId),
   observationPeriodId(_observationPeriodId),
+  caseId(_caseId),
   endDay(_endDay),
   ageInDays(_ageInDays),
   startYear(_startDate.getYear()),
@@ -78,6 +80,7 @@ struct PersonData {
 
   int64_t personId;
   int64_t observationPeriodId;
+  int caseId;
   int endDay;
   int ageInDays;
   int startYear;
@@ -97,16 +100,17 @@ private:
   AndromedaTableIterator erasIterator;
   NumericVector casesPersonId;
   NumericVector casesObservationPeriodId;
+  NumericVector casesCaseId;
   DateVector casesStartDate;
   NumericVector casesEndDay;
   NumericVector casesAgeInDays;
   NumericVector casesOffset;
   LogicalVector casesNoninformativeEndCensor;
 
-  NumericVector outcomesObservationPeriodId;
+  NumericVector outcomesCaseId;
   NumericVector outcomesOutcomeDay;
 
-  NumericVector erasObservationPeriodId;
+  NumericVector erasCaseId;
   NumericVector erasStartDay;
   NumericVector erasEndDay;
   NumericVector erasEraId;
