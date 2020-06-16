@@ -46,9 +46,10 @@ fitSccsModel <- function(sccsIntervalData,
                                                  startingVariance = 0.1,
                                                  noiseLevel = "quiet")) {
   ParallelLogger::logTrace("Fitting SCCS model")
-  if (!is.null(sccsIntervalData$metaData$error)) {
-    result <- list(status = sccsIntervalData$metaData$error,
-                   metaData = sccsIntervalData$metaData)
+  metaData <- attr(sccsIntervalData, "metaData")
+  if (!is.null(metaData$error)) {
+    result <- list(status = metaData$error,
+                   metaData = metaData)
     class(result) <- "sccsModel"
     return(result)
   }
@@ -64,7 +65,7 @@ fitSccsModel <- function(sccsIntervalData,
     nonRegularized <- c()
     needRegularization <- FALSE
     needCi <- c()
-    covariateSettingsList <- attr(sccsIntervalData, "metaData")$covariateSettingsList
+    covariateSettingsList <- metaData$covariateSettingsList
     for (i in 1:length(covariateSettingsList)) {
       if (covariateSettingsList[[i]]$allowRegularization) {
         needRegularization <- TRUE
@@ -73,23 +74,23 @@ fitSccsModel <- function(sccsIntervalData,
         needCi <- c(needCi, covariateSettingsList[[i]]$outputIds)
       }
     }
-    if (!is.null(sccsIntervalData$metaData$age)) {
-      if (sccsIntervalData$metaData$age$allowRegularization) {
+    if (!is.null(metaData$age)) {
+      if (metaData$age$allowRegularization) {
         needRegularization <- TRUE
       } else {
-        nonRegularized <- c(nonRegularized, sccsIntervalData$metaData$age$covariateIds)
-        if (sccsIntervalData$metaData$age$computeConfidenceIntervals) {
-          needCi <- c(needCi, sccsIntervalData$metaData$age$covariateIds)
+        nonRegularized <- c(nonRegularized, metaData$age$covariateIds)
+        if (metaData$age$computeConfidenceIntervals) {
+          needCi <- c(needCi, metaData$age$covariateIds)
         }
       }
     }
-    if (!is.null(sccsIntervalData$metaData$seasonality)) {
-      if (sccsIntervalData$metaData$seasonality$allowRegularization) {
+    if (!is.null(metaData$seasonality)) {
+      if (metaData$seasonality$allowRegularization) {
         needRegularization <- TRUE
       } else {
-        nonRegularized <- c(nonRegularized, sccsIntervalData$metaData$seasonality$covariateIds)
-        if (sccsIntervalData$metaData$seasonality$computeConfidenceIntervals) {
-          needCi <- c(needCi, sccsIntervalData$metaData$seasonality$covariateIds)
+        nonRegularized <- c(nonRegularized, metaData$seasonality$covariateIds)
+        if (metaData$seasonality$computeConfidenceIntervals) {
+          needCi <- c(needCi, metaData$seasonality$covariateIds)
         }
       }
     }
@@ -160,7 +161,7 @@ fitSccsModel <- function(sccsIntervalData,
   result <- list(estimates = estimates,
                  priorVariance = priorVariance,
                  status = status,
-                 metaData = attr(sccsIntervalData, "metaData"))
+                 metaData = metaData)
   class(result) <- "SccsModel"
   delta <- Sys.time() - start
   ParallelLogger::logInfo(paste("Fitting the model took", signif(delta, 3), attr(delta, "units")))
@@ -172,6 +173,11 @@ fitSccsModel <- function(sccsIntervalData,
 #' @export
 coef.SccsModel <- function(object, ...) {
   return(object$estimates$logRr)
+}
+
+#' @export
+confint.SccsModel <- function(object, ...) {
+  return(object$estimates %>% select(.data$covariateId, .data$logLb95, .data$logUb95))
 }
 
 #' @export
@@ -188,25 +194,22 @@ print.SccsModel <- function(x, ...) {
   attrition$description <- NULL
   printCoefmat(attrition)
   writeLines("")
-  writeLines("Estimates:")
-  d <- x$estimates
-  # output <- tibble(d$covariateName,
-  #                  d$covariateId,
-  #                  format(exp(d$logRr), digits = 4, scientific = FALSE),
-  #                  format(exp(d$logLb95), digits = 4, scientific = FALSE),
-  #                  format(exp(d$logUb95), digits = 4, scientific = FALSE),
-  #                  d$logRr,
-  #                  d$seLogRr)
-  output <- tibble(d$covariateName,
-                   d$covariateId,
-                   exp(d$logRr),
-                   exp(d$logLb95),
-                   exp(d$logUb95),
-                   d$logRr,
-                   d$seLogRr)
+  if (x$status != "OK") {
+    writeLines(paste("Status:", x$status))
+  } else {
+    writeLines("Estimates:")
+    d <- x$estimates
+    output <- tibble(d$covariateName,
+                     d$covariateId,
+                     exp(d$logRr),
+                     exp(d$logLb95),
+                     exp(d$logUb95),
+                     d$logRr,
+                     d$seLogRr)
 
-  colnames(output) <- c("Name", "ID", "Estimate", "LB95CI", "UB95CI", "logRr", "seLogRr")
-  print(output, n = 25)
+    colnames(output) <- c("Name", "ID", "Estimate", "LB95CI", "UB95CI", "logRr", "seLogRr")
+    print(output, n = 25)
+  }
 }
 
 #' Output the full model

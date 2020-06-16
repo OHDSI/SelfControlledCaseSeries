@@ -112,10 +112,11 @@ sccsIntervalData <- loadSccsIntervalData("s:/temp/vignetteSccs/intervalData1.zip
 sccsIntervalData
 summary(sccsIntervalData)
 
-model <- fitSccsModel(sccsIntervalData, control = createControl(threads = 10))
+model <- fitSccsModel(sccsIntervalData)
 saveRDS(model, "s:/temp/vignetteSccs/simpleModel.rds")
 
 coef(model)
+confint(model)
 
 # Risk windows: Adding pre-exposure window --------------------------------------------------------
 
@@ -168,7 +169,6 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = list(covarDiclofenacSplit,
                                                                        covarPreDiclofenacSplit),
-
                                            ageCovariateSettings = ageCovariateSettings,
                                            seasonalityCovariateSettings = seasonalityCovariateSettings)
 
@@ -202,7 +202,7 @@ model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
                                                                 threads = 30))
 saveRDS(model, "s:/temp/vignetteSccs/eventDepModel.rds")
 
-summary(model)
+model
 
 
 # Add PPIs ------------------------------------------------------------------
@@ -247,7 +247,7 @@ model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
                                                                 noiseLevel = "quiet",
                                                                 threads = 30))
 saveRDS(model, "s:/temp/vignetteSccs/ppiModel.rds")
-summary(model)
+model
 # Add all drugs -------------------------------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
@@ -288,12 +288,14 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
 
 saveSccsIntervalData(sccsIntervalData, "s:/temp/vignetteSccs/sccsIntervalDataAllDrugs.zip")
 sccsIntervalData <- loadSccsIntervalData("s:/temp/vignetteSccs/sccsIntervalDataAllDrugs.zip")
+summary(sccsIntervalData)
+
 control <- createControl(cvType = "auto",
                          selectorType = "byPid",
-                         startingVariance = 0.1,
+                         startingVariance = 0.001,
                          noiseLevel = "quiet",
                          threads = 30)
-# variance <- 0.0120081
+
 model <- fitSccsModel(sccsIntervalData, control = control)
 saveRDS(model, "s:/temp/vignetteSccs/allDrugsModel.rds")
 model
@@ -301,3 +303,5 @@ estimates <- getModel(model)
 estimates[estimates$originalEraId == diclofenac, ]
 estimates[estimates$originalEraId %in% ppis, ]
 
+sccsIntervalData$outcomes %>%
+  arrange(time)

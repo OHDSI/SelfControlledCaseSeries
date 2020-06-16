@@ -199,6 +199,7 @@ private:
       personCount[cursor] = covariateStatistics.personIds.size();
       eraCount[cursor] = covariateStatistics.eraCount;
       observationPeriodCount[cursor] = covariateStatistics.observationPeriodCount;
+      cursor++;
     }
     DataFrame covariateStatistics = DataFrame::create(Named("covariateId") = wrap(covariateId),
                                                       Named("personCount") = wrap(personCount),
@@ -278,6 +279,7 @@ private:
   void addCovariateEra(std::vector<Era>& outputEras, int start, int end, int leftCensor, int rightCensor, int covariateIdRow, const CovariateSettings& covariateSettings);
   void addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings);
   bool isNanOrInf(const double x);
+  bool invalidWeight(const double weight, const double startValue);
 
   PersonDataIterator personDataIterator;
   ResultStruct resultStruct;

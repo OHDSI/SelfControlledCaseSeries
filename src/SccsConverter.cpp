@@ -208,6 +208,10 @@ bool SccsConverter::isNanOrInf(const double x) {
   return ((x < 0) == (x >= 0)) || !(x <= DBL_MAX && x >= -DBL_MAX);
 }
 
+bool SccsConverter::invalidWeight(const double weight, const double startValue) {
+  return isNanOrInf(weight) || isNanOrInf(startValue) || weight > 1000 * startValue;
+}
+
 void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData) {
   double astart = (personData.ageInDays) / 365.25;
   double aend = (personData.ageInDays + personData.endDay + 1) / 365.25;
@@ -215,19 +219,17 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
   weightFunction->set(present, astart, aend);
   for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
     double start = (personData.ageInDays + era->start) / 365.25;
-    double end = (personData.ageInDays + era->end + 1) / 365.25;
-    // std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << "\n";
+    double end = (personData.ageInDays + era->end + 1) / 365.25 - 1e-07;
+    double startValue = weightFunction->getValue(start);
     double weight = 0;
-    if (isNanOrInf(weightFunction->getValue(end))) {
+    if (invalidWeight(weightFunction->getValue(end), startValue)) {
       // Very rare case:
       // Weight function can be problematic to compute due to numeric issues near the end of the integral
       // We'll walk backwards to find last computable point, and assume constant value after that as approximation
-      double step = 1.490116e-08;
-      double lastComputable = end - step;
+      double lastComputable = end - (1 / 365.25);
       double value = weightFunction->getValue(lastComputable);
-      while (lastComputable > start && isNanOrInf(value)) {
-        step *= 2;
-        lastComputable -= step;
+      while (lastComputable > start && invalidWeight(value, startValue)) {
+        lastComputable -= 1 / 365.25;
         value = weightFunction->getValue(lastComputable);
       }
       Environment base = Environment::namespace_env("base");
@@ -237,8 +239,8 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
         concomitantEras.clear();
         break;
       } else {
-        warning("\nCannot compute full weight function for observation period " + std::to_string(personData.observationPeriodId) + ", assuming constant weight for last " + std::to_string((end-lastComputable)*365.25) + " days", Named("call.", false));
-        Rcout << "CaseID: " << std::to_string(personData.caseId) << ", start: " << start*365.25 << ", end: " << end*365.25 << "\n";
+        warning("\nCannot compute full weight function for observation period " + std::to_string(personData.observationPeriodId) + ", assuming constant weight for last " + std::to_string((int)round((end-lastComputable)*365.25)) + " day(s)", Named("call.", false));
+        // Rcout << "CaseID: " << std::to_string(personData.caseId) << ", start: " << start*365.25 << ", end: " << end*365.25 << "\n";
         weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, lastComputable, 1.490116e-08);
         weight += (end-lastComputable) * value;
       }
@@ -253,7 +255,7 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
       }
     }
     era->weight = weight * 365.25;
-    // std::cout << "ID: " << personData.observationPeriodId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << ", weight:" << weight*365.25 << "\n";
+    // Rcout  << "ID: " << personData.caseId << ", astart: " << astart*365.25 << ", aend:" << aend*365.25 << ", start: " << start*365.25 << ", end:" << end*365.25 << ", present:" << present << ", weight:" << weight*365.25 << "\n";
   }
 }
 

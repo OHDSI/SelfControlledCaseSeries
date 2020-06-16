@@ -31,6 +31,7 @@ wsmall_ewad2<-function(t,p, present,astart,aend, Dmatrix){
                             (1-pi0)*nu0*lamB*((aend*lamB)^(nu0-1))*exp(-((aend*lamB)^nu0-(t*lamB)^nu0))) +
             present *log(pi0*exp(-lamA*(aend-t))+
                            (1-pi0)*exp(-((aend*lamB)^nu0-(t*lamB)^nu0))))
+  # print(paste(t, exp(val)))
   exp(val)
 }
 

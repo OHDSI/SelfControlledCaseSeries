@@ -11,6 +11,8 @@ Changes
 
 4. Adding tracking of attrition.
 
+5. Automatically removing age spline if selected censoring model already adjusts for age.
+
 BugFixes
 
 1. Generating sequential case IDs instead of observation period IDs to avoid collisions due to loss of precision when converting BIGINT to R's numeric.

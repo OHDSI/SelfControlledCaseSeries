@@ -75,11 +75,16 @@ createSccsIntervalData <- function(studyPopulation,
   settings <- list()
   settings$metaData <- list()
   settings$covariateRef <- tibble()
-  settings <- addAgeSettings(settings, ageCovariateSettings, studyPopulation)
-  settings <- addSeasonalitySettings(settings, seasonalityCovariateSettings, sccsData)
   settings <- addEventDependentObservationSettings(settings,
                                                    eventDependentObservation,
                                                    studyPopulation)
+  if (eventDependentObservation && settings$metaData$censorModel$model %in% c(1, 3) && !is.null(ageCovariateSettings)) {
+    warning("Optimal censoring model adjusts for age, so removing age as separate covariate.")
+    ageCovariateSettings <- NULL
+  }
+  settings <- addAgeSettings(settings, ageCovariateSettings, studyPopulation)
+  settings <- addSeasonalitySettings(settings, seasonalityCovariateSettings, sccsData)
+
   settings <- addEraCovariateSettings(settings, eraCovariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- settings$covariateSettingsList
   metaData <- append(studyPopulation$metaData, settings$metaData)

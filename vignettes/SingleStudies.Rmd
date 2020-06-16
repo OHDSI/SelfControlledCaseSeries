@@ -655,7 +655,7 @@ plotEventObservationDependence(studyPop)
 ```
 ```{r echo=FALSE,message=FALSE}
 if (file.exists("s:/temp/vignetteSccs")) {
-  sccsData <- loadSccsData("s:/temp/vignetteSccs/data1")
+  sccsData <- loadSccsData("s:/temp/vignetteSccs/data1.zip")
   plotEventObservationDependence(studyPop)
 }
 ```
