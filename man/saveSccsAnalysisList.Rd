@@ -7,7 +7,7 @@
 saveSccsAnalysisList(sccsAnalysisList, file)
 }
 \arguments{
-\item{sccsAnalysisList}{The sccsAnalysis list to be written to file}
+\item{sccsAnalysisList}{The \code{sccsAnalysis} list to be written to file}
 
 \item{file}{The name of the file where the results will be written}
 }

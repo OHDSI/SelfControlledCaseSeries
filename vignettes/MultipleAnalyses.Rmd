@@ -16,13 +16,9 @@ vignette: >
 ---
 
 
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
-knitr::opts_chunk$set(
-  cache = FALSE,
-  comment = "#>",
-  error = FALSE,
-  tidy = FALSE)
+
 ```
 # Introduction
 
@@ -37,8 +33,9 @@ The general approach to running a set of analyses is that you specify all the fu
 An analysis will be executed by calling these functions in sequence:
 
 1. `getDbSccsData()`
-2. `createSccsIntervalData()`
-2. `fitSccsModel()` 
+2. `createStudyPopulation()`
+3. `createSccsIntervalData()`
+4. `fitSccsModel()` 
 
 When you provide several analyses to the `SelfControlledCaseSeries` package, it will determine whether any of the analyses and exposure-outcome pairs have anything in common, and will take advantage of this fact. For example, if we specify several exposure-outcome pairs with the same outcome, the data for the outcome will be extracted only once.
 
@@ -46,14 +43,14 @@ The function arguments you need to define have been divided into four groups:
 
 1. **Hypothesis of interest**: arguments that are specific to a hypothesis of interest, in the case of the self-controlled case series this is a combination of exposure and outcome.
 2. **Analyses**: arguments that are not directly specific to a hypothesis of interest, such as the washout window, whether to adjust for age and seasonality, etc.
-3. Arguments that are the output of a previous function in the `SelfControlledCaseSeries` package, such as the `sccsData` argument of the `createSccsIntervalData` function. These cannot be specified by the user.
+3. Arguments that are the output of a previous function in the `SelfControlledCaseSeries` package, such as the `SccsIntervalData` argument of the `createSccsIntervalData` function. These cannot be specified by the user.
 4. Arguments that are specific to an environment, such as the connection details for connecting to the server, and the name of the schema holding the CDM data.
 
 # Preparation for the example
 
 We need to tell R how to connect to the server where the data are. `SelfControlledCaseSeries` uses the `DatabaseConnector` package, which provides the `createConnectionDetails` function. Type `?createConnectionDetails` for the specific settings required for the various database management systems (DBMS). For example, one might connect to a PostgreSQL database using this code:
 
-```{r tidy=FALSE,eval=TRUE}
+```{r eval=TRUE}
 connectionDetails <- createConnectionDetails(dbms = "postgresql", 
                                              server = "localhost/ohdsi", 
                                              user = "joe", 
@@ -99,7 +96,7 @@ Note for CDM V4 `visit_concept_id` should be `place_of_service_concept_id`, and 
 
 This is parameterized SQL which can be used by the `SqlRender` package. We use parameterized SQL so we do not have to pre-specify the names of the CDM and result schemas. That way, if we want to run the SQL on a different schema, we only need to change the parameter values; we do not have to change the SQL code. By also making use of translation functionality in `SqlRender`, we can make sure the SQL code can be run in many different environments.
 
-```{r tidy=FALSE,eval=FALSE}
+```{r eval=FALSE}
 library(SqlRender)
 sql <- readSql("vignette.sql")
 sql <- render(sql,
@@ -117,7 +114,7 @@ In this code, we first read the SQL from the file into memory. In the next line,
 
 The first group of arguments define the exposure and outcome. Here we demonstrate how to create a list of exposure-outcome pairs:
 
-```{r tidy=FALSE,eval=FALSE}
+```{r eval=FALSE}
 negativeControls <- c(705178, 705944, 710650, 714785, 719174, 719311, 735340, 742185, 
                       780369, 781182, 924724, 990760, 1110942, 1111706, 1136601, 
                       1317967, 1501309, 1505346, 1551673, 1560278, 1584910, 19010309, 
@@ -142,35 +139,42 @@ A convenient way to save `exposureOutcomeList` to file is by using the `saveExpo
 
 The second group of arguments are not specific to a hypothesis of interest, and comprise the majority of arguments. For each function that will be called during the execution of the analyses, a companion function is available that has (almost) the same arguments. For example, for the `fitSccsModel()` function there is the `createFitSccsModelArgs()` function. These companion functions can be used to create the arguments to be used during execution:
 
-```{r tidy=FALSE,eval=TRUE}
-getDbSccsDataArgs1 <- createGetDbSccsDataArgs(useCustomCovariates = FALSE,
-                                              deleteCovariatesSmallCount = 100,
-                                              studyStartDate = "",
-                                              studyEndDate = "",
-                                              exposureIds = c())
+```{r eval=TRUE}
+getDbSccsDataArgs1 <- createGetDbSccsDataArgs(
+  useCustomCovariates = FALSE,
+  deleteCovariatesSmallCount = 100,
+  studyStartDate = "",
+  studyEndDate = "",
+  exposureIds = c(),
+  maxCasesPerOutcome = 1000)
 
-covarEoi <- createCovariateSettings(label = "Exposure of interest",
-                                              includeCovariateIds = "exposureId",
-                                              start = 0,
-                                              end = 0,
-                                              addExposedDaysToEnd = TRUE)
+createStudyPopulationArgs1 <- createCreateStudyPopulationArgs(
+  naivePeriod = 180,
+  firstOutcomeOnly = FALSE)
 
-createEraDataArgs1 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
-                                                  firstOutcomeOnly = FALSE,
-                                                  covariateSettings = covarEoi)
+covarExposureOfInt <- createEraCovariateSettings(
+  label = "Exposure of interest",
+  includeEraIds = "exposureId",
+  start = 1,
+  end = 0,
+  endAnchor = "era end")
+
+createSccsIntervalDataArgs1 <- createCreateSccsIntervalDataArgs(
+  eraCovariateSettings = covarExposureOfInt)
 
 fitSccsModelArgs <- createFitSccsModelArgs()
 ```
 
-Any argument that is not explicitly specified by the user will assume the default value specified in the function. Note that for several arguments for concept or cohort definition IDs we can use the name of a variable in the `exposureOutcome` objects. In this case, we defined the argument `includeCovariateIds` to get the value of the `exposureId` variable.
+Any argument that is not explicitly specified by the user will assume the default value specified in the function. Note that for several arguments for concept or cohort definition IDs we can use the name of a variable in the `exposureOutcome` objects. In this case, we defined the argument `includeEraIds` to get the value of the `exposureId` variable.
 
 We can now combine the arguments for the various functions into a single analysis:
 
-```{r tidy=FALSE,eval=TRUE}
+```{r eval=TRUE}
 sccsAnalysis1 <- createSccsAnalysis(analysisId = 1,
                                     description = "Simplest model",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsIntervalDataArgs = createEraDataArgs1,
+                                    createStudyPopulationArgs = createStudyPopulationArgs1,
+                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs1,
                                     fitSccsModelArgs = fitSccsModelArgs)
 ```
 
@@ -178,75 +182,82 @@ Note that we have assigned an analysis ID (1) to this set of arguments. We can u
 
 We can easily create more analyses, for example by including adjustments for age and seasonality, or for including other drugs in the model:
 
-```{r tidy=FALSE,eval=TRUE}
-covarProp <- createCovariateSettings(label = "Prophylactics",
-                                              includeCovariateIds = "prophylactics",
-                                              start = 0,
-                                              end = 0,
-                                              addExposedDaysToEnd = TRUE)
+```{r eval=TRUE}
+covarProphylactics <- createEraCovariateSettings(
+  label = "Prophylactics",
+  includeEraIds = "prophylactics",
+  start = 1,
+  end = 0,
+  endAnchor = "era end")
 
-createSccsIntervalDataArgs2 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
-                                                      firstOutcomeOnly = FALSE,
-                                                      covariateSettings = list(covarEoi,
-                                                                               covarProp))
+createSccsIntervalDataArgs2 <- createCreateSccsIntervalDataArgs(
+  eraCovariateSettings = list(covarExposureOfInt,
+                             covarProphylactics))
 
-sccsAnalysis2 <- createSccsAnalysis(analysisId = 2,
-                                    description = "Including prophylactics",
-                                    getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs2,
-                                    fitSccsModelArgs = fitSccsModelArgs)
+sccsAnalysis2 <- createSccsAnalysis(
+  analysisId = 2,
+  description = "Including prophylactics",
+  getDbSccsDataArgs = getDbSccsDataArgs1,
+  createStudyPopulationArgs = createStudyPopulationArgs1,
+  createSccsIntervalDataArgs = createSccsIntervalDataArgs2,
+  fitSccsModelArgs = fitSccsModelArgs)
 
-ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
+ageSettings <- createAgeCovariateSettings(ageKnots = 5)
 
-seasonSettings <- createSeasonalitySettings(includeSeasonality = TRUE, seasonKnots = 5)
+seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
 
-covarPreExp <- createCovariateSettings(label = "Pre-exposure",
-                                       includeCovariateIds = "exposureId",
-                                       start = -30,
-                                       end = -1)
+covarPreExp <- createEraCovariateSettings(
+  label = "Pre-exposure",
+  includeEraIds = "exposureId",
+  start = -30,
+  end = -1,
+  endAnchor = "era start")
 
-createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
-                                                      firstOutcomeOnly = FALSE,
-                                                      covariateSettings = list(covarEoi,
-                                                                               covarPreExp,
-                                                                               covarProp),
-                                                      ageSettings = ageSettings,
-                                                      seasonalitySettings = seasonSettings,
-                                                      eventDependentObservation = TRUE)
+createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(
+  eraCovariateSettings = list(covarExposureOfInt,
+                              covarPreExp,
+                              covarProphylactics),
+  ageCovariateSettings = ageSettings,
+  seasonalityCovariateSettings = seasonalitySettings,
+  eventDependentObservation = TRUE)
 
-sccsAnalysis3 <- createSccsAnalysis(analysisId = 3,
-                                    description = "Inc. prop., age, season, pre-exp., censor.",
-                                    getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs3,
-                                    fitSccsModelArgs = fitSccsModelArgs)
+sccsAnalysis3 <- createSccsAnalysis(
+  analysisId = 3,
+  description = "Including prophylactics, age, season, pre-exposure, and censoring",
+  getDbSccsDataArgs = getDbSccsDataArgs1,
+  createStudyPopulationArgs = createStudyPopulationArgs1,
+  createSccsIntervalDataArgs = createSccsIntervalDataArgs3,
+  fitSccsModelArgs = fitSccsModelArgs)
 
-covarAllDrugs <- createCovariateSettings(label = "Other exposures",
-                                         excludeCovariateIds = "exposureId",
-                                         stratifyById = TRUE,
-                                         start = 1,
-                                         end = 0,
-                                         addExposedDaysToEnd = TRUE,
-                                         allowRegularization = TRUE)
+covarAllDrugs <- createEraCovariateSettings(
+  label = "Other exposures",
+  excludeEraIds = "exposureId",
+  stratifyById = TRUE,
+  start = 1,
+  end = 0,
+  endAnchor = "era end",
+  allowRegularization = TRUE)
 
-createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
-                                                      firstOutcomeOnly = FALSE,
-                                                      covariateSettings = list(covarEoi,
-                                                                               covarPreExp,
-                                                                               covarAllDrugs),
-                                                      ageSettings = ageSettings,
-                                                      seasonalitySettings = seasonSettings,
-                                                      eventDependentObservation = TRUE)
+createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(
+  eraCovariateSettings = list(covarExposureOfInt,
+                              covarPreExp,
+                              covarAllDrugs),
+  ageCovariateSettings = ageSettings,
+  seasonalityCovariateSettings = seasonalitySettings,
+  eventDependentObservation = TRUE)
 
-sccsAnalysis4 <- createSccsAnalysis(analysisId = 4,
-                                    description = "Including all other drugs",
-                                    getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsIntervalDataArgs = createSccsIntervalDataArgs4,
-                                    fitSccsModelArgs = fitSccsModelArgs)
+sccsAnalysis4 <- createSccsAnalysis(
+  analysisId = 4,
+  description = "Including all other drugs",
+  getDbSccsDataArgs = getDbSccsDataArgs1,
+  createStudyPopulationArgs = createStudyPopulationArgs1,
+  createSccsIntervalDataArgs = createSccsIntervalDataArgs4,
+  fitSccsModelArgs = fitSccsModelArgs)
 ```
 
 These analyses can be combined in a list:
 
-```{r tidy=FALSE,eval=TRUE}
+```{r eval=TRUE}
 sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4)
 ```
 
@@ -258,30 +269,35 @@ Often we would like to evaluate different definitions of the exposure and/or out
 
 In such a case, we can define the multiple strategies using a list:
 
-```{r tidy=FALSE,eval=TRUE}
+```{r eval=TRUE}
 outcomeIds = list(narrowDefinition = 1,
                   broadDefinition = 2)
 
-exposureOutcome <- createExposureOutcome(exposureId = 1124300,
-                                         outcomeId = outcomeIds)
+exposureOutcome <- createExposureOutcome(
+  exposureId = 1124300,
+  outcomeId = outcomeIds)
 ```
 
 When we specify an analysis, we can then refer to one definition or the other:
 
-```{r tidy=FALSE,eval=TRUE}
-sccsAnalysisA <- createSccsAnalysis(analysisId = 1,
-                                    description = "Simplest model, using narrow def.",
-                                    outcomeType = "narrowDefinition",
-                                    getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsIntervalDataArgs = createEraDataArgs1,
-                                    fitSccsModelArgs = fitSccsModelArgs)
+```{r eval=TRUE}
+sccsAnalysisA <- createSccsAnalysis(
+  analysisId = 1,
+  description = "Simplest model, using narrow def.",
+  outcomeType = "narrowDefinition",
+  getDbSccsDataArgs = getDbSccsDataArgs1,
+  createStudyPopulationArgs = createStudyPopulationArgs1,
+  createSccsIntervalDataArgs = createSccsIntervalDataArgs1,
+  fitSccsModelArgs = fitSccsModelArgs)
 
-sccsAnalysisB <- createSccsAnalysis(analysisId = 2,
-                                    description = "Simplest model, using broad def.",
-                                    outcomeType = "broadDefinition",
-                                    getDbSccsDataArgs = getDbSccsDataArgs1,
-                                    createSccsIntervalDataArgs = createEraDataArgs1,
-                                    fitSccsModelArgs = fitSccsModelArgs)
+sccsAnalysisB <- createSccsAnalysis(
+  analysisId = 2,
+  description = "Simplest model, using broad def.",
+  outcomeType = "broadDefinition",
+  getDbSccsDataArgs = getDbSccsDataArgs1,
+  createStudyPopulationArgs = createStudyPopulationArgs1,
+  createSccsIntervalDataArgs = createSccsIntervalDataArgs1,
+  fitSccsModelArgs = fitSccsModelArgs)
 
 sccsAnalysisList2 <- list(sccsAnalysisA, sccsAnalysisB)
 ```
@@ -294,23 +310,26 @@ The same mechanism can be used to specifiy types for the exposureId.
 
 We can now run the analyses against the hypotheses of interest using the `runScsAnalyses()`function. This function will run all specified analyses against all hypotheses of interest, meaning that the total number of outcome models is `length(sccsAnalysisList) * length(exposureOutcomeList)`.
 
-```{r tidy=FALSE,eval=FALSE}
-result <- runSccsAnalyses(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          oracleTempSchema = cdmDatabaseSchema,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = outcomeTable,
-                          cdmVersion = cdmVersion,
-                          outputFolder = outputFolder,
-                          combineDataFetchAcrossOutcomes = TRUE,
-                          exposureOutcomeList = exposureOutcomeList,
-                          sccsAnalysisList = sccsAnalysisList,
-                          getDbSccsDataThreads = 1,
-                          createSccsIntervalDataThreads = 5,
-                          fitSccsModelThreads = 3,
-                          cvThreads = 10)
+```{r eval=FALSE}
+result <- runSccsAnalyses(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  oracleTempSchema = cdmDatabaseSchema,
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  outcomeDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = outcomeTable,
+  cdmVersion = cdmVersion,
+  outputFolder = outputFolder,
+  combineDataFetchAcrossOutcomes = TRUE,
+  exposureOutcomeList = exposureOutcomeList,
+  sccsAnalysisList = sccsAnalysisList,
+  getDbSccsDataThreads = 1,
+  createStudyPopulationThreads = 3,
+  createSccsIntervalDataThreads = 3,
+  fitSccsModelThreads = 4,
+  cvThreads = 10)
+
 ```
 
 In the code above, we provide the arguments for connecting to the database, which schemas and tables to use, as well as the analyses and hypotheses of interest. The `outputFolder` specifies where the outcome models and intermediate files will be written. We also instruct `SelfControlledCaseSeries` to use multiple threads for various stages in the analyses, meaning these will be executed in parallel on multiple CPUs in the computer. Multithreading can significantly reduce execution time, but will require more system resources such as memory and temporary disk space. 
@@ -323,12 +342,12 @@ If for some reason the execution was interrupted, you can restart by re-issuing 
 
 The result of the `runSccsAnalyses()` is a data frame with one row per exposure-outcome-analysis combination. It provides the file names of the intermediate and end-result files that were constructed. For example, we can retrieve the fitted model for the combination of our drug of interest,  outcome, and first analysis:
 
-```{r tidy=FALSE,eval=FALSE}
+```{r eval=FALSE}
 sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 & 
                                       result$outcomeId == 1 &
                                       result$analysisId == 1]
 sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
-summary(sccsModel)
+sccsModel
 ```
 ```{r echo=FALSE,message=FALSE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
@@ -337,21 +356,21 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
                                           result$outcomeId == 1 &
                                           result$analysisId == 1]
   sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
-  summary(sccsModel)
+  sccsModel
 }
 ```
 
 Note that some of the file names will appear several times in the table. For example, all analysis share the same sccsData object.
 
 We can create a summary of the results using `summarizeSccsAnalyses()`:
-```{r tidy=FALSE,eval=FALSE}
+```{r eval=FALSE}
 analysisSum <- summarizeSccsAnalyses(result, outputFolder)
-head(analysisSum)
+analysisSum
 ```
 ```{r echo=FALSE,message=FALSE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   analysisSum <- readRDS(file.path(outputFolder, "analysisSummary.rds"))
-  head(analysisSum)
+  analysisSum
 }
 ```
 
@@ -361,7 +380,7 @@ This tells us, per exposure-outcome-analysis combination, the estimated relative
 
 Now that we have produced estimates for all outcomes including our negative controls, we can perform empirical calibration to estimate the bias of the various analyses included in our study. We will create the calibration effect plots for every analysis ID. In each plot, the blue dots represent our negative control exposures, and the yellow diamond represents our exposure of interest: diclofenac. An unbiased, well-calibrated analysis should have 95% of the negative controls between the dashed lines (ie. 95% should have p > .05).
 
-```{r tidy=FALSE,eval=FALSE}
+```{r eval=FALSE}
 install.packages("EmpiricalCalibration")
 library(EmpiricalCalibration)
 
@@ -391,7 +410,7 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 }
 ```
 
-```{r tidy=FALSE,eval=FALSE}
+```{r eval=FALSE}
 # Analysis 2: Including prophylactics
 negCons <- analysisSum[analysisSum$analysisId == 2 & analysisSum$exposureId != 1124300, ]
 ei <-  analysisSum[analysisSum$analysisId == 2 & analysisSum$exposureId == 1124300, ]
@@ -417,7 +436,7 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 }
 ```
 
-```{r tidy=FALSE,eval=FALSE}
+```{r eval=FALSE}
 # Analysis 3: Including prophylactics, age, season, pre-exposure, and censoring
 negCons <- analysisSum[analysisSum$analysisId == 3 & analysisSum$exposureId != 1124300, ]
 ei <-  analysisSum[analysisSum$analysisId == 3 & analysisSum$exposureId == 1124300, ]
@@ -443,7 +462,7 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 }
 ```
 
-```{r tidy=FALSE,eval=FALSE}
+```{r eval=FALSE}
 # Analysis 4: Including all other drugs (as well as prophylactics, age, season, pre-
 # exposure, and censoring)
 negCons <- analysisSum[analysisSum$analysisId == 4 & analysisSum$exposureId != 1124300, ]
@@ -474,13 +493,13 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 
 Considerable work has been dedicated to provide the `SelfControlledCaseSeries` package.
 
-```{r tidy=TRUE,eval=TRUE}
+```{r eval=TRUE}
 citation("SelfControlledCaseSeries")
 ```
 
 Further, `SelfControlledCaseSeries` makes extensive use of the `Cyclops` package.
 
-```{r tidy=TRUE,eval=TRUE}
+```{r eval=TRUE}
 citation("Cyclops")
 ```
 

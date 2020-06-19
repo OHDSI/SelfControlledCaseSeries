@@ -21,8 +21,8 @@ runSccsAnalyses(
   sccsAnalysisList,
   exposureOutcomeList,
   combineDataFetchAcrossOutcomes = TRUE,
-  compressSccsIntervalDataFiles = FALSE,
   getDbSccsDataThreads = 1,
+  createStudyPopulationThreads = 1,
   createSccsIntervalDataThreads = 1,
   fitSccsModelThreads = 1,
   cvThreads = 1
@@ -30,33 +30,32 @@ runSccsAnalyses(
 }
 \arguments{
 \item{connectionDetails}{An R object of type \code{ConnectionDetails} created using
-the function \code{createConnectionDetails} in the
-\code{DatabaseConnector} package.}
+the function \code{\link[DatabaseConnector:createConnectionDetails]{DatabaseConnector::createConnectionDetails()}}.}
 
 \item{cdmDatabaseSchema}{The name of the database schema that contains the OMOP CDM
 instance.  Requires read permissions to this database. On
-SQL Server, this should specifiy both the database and the
+SQL Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.}
 
 \item{oracleTempSchema}{A schema where temp tables can be created in Oracle.}
 
 \item{exposureDatabaseSchema}{The name of the database schema that is the location where
 the exposure data used to define the exposure cohorts is
-available. If exposureTable = DRUG_ERA,
-exposureDatabaseSchema is not used but assumed to be
-cdmSchema.  Requires read permissions to this database.}
+available. If \code{exposureTable = "DRUG_ERA"},
+\code{exposureDatabaseSchema} is not used but assumed to be
+\code{cdmDatabaseSchema}.  Requires read permissions to this database.}
 
-\item{exposureTable}{The tablename that contains the exposure cohorts.  If
-exposureTable <> DRUG_ERA, then expectation is exposureTable
+\item{exposureTable}{The table name that contains the exposure cohorts.  If
+\verb{exposureTable <> "DRUG_ERA"}, then expectation is \code{exposureTable}
 has format of COHORT table: cohort_concept_id, SUBJECT_ID,
 COHORT_START_DATE, COHORT_END_DATE.}
 
 \item{outcomeDatabaseSchema}{The name of the database schema that is the location where
 the data used to define the outcome cohorts is available. If
-outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
+\code{outcomeTable = "CONDITION_ERA"}, \code{outcomeDatabaseSchema} is not
 used.  Requires read permissions to this database.}
 
-\item{outcomeTable}{The tablename that contains the outcome cohorts.  If
+\item{outcomeTable}{The table name that contains the outcome cohorts.  If
 outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
 then expectation is outcomeTable has format of COHORT table:
 COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
@@ -79,24 +78,25 @@ should have the same structure as the cohort table.}
 
 \item{outputFolder}{Name of the folder where all the outputs will written to.}
 
-\item{sccsAnalysisList}{A list of objects of type \code{sccsAnalysis} as created
-using the \code{\link{createSccsAnalysis}} function.}
+\item{sccsAnalysisList}{A list of objects of \code{sccsAnalysis} as created
+using the \code{\link[=createSccsAnalysis]{createSccsAnalysis()}} function.}
 
 \item{exposureOutcomeList}{A list of objects of type \code{exposureOutcome} as created
-using the \code{\link{createExposureOutcome}} function.}
+using the \code{\link[=createExposureOutcome]{createExposureOutcome()}} function.}
 
 \item{combineDataFetchAcrossOutcomes}{Should fetching data from the database be done one outcome
 at a time, or for all outcomes in one fetch? Combining
 fetches will be more efficient if there is large overlap in
 the subjects that have the different outcomes.}
 
-\item{compressSccsIntervalDataFiles}{Should compression be used when saving?}
-
 \item{getDbSccsDataThreads}{The number of parallel threads to use for building the
-sccsData objects.}
+\code{SccsData} objects.}
+
+\item{createStudyPopulationThreads}{The number of parallel threads to use for building the
+\code{studyPopulation} objects.}
 
 \item{createSccsIntervalDataThreads}{The number of parallel threads to use for building the
-sccsIntervalData objects.}
+\code{SccsIntervalData} objects.}
 
 \item{fitSccsModelThreads}{The number of parallel threads to use for fitting the
 models.}
@@ -107,11 +107,8 @@ outcome model. Note that the total number of CV threads at
 one time could be \code{fitSccsModelThreads * cvThreads}.}
 }
 \value{
-A data frame with the following columns: \tabular{ll}{ \verb{analysisId} \tab The unique identifier
-for a set of analysis choices.\cr \verb{exposureId} \tab The ID of the target drug.\cr
-\verb{outcomeId} \tab The ID of the outcome.\cr \verb{sccsDataFolder} \tab The folder where the
-sccsData object is stored.\cr \verb{sccsIntervalDataFolder} \tab The folder where the sccsIntervalData object
-is stored.\cr \verb{sccsModelFile} \tab The file where the fitted SCCS model is stored.\cr }
+A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
+outcome model files can be found, relative to the \code{outputFolder}.
 }
 \description{
 Run a list of analyses

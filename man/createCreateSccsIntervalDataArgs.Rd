@@ -5,40 +5,30 @@
 \title{Create a parameter object for the function createSccsIntervalData}
 \usage{
 createCreateSccsIntervalDataArgs(
-  naivePeriod = 0,
-  firstOutcomeOnly = FALSE,
-  covariateSettings,
-  ageSettings = createAgeSettings(includeAge = FALSE),
-  seasonalitySettings = createSeasonalitySettings(includeSeasonality = FALSE),
+  eraCovariateSettings,
+  ageCovariateSettings = NULL,
+  seasonalityCovariateSettings = NULL,
   minCasesForAgeSeason = 10000,
   eventDependentObservation = FALSE
 )
 }
 \arguments{
-\item{naivePeriod}{The number of days at the start of a patient's observation
-periodthat should not be included in the risk calculations. Note
-thatthe naive period can be used to determine current
-covariatestatus right after the naive period, and whether an
-outcome isthe first one.}
+\item{eraCovariateSettings}{Either an object of type covariateSettings as created using
+the createCovariateSettings() function, or a list of such
+objects.}
 
-\item{firstOutcomeOnly}{Whether only the first occurrence of an outcome should
-beconsidered.}
+\item{ageCovariateSettings}{An object of type ageCovariateSettings as created using the
+createAgeCovariateSettings() function.}
 
-\item{covariateSettings}{Either an object of type covariateSettings as createdusing the
-createCovariateSettings function, or alist of such objects.}
-
-\item{ageSettings}{An object of type ageSettings as created using
-thecreateAgeSettings function.}
-
-\item{seasonalitySettings}{An object of type seasonalitySettings as created using
-thecreateSeasonalitySettings function.}
+\item{seasonalityCovariateSettings}{An object of type seasonalityCovariateSettings as created
+using the createSeasonalityCovariateSettings() function.}
 
 \item{minCasesForAgeSeason}{Minimum number of cases to use to fit age and season splines.
-IFneeded (and available), cases that are not exposed will be
-included.#'}
+If needed (and available), cases that are not exposed will be
+included.}
 
-\item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used
-toadjust for event-dependent observation time?}
+\item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to
+adjust for event-dependent observation time?}
 }
 \description{
 Create a parameter object for the function createSccsIntervalData

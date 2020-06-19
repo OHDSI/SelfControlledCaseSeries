@@ -88,13 +88,16 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
     // Multiply by season RR:
     if (includeSeasonality){
       int dayOfYear = (startDayOfYear + day) % 365;
+      // Rcout << dayOfYear << " " << seasonRrs[dayOfYear] << "\n";
       dailyRate *= seasonRrs[dayOfYear];
     }
 
     // Sample outcomes:
     std::poisson_distribution<int> distribution(dailyRate);
     int count = distribution(generator);
+    // Rcout << dailyRate << " " << count << "\n";
     for (int i = 0; i < count; i++){
+      // Rcout << caseIndex << " " << casesCaseId[caseIndex] << " " << day << "\n";
       outcomeCaseIds.push_back(casesCaseId[caseIndex]);
       outcomeStartDays.push_back(day);
     }

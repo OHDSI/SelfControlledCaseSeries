@@ -25,7 +25,7 @@
 #' @template StudyPopulation
 #' @template SccsData
 #' @param eraCovariateSettings        Either an object of type `covariateSettings` as created
-#'                                    using the [createCovariateSettings()] function, or a
+#'                                    using the [createEraCovariateSettings()] function, or a
 #'                                    list of such objects.
 #' @param ageCovariateSettings        An object of type `ageCovariateSettings` as created using the
 #'                                    [createAgeCovariateSettings()] function.
@@ -96,29 +96,33 @@ createSccsIntervalData <- function(studyPopulation,
   eras <- sccsData$eras %>%
     arrange(.data$caseId)
 
-  data <- SelfControlledCaseSeries:::convertToSccs(cases,
-                                                   outcomes,
-                                                   eras,
-                                                   !is.null(ageCovariateSettings),
-                                                   settings$ageOffset,
-                                                   settings$ageDesignMatrix,
-                                                   !is.null(seasonalityCovariateSettings),
-                                                   settings$seasonDesignMatrix,
-                                                   ageSeasonsCases,
-                                                   settings$covariateSettingsList,
-                                                   eventDependentObservation,
-                                                   settings$censorModel)
+  data <- convertToSccs(cases,
+                        outcomes,
+                        eras,
+                        !is.null(ageCovariateSettings),
+                        settings$ageOffset,
+                        settings$ageDesignMatrix,
+                        !is.null(seasonalityCovariateSettings),
+                        settings$seasonDesignMatrix,
+                        ageSeasonsCases,
+                        settings$covariateSettingsList,
+                        eventDependentObservation,
+                        settings$censorModel)
 
   if (is.null(data$outcomes)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
     data <- createEmptySccsIntervalData()
+    if (nrow(settings$covariateRef) > 0) {
+      data$covariateRef <- settings$covariateRef
+    }
+
   } else {
     metaData$covariateStatistics <- collect(data$covariateStatistics)
     data$covariateStatistics <- NULL
-  }
-  data$covariateRef = settings$covariateRef
-  attr(data, "metaData") <- metaData
+    data$covariateRef <- settings$covariateRef
 
+  }
+  attr(data, "metaData") <- metaData
   class(data) <- "SccsIntervalData"
   attr(class(data), "package") <- "SelfControlledCaseSeries"
 

@@ -70,7 +70,7 @@ PersonData PersonDataIterator::next() {
   PersonData nextPerson(casesPersonId[casesCursor],
                         casesObservationPeriodId[casesCursor],
                         caseId,
-                        0,
+                        casesStartDate[casesCursor],
                         casesAgeInDays[casesCursor],
                         casesEndDay[casesCursor],
                         offset,

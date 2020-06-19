@@ -2,12 +2,12 @@
 % Please edit documentation in R/Analyses.R
 \name{saveExposureOutcomeList}
 \alias{saveExposureOutcomeList}
-\title{Save a list of exposureOutcome to file}
+\title{Save a list of \code{exposureOutcome} to file}
 \usage{
 saveExposureOutcomeList(exposureOutcomeList, file)
 }
 \arguments{
-\item{exposureOutcomeList}{The exposureOutcome list to be written to file}
+\item{exposureOutcomeList}{The \code{exposureOutcome} list to be written to file}
 
 \item{file}{The name of the file where the results will be written}
 }

@@ -122,7 +122,6 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
 }
 
 simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
-  # settings <- createSccsSimulationSettings(includeAgeEffect = FALSE, includeSeasonality = FALSE)
   # Simulate a batch of persons, and eliminate non-cases
   n <- 1000
 
@@ -169,8 +168,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                       eraId = settings$eraIds[i],
                       value = 1,
                       startDay = startDay,
-                      endDay = endDay,
-                      stringsAsFactors = TRUE)
+                      endDay = endDay)
     eras <- rbind(eras, newEras)
   }
   eras <- eras[order(eras$caseId, eras$eraId), ]
@@ -209,13 +207,12 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
       truncatedEnds <- riskEnds
       truncatedEnds[truncatedEnds > end] <- end
       filteredIndex <- truncatedEnds >= start
-      riskEras <- tibble(eraType = "hei",
+      riskEras <- tibble(eraType = "rx",
                          caseId = sourceEras$caseId[filteredIndex],
                          eraId = eraId,
                          value = 1,
                          startDay = sourceEras$startDay[filteredIndex] + start,
-                         endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex],
-                         stringsAsFactors = TRUE)
+                         endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex])
       newEras <- rbind(newEras, riskEras)
       eraIds <- c(eraIds, eraId)
       rrs <- c(rrs, simulationRiskWindow$relativeRisks[j])
@@ -239,8 +236,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                      eraId = settings$outcomeId,
                      value = 1,
                      startDay = outcomes$startDay,
-                     endDay = outcomes$startDay,
-                     stringsAsFactors = TRUE)
+                     endDay = outcomes$startDay)
 
   # ** Remove non-cases ***
   caseIds <- unique(outcomes$caseId)
@@ -250,6 +246,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
   eras <- rbind(eras, outcomes)
   eras <- eras[order(eras$caseId), ]
   cases$caseId <- cases$caseId + caseIdOffset
+  cases$observationPeriodId <- cases$observationPeriodId + caseIdOffset
   cases$personId <- cases$personId + caseIdOffset
   eras$caseId <- eras$caseId + caseIdOffset
   result <- list(cases = cases, eras = eras)
@@ -288,12 +285,12 @@ simulateSccsData <- function(nCases, settings) {
   eras <- tibble()
   lastCaseId <- 0
   while (nrow(cases) < nCases) {
-    batch <- SelfControlledCaseSeries:::simulateBatch(settings, ageFun, seasonFun, lastCaseId)
+    batch <- simulateBatch(settings, ageFun, seasonFun, lastCaseId)
     need <- nCases - nrow(cases)
     if (nrow(batch$cases) < need) {
       cases <- rbind(cases, batch$cases)
       eras <- rbind(eras, batch$eras)
-      lastCaseId <- max(batch$cases$observationPeriodId)
+      lastCaseId <- max(batch$cases$caseId)
     } else {
       cases <- rbind(cases, batch$cases[1:need, ])
       eras <- rbind(eras,
@@ -311,7 +308,11 @@ simulateSccsData <- function(nCases, settings) {
                                  seasonFun = seasonFun,
                                  exposureIds = settings$eraIds,
                                  outcomeIds = settings$outcomeId,
-                                 attrition = tibble(outcomeId = settings$outcomeId))
+                                 attrition = tibble(outcomeId = settings$outcomeId,
+                                                    description = "Outcomes",
+                                                    outcomeSubjects  = 0,
+                                                    outcomeEvents  = 0,
+                                                    outcomeObsPeriods = 0))
 
   class(data) <- "SccsData"
   attr(class(data), "package") <- "SelfControlledCaseSeries"

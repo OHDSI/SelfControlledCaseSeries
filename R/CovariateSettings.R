@@ -98,7 +98,6 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
 #' by splitting patient time into calendar months. During a month, the relative risk attributed to age
 #' is assumed to be constant, and the risk from month to month is modeled using a cubic spline.
 #'
-#' @param includeAge            Should age be included in the model?
 #' @param ageKnots              If a single number is provided this is assumed to indicate the number
 #'                              of knots to use for the spline, and the knots are automatically spaced
 #'                              according to equal percentiles of the data. If more than one number is
@@ -137,7 +136,6 @@ createAgeCovariateSettings <- function(ageKnots = 5,
 #' attributed to season is assumed to be constant, and the risk from month to month is modeled using a
 #' cyclic cubic spline.
 #'
-#' @param includeSeasonality    Should seasonality be included in the model?
 #' @param seasonKnots           If a single number is provided this is assumed to indicate the number
 #'                              of knots to use for the spline, and the knots are automatically equally
 #'                              spaced across the year. If more than one number is provided these are

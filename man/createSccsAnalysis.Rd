@@ -10,6 +10,7 @@ createSccsAnalysis(
   exposureType = NULL,
   outcomeType = NULL,
   getDbSccsDataArgs,
+  createStudyPopulationArgs,
   createSccsIntervalDataArgs,
   fitSccsModelArgs
 )
@@ -20,26 +21,29 @@ analysis choices.}
 
 \item{description}{A short description of the analysis.}
 
-\item{exposureType}{If more than one exposure is provided for each exposureOutcome, this
+\item{exposureType}{If more than one exposure is provided for each \code{exposureOutcome}, this
 field should be used to select the specific exposure to use in this
 analysis.}
 
-\item{outcomeType}{If more than one outcome is provided for each exposureOutcome, this
+\item{outcomeType}{If more than one outcome is provided for each \code{exposureOutcom}e, this
 field should be used to select the specific outcome to use in this
 analysis.}
 
 \item{getDbSccsDataArgs}{An object representing the arguments to be used when calling the
-\code{\link{getDbSccsData}} function.}
+\link{getDbSccsData} function.}
+
+\item{createStudyPopulationArgs}{An object representing the arguments to be used when calling the
+\link{getDbSccsData} function.}
 
 \item{createSccsIntervalDataArgs}{An object representing the arguments to be used when calling the
-\code{\link{createSccsIntervalData}} function.}
+\link{createSccsIntervalData} function.}
 
 \item{fitSccsModelArgs}{An object representing the arguments to be used when calling the
-\code{\link{fitSccsModel}} function.}
+\link{fitSccsModel} function.}
 }
 \description{
 Create a SelfControlledCaseSeries analysis specification
 }
 \details{
-Create a set of analysis choices, to be used with the \code{\link{runSccsAnalyses}} function.
+Create a set of analysis choices, to be used with the \link{runSccsAnalyses} function.
 }

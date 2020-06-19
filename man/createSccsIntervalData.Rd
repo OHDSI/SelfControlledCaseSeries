@@ -21,7 +21,7 @@ createSccsIntervalData(
 \link{getDbSccsData} function.}
 
 \item{eraCovariateSettings}{Either an object of type \code{covariateSettings} as created
-using the \code{\link[=createCovariateSettings]{createCovariateSettings()}} function, or a
+using the \code{\link[=createEraCovariateSettings]{createEraCovariateSettings()}} function, or a
 list of such objects.}
 
 \item{ageCovariateSettings}{An object of type \code{ageCovariateSettings} as created using the

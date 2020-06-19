@@ -165,7 +165,7 @@ plotExposureCentered <- function(studyPopulation,
   }
 
   cases <- studyPopulation$cases %>%
-    select(.data$caseId, caseEndDay = endDay, offset)
+    select(.data$caseId, caseEndDay = .data$endDay, .data$offset)
 
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
@@ -196,7 +196,7 @@ plotExposureCentered <- function(studyPopulation,
 
   outcomes <- outcomes %>%
     left_join(exposedoutcomes, by = c("caseId", "delta")) %>%
-    mutate(exposed = coalesce(exposed, 0))
+    mutate(exposed = coalesce(.data$exposed, 0))
 
   weeks <- dplyr::tibble(number = -26:25) %>%
     mutate(start = .data$number*7,

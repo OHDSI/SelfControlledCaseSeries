@@ -23,8 +23,6 @@ to be regularized?}
 \item{computeConfidenceIntervals}{Should confidence intervals be computed for the covariates defined
 here? Setting this to FALSE might save computing time when fitting the
 model. Will be turned to FALSE  automatically when \code{allowRegularization = TRUE}.}
-
-\item{includeSeasonality}{Should seasonality be included in the model?}
 }
 \value{
 An object of type \code{seasonalitySettings}.

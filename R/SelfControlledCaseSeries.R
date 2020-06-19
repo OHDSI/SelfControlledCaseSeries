@@ -23,7 +23,7 @@
 #' @importFrom SqlRender loadRenderTranslateSql translateSql
 #' @importFrom grDevices rgb
 #' @importFrom methods is
-#' @importFrom stats aggregate coef confint dgamma nlm pgamma pnorm printCoefmat qnorm rnorm rpois runif splinefun start end
+#' @importFrom stats aggregate coef confint dgamma nlm pgamma pnorm printCoefmat qnorm rnorm rpois runif splinefun quantile
 #' @import dplyr
 #' @import Cyclops
 #' @import DatabaseConnector

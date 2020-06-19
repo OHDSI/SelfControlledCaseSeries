@@ -26,7 +26,7 @@ pw <- NULL
 dbms <- "pdw"
 user <- NULL
 server <- Sys.getenv("PDW_SERVER")
-cdmDatabaseSchema <- "cdm_truven_mdcd_v780.dbo"
+cdmDatabaseSchema <- "CDM_IBM_MDCD_V1153.dbo"
 cohortDatabaseSchema <- "scratch.dbo"
 oracleTempSchema <- NULL
 outcomeTable <- "mschuemi_sccs_vignette"
@@ -60,11 +60,11 @@ sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
 DatabaseConnector::querySql(connection, sql)
 
 # Get all PPIs:
-sql <- "SELECT concept_id FROM @cdmDatabaseSchema.concept_ancestor INNER JOIN @cdmDatabaseSchema.concept ON descendant_concept_id = concept_id WHERE ancestor_concept_id = 21600095 AND concept_class_id = 'Ingredient'"
-sql <- SqlRender::render(sql, cdmDatabaseSchema = cdmDatabaseSchema)
-sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
-ppis <- DatabaseConnector::querySql(connection, sql)
-ppis <- ppis$CONCEPT_ID
+# sql <- "SELECT concept_id FROM @cdmDatabaseSchema.concept_ancestor INNER JOIN @cdmDatabaseSchema.concept ON descendant_concept_id = concept_id WHERE ancestor_concept_id = 21600095 AND concept_class_id = 'Ingredient'"
+# sql <- SqlRender::render(sql, cdmDatabaseSchema = cdmDatabaseSchema)
+# sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
+# ppis <- DatabaseConnector::querySql(connection, sql)
+# ppis <- ppis$CONCEPT_ID
 
 DatabaseConnector::disconnect(connection)
 
@@ -106,87 +106,88 @@ getDbSccsDataArgs1 <- createGetDbSccsDataArgs(useCustomCovariates = FALSE,
                                               deleteCovariatesSmallCount = 100,
                                               studyStartDate = "",
                                               studyEndDate = "",
-                                              exposureIds = c())
+                                              exposureIds = c(),
+                                              maxCasesPerOutcome = 100000)
 
-covarExposureOfInt <- createCovariateSettings(label = "Exposure of interest",
-                                              includeCovariateIds = "exposureId",
-                                              start = 1,
-                                              end = 0,
-                                              addExposedDaysToEnd = TRUE)
+createStudyPopulationArgs1 <- createCreateStudyPopulationArgs(naivePeriod = 180,
+                                                              firstOutcomeOnly = FALSE)
 
-createSccsIntervalDataArgs1 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
-                                                      firstOutcomeOnly = FALSE,
-                                                      covariateSettings = covarExposureOfInt)
+covarExposureOfInt <- createEraCovariateSettings(label = "Exposure of interest",
+                                                 includeEraIds = "exposureId",
+                                                 start = 1,
+                                                 end = 0,
+                                                 endAnchor = "era end")
+
+createSccsIntervalDataArgs1 <- createCreateSccsIntervalDataArgs(eraCovariateSettings = covarExposureOfInt)
 
 fitSccsModelArgs <- createFitSccsModelArgs()
 
 sccsAnalysis1 <- createSccsAnalysis(analysisId = 1,
                                     description = "Simplest model",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
+                                    createStudyPopulationArgs = createStudyPopulationArgs1,
                                     createSccsIntervalDataArgs = createSccsIntervalDataArgs1,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
-covarProphylactics <- createCovariateSettings(label = "Prophylactics",
-                                              includeCovariateIds = "prophylactics",
-                                              start = 1,
-                                              end = 0,
-                                              addExposedDaysToEnd = TRUE)
+covarProphylactics <- createEraCovariateSettings(label = "Prophylactics",
+                                                 includeEraIds = "prophylactics",
+                                                 start = 1,
+                                                 end = 0,
+                                                 endAnchor = "era end")
 
-createSccsIntervalDataArgs2 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
-                                                      firstOutcomeOnly = FALSE,
-                                                      covariateSettings = list(covarExposureOfInt,
-                                                                               covarProphylactics))
+createSccsIntervalDataArgs2 <- createCreateSccsIntervalDataArgs(eraCovariateSettings = list(covarExposureOfInt,
+                                                                                            covarProphylactics))
 
 sccsAnalysis2 <- createSccsAnalysis(analysisId = 2,
                                     description = "Including prophylactics",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
+                                    createStudyPopulationArgs = createStudyPopulationArgs1,
                                     createSccsIntervalDataArgs = createSccsIntervalDataArgs2,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
-ageSettings <- createAgeSettings(includeAge = TRUE, ageKnots = 5)
+ageSettings <- createAgeCovariateSettings(ageKnots = 5)
 
-seasonalitySettings <- createSeasonalitySettings(includeSeasonality = TRUE, seasonKnots = 5)
+seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
 
-covarPreExp <- createCovariateSettings(label = "Pre-exposure",
-                                       includeCovariateIds = "exposureId",
-                                       start = -30,
-                                       end = -1)
+covarPreExp <- createEraCovariateSettings(label = "Pre-exposure",
+                                          includeEraIds = "exposureId",
+                                          start = -30,
+                                          end = -1,
+                                          endAnchor = "era start")
 
-createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
-                                                      firstOutcomeOnly = FALSE,
-                                                      covariateSettings = list(covarExposureOfInt,
-                                                                               covarPreExp,
-                                                                               covarProphylactics),
-                                                      ageSettings = ageSettings,
-                                                      seasonalitySettings = seasonalitySettings,
-                                                      eventDependentObservation = TRUE)
+createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(eraCovariateSettings = list(covarExposureOfInt,
+                                                                                            covarPreExp,
+                                                                                            covarProphylactics),
+                                                                ageCovariateSettings = ageSettings,
+                                                                seasonalityCovariateSettings = seasonalitySettings,
+                                                                eventDependentObservation = TRUE)
 
 sccsAnalysis3 <- createSccsAnalysis(analysisId = 3,
                                     description = "Including prophylactics, age, season, pre-exposure, and censoring",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
+                                    createStudyPopulationArgs = createStudyPopulationArgs1,
                                     createSccsIntervalDataArgs = createSccsIntervalDataArgs3,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
-covarAllDrugs <- createCovariateSettings(label = "Other exposures",
-                                         excludeCovariateIds = "exposureId",
-                                         stratifyById = TRUE,
-                                         start = 1,
-                                         end = 0,
-                                         addExposedDaysToEnd = TRUE,
-                                         allowRegularization = TRUE)
+covarAllDrugs <- createEraCovariateSettings(label = "Other exposures",
+                                            excludeEraIds = "exposureId",
+                                            stratifyById = TRUE,
+                                            start = 1,
+                                            end = 0,
+                                            endAnchor = "era end",
+                                            allowRegularization = TRUE)
 
-createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(naivePeriod = 180,
-                                                      firstOutcomeOnly = FALSE,
-                                                      covariateSettings = list(covarExposureOfInt,
-                                                                               covarPreExp,
-                                                                               covarAllDrugs),
-                                                      ageSettings = ageSettings,
-                                                      seasonalitySettings = seasonalitySettings,
-                                                      eventDependentObservation = TRUE)
+createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(eraCovariateSettings = list(covarExposureOfInt,
+                                                                                            covarPreExp,
+                                                                                            covarAllDrugs),
+                                                                ageCovariateSettings = ageSettings,
+                                                                seasonalityCovariateSettings = seasonalitySettings,
+                                                                eventDependentObservation = TRUE)
 
 sccsAnalysis4 <- createSccsAnalysis(analysisId = 4,
                                     description = "Including all other drugs",
                                     getDbSccsDataArgs = getDbSccsDataArgs1,
+                                    createStudyPopulationArgs = createStudyPopulationArgs1,
                                     createSccsIntervalDataArgs = createSccsIntervalDataArgs4,
                                     fitSccsModelArgs = fitSccsModelArgs)
 
@@ -211,10 +212,10 @@ result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           exposureOutcomeList = exposureOutcomeList,
                           sccsAnalysisList = sccsAnalysisList,
                           getDbSccsDataThreads = 1,
+                          createStudyPopulationThreads = 3,
                           createSccsIntervalDataThreads = 3,
                           fitSccsModelThreads = 4,
-                          cvThreads = 10,
-                          compressSccsIntervalDataFiles = TRUE)
+                          cvThreads = 10)
 
 # result <- readRDS('s:/temp/sccsVignette2/outcomeModelReference.rds')
 
@@ -222,5 +223,5 @@ analysisSum <- summarizeSccsAnalyses(result, outputFolder)
 saveRDS(analysisSum, file.path(outputFolder, "analysisSummary.rds"))
 
 
-sccsData <- loadSccsData(result$sccsDataFolder[1])
+sccsData <- loadSccsData(file.path(outputFolder, result$sccsDataFile[1]))
 summary(sccsData)

@@ -11,10 +11,11 @@ createFitSccsModelArgs(
 )
 }
 \arguments{
-\item{prior}{The prior used to fit the model. See createPrior fordetails.}
+\item{prior}{The prior used to fit the model. See Cyclops::createPrior for details.}
 
-\item{control}{The control object used to control the cross-validation used to determine
-thehyperparameters of the prior (if applicable). SeecreateControl for details.}
+\item{control}{The control object used to control the cross-validation used to determine the
+hyperparameters of the prior (if applicable). See Cyclops::createControl for
+details.}
 }
 \description{
 Create a parameter object for the function fitSccsModel

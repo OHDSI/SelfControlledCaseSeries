@@ -6,18 +6,17 @@ rw <- createSimulationRiskWindow(start = 0,
                                  endAnchor = "era end",
                                  relativeRisks = 2)
 
-settings <- createSccsSimulationSettings(eraIds = c(1, 2),
-                                         simulationRiskWindows = list(rw, rw))
+settings <- createSccsSimulationSettings(eraIds = 1,
+                                         simulationRiskWindows = list(rw))
 
 sccsData <- simulateSccsData(10000, settings)
 
 covarSettings <- createEraCovariateSettings(label = "Exposures of interest",
-                                            includeEraIds = c(1,2),
+                                            includeEraIds = 1,
                                             stratifyById = FALSE,
                                             start = 0,
                                             end = 0,
-                                            endAnchor = "era end",
-                                            splitPoints = 7)
+                                            endAnchor = "era end")
 
 studyPop <- createStudyPopulation(sccsData = sccsData,
                                   outcomeId = settings$outcomeId,
@@ -32,3 +31,6 @@ model <- fitSccsModel(sccsIntervalData)
 
 print(model)
 print(sprintf("True IRR = %0.2f", rw$relativeRisks))
+
+
+

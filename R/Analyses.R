@@ -19,45 +19,38 @@
 #' Create a SelfControlledCaseSeries analysis specification
 #'
 #' @details
-#' Create a set of analysis choices, to be used with the \code{\link{runSccsAnalyses}} function.
+#' Create a set of analysis choices, to be used with the [runSccsAnalyses] function.
 #'
 #' @param analysisId              An integer that will be used later to refer to this specific set of
 #'                                analysis choices.
 #' @param description             A short description of the analysis.
-#' @param exposureType            If more than one exposure is provided for each exposureOutcome, this
+#' @param exposureType            If more than one exposure is provided for each `exposureOutcome`, this
 #'                                field should be used to select the specific exposure to use in this
 #'                                analysis.
-#' @param outcomeType             If more than one outcome is provided for each exposureOutcome, this
+#' @param outcomeType             If more than one outcome is provided for each `exposureOutcom`e, this
 #'                                field should be used to select the specific outcome to use in this
 #'                                analysis.
 #' @param getDbSccsDataArgs       An object representing the arguments to be used when calling the
-#'                                \code{\link{getDbSccsData}} function.
+#'                                [getDbSccsData] function.
+#' @param createStudyPopulationArgs       An object representing the arguments to be used when calling the
+#'                                [getDbSccsData] function.
 #' @param createSccsIntervalDataArgs   An object representing the arguments to be used when calling the
-#'                                \code{\link{createSccsIntervalData}} function.
+#'                                [createSccsIntervalData] function.
 #' @param fitSccsModelArgs        An object representing the arguments to be used when calling the
-#'                                \code{\link{fitSccsModel}} function.
+#'                                [fitSccsModel] function.
 #' @export
 createSccsAnalysis <- function(analysisId = 1,
                                description = "",
                                exposureType = NULL,
                                outcomeType = NULL,
                                getDbSccsDataArgs,
+                               createStudyPopulationArgs,
                                createSccsIntervalDataArgs,
                                fitSccsModelArgs) {
-  # First: get the default values:
   analysis <- list()
   for (name in names(formals(createSccsAnalysis))) {
     analysis[[name]] <- get(name)
   }
-
-  # Next: overwrite defaults with actual values if specified:
-  values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
-  for (name in names(values)) {
-    if (name %in% names(analysis)) {
-      analysis[[name]] <- values[[name]]
-    }
-  }
-
   class(analysis) <- "sccsAnalysis"
   return(analysis)
 }
@@ -65,9 +58,9 @@ createSccsAnalysis <- function(analysisId = 1,
 #' Save a list of sccsAnalysis to file
 #'
 #' @description
-#' Write a list of objects of type \code{sccsAnalysis} to file. The file is in JSON format.
+#' Write a list of objects of type `sccsAnalysis` to file. The file is in JSON format.
 #'
-#' @param sccsAnalysisList   The sccsAnalysis list to be written to file
+#' @param sccsAnalysisList   The `sccsAnalysis` list to be written to file
 #' @param file               The name of the file where the results will be written
 #'
 #' @export
@@ -84,12 +77,12 @@ saveSccsAnalysisList <- function(sccsAnalysisList, file) {
 #' Load a list of sccsAnalysis from file
 #'
 #' @description
-#' Load a list of objects of type \code{sccsAnalysis} from file. The file is in JSON format.
+#' Load a list of objects of type `sccsAnalysis` from file. The file is in JSON format.
 #'
 #' @param file   The name of the file
 #'
 #' @return
-#' A list of objects of type \code{sccsAnalysis}.
+#' A list of objects of type `sccsAnalysis`.
 #'
 #' @export
 loadSccsAnalysisList <- function(file) {
@@ -99,14 +92,14 @@ loadSccsAnalysisList <- function(file) {
 #' Create a exposure-outcome combination.
 #'
 #' @details
-#' Create a set of hypotheses of interest, to be used with the \code{\link{runSccsAnalyses}} function.
+#' Create a set of hypotheses of interest, to be used with the [runSccsAnalyses] function.
 #'
 #' @param exposureId   A concept ID identifying the target drug in the exposure table. If multiple
 #'                     strategies for picking the exposure will be tested in the analysis, a named list
 #'                     of numbers can be provided instead. In the analysis, the name of the number to
-#'                     be used can be specified using the #' \code{exposureType} parameter in the
-#'                     \code{\link{createSccsAnalysis}} function.
-#' @param outcomeId    A concept ID indentifying the outcome in the outcome table.
+#'                     be used can be specified using the `exposureType` parameter in the
+#'                     [createSccsAnalysis] function.
+#' @param outcomeId    A concept ID identifying the outcome in the outcome table.
 #' @param ...          Custom variables, to be used in the analyses.
 #'
 #' @export
@@ -119,12 +112,12 @@ createExposureOutcome <- function(exposureId, outcomeId, ...) {
   return(exposureOutcome)
 }
 
-#' Save a list of exposureOutcome to file
+#' Save a list of `exposureOutcome` to file
 #'
 #' @description
-#' Write a list of objects of type \code{exposureOutcome} to file. The file is in JSON format.
+#' Write a list of objects of type `exposureOutcome` to file. The file is in JSON format.
 #'
-#' @param exposureOutcomeList   The exposureOutcome list to be written to file
+#' @param exposureOutcomeList   The `exposureOutcome` list to be written to file
 #' @param file                  The name of the file where the results will be written
 #'
 #' @export
@@ -140,12 +133,12 @@ saveExposureOutcomeList <- function(exposureOutcomeList, file) {
 #' Load a list of exposureOutcome from file
 #'
 #' @description
-#' Load a list of objects of type \code{exposureOutcome} from file. The file is in JSON format.
+#' Load a list of objects of type `exposureOutcome` from file. The file is in JSON format.
 #'
 #' @param file   The name of the file
 #'
 #' @return
-#' A list of objects of type \code{exposureOutcome}.
+#' A list of objects of type `exposureOutcome`.
 #'
 #' @export
 loadExposureOutcomeList <- function(file) {

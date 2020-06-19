@@ -10,10 +10,10 @@ createExposureOutcome(exposureId, outcomeId, ...)
 \item{exposureId}{A concept ID identifying the target drug in the exposure table. If multiple
 strategies for picking the exposure will be tested in the analysis, a named list
 of numbers can be provided instead. In the analysis, the name of the number to
-be used can be specified using the #' \code{exposureType} parameter in the
-\code{\link{createSccsAnalysis}} function.}
+be used can be specified using the \code{exposureType} parameter in the
+\link{createSccsAnalysis} function.}
 
-\item{outcomeId}{A concept ID indentifying the outcome in the outcome table.}
+\item{outcomeId}{A concept ID identifying the outcome in the outcome table.}
 
 \item{...}{Custom variables, to be used in the analyses.}
 }
@@ -21,5 +21,5 @@ be used can be specified using the #' \code{exposureType} parameter in the
 Create a exposure-outcome combination.
 }
 \details{
-Create a set of hypotheses of interest, to be used with the \code{\link{runSccsAnalyses}} function.
+Create a set of hypotheses of interest, to be used with the \link{runSccsAnalyses} function.
 }

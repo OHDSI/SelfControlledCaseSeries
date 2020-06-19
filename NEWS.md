@@ -17,6 +17,9 @@ BugFixes
 
 1. Generating sequential case IDs instead of observation period IDs to avoid collisions due to loss of precision when converting BIGINT to R's numeric.
 
+2. Added more heuristics to detect ill-behaving censoring functions when adjusting for event-dependent censoring.
+
+
 SelfControlledCaseSeries 1.4.2
 ==============================
 
