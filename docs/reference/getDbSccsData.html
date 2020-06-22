@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -86,6 +86,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -102,12 +105,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -166,8 +169,7 @@
     <tr>
       <th>connectionDetails</th>
       <td><p>An R object of type <code>ConnectionDetails</code> created using
-the function <code>createConnectionDetails</code> in the
-<code>DatabaseConnector</code> package.</p></td>
+the function <code><a href='https://rdrr.io/pkg/DatabaseConnector/man/createConnectionDetails.html'>DatabaseConnector::createConnectionDetails()</a></code> function.</p></td>
     </tr>
     <tr>
       <th>cdmDatabaseSchema</th>
@@ -299,31 +301,27 @@ indicates no maximum size.</p></td>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Returns an object of type <code>sccsData</code>, containing information on the cases, their outcomes,
-exposures, and potentially other covariates. Information about multiple outcomes can be captured at
-once for efficiency reasons. This object is a list with the following components:</p><dl'>
-<dt>cases</dt><dd><p>An ffdf object listing the persons that have the outcome(s), their age, and
-observation time.</p></dd> <dt>eras</dt><dd><p>An ffdf object listing the exposures, outcomes and other
-covariates.</p></dd> <dt>covariateRef</dt><dd><p>An ffdf object describing the covariates that have been
-extracted.</p></dd> <dt>metaData</dt><dd><p>A list of objects with information on how the sccsData object was
-constructed.</p></dd> 
-</dl><p>The generic <code><a href='https://rdrr.io/r/base/summary.html'>summary()</a></code> function has been implemented for this object.</p>
+    <p>An <a href='SccsData-class.html'>SccsData</a> object.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>This function downloads several types of information:</p><ul>
 <li><p>Information on the occurrences of the outcome(s) of interest. Note that information for
-        multiple outcomes can be fetched in one go, and later the specific outcome can be specified
-        for which we want to build a model.</p></li>
+multiple outcomes can be fetched in one go, and later the specific outcome can be specified
+for which we want to build a model.</p></li>
 <li><p>Information on the observation time and age for the people with the outcomes.</p></li>
 <li><p>Information on exposures of interest which we want to include in the model.</p></li>
-</ul><p>Five different database schemas can be specified, for five different types of information: The
-<code>cdmDatabaseSchema</code> is used to extract patient age and observation period. The
-<code>outcomeDatabaseSchema</code> is used to extract information about the outcomes, the
-<code>exposureDatabaseSchema</code> is used to retrieve information on exposures, and the
-<code>customCovariateDatabaseSchema</code> is optionally used to find additional, user-defined
-covariates. All four locations could point to the same database schema.
-<code>nestingCohortDatabaseSchema</code> is optionally used to define a cohort in which the analysis is nested,
-for example a cohort of diabetics patients.</p>
+</ul>
+
+<p>Five different database schemas can be specified, for five different types of information: The</p><ul>
+<li><p><strong>cdmDatabaseSchema</strong> is used to extract patient age and observation period. The</p></li>
+<li><p><strong>outcomeDatabaseSchema</strong> is used to extract information about the outcomes, the</p></li>
+<li><p><strong>exposureDatabaseSchema</strong> is used to retrieve information on exposures, and the</p></li>
+<li><p><strong>customCovariateDatabaseSchema</strong> is optionally used to find additional, user-defined
+covariates. All four locations could point to the same database schema.</p></li>
+<li><p><strong>nestingCohortDatabaseSchema</strong> is optionally used to define a cohort in which the analysis is nested,
+for example a cohort of diabetics patients.</p></li>
+</ul>
+
 <p>All five locations could point to the same database schema.</p>
 
   </div>
@@ -341,7 +339,7 @@ for example a cohort of diabetics patients.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

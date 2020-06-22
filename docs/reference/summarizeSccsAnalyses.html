@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -86,6 +86,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -102,12 +105,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -135,14 +138,14 @@
     <p>Create a summary report of the analyses</p>
     </div>
 
-    <pre class="usage"><span class='fu'>summarizeSccsAnalyses</span>(<span class='no'>outcomeReference</span>, <span class='no'>outputFolder</span>)</pre>
+    <pre class="usage"><span class='fu'>summarizeSccsAnalyses</span>(<span class='no'>referenceTable</span>, <span class='no'>outputFolder</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>outcomeReference</th>
-      <td><p>A data.frame as created by the <code><a href='runSccsAnalyses.html'>runSccsAnalyses</a></code> function.</p></td>
+      <th>referenceTable</th>
+      <td><p>A tibble as created by the <a href='runSccsAnalyses.html'>runSccsAnalyses</a> function.</p></td>
     </tr>
     <tr>
       <th>outputFolder</th>
@@ -152,35 +155,7 @@
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A data frame with the following columns:</p><table class='table'>
-<tr><td><code>analysisId</code></td><td>The unique identifier
-for a set of analysis choices.</td></tr>
-<tr><td><code>targetId</code></td><td>The ID of the target drug.</td></tr>
-<tr><td><code>comparatorId</code></td><td>The ID of the comparator group.</td></tr>
-<tr><td><code>indicationConceptIds</code></td><td>The
-ID(s) of indications in which to nest to study.</td></tr>
-<tr><td><code>outcomeId</code></td><td>The ID of the outcome.</td></tr>
-<tr><td><code>rr</code></td><td>The estimated effect size.</td></tr>
-<tr><td><code>ci95lb</code></td><td>The lower bound of the 95 percent
-confidence interval.</td></tr>
-<tr><td><code>ci95ub</code></td><td>The upper bound of the 95 percent confidence
-interval.</td></tr>
-<tr><td><code>treated</code></td><td>The number of subjects in the treated group (after any trimming
-and matching).</td></tr>
-<tr><td><code>comparator</code></td><td>The number of subjects in the comparator group (after any
-trimming and matching).</td></tr>
-<tr><td><code>eventsTreated</code></td><td>The number of outcomes in the treated group
-(after any trimming and matching).</td></tr>
-<tr><td><code>eventsComparator</code></td><td>The number of outcomes in the
-comparator group (after any trimming and</td></tr>
-<tr><td></td><td>matching).</td></tr>
-<tr><td><code>logRr</code></td><td>The log of the
-estimated relative risk.</td></tr>
-<tr><td><code>seLogRr</code></td><td>The standard error of the log of the estimated
-relative risk.</td></tr>
-</table>
-
-
+    <p>A tibble containing summary statistics for each exposure-outcome-analysis combination.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -197,7 +172,7 @@ relative risk.</td></tr>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

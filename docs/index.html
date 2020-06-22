@@ -13,13 +13,13 @@
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Self-Controlled Case Series">
 <meta property="og:description" content="SelfControlledCaseSeries is an R package for performing self-
-    controlled case series (SCCS) analyses in an observational database in the OMOP
-    Common Data Model. It extracts all necessary data from the database and 
-    transforms it to the format required for SCCS. Age and season can be modeled
-    using splines assuming constant hazard within calendar months. Event-dependent 
-    censoring of the observation period can be corrected for. Many exposures can be
-    included at once (MSCCS), with regularization on all coefficients except for the
-    exposure of interest.">
+	controlled case series (SCCS) analyses in an observational database in the OMOP
+	Common Data Model. It extracts all necessary data from the database and 
+	transforms it to the format required for SCCS. Age and season can be modeled
+	using splines assuming constant hazard within calendar months. Event-dependent 
+	censoring of the observation period can be corrected for. Many exposures can be
+	included at once (MSCCS), with regularization on all coefficients except for the
+	exposure of interest.">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -38,7 +38,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -52,6 +52,9 @@
 </li>
 <li>
   <a href="reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -68,11 +71,11 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="news/index.html">Changelog</a>
-</li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
 <li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
@@ -96,7 +99,7 @@
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#selfcontrolledcaseseries" class="anchor"></a>SelfControlledCaseSeries</h1></div>
 
-<p>SelfControlledCaseSeries is part of the <a href="https://ohdsi.github.io/MethodsLibrary">OHDSI Methods Library</a>.</p>
+<p>SelfControlledCaseSeries is part of <a href="https://ohdsi.github.io/Hades">HADES</a>.</p>
 </div>
 <div id="introduction" class="section level1">
 <h1 class="hasAnchor">
@@ -111,7 +114,7 @@
 <li>Optionally add seasonality using a spline function.</li>
 <li>Optionally add age using a spline function.</li>
 <li>Optionally correct for event-dependent censoring of the observation period.</li>
-<li>Optionally add many covariates in one analysis (e.g.Â all drugs).</li>
+<li>Optionally add many covariates in one analysis (e.g. all drugs).</li>
 <li>Options for constructing different types of covariates and risk windows, including pre-exposure windows (to capture contra-indications).</li>
 <li>Optionally use regularization on all covariates except the outcome of interest.</li>
 </ul>
@@ -123,28 +126,36 @@
                           <span class="kw">cdmDatabaseSchema</span> <span class="kw">=</span> <span class="no">cdmDatabaseSchema</span>,
                           <span class="kw">outcomeIds</span> <span class="kw">=</span> <span class="fl">192671</span>,
                           <span class="kw">exposureIds</span> <span class="kw">=</span> <span class="fl">1124300</span>)
-<span class="no">covarDiclofenac</span> <span class="kw">=</span> <span class="fu"><a href="reference/createCovariateSettings.html">createCovariateSettings</a></span>(<span class="kw">label</span> <span class="kw">=</span> <span class="st">"Exposure of interest"</span>,
-                                          <span class="kw">includeCovariateIds</span> <span class="kw">=</span> <span class="fl">1124300</span>,
-                                          <span class="kw">start</span> <span class="kw">=</span> <span class="fl">0</span>,
-                                          <span class="kw">end</span> <span class="kw">=</span> <span class="fl">0</span>,
-                                          <span class="kw">addExposedDaysToEnd</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
-<span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">sccsData</span>,
-                                 <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>,
-                                 <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
-                                 <span class="kw">covariateSettings</span> <span class="kw">=</span> <span class="no">covarDiclofenac</span>)
+
+<span class="no">studyPop</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/createStudyPopulation.html">createStudyPopulation</a></span>(<span class="kw">sccsData</span> <span class="kw">=</span> <span class="no">sccsData</span>,
+                                  <span class="kw">outcomeId</span> <span class="kw">=</span> <span class="fl">192671</span>,
+                                  <span class="kw">firstOutcomeOnly</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
+                                  <span class="kw">naivePeriod</span> <span class="kw">=</span> <span class="fl">180</span>)
+
+<span class="no">covarDiclofenac</span> <span class="kw">=</span> <span class="fu"><a href="reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span>(<span class="kw">label</span> <span class="kw">=</span> <span class="st">"Exposure of interest"</span>,
+                                             <span class="kw">includeEraIds</span> <span class="kw">=</span> <span class="fl">1124300</span>,
+                                             <span class="kw">start</span> <span class="kw">=</span> <span class="fl">0</span>,
+                                             <span class="kw">end</span> <span class="kw">=</span> <span class="fl">0</span>,
+                                             <span class="kw">endAnchor</span> <span class="kw">=</span> <span class="st">"era end"</span>)
+
+<span class="no">sccsIntervalData</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/createSccsIntervalData.html">createSccsIntervalData</a></span>(<span class="no">studyPop</span>,
+                                           <span class="no">sccsData</span>,
+                                           <span class="kw">eraCovariateSettings</span> <span class="kw">=</span> <span class="no">covarDiclofenac</span>)
 <span class="no">model</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/fitSccsModel.html">fitSccsModel</a></span>(<span class="no">sccsIntervalData</span>)
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(<span class="no">model</span>)
-<span class="co"># sccsModel object summary</span>
+<span class="no">model</span>
+<span class="co"># SccsModel object</span>
 <span class="co"># </span>
 <span class="co"># Outcome ID: 192671</span>
 <span class="co"># </span>
 <span class="co"># Outcome count:</span>
-<span class="co">#        Event count Case count</span>
-<span class="co"># 192671      433433     137888</span>
+<span class="co">#        outcomeSubjects outcomeEvents outcomeObsPeriods</span>
+<span class="co"># 192671          272243        387158            274449</span>
 <span class="co"># </span>
 <span class="co"># Estimates:</span>
-<span class="co">#                               Name    ID  Estimate  lower .95  upper .95   logRr  seLogRr</span>
-<span class="co">#   Exposure of interest: Diclofenac  1000     1.274      1.213      1.336  0.2421  0.02431</span></pre></div>
+<span class="co"># # A tibble: 1 x 7</span>
+<span class="co">#   Name                                ID Estimate LB95CI UB95CI logRr seLogRr</span>
+<span class="co">#   &lt;chr&gt;                            &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;</span>
+<span class="co"># 1 Exposure of interest: Diclofenac  1000     1.18   1.13   1.24 0.167  0.0230</span></pre></div>
 </div>
 <div id="technology" class="section level1">
 <h1 class="hasAnchor">
@@ -156,13 +167,12 @@
 <a href="#system-requirements" class="anchor"></a>System Requirements</h1>
 <p>Requires R (version 3.2.2 or higher). Installation on Windows requires <a href="http://cran.r-project.org/bin/windows/Rtools/">RTools</a>. Libraries used in SelfControlledCaseSeries require Java.</p>
 </div>
-<div id="getting-started" class="section level1">
+<div id="installation" class="section level1">
 <h1 class="hasAnchor">
-<a href="#getting-started" class="anchor"></a>Getting Started</h1>
+<a href="#installation" class="anchor"></a>Installation</h1>
 <ol>
-<li>On Windows, make sure <a href="http://cran.r-project.org/bin/windows/Rtools/">RTools</a> is installed.</li>
-<li>The DatabaseConnector and SqlRender packages require Java. Java can be downloaded from <a href="http://www.java.com" target="_blank">http://www.java.com</a>.</li>
-<li>In R, use the following commands to download and install SelfControlledCaseSeries:</li>
+<li><p>See the instructions <a href="https://ohdsi.github.io/Hades/rSetup.html">here</a> for configuring your R environment, including Java.</p></li>
+<li><p>In R, use the following commands to download and install MethodEvaluation:</p></li>
 </ol>
 <div class="sourceCode" id="cb2"><pre class="r"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="st">"drat"</span>)
 <span class="kw pkg">drat</span><span class="kw ns">::</span><span class="fu">addRepo</span>(<span class="st">"OHDSI"</span>)
@@ -171,6 +181,8 @@
 <div id="user-documentation" class="section level1">
 <h1 class="hasAnchor">
 <a href="#user-documentation" class="anchor"></a>User Documentation</h1>
+<p>Documentation can be found on the <a href="https://ohdsi.github.io/SelfControlledCaseSeries">package website</a>.</p>
+<p>PDF versions of the documentation are also available:</p>
 <ul>
 <li>Vignette: <a href="https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/inst/doc/SingleStudies.pdf">Single studies using the SelfControlledCaseSeries package</a>
 </li>
@@ -188,6 +200,11 @@
 </li>
 <li>We use the <a href="https://github.com/OHDSI/SelfControlledCaseSeries/issues">GitHub issue tracker</a> for all bugs/issues/enhancements</li>
 </ul>
+</div>
+<div id="contributing" class="section level1">
+<h1 class="hasAnchor">
+<a href="#contributing" class="anchor"></a>Contributing</h1>
+<p>Read <a href="https://ohdsi.github.io/Hades/contribute.html">here</a> how you can contribute to this package.</p>
 </div>
 <div id="license" class="section level1">
 <h1 class="hasAnchor">
@@ -259,7 +276,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

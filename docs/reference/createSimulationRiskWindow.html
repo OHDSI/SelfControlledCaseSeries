@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -86,6 +86,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -102,12 +105,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -138,7 +141,7 @@
     <pre class="usage"><span class='fu'>createSimulationRiskWindow</span>(
   <span class='kw'>start</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>end</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>addExposedDaysToEnd</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>endAnchor</span> <span class='kw'>=</span> <span class='st'>"era end"</span>,
   <span class='kw'>splitPoints</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(),
   <span class='kw'>relativeRisks</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>)
 )</pre>
@@ -152,14 +155,12 @@
     </tr>
     <tr>
       <th>end</th>
-      <td><p>End of risk window relative to exposure start, or if
-<code>addExposedDaysToEnd</code> is TRUE, relative to the end date.</p></td>
+      <td><p>The end of the risk window (in days) relative to the <code>endAnchor</code>.</p></td>
     </tr>
     <tr>
-      <th>addExposedDaysToEnd</th>
-      <td><p>Should the length of exposure be added to the end date? In other words,
-should the exposure end date be used as reference point for the risk
-window end?</p></td>
+      <th>endAnchor</th>
+      <td><p>The anchor point for the end of the risk window. Can be <code>"era start"</code>
+or <code>"era end"</code>.</p></td>
     </tr>
     <tr>
       <th>splitPoints</th>
@@ -192,7 +193,7 @@ risks, one for each sub-window.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

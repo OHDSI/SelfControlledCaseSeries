@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -86,6 +86,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -102,12 +105,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -141,6 +144,7 @@
   <span class='kw'>exposureType</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>outcomeType</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='no'>getDbSccsDataArgs</span>,
+  <span class='no'>createStudyPopulationArgs</span>,
   <span class='no'>createSccsIntervalDataArgs</span>,
   <span class='no'>fitSccsModelArgs</span>
 )</pre>
@@ -159,36 +163,41 @@ analysis choices.</p></td>
     </tr>
     <tr>
       <th>exposureType</th>
-      <td><p>If more than one exposure is provided for each exposureOutcome, this
+      <td><p>If more than one exposure is provided for each <code>exposureOutcome</code>, this
 field should be used to select the specific exposure to use in this
 analysis.</p></td>
     </tr>
     <tr>
       <th>outcomeType</th>
-      <td><p>If more than one outcome is provided for each exposureOutcome, this
+      <td><p>If more than one outcome is provided for each <code>exposureOutcom</code>e, this
 field should be used to select the specific outcome to use in this
 analysis.</p></td>
     </tr>
     <tr>
       <th>getDbSccsDataArgs</th>
       <td><p>An object representing the arguments to be used when calling the
-<code><a href='getDbSccsData.html'>getDbSccsData</a></code> function.</p></td>
+<a href='getDbSccsData.html'>getDbSccsData</a> function.</p></td>
+    </tr>
+    <tr>
+      <th>createStudyPopulationArgs</th>
+      <td><p>An object representing the arguments to be used when calling the
+<a href='getDbSccsData.html'>getDbSccsData</a> function.</p></td>
     </tr>
     <tr>
       <th>createSccsIntervalDataArgs</th>
       <td><p>An object representing the arguments to be used when calling the
-<code><a href='createSccsIntervalData.html'>createSccsIntervalData</a></code> function.</p></td>
+<a href='createSccsIntervalData.html'>createSccsIntervalData</a> function.</p></td>
     </tr>
     <tr>
       <th>fitSccsModelArgs</th>
       <td><p>An object representing the arguments to be used when calling the
-<code><a href='fitSccsModel.html'>fitSccsModel</a></code> function.</p></td>
+<a href='fitSccsModel.html'>fitSccsModel</a> function.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Create a set of analysis choices, to be used with the <code><a href='runSccsAnalyses.html'>runSccsAnalyses</a></code> function.</p>
+    <p>Create a set of analysis choices, to be used with the <a href='runSccsAnalyses.html'>runSccsAnalyses</a> function.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -205,7 +214,7 @@ analysis.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

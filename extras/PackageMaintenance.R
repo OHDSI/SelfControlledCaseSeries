@@ -27,7 +27,6 @@ source("extras/SimpleSimulation.R")
 source("extras/SplittingSimulations.R")
 source("extras/AgeAndSeasonSimulations.R")
 
-
 # Create manual and vignette
 if (.Platform$OS.type == "unix") {
   system("rm extras/SelfControlledCaseSeries.pdf")
@@ -52,6 +51,7 @@ rmarkdown::render("vignettes/MultipleAnalyses.Rmd",
 unlink("inst/doc/MultipleAnalyses.tex")
 
 pkgdown::build_site()
+OhdsiRTools::fixHadesLogo()
 
 # Create arg functions:
 library(SelfControlledCaseSeries)

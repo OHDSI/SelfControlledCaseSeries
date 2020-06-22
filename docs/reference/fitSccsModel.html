@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -86,6 +86,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -102,12 +105,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -147,25 +150,25 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>sccsIntervalData</th>
-      <td><p>An object of type <code>sccsIntervalData</code> as created using the
-<code><a href='createSccsIntervalData.html'>createSccsIntervalData</a></code> function.</p></td>
+      <td><p>An object of type <a href='SccsIntervalData-class.html'>SccsIntervalData</a> as created using the
+<a href='createSccsIntervalData.html'>createSccsIntervalData</a> function.</p></td>
     </tr>
     <tr>
       <th>prior</th>
-      <td><p>The prior used to fit the model. See <code><a href='https://rdrr.io/pkg/Cyclops/man/createPrior.html'>createPrior</a></code> for
+      <td><p>The prior used to fit the model. See <a href='https://rdrr.io/pkg/Cyclops/man/createPrior.html'>Cyclops::createPrior</a> for
 details.</p></td>
     </tr>
     <tr>
       <th>control</th>
       <td><p>The control object used to control the cross-validation used to determine the
 hyperparameters of the prior (if applicable). See
-<code><a href='https://rdrr.io/pkg/Cyclops/man/createControl.html'>createControl</a></code> for details.</p></td>
+<a href='https://rdrr.io/pkg/Cyclops/man/createControl.html'>Cyclops::createControl</a> for details.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An object of type <code>sccsModel</code>. Generic functions <code>summary</code>, <code>coef</code>, and
+    <p>An object of type <code>SccsModel</code>. Generic functions <code>print</code>, <code>coef</code>, and
 <code>confint</code> are available.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
@@ -192,7 +195,7 @@ and Computer Simulation 23, 10</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

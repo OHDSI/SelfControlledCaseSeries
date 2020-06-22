@@ -4,7 +4,7 @@ SelfControlledCaseSeries
 [![Build Status](https://travis-ci.org/OHDSI/SelfControlledCaseSeries.svg?branch=master)](https://travis-ci.org/OHDSI/SelfControlledCaseSeries)
 [![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=master)
 
-SelfControlledCaseSeries is part of the [OHDSI Methods Library](https://ohdsi.github.io/MethodsLibrary).
+SelfControlledCaseSeries is part of [HADES](https://ohdsi.github.io/Hades).
 
 Introduction
 ============
@@ -28,28 +28,36 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           outcomeIds = 192671,
                           exposureIds = 1124300)
-covarDiclofenac = createCovariateSettings(label = "Exposure of interest",
-                                          includeCovariateIds = 1124300,
-                                          start = 0,
-                                          end = 0,
-                                          addExposedDaysToEnd = TRUE)
-sccsIntervalData <- createSccsIntervalData(sccsData,
-                                 naivePeriod = 180,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = covarDiclofenac)
+
+studyPop <- createStudyPopulation(sccsData = sccsData,
+                                  outcomeId = 192671,
+                                  firstOutcomeOnly = FALSE,
+                                  naivePeriod = 180)
+
+covarDiclofenac = createEraCovariateSettings(label = "Exposure of interest",
+                                             includeEraIds = 1124300,
+                                             start = 0,
+                                             end = 0,
+                                             endAnchor = "era end")
+
+sccsIntervalData <- createSccsIntervalData(studyPop,
+                                           sccsData,
+                                           eraCovariateSettings = covarDiclofenac)
 model <- fitSccsModel(sccsIntervalData)
-summary(model)
-# sccsModel object summary
+model
+# SccsModel object
 # 
 # Outcome ID: 192671
 # 
 # Outcome count:
-#        Event count Case count
-# 192671      433433     137888
+#        outcomeSubjects outcomeEvents outcomeObsPeriods
+# 192671          272243        387158            274449
 # 
 # Estimates:
-#                               Name    ID  Estimate  lower .95  upper .95   logRr  seLogRr
-#   Exposure of interest: Diclofenac  1000     1.274      1.213      1.336  0.2421  0.02431
+# # A tibble: 1 x 7
+#   Name                                ID Estimate LB95CI UB95CI logRr seLogRr
+#   <chr>                            <dbl>    <dbl>  <dbl>  <dbl> <dbl>   <dbl>
+# 1 Exposure of interest: Diclofenac  1000     1.18   1.13   1.24 0.167  0.0230
 ```
 
 Technology
@@ -60,12 +68,12 @@ System Requirements
 ===================
 Requires R (version 3.2.2 or higher). Installation on Windows requires [RTools](http://cran.r-project.org/bin/windows/Rtools/). Libraries used in SelfControlledCaseSeries require Java.
 
-Getting Started
-===============
-1. On Windows, make sure [RTools](http://cran.r-project.org/bin/windows/Rtools/) is installed.
-2. The DatabaseConnector and SqlRender packages require Java. Java can be downloaded from
-<a href="http://www.java.com" target="_blank">http://www.java.com</a>.
-3. In R, use the following commands to download and install SelfControlledCaseSeries:
+Installation
+============
+
+1. See the instructions [here](https://ohdsi.github.io/Hades/rSetup.html) for configuring your R environment, including Java.
+
+2. In R, use the following commands to download and install MethodEvaluation:
 
   ```r
   install.packages("drat")
@@ -75,6 +83,9 @@ Getting Started
 
 User Documentation
 ==================
+Documentation can be found on the [package website](https://ohdsi.github.io/SelfControlledCaseSeries).
+
+PDF versions of the documentation are also available:
 * Vignette: [Single studies using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/inst/doc/SingleStudies.pdf)
 * Vignette: [Running multiple analyses at once using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/inst/doc/MultipleAnalyses.pdf)
 * Package manual: [SelfControlledCaseSeries.pdf](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/extras/SelfControlledCaseSeries.pdf)
@@ -83,6 +94,10 @@ Support
 =======
 * Developer questions/comments/feedback: <a href="http://forums.ohdsi.org/c/developers">OHDSI Forum</a>
 * We use the <a href="https://github.com/OHDSI/SelfControlledCaseSeries/issues">GitHub issue tracker</a> for all bugs/issues/enhancements
+
+Contributing
+============
+Read [here](https://ohdsi.github.io/Hades/contribute.html) how you can contribute to this package.
 
 License
 =======

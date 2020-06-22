@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Load the SCCS data from a folder — loadSccsData • SelfControlledCaseSeries</title>
+<title>Load the cohort method data from a file — loadSccsData • SelfControlledCaseSeries</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Load the SCCS data from a folder — loadSccsData" />
-<meta property="og:description" content="loadSccsData loads an object of type sccsData from a folder in the file system." />
+<meta property="og:title" content="Load the cohort method data from a file — loadSccsData" />
+<meta property="og:description" content="Loads an object of type SccsData from a file in the file system." />
 
 
 
@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -86,6 +86,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -102,12 +105,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -126,36 +129,29 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Load the SCCS data from a folder</h1>
-    <small class="dont-index">Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/R/DataLoadingSaving.R'><code>R/DataLoadingSaving.R</code></a></small>
+    <h1>Load the cohort method data from a file</h1>
+    <small class="dont-index">Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/R/SccsData.R'><code>R/SccsData.R</code></a></small>
     <div class="hidden name"><code>loadSccsData.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p><code>loadSccsData</code> loads an object of type sccsData from a folder in the file system.</p>
+    <p>Loads an object of type <a href='SccsData-class.html'>SccsData</a> from a file in the file system.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>loadSccsData</span>(<span class='no'>folder</span>, <span class='kw'>readOnly</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    <pre class="usage"><span class='fu'>loadSccsData</span>(<span class='no'>file</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>folder</th>
-      <td><p>The name of the folder containing the data.</p></td>
-    </tr>
-    <tr>
-      <th>readOnly</th>
-      <td><p>If true, the data is opened read only.</p></td>
+      <th>file</th>
+      <td><p>The name of the file containing the data.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An object of class cohortData.</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>The data will be written to a set of files in the folder specified by the user.</p>
+    <p>An object of class <a href='SccsData-class.html'>SccsData</a>.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -172,7 +168,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

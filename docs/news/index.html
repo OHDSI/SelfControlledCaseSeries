@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -85,6 +85,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -101,12 +104,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -129,18 +132,35 @@
       <small>Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div id="cohortmethod-142" class="section level1">
+    <div id="selfcontrolledcaseseries-200" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.0">
+<a href="#selfcontrolledcaseseries-200" class="anchor"></a>SelfControlledCaseSeries 2.0.0</h1>
+<p>Changes</p>
+<ol>
+<li><p>Switching from ff to Andromeda for storing large data objects.</p></li>
+<li><p>Making creation of the study population a separate step, with the new <code>createStudyPopulation</code> function.</p></li>
+<li><p>The data on cohorts, exposure, and outcome eras retrieved from the database is now consistently referred to as ‘eras’. Data transformed to non-overlapping intervals is now referred to as ‘sccsIntervalData’.</p></li>
+<li><p>Adding tracking of attrition.</p></li>
+<li><p>Automatically removing age spline if selected censoring model already adjusts for age.</p></li>
+</ol>
+<p>BugFixes</p>
+<ol>
+<li><p>Generating sequential case IDs instead of observation period IDs to avoid collisions due to loss of precision when converting BIGINT to R’s numeric.</p></li>
+<li><p>Added more heuristics to detect ill-behaving censoring functions when adjusting for event-dependent censoring.</p></li>
+</ol>
+</div>
+    <div id="selfcontrolledcaseseries-142" class="section level1">
 <h1 class="page-header" data-toc-text="1.4.2">
-<a href="#cohortmethod-142" class="anchor"></a>CohortMethod 1.4.2</h1>
+<a href="#selfcontrolledcaseseries-142" class="anchor"></a>SelfControlledCaseSeries 1.4.2</h1>
 <p>Bugfixes</p>
 <ol>
 <li><p>Fixed errors introduced by R 4.0.0.</p></li>
 <li><p>Gracefully handling when fitting the outcome model hits the max number of iterations.</p></li>
 </ol>
 </div>
-    <div id="cohortmethod-141" class="section level1">
+    <div id="selfcontrolledcaseseries-141" class="section level1">
 <h1 class="page-header" data-toc-text="1.4.1">
-<a href="#cohortmethod-141" class="anchor"></a>CohortMethod 1.4.1</h1>
+<a href="#selfcontrolledcaseseries-141" class="anchor"></a>SelfControlledCaseSeries 1.4.1</h1>
 <p>Bugfixes</p>
 <ol>
 <li><p>Several workaround for issues with the ff package.</p></li>
@@ -164,7 +184,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

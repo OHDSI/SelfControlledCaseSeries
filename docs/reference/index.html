@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -85,6 +85,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -101,12 +104,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -157,21 +160,27 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="createAgeSettings.html">createAgeSettings()</a></code> </p>
+          <p><code><a href="createAgeCovariateSettings.html">createAgeCovariateSettings()</a></code> </p>
         </td>
-        <td><p>Create age settings</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="createCovariateSettings.html">createCovariateSettings()</a></code> </p>
-        </td>
-        <td><p>Create covariate settings</p></td>
+        <td><p>Create age covariate settings</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs()</a></code> </p>
         </td>
         <td><p>Create a parameter object for the function createSccsIntervalData</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="createCreateStudyPopulationArgs.html">createCreateStudyPopulationArgs()</a></code> </p>
+        </td>
+        <td><p>Create a parameter object for the function createStudyPopulation</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="createEraCovariateSettings.html">createEraCovariateSettings()</a></code> </p>
+        </td>
+        <td><p>Create era covariate settings</p></td>
       </tr><tr>
         
         <td>
@@ -211,7 +220,7 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="createSeasonalitySettings.html">createSeasonalitySettings()</a></code> </p>
+          <p><code><a href="createSeasonalityCovariateSettings.html">createSeasonalityCovariateSettings()</a></code> </p>
         </td>
         <td><p>Create seasonality settings</p></td>
       </tr><tr>
@@ -220,6 +229,12 @@
           <p><code><a href="createSimulationRiskWindow.html">createSimulationRiskWindow()</a></code> </p>
         </td>
         <td><p>Create a risk window definition for simulation</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="createStudyPopulation.html">createStudyPopulation()</a></code> </p>
+        </td>
+        <td><p>Create a study population</p></td>
       </tr><tr>
         
         <td>
@@ -235,9 +250,9 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="forceSccsIntervalDataIntoRam.html">forceSccsIntervalDataIntoRam()</a></code> </p>
+          <p><code><a href="getAttritionTable.html">getAttritionTable()</a></code> </p>
         </td>
-        <td><p>Force a loaded SCCS era data in RAM</p></td>
+        <td><p>Get the attrition table for a population</p></td>
       </tr><tr>
         
         <td>
@@ -250,6 +265,18 @@
           <p><code><a href="getModel.html">getModel()</a></code> </p>
         </td>
         <td><p>Output the full model</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="isSccsData.html">isSccsData()</a></code> </p>
+        </td>
+        <td><p>Check whether an object is a SccsData object</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="isSccsIntervalData.html">isSccsIntervalData()</a></code> </p>
+        </td>
+        <td><p>Check whether an object is a SccsIntervalData object</p></td>
       </tr><tr>
         
         <td>
@@ -267,13 +294,13 @@
         <td>
           <p><code><a href="loadSccsData.html">loadSccsData()</a></code> </p>
         </td>
-        <td><p>Load the SCCS data from a folder</p></td>
+        <td><p>Load the cohort method data from a file</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="loadSccsIntervalData.html">loadSccsIntervalData()</a></code> </p>
         </td>
-        <td><p>Load the SCCS era data from a folder</p></td>
+        <td><p>Load the cohort method data from a file</p></td>
       </tr><tr>
         
         <td>
@@ -307,12 +334,6 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="plotPerPersonData.html">plotPerPersonData()</a></code> </p>
-        </td>
-        <td><p>Plot exposures and outcomes per person</p></td>
-      </tr><tr>
-        
-        <td>
           <p><code><a href="plotSeasonality.html">plotSeasonality()</a></code> </p>
         </td>
         <td><p>Plot the seasonality effect</p></td>
@@ -327,7 +348,7 @@
         <td>
           <p><code><a href="saveExposureOutcomeList.html">saveExposureOutcomeList()</a></code> </p>
         </td>
-        <td><p>Save a list of exposureOutcome to file</p></td>
+        <td><p>Save a list of <code>exposureOutcome</code> to file</p></td>
       </tr><tr>
         
         <td>
@@ -339,13 +360,25 @@
         <td>
           <p><code><a href="saveSccsData.html">saveSccsData()</a></code> </p>
         </td>
-        <td><p>Save the SCCS data to folder</p></td>
+        <td><p>Save the cohort method data to file</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="saveSccsIntervalData.html">saveSccsIntervalData()</a></code> </p>
         </td>
-        <td><p>Save the SCCS era data to folder</p></td>
+        <td><p>Save the cohort method data to file</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="SccsData-class.html">show(<i>&lt;SccsData&gt;</i>)</a></code> <code><a href="SccsData-class.html">summary(<i>&lt;SccsData&gt;</i>)</a></code> </p>
+        </td>
+        <td><p>SCCS Data</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="SccsIntervalData-class.html">show(<i>&lt;SccsIntervalData&gt;</i>)</a></code> <code><a href="SccsIntervalData-class.html">summary(<i>&lt;SccsIntervalData&gt;</i>)</a></code> </p>
+        </td>
+        <td><p>SCCS Interval Data</p></td>
       </tr><tr>
         
         <td>
@@ -377,7 +410,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

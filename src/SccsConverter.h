@@ -85,13 +85,6 @@ struct ConcomitantEra {
     return (this == &era);
   }
 
-  void print() {
-    std::cout << "Start: " << start << ", end: " << end << ", size: " << eraIdToValue.size() << std::endl;
-    for (unsigned int i = 0; i < eraIdToValue.size(); i++) {
-      std::cout << "CID: " << eraIdToValue[i] << std::endl;
-    }
-  }
-
   int start;
   int end;
   double weight;

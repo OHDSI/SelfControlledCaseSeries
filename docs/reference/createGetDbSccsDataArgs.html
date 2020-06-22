@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -86,6 +86,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -102,12 +105,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -156,49 +159,49 @@
     </tr>
     <tr>
       <th>useNestingCohort</th>
-      <td><p>Should the study be nested in a cohort (e.g. people witha
-specific indication)? If not, the study will be nestedin the
+      <td><p>Should the study be nested in a cohort (e.g. people with a
+specific indication)? If not, the study will be nested in the
 general population.</p></td>
     </tr>
     <tr>
       <th>nestingCohortId</th>
-      <td><p>A cohort definition ID identifying the records in
-thenestingCohortTable to use as nesting cohort.</p></td>
+      <td><p>A cohort definition ID identifying the records in the
+nestingCohortTable to use as nesting cohort.</p></td>
     </tr>
     <tr>
       <th>deleteCovariatesSmallCount</th>
-      <td><p>The minimum count for a covariate to appear in the data to
-bekept.</p></td>
+      <td><p>The minimum count for a covariate to appear in the data to be
+kept.</p></td>
     </tr>
     <tr>
       <th>studyStartDate</th>
-      <td><p>A calendar date specifying the minimum date where data isused.
+      <td><p>A calendar date specifying the minimum date where data is used.
 Date format is 'yyyymmdd'.</p></td>
     </tr>
     <tr>
       <th>studyEndDate</th>
-      <td><p>A calendar date specifying the maximum date where data isused.
+      <td><p>A calendar date specifying the maximum date where data is used.
 Date format is 'yyyymmdd'.</p></td>
     </tr>
     <tr>
       <th>maxCasesPerOutcome</th>
-      <td><p>If there are more than this number of cases for a singleoutcome
-cases will be sampled to this size. maxCasesPerOutcome =
-0indicates no maximum size.</p></td>
+      <td><p>If there are more than this number of cases for a single outcome
+cases will be sampled to this size. maxCasesPerOutcome = 0
+indicates no maximum size.</p></td>
     </tr>
     <tr>
       <th>exposureIds</th>
-      <td><p>A list of identifiers to define the exposures of interest.
-IfexposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.If
-exposureTable &lt;&gt; DRUG_ERA, exposureIds is used to selectthe
-cohort_concept_id in the cohort-like table. If noexposureIds are
-provided, all drugs or cohorts in theexposureTable are included
-as exposures.</p></td>
+      <td><p>A list of identifiers to define the exposures of interest. If
+exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID. If
+exposureTable &lt;&gt; DRUG_ERA, exposureIds is used to select the
+cohort_concept_id in the cohort-like table. If no exposureIds
+are provided, all drugs or cohorts in the exposureTable are
+included as exposures.</p></td>
     </tr>
     <tr>
       <th>customCovariateIds</th>
-      <td><p>A list of cohort definition IDS identifying the records inthe
-customCovariateTable to use for building customcovariates.</p></td>
+      <td><p>A list of cohort definition IDS identifying the records in the
+customCovariateTable to use for building custom covariates.</p></td>
     </tr>
     </table>
 
@@ -221,7 +224,7 @@ customCovariateTable to use for building customcovariates.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

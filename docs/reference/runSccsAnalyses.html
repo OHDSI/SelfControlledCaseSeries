@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -86,6 +86,9 @@
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -102,12 +105,12 @@
     </li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -152,8 +155,8 @@
   <span class='no'>sccsAnalysisList</span>,
   <span class='no'>exposureOutcomeList</span>,
   <span class='kw'>combineDataFetchAcrossOutcomes</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>compressSccsIntervalDataFiles</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>getDbSccsDataThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>createStudyPopulationThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
   <span class='kw'>createSccsIntervalDataThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
   <span class='kw'>fitSccsModelThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
   <span class='kw'>cvThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>
@@ -165,14 +168,13 @@
     <tr>
       <th>connectionDetails</th>
       <td><p>An R object of type <code>ConnectionDetails</code> created using
-the function <code>createConnectionDetails</code> in the
-<code>DatabaseConnector</code> package.</p></td>
+the function <code><a href='https://rdrr.io/pkg/DatabaseConnector/man/createConnectionDetails.html'>DatabaseConnector::createConnectionDetails()</a></code>.</p></td>
     </tr>
     <tr>
       <th>cdmDatabaseSchema</th>
       <td><p>The name of the database schema that contains the OMOP CDM
 instance.  Requires read permissions to this database. On
-SQL Server, this should specifiy both the database and the
+SQL Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.</p></td>
     </tr>
     <tr>
@@ -183,14 +185,14 @@ schema, so for example 'cdm_instance.dbo'.</p></td>
       <th>exposureDatabaseSchema</th>
       <td><p>The name of the database schema that is the location where
 the exposure data used to define the exposure cohorts is
-available. If exposureTable = DRUG_ERA,
-exposureDatabaseSchema is not used but assumed to be
-cdmSchema.  Requires read permissions to this database.</p></td>
+available. If <code>exposureTable = "DRUG_ERA"</code>,
+<code>exposureDatabaseSchema</code> is not used but assumed to be
+<code>cdmDatabaseSchema</code>.  Requires read permissions to this database.</p></td>
     </tr>
     <tr>
       <th>exposureTable</th>
-      <td><p>The tablename that contains the exposure cohorts.  If
-exposureTable &lt;&gt; DRUG_ERA, then expectation is exposureTable
+      <td><p>The table name that contains the exposure cohorts.  If
+<code>exposureTable &lt;&gt; "DRUG_ERA"</code>, then expectation is <code>exposureTable</code>
 has format of COHORT table: cohort_concept_id, SUBJECT_ID,
 COHORT_START_DATE, COHORT_END_DATE.</p></td>
     </tr>
@@ -198,12 +200,12 @@ COHORT_START_DATE, COHORT_END_DATE.</p></td>
       <th>outcomeDatabaseSchema</th>
       <td><p>The name of the database schema that is the location where
 the data used to define the outcome cohorts is available. If
-outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
+<code>outcomeTable = "CONDITION_ERA"</code>, <code>outcomeDatabaseSchema</code> is not
 used.  Requires read permissions to this database.</p></td>
     </tr>
     <tr>
       <th>outcomeTable</th>
-      <td><p>The tablename that contains the outcome cohorts.  If
+      <td><p>The table name that contains the outcome cohorts.  If
 outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
 then expectation is outcomeTable has format of COHORT table:
 COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
@@ -240,13 +242,13 @@ should have the same structure as the cohort table.</p></td>
     </tr>
     <tr>
       <th>sccsAnalysisList</th>
-      <td><p>A list of objects of type <code>sccsAnalysis</code> as created
-using the <code><a href='createSccsAnalysis.html'>createSccsAnalysis</a></code> function.</p></td>
+      <td><p>A list of objects of <code>sccsAnalysis</code> as created
+using the <code><a href='createSccsAnalysis.html'>createSccsAnalysis()</a></code> function.</p></td>
     </tr>
     <tr>
       <th>exposureOutcomeList</th>
       <td><p>A list of objects of type <code>exposureOutcome</code> as created
-using the <code><a href='createExposureOutcome.html'>createExposureOutcome</a></code> function.</p></td>
+using the <code><a href='createExposureOutcome.html'>createExposureOutcome()</a></code> function.</p></td>
     </tr>
     <tr>
       <th>combineDataFetchAcrossOutcomes</th>
@@ -256,18 +258,19 @@ fetches will be more efficient if there is large overlap in
 the subjects that have the different outcomes.</p></td>
     </tr>
     <tr>
-      <th>compressSccsIntervalDataFiles</th>
-      <td><p>Should compression be used when saving?</p></td>
-    </tr>
-    <tr>
       <th>getDbSccsDataThreads</th>
       <td><p>The number of parallel threads to use for building the
-sccsData objects.</p></td>
+<code>SccsData</code> objects.</p></td>
+    </tr>
+    <tr>
+      <th>createStudyPopulationThreads</th>
+      <td><p>The number of parallel threads to use for building the
+<code>studyPopulation</code> objects.</p></td>
     </tr>
     <tr>
       <th>createSccsIntervalDataThreads</th>
       <td><p>The number of parallel threads to use for building the
-sccsIntervalData objects.</p></td>
+<code>SccsIntervalData</code> objects.</p></td>
     </tr>
     <tr>
       <th>fitSccsModelThreads</th>
@@ -279,30 +282,19 @@ models.</p></td>
       <td><p>The number of parallel threads to use for the cross-
 validation when estimating the hyperparameter for the
 outcome model. Note that the total number of CV threads at
-one time could be `fitSccsModelThreads * cvThreads`.</p></td>
+one time could be <code>fitSccsModelThreads * cvThreads</code>.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A data frame with the following columns:</p><table class='table'>
-<tr><td><code>analysisId</code></td><td>The unique identifier
-for a set of analysis choices.</td></tr>
-<tr><td><code>exposureId</code></td><td>The ID of the target drug.</td></tr>
-<tr><td><code>outcomeId</code></td><td>The ID of the outcome.</td></tr>
-<tr><td><code>sccsDataFolder</code></td><td>The folder where the
-sccsData object is stored.</td></tr>
-<tr><td><code>sccsIntervalDataFolder</code></td><td>The folder where the sccsIntervalData object
-is stored.</td></tr>
-<tr><td><code>sccsModelFile</code></td><td>The file where the fitted SCCS model is stored.</td></tr>
-</table>
-
-
+    <p>A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
+outcome model files can be found, relative to the <code>outputFolder</code>.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>Run a list of analyses for the drug-comparator-outcomes of interest. This function will run all
 specified analyses against all hypotheses of interest, meaning that the total number of outcome
-models is `length(cmAnalysisList) * length(drugComparatorOutcomesList)` (if all analyses specify an
+models is <code>length(cmAnalysisList) * length(drugComparatorOutcomesList)</code> (if all analyses specify an
 outcome model should be fitted). When you provide several analyses it will determine whether any of
 the analyses have anything in common, and will take advantage of this fact. For example, if we
 specify several analyses that only differ in the way the outcome model is fitted, then this
@@ -324,7 +316,7 @@ analysis.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>
