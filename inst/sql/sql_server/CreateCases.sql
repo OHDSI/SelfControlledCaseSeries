@@ -46,7 +46,7 @@ FROM (
 		observation_period_start_date,
 		CASE WHEN nesting.cohort_start_date > start_date THEN nesting.cohort_start_date	ELSE start_date END AS start_date,
 		CASE WHEN nesting.cohort_end_date < end_date THEN nesting.cohort_end_date ELSE end_date END AS end_date,
-		CASE WHEN nesting.cohort_end_date < end_date THEN CAST(1 AS INT) ELSE noninformative_end_censor AS noninformative_end_censor
+		CASE WHEN nesting.cohort_end_date < end_date THEN CAST(1 AS INT) ELSE noninformative_end_censor END AS noninformative_end_censor
 	FROM (
 }
 	SELECT person_id,

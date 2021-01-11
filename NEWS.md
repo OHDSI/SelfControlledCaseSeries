@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 2.0.1
+==============================
+
+BugFixes
+
+1. Fixed syntax error in SQL when using a nesting cohort.
+
+
 SelfControlledCaseSeries 2.0.0
 ==============================
 
