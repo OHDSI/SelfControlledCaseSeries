@@ -16,7 +16,7 @@
 \item{object}{An object of type \code{SccsIntervalData}.}
 }
 \description{
-SccsIntervalData` is an S4 class that inherits from \link[Andromeda:Andromeda]{Andromeda}. It contains
+SccsIntervalData` is an S4 class that inherits from \link[Andromeda:Andromeda-class]{Andromeda}. It contains
 information on the cases and their covariates, divided in non-overlapping time intervals.
 
 A \code{SccsIntervalData} is typically created using \code{\link[=createSccsIntervalData]{createSccsIntervalData()}}, can only be saved using

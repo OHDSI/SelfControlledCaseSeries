@@ -331,7 +331,10 @@ getDbSccsData <- function(connectionDetails,
       rename(outcomeId = .data$eraId) %>%
       mutate(description = "Random sample") %>%
       collect()
-    outcomeCounts <- bind_rows(outcomeCounts, sampledCounts)
+    if (nrow(sampledCounts) > 0) {
+      # If no rows then description becomes a logical, causing an error here:
+      outcomeCounts <- bind_rows(outcomeCounts, sampledCounts)
+    }
   }
 
   attr(sccsData, "metaData") <- list(exposureIds = exposureIds,

@@ -16,7 +16,7 @@
 \item{object}{An object of type \code{SccsData}.}
 }
 \description{
-\code{SccsData} is an S4 class that inherits from \link[Andromeda:Andromeda]{Andromeda}. It contains information on the cases and their covariates.
+\code{SccsData} is an S4 class that inherits from \link[Andromeda:Andromeda-class]{Andromeda}. It contains information on the cases and their covariates.
 
 A \code{SccsData} is typically created using \code{\link[=getDbSccsData]{getDbSccsData()}}, can only be saved using
 \code{\link[=saveSccsData]{saveSccsData()}}, and loaded using \code{\link[=loadSccsData]{loadSccsData()}}.

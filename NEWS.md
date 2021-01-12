@@ -5,6 +5,8 @@ BugFixes
 
 1. Fixed syntax error in SQL when using a nesting cohort.
 
+2. Fixing error when sampled cohort is empty.
+
 
 SelfControlledCaseSeries 2.0.0
 ==============================
