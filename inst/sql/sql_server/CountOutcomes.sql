@@ -32,32 +32,56 @@ CREATE TABLE #counts (
 	outcome_obs_periods INT);
 	
 INSERT INTO #counts (outcome_id, description, outcome_subjects, outcome_events, outcome_obs_periods)
-SELECT outcome_id, 
+SELECT outcome_ids.outcome_id,
 	'Outcomes',
-	COUNT(DISTINCT person_id),
-	COUNT(*),
-	COUNT(DISTINCT observation_period_id)
-FROM #outcomes
-GROUP BY outcome_id;
+	CASE WHEN outcome_subjects IS NULL THEN 0 ELSE outcome_subjects END AS outcome_subjects,
+	CASE WHEN outcome_events IS NULL THEN 0 ELSE outcome_events END AS outcome_events,
+	CASE WHEN outcome_obs_periods IS NULL THEN 0 ELSE outcome_obs_periods END AS outcome_obs_periods
+FROM #outcome_ids outcome_ids
+LEFT JOIN (
+	SELECT outcome_id, 
+		COUNT(DISTINCT person_id) AS outcome_subjects,
+		COUNT(*) AS outcome_events,
+		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods
+	FROM #outcomes
+	GROUP BY outcome_id
+	) counts
+ON outcome_ids.outcome_id = counts.outcome_id;
 
 {@study_start_date != '' & @study_end_date != ''} ? {
 INSERT INTO #counts (outcome_id, description, outcome_subjects, outcome_events, outcome_obs_periods)
-SELECT outcome_id, 
+SELECT outcome_ids.outcome_id,
 	'Outcomes in study period',
-	COUNT(DISTINCT person_id),
-	COUNT(*),
-	COUNT(DISTINCT observation_period_id)
-FROM #outcomes_in_period
-GROUP BY outcome_id;
+	CASE WHEN outcome_subjects IS NULL THEN 0 ELSE outcome_subjects END AS outcome_subjects,
+	CASE WHEN outcome_events IS NULL THEN 0 ELSE outcome_events END AS outcome_events,
+	CASE WHEN outcome_obs_periods IS NULL THEN 0 ELSE outcome_obs_periods END AS outcome_obs_periods
+FROM #outcome_ids outcome_ids
+LEFT JOIN (
+	SELECT outcome_id, 
+		COUNT(DISTINCT person_id) AS outcome_subjects,
+		COUNT(*) AS outcome_events,
+		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods
+	FROM #outcomes_in_period
+	GROUP BY outcome_id
+	) counts
+ON outcome_ids.outcome_id = counts.outcome_id;
 }
 
 {@use_nesting_cohort} ? {
 INSERT INTO #counts (outcome_id, description, outcome_subjects, outcome_events, outcome_obs_periods)
-SELECT outcome_id, 
+SELECT outcome_ids.outcome_id,
 	'Outcomes in nesting cohort',
-	COUNT(DISTINCT person_id),
-	COUNT(*),
-	COUNT(DISTINCT observation_period_id)
-FROM #outcomes_in_nesting
-GROUP BY outcome_id;
+	CASE WHEN outcome_subjects IS NULL THEN 0 ELSE outcome_subjects END AS outcome_subjects,
+	CASE WHEN outcome_events IS NULL THEN 0 ELSE outcome_events END AS outcome_events,
+	CASE WHEN outcome_obs_periods IS NULL THEN 0 ELSE outcome_obs_periods END AS outcome_obs_periods
+FROM #outcome_ids outcome_ids
+LEFT JOIN (
+	SELECT outcome_id, 
+		COUNT(DISTINCT person_id) AS outcome_subjects,
+		COUNT(*) AS outcome_events,
+		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods
+	FROM #outcomes_in_nesting
+	GROUP BY outcome_id
+	) counts
+ON outcome_ids.outcome_id = counts.outcome_id;
 }

@@ -7,6 +7,10 @@ BugFixes
 
 2. Fixing error when sampled cohort is empty.
 
+3. Fixing nesting.
+
+4. Attrition table now also includes lines where remaining count is zero.
+
 
 SelfControlledCaseSeries 2.0.0
 ==============================

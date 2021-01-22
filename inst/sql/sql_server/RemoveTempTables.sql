@@ -7,6 +7,9 @@ DROP TABLE #eras;
 TRUNCATE TABLE #era_ref;
 DROP TABLE #era_ref;
 
+TRUNCATE TABLE #outcome_ids;
+DROP TABLE #outcome_ids;
+
 TRUNCATE TABLE #counts;
 DROP TABLE #counts;
 

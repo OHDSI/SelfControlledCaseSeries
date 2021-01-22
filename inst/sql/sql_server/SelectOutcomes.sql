@@ -99,5 +99,6 @@ FROM #outcomes outcomes
 INNER JOIN @nesting_cohort_database_schema.@nesting_cohort_table nesting
 	ON person_id = subject_id
 		AND outcome_date >= cohort_start_date
-		AND outcome_date <= cohort_end_date;
+		AND outcome_date <= cohort_end_date
+WHERE nesting.cohort_definition_id = @nesting_cohort_id;
 }	

@@ -205,6 +205,14 @@ getDbSccsData <- function(connectionDetails,
                                            study_end_date = studyEndDate)
   DatabaseConnector::executeSql(conn, sql)
 
+  DatabaseConnector::insertTable(conn,
+                                 tableName = "#outcome_ids",
+                                 data = data.frame(outcome_id = as.integer(outcomeIds)),
+                                 dropTableIfExists = TRUE,
+                                 createTable = TRUE,
+                                 tempTable = TRUE,
+                                 oracleTempSchema = oracleTempSchema)
+
   ParallelLogger::logInfo("Counting outcomes")
   sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
                                            packageName = "SelfControlledCaseSeries",
@@ -218,6 +226,7 @@ getDbSccsData <- function(connectionDetails,
   sql <- "SELECT * FROM #counts;"
   sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
   outcomeCounts <- as_tibble(DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE))
+
 
   sampledCases <- FALSE
   if (maxCasesPerOutcome != 0) {
