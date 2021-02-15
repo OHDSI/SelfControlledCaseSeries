@@ -1,7 +1,7 @@
 SelfControlledCaseSeries
 ========================
 
-[![Build Status](https://travis-ci.org/OHDSI/SelfControlledCaseSeries.svg?branch=master)](https://travis-ci.org/OHDSI/SelfControlledCaseSeries)
+[![Build Status](https://github.com/OHDSI/SelfControlledCaseSeries/workflows/R-CMD-check/badge.svg)](https://github.com/OHDSI/SelfControlledCaseSeries/actions?query=workflow%3AR-CMD-check)
 [![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=master)
 
 SelfControlledCaseSeries is part of [HADES](https://ohdsi.github.io/Hades).
