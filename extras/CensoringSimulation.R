@@ -22,9 +22,9 @@ covarSettings <- createCovariateSettings(label = "Exposure of interest",
                                          addExposedDaysToEnd = TRUE)
 
 sccsIntervalData <- createSccsIntervalData(sccsData,
-                                 naivePeriod = 0,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = covarSettings)
+                                           naivePeriod = 0,
+                                           firstOutcomeOnly = FALSE,
+                                           covariateSettings = covarSettings)
 
 summary(sccsIntervalData)
 model <- fitSccsModel(sccsIntervalData)
@@ -37,9 +37,9 @@ cases <- merge(sccsData$cases, ff::as.ffdf(firstHois))
 cases$observationDays <- cases$startDay
 sccsData$cases <- cases
 sccsIntervalData <- createSccsIntervalData(sccsData,
-                                 naivePeriod = 0,
-                                 firstOutcomeOnly = FALSE,
-                                 covariateSettings = covarSettings)
+                                           naivePeriod = 0,
+                                           firstOutcomeOnly = FALSE,
+                                           covariateSettings = covarSettings)
 summary(sccsIntervalData)
 
 model <- fitSccsModel(sccsIntervalData)

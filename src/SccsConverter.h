@@ -68,7 +68,7 @@ struct CovariateStatistics {
   observationPeriodCount(0), eraCount(0), personIds() {}
   int observationPeriodCount;
   int eraCount;
-  std::set<int64_t> personIds;
+  std::set<String> personIds;
 
 };
 
@@ -155,7 +155,7 @@ struct ResultStruct {
     }
   }
 
-  void computeCovariateStatistics(std::vector<Era>& eras, const int& personId) {
+  void computeCovariateStatistics(std::vector<Era>& eras, const String& personId) {
     std::map<int64_t, int> covariateEraCounts;
     for (std::vector<Era>::iterator i = eras.begin(); i != eras.end(); ++i)
       ++covariateEraCounts[i->eraId];

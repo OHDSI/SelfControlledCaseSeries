@@ -235,11 +235,11 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
       Environment base = Environment::namespace_env("base");
       Function warning = base["warning"];
       if (lastComputable <= start) {
-        warning("\nCannot compute weight function for entire observation period " + std::to_string(personData.observationPeriodId) + ". Removing from analysis", Named("call.", false));
+        warning("\nCannot compute weight function for entire observation period " + personData.observationPeriodId + ". Removing from analysis", Named("call.", false));
         concomitantEras.clear();
         break;
       } else {
-        warning("\nCannot compute full weight function for observation period " + std::to_string(personData.observationPeriodId) + ", assuming constant weight for last " + std::to_string((int)round((end-lastComputable)*365.25)) + " day(s)", Named("call.", false));
+        warning("\nCannot compute full weight function for observation period " + personData.observationPeriodId + ", assuming constant weight for last " + std::to_string((int)round((end-lastComputable)*365.25)) + " day(s)", Named("call.", false));
         // Rcout << "CaseID: " << std::to_string(personData.caseId) << ", start: " << start*365.25 << ", end: " << end*365.25 << "\n";
         weight = ohdsi::sccs::NumericIntegration::integrate(*weightFunction, start, lastComputable, 1.490116e-08);
         weight += (end-lastComputable) * value;
@@ -249,7 +249,7 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
       if (isNanOrInf(weight)) {
         Environment base = Environment::namespace_env("base");
         Function warning = base["warning"];
-        warning("\nCannot compute weight function for entire observation period " + std::to_string(personData.observationPeriodId) + ". Removing from analysis", Named("call.", false));
+        warning("\nCannot compute weight function for entire observation period " + personData.observationPeriodId + ". Removing from analysis", Named("call.", false));
         concomitantEras.clear();
         break;
       }

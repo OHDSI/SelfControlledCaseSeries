@@ -439,16 +439,16 @@ which.list <- function(list, object) {
 }
 
 getSccsData <- function(sccsDataFile) {
-  if (mget("sccsDataFile", envir = globalenv(), ifnotfound = "") == sccsDataFile) {
-    sccsData <- get("sccsData", envir = globalenv())
+  if (mget("cachedSccsDataFile", envir = globalenv(), ifnotfound = "") == sccsDataFile) {
+    sccsData <- get("cachedSccsData", envir = globalenv())
     if (!Andromeda::isValidAndromeda(sccsData)) {
       sccsData <- loadSccsData(sccsDataFile)
-      assign("sccsData", sccsData, envir = globalenv())
+      assign("cachedSccsData", sccsData, envir = globalenv())
     }
   } else {
     sccsData <- loadSccsData(sccsDataFile)
-    assign("sccsData", sccsData, envir = globalenv())
-    assign("sccsDataFile", sccsDataFile, envir = globalenv())
+    assign("cachedSccsData", sccsData, envir = globalenv())
+    assign("cachedSccsDataFile", sccsDataFile, envir = globalenv())
   }
   return(sccsData)
 }

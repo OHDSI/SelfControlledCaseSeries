@@ -166,7 +166,7 @@ getDbSccsData <- function(connectionDetails,
   } else {
     hasCustomCovariateIds <- TRUE
     DatabaseConnector::insertTable(conn,
-                                   tableName = "#custom_covariate_ids",
+                                   tableName = "#custom_cov_ids",
                                    data = data.frame(concept_id = as.integer(customCovariateIds)),
                                    dropTableIfExists = TRUE,
                                    createTable = TRUE,

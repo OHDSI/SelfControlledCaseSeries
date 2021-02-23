@@ -16,18 +16,18 @@ createSccsAnalysis(
 )
 }
 \arguments{
-\item{analysisId}{An integer that will be used later to refer to this specific set of
-analysis choices.}
+\item{analysisId}{An integer that will be used later to refer to this specific set
+of analysis choices.}
 
 \item{description}{A short description of the analysis.}
 
-\item{exposureType}{If more than one exposure is provided for each \code{exposureOutcome}, this
-field should be used to select the specific exposure to use in this
-analysis.}
+\item{exposureType}{If more than one exposure is provided for each
+\code{exposureOutcome}, this field should be used to select the
+specific exposure to use in this analysis.}
 
-\item{outcomeType}{If more than one outcome is provided for each \code{exposureOutcom}e, this
-field should be used to select the specific outcome to use in this
-analysis.}
+\item{outcomeType}{If more than one outcome is provided for each \code{exposureOutcom}e,
+this field should be used to select the specific outcome to use
+in this analysis.}
 
 \item{getDbSccsDataArgs}{An object representing the arguments to be used when calling the
 \link{getDbSccsData} function.}

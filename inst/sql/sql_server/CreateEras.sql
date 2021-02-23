@@ -192,7 +192,7 @@ ON covars.person_id = cases.person_id
 WHERE condition_era_start_date <= end_date
 	AND condition_era_start_date >= observation_period_start_date
 {@has_custom_covariate_ids} ? {
-	AND condition_concept_id IN (SELECT concept_id FROM #custom_coviariate_ids)
+	AND condition_concept_id IN (SELECT concept_id FROM #custom_cov_ids)
 }
 ;
 
@@ -211,7 +211,7 @@ ON eras.era_id = concept.concept_id;
 } : {
 
 INSERT INTO #eras (era_type, case_id, era_id, era_value, start_day, end_day)
-SELECT 'custom',
+SELECT 'cst',
 	cases.case_id,
 	cohort_definition_id,
 	1,
@@ -227,18 +227,18 @@ ON covars.subject_id = cases.person_id
 WHERE cohort_start_date <= end_date
 	AND cohort_start_date >= observation_period_start_date
 {@has_custom_covariate_ids} ? {
-	AND cohort_definition_id IN (SELECT concept_id FROM #custom_coviariate_ids)
+	AND cohort_definition_id IN (SELECT concept_id FROM #custom_cov_ids)
 }
 ;
 
 INSERT INTO #era_ref (era_type, era_id, era_name)
-SELECT 'custom',
+SELECT 'cst',
 	era_id,
 	CONCAT('Custom cohort ', era_id)
 FROM (
 	SELECT DISTINCT era_id
 	FROM #eras
-	WHERE era_type = 'custom'
+	WHERE era_type = 'cst'
 	) eras;	
 
 }

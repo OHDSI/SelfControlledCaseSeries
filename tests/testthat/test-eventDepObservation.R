@@ -7,7 +7,7 @@ rr <- 2
 minBaselineRate <- 5e-05
 maxBaselineRate <- 1e-04
 
-data <- tibble(personId = 1:n)
+data <- tibble(personId = as.character(1:n))
 data$observationStartDate <- 1
 data$observationEndDate <- observationDays
 data$exposureStartDate <- round(runif(n, 1, observationDays))

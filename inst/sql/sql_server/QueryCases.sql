@@ -21,9 +21,9 @@ limitations under the License.
 {DEFAULT @sampled_cases = FALSE}
 
 SELECT
-	observation_period_id,
+	CAST(observation_period_id AS VARCHAR(30)) AS observation_period_id,
 	case_id,
-	person_id,
+	CAST(person_id AS VARCHAR(30)) AS person_id,
 	DATEDIFF(DAY, start_date, end_date) + 1 AS observation_days,
 	YEAR(start_date) AS start_year,
 	MONTH(start_date) AS start_month,

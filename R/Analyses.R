@@ -21,23 +21,23 @@
 #' @details
 #' Create a set of analysis choices, to be used with the [runSccsAnalyses] function.
 #'
-#' @param analysisId              An integer that will be used later to refer to this specific set of
-#'                                analysis choices.
-#' @param description             A short description of the analysis.
-#' @param exposureType            If more than one exposure is provided for each `exposureOutcome`, this
-#'                                field should be used to select the specific exposure to use in this
-#'                                analysis.
-#' @param outcomeType             If more than one outcome is provided for each `exposureOutcom`e, this
-#'                                field should be used to select the specific outcome to use in this
-#'                                analysis.
-#' @param getDbSccsDataArgs       An object representing the arguments to be used when calling the
-#'                                [getDbSccsData] function.
-#' @param createStudyPopulationArgs       An object representing the arguments to be used when calling the
-#'                                [getDbSccsData] function.
+#' @param analysisId                   An integer that will be used later to refer to this specific set
+#'                                     of analysis choices.
+#' @param description                  A short description of the analysis.
+#' @param exposureType                 If more than one exposure is provided for each
+#'                                     `exposureOutcome`, this field should be used to select the
+#'                                     specific exposure to use in this analysis.
+#' @param outcomeType                  If more than one outcome is provided for each `exposureOutcom`e,
+#'                                     this field should be used to select the specific outcome to use
+#'                                     in this analysis.
+#' @param getDbSccsDataArgs            An object representing the arguments to be used when calling the
+#'                                     [getDbSccsData] function.
+#' @param createStudyPopulationArgs    An object representing the arguments to be used when calling the
+#'                                     [getDbSccsData] function.
 #' @param createSccsIntervalDataArgs   An object representing the arguments to be used when calling the
-#'                                [createSccsIntervalData] function.
-#' @param fitSccsModelArgs        An object representing the arguments to be used when calling the
-#'                                [fitSccsModel] function.
+#'                                     [createSccsIntervalData] function.
+#' @param fitSccsModelArgs             An object representing the arguments to be used when calling the
+#'                                     [fitSccsModel] function.
 #' @export
 createSccsAnalysis <- function(analysisId = 1,
                                description = "",

@@ -137,7 +137,7 @@ fitSccsModel <- function(sccsIntervalData,
         estimates$seLogRr <- NA
       } else {
         ci <- tryCatch({
-          result <- confint(fit, parm = needCi, includePenalty = TRUE)
+          result <- confint(fit, parm = estimates$covariateId, includePenalty = TRUE)
           attr(result, "dimnames")[[1]] <- 1:length(attr(result, "dimnames")[[1]])
           result <- as.data.frame(result)
           rownames(result) <- NULL

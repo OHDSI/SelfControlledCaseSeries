@@ -1,6 +1,10 @@
 SelfControlledCaseSeries 2.0.1
 ==============================
 
+Changes
+
+1. Downloading person and observation period IDs as strings to avoid issues with 64-bit integers. (These IDs are not used by SCCS, and are used for reference only).
+
 BugFixes
 
 1. Fixed syntax error in SQL when using a nesting cohort.
@@ -10,6 +14,12 @@ BugFixes
 3. Fixing nesting.
 
 4. Attrition table now also includes lines where remaining count is zero.
+
+5. Fixing custom covariates download.
+
+6. Fixing error on Oracle due to long temp table name.
+
+7. Fixing computation of confidence intervals (CIs) when not all estimates for which CIs are computed have data.
 
 
 SelfControlledCaseSeries 2.0.0

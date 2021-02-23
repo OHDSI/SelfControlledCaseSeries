@@ -41,7 +41,7 @@ DROP TABLE #exposure_ids;
 }
 
 {@has_custom_covariate_ids} ? {
-TRUNCATE TABLE #custom_covariate_ids;
+TRUNCATE TABLE #custom_cov_ids;
 
-DROP TABLE #custom_covariate_ids;
+DROP TABLE #custom_cov_ids;
 }

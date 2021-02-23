@@ -50,8 +50,8 @@ struct Era {
 };
 
 struct PersonData {
-  PersonData(int64_t _personId,
-             int64_t _observationPeriodId,
+  PersonData(String _personId,
+             String _observationPeriodId,
              int _caseId,
              Date _startDate,
              int _ageInDays,
@@ -78,8 +78,8 @@ struct PersonData {
     delete outcomes;
   }
 
-  int64_t personId;
-  int64_t observationPeriodId;
+  std::string personId;
+  std::string observationPeriodId;
   int caseId;
   int endDay;
   int ageInDays;
@@ -98,8 +98,8 @@ public:
   PersonData next();
 private:
   AndromedaTableIterator erasIterator;
-  NumericVector casesPersonId;
-  NumericVector casesObservationPeriodId;
+  CharacterVector casesPersonId;
+  CharacterVector casesObservationPeriodId;
   NumericVector casesCaseId;
   DateVector casesStartDate;
   NumericVector casesEndDay;

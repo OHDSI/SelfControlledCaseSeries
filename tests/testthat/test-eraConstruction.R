@@ -53,9 +53,9 @@ convertToSccsDataWrapper <- function(cases,
 }
 
 test_that("Simple era construction", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -80,9 +80,9 @@ test_that("Simple era construction", {
 })
 
 test_that("Age restriction", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 10000,
                   ageInDays = 365,
                   startYear = 2000,
@@ -107,9 +107,9 @@ test_that("Age restriction", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -134,9 +134,9 @@ test_that("Outcome on boundary", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -161,9 +161,9 @@ test_that("Outcome on boundary", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -188,9 +188,9 @@ test_that("Outcome on boundary", {
 })
 
 test_that("Outcome on boundary", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -215,9 +215,9 @@ test_that("Outcome on boundary", {
 })
 
 test_that("One day era", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -242,9 +242,9 @@ test_that("One day era", {
 })
 
 test_that("Merging overlapping eras", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -269,9 +269,9 @@ test_that("Merging overlapping eras", {
 })
 
 test_that("Merging overlapping eras with same start date", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -297,9 +297,9 @@ test_that("Merging overlapping eras with same start date", {
 
 
 test_that("Concomitant drug use", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -324,9 +324,9 @@ test_that("Concomitant drug use", {
 })
 
 test_that("Concomitant drug use (3 drugs)", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -351,9 +351,9 @@ test_that("Concomitant drug use (3 drugs)", {
 })
 
 test_that("Start risk window at day 1 not 0", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -383,9 +383,9 @@ test_that("Start risk window at day 1 not 0", {
 })
 
 test_that("Two HOIs, keeping both", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -410,9 +410,9 @@ test_that("Two HOIs, keeping both", {
 })
 
 test_that("Two HOIs, keeping first", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -437,9 +437,9 @@ test_that("Two HOIs, keeping first", {
 })
 
 test_that("Removal of risk windows where end before start", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -540,9 +540,9 @@ test_that("Aggregates on large set", {
 })
 
 test_that("Exposure splitting", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -573,9 +573,9 @@ test_that("Exposure splitting", {
 })
 
 test_that("Exposure splitting twice", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -606,9 +606,9 @@ test_that("Exposure splitting twice", {
 })
 
 test_that("Merging exposures (stratifyById=FALSE)", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -640,9 +640,9 @@ test_that("Merging exposures (stratifyById=FALSE)", {
 
 
 test_that("Exposure splitting without stratifyById", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,
@@ -674,9 +674,9 @@ test_that("Exposure splitting without stratifyById", {
 })
 
 test_that("Pre-exposure window", {
-  cases <- tibble(observationPeriodId = 1000,
+  cases <- tibble(observationPeriodId = "1000",
                   caseId = 1,
-                  personId = 1,
+                  personId = "1",
                   observationDays = 100,
                   ageInDays = 0,
                   startYear = 2000,

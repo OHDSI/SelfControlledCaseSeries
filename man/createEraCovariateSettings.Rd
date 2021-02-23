@@ -19,21 +19,20 @@ createEraCovariateSettings(
 )
 }
 \arguments{
-\item{includeEraIds}{One or more IDs of variables in the \link{SccsData} object that
-should be used to construct this covariate. If no IDs are specified,
-all variables will be used.}
+\item{includeEraIds}{One or more IDs of variables in the \link{SccsData} object that should be
+used to construct this covariate. If no IDs are specified, all
+variables will be used.}
 
-\item{excludeEraIds}{One or more IDs of variables in the [SccsData] object that
-should not be used to construct this covariate.}
+\item{excludeEraIds}{One or more IDs of variables in the [SccsData] object that should not
+be used to construct this covariate.}
 
 \item{label}{A label used to identify the covariates created using these settings.}
 
-\item{stratifyById}{Should a single covariate be created for every ID in the
-\link{SccsData} object, or should a single covariate be constructed?
-For example, if the IDs identify exposures to different drugs, should
-a covariate be constructed for every drug, or a single covariate for
-exposure to any of these drugs. Note that overlap will be considered
-a single exposure.}
+\item{stratifyById}{Should a single covariate be created for every ID in the \link{SccsData}
+object, or should a single covariate be constructed? For example, if
+the IDs identify exposures to different drugs, should a covariate be
+constructed for every drug, or a single covariate for exposure to any
+of these drugs. Note that overlap will be considered a single exposure.}
 
 \item{start}{The start of the risk window (in days) relative to the \code{startAnchor}.}
 
@@ -47,10 +46,10 @@ or \code{"era end"}.}
 
 \item{firstOccurrenceOnly}{Should only the first occurrence of the exposure be used?}
 
-\item{splitPoints}{To split the risk window into several smaller windows, specify the
-end of each sub- window relative to the start of the main risk
-window. If add ExposedDaysToStart is TRUE, the split points will be
-considered to be relative to the end of the main risk window instead.}
+\item{splitPoints}{To split the risk window into several smaller windows, specify the end
+of each sub- window relative to the start of the main risk window. If
+add ExposedDaysToStart is TRUE, the split points will be considered to
+be relative to the end of the main risk window instead.}
 
 \item{allowRegularization}{When fitting the model, should the covariates defined here be allowed
 to be regularized?}
