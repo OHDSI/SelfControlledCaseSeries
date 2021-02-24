@@ -133,9 +133,9 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
   startYear <- round(runif(n, 2000, 2010))
   startMonth <- round(runif(n, 1, 12))
   startDay <- round(runif(n, 1, 28))
-  cases <- tibble(observationPeriodId = as.character(1:n),
+  cases <- tibble(observationPeriodId = 1:n,
                   caseId = 1:n,
-                  personId = as.character(1:n),
+                  personId = 1:n,
                   observationDays = observationDays,
                   ageInDays = ageInDays,
                   startYear = startYear,
@@ -297,6 +297,8 @@ simulateSccsData <- function(nCases, settings) {
                     batch$eras[batch$eras$caseId %in% batch$cases$caseId[1:need],])
     }
   }
+  cases$observationPeriodId <- as.character(cases$observationPeriodId)
+  cases$personId <- as.character(cases$personId)
   data <- Andromeda::andromeda(cases = cases,
                                eras = eras,
                                eraRef = tibble(eraId = settings$eraIds,

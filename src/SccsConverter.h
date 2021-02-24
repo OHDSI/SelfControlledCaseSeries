@@ -65,9 +65,11 @@ struct CovariateSettings {
 
 struct CovariateStatistics {
   CovariateStatistics() :
-  observationPeriodCount(0), eraCount(0), personIds() {}
+  observationPeriodCount(0), eraCount(0), dayCount(0), outcomeCount(0), personIds() {}
   int observationPeriodCount;
-  int eraCount;
+  long eraCount;
+  long dayCount;
+  int outcomeCount;
   std::set<String> personIds;
 
 };
@@ -155,17 +157,27 @@ struct ResultStruct {
     }
   }
 
-  void computeCovariateStatistics(std::vector<Era>& eras, const String& personId) {
-    std::map<int64_t, int> covariateEraCounts;
-    for (std::vector<Era>::iterator i = eras.begin(); i != eras.end(); ++i)
-      ++covariateEraCounts[i->eraId];
-
-    for (std::map<int64_t, int>::iterator count = covariateEraCounts.begin(); count != covariateEraCounts.end(); ++count) {
-      CovariateStatistics& covariateStatistics = covariateIdToCovariateStatistics[count->first];
-      covariateStatistics.eraCount += count->second;
+  void computeCovariateStatistics(std::vector<Era>& eras, std::vector<Era>& outcomes, const String& personId) {
+    std::set<int64_t> eraIds;
+    // std::cout << "Check 1\n";
+    for (std::vector<Era>::iterator era = eras.begin(); era != eras.end(); ++era) {
+      CovariateStatistics& covariateStatistics = covariateIdToCovariateStatistics[era->eraId];
+      covariateStatistics.eraCount++;
+      covariateStatistics.dayCount += era->end - era->start + 1;
+      for (Era outcome : outcomes) {
+        if (outcome.start >= era->start && outcome.start <= era->end) {
+          covariateStatistics.outcomeCount++;
+        }
+      }
+      eraIds.insert(era->eraId);
+    }
+    // std::cout << "Check 2\n";
+    for (std::set<int64_t>::iterator eraId = eraIds.begin(); eraId != eraIds.end(); ++eraId) {
+      CovariateStatistics& covariateStatistics = covariateIdToCovariateStatistics[*eraId];
       covariateStatistics.observationPeriodCount++;
       covariateStatistics.personIds.insert(personId);
     }
+    // std::cout << "Check 3\n";
   }
 
   void incRowId(){
@@ -173,9 +185,15 @@ struct ResultStruct {
   }
 
   S4 convertToAndromeda() {
+    Environment base = Environment::namespace_env("base");
+    Function writeLines = base["writeLines"];
+    writeLines("Check 3\n");
     flushOutcomesToAndromeda();
+    writeLines("Check 4\n");
     flushErasToAndromeda();
+    writeLines("Check 5\n");
     writeCovariateStatisticsToAndromeda();
+    writeLines("Check 6\n");
     return andromedaBuilder.getAndromeda();
   }
 private:
@@ -183,7 +201,9 @@ private:
     int size = covariateIdToCovariateStatistics.size();
     std::vector<int64_t> covariateId(size);
     std::vector<int> personCount(size);
-    std::vector<int64_t> eraCount(size);
+    std::vector<long> eraCount(size);
+    std::vector<long> dayCount(size);
+    std::vector<int> outcomeCount(size);
     std::vector<int> observationPeriodCount(size);
     int cursor(0);
     for (std::map<int64_t, CovariateStatistics>::iterator i = covariateIdToCovariateStatistics.begin(); i != covariateIdToCovariateStatistics.end(); ++i) {
@@ -191,12 +211,16 @@ private:
       CovariateStatistics covariateStatistics = i->second;
       personCount[cursor] = covariateStatistics.personIds.size();
       eraCount[cursor] = covariateStatistics.eraCount;
+      dayCount[cursor] = covariateStatistics.dayCount;
+      outcomeCount[cursor] = covariateStatistics.outcomeCount;
       observationPeriodCount[cursor] = covariateStatistics.observationPeriodCount;
       cursor++;
     }
     DataFrame covariateStatistics = DataFrame::create(Named("covariateId") = wrap(covariateId),
                                                       Named("personCount") = wrap(personCount),
                                                       Named("eraCount") = wrap(eraCount),
+                                                      Named("dayCount") = wrap(dayCount),
+                                                      Named("outcomeCount") = wrap(outcomeCount),
                                                       Named("observationPeriodCount") = wrap(observationPeriodCount));
     andromedaBuilder.appendToTable("covariateStatistics", covariateStatistics);
   }

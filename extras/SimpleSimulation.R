@@ -25,7 +25,9 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
 
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
-                                           eraCovariateSettings = covarSettings)
+                                           eraCovariateSettings = covarSettings,
+                                           ageCovariateSettings = createAgeCovariateSettings(ageKnots = 5),
+                                           seasonalityCovariateSettings = createSeasonalityCovariateSettings(seasonKnots = 5))
 
 model <- fitSccsModel(sccsIntervalData)
 

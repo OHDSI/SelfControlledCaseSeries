@@ -457,7 +457,7 @@ void SccsConverter::processPerson(PersonData& personData) {
         return;
     addMonthEras(outputEras, personData);
   }
-  resultStruct.computeCovariateStatistics(outputEras, personData.personId);
+  resultStruct.computeCovariateStatistics(outputEras, *outcomes, personData.personId);
 
   std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, 0, personData.endDay);
   if (concomitantEras.size() == 1) { // Not informative
@@ -470,10 +470,14 @@ void SccsConverter::processPerson(PersonData& personData) {
 }
 
 S4 SccsConverter::convertToSccs() {
+  Environment base = Environment::namespace_env("base");
+  Function writeLines = base["writeLines"];
+  writeLines("Check 1\n");
   while (personDataIterator.hasNext()) {
     PersonData personData = personDataIterator.next();
     processPerson(personData);
   }
+  writeLines("Check 2\n");
   return resultStruct.convertToAndromeda();
 }
 

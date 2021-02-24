@@ -6,7 +6,7 @@
 using namespace Rcpp;
 
 // convertToSccs
-S4 convertToSccs(const DataFrame& cases, const DataFrame& outcomes, const List& eras, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, bool includeSeason, NumericMatrix seasonDesignMatrix, NumericVector ageSeasonsCases, List& covariateSettingsList, bool eventDependentObservation, List& censorModel);
+SEXP convertToSccs(const DataFrame& cases, const DataFrame& outcomes, const List& eras, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, bool includeSeason, NumericMatrix seasonDesignMatrix, NumericVector ageSeasonsCases, List& covariateSettingsList, bool eventDependentObservation, List& censorModel);
 RcppExport SEXP _SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP outcomesSEXP, SEXP erasSEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP, SEXP includeSeasonSEXP, SEXP seasonDesignMatrixSEXP, SEXP ageSeasonsCasesSEXP, SEXP covariateSettingsListSEXP, SEXP eventDependentObservationSEXP, SEXP censorModelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

@@ -29,18 +29,18 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-S4 convertToSccs(const DataFrame& cases,
-                 const DataFrame& outcomes,
-                 const List& eras,
-                 bool includeAge,
-                 int ageOffset,
-                 NumericMatrix ageDesignMatrix,
-                 bool includeSeason,
-                 NumericMatrix seasonDesignMatrix,
-                 NumericVector ageSeasonsCases,
-                 List& covariateSettingsList,
-                 bool eventDependentObservation,
-                 List& censorModel) {
+SEXP convertToSccs(const DataFrame& cases,
+                   const DataFrame& outcomes,
+                   const List& eras,
+                   bool includeAge,
+                   int ageOffset,
+                   NumericMatrix ageDesignMatrix,
+                   bool includeSeason,
+                   NumericMatrix seasonDesignMatrix,
+                   NumericVector ageSeasonsCases,
+                   List& covariateSettingsList,
+                   bool eventDependentObservation,
+                   List& censorModel) {
 
   using namespace ohdsi::sccs;
 
@@ -53,7 +53,7 @@ S4 convertToSccs(const DataFrame& cases,
   } catch (...) {
     ::Rf_error("c++ exception (unknown reason)");
   }
-  return as<S4>(R_NilValue);
+  return R_NilValue;
 }
 
 // [[Rcpp::export]]
