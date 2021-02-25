@@ -12,7 +12,8 @@ createSccsAnalysis(
   getDbSccsDataArgs,
   createStudyPopulationArgs,
   design = "SCCS",
-  createSccsIntervalDataArgs,
+  createSccsIntervalDataArgs = NULL,
+  createScriIntervalDataArgs = NULL,
   fitSccsModelArgs
 )
 }
@@ -42,11 +43,11 @@ or "SCRI" for the self-controlled risk interval design.}
 \item{createSccsIntervalDataArgs}{An object representing the arguments to be used when calling the
 \link{createSccsIntervalData} function. Ignored when \code{design = "SCRI"}.}
 
-\item{fitSccsModelArgs}{An object representing the arguments to be used when calling the
-\link{fitSccsModel} function.}
-
 \item{createScriIntervalDataArgs}{An object representing the arguments to be used when calling the
 \link{createScriIntervalData} function. Ignored when \code{design = "SCCS"}.}
+
+\item{fitSccsModelArgs}{An object representing the arguments to be used when calling the
+\link{fitSccsModel} function.}
 }
 \description{
 Create a SelfControlledCaseSeries analysis specification

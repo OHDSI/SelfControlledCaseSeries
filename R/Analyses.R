@@ -50,10 +50,15 @@ createSccsAnalysis <- function(analysisId = 1,
                                getDbSccsDataArgs,
                                createStudyPopulationArgs,
                                design = "SCCS",
-                               createSccsIntervalDataArgs,
+                               createSccsIntervalDataArgs = NULL,
+                               createScriIntervalDataArgs = NULL,
                                fitSccsModelArgs) {
   if (!toupper(design) %in% c("SCCS", "SCRI"))
     stop("The design argument should be either 'SCCS' or 'SCRI'")
+  if (toupper(design) == "SCCS" && is.null(createSccsIntervalDataArgs))
+    stop("Must provide createSccsIntervalDataArgs argument when design = 'SCCS'")
+  if (toupper(design) == "SCRI" && is.null(createScriIntervalDataArgs))
+    stop("Must provide createScriIntervalDataArgs argument when design = 'SCRI'")
   analysis <- list()
   for (name in names(formals(createSccsAnalysis))) {
     analysis[[name]] <- get(name)

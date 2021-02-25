@@ -327,7 +327,7 @@ runSccsAnalyses <- function(connectionDetails,
         if (sccs) {
           args <- sccsAnalysis$createSccsIntervalDataArgs
         } else {
-          args <- sccsAnalysis$createScriIntervalDataArg
+          args <- sccsAnalysis$createScriIntervalDataArgs
         }
         covariateSettings <- args$eraCovariateSettings
         if (is(covariateSettings, "EraCovariateSettings"))
