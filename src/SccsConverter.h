@@ -70,7 +70,7 @@ struct CovariateStatistics {
   long eraCount;
   long dayCount;
   int outcomeCount;
-  std::set<String> personIds;
+  std::set<std::string> personIds;
 
 };
 
@@ -159,7 +159,6 @@ struct ResultStruct {
 
   void computeCovariateStatistics(std::vector<Era>& eras, std::vector<Era>& outcomes, const String& personId) {
     std::set<int64_t> eraIds;
-    // std::cout << "Check 1\n";
     for (std::vector<Era>::iterator era = eras.begin(); era != eras.end(); ++era) {
       CovariateStatistics& covariateStatistics = covariateIdToCovariateStatistics[era->eraId];
       covariateStatistics.eraCount++;
@@ -171,13 +170,11 @@ struct ResultStruct {
       }
       eraIds.insert(era->eraId);
     }
-    // std::cout << "Check 2\n";
     for (std::set<int64_t>::iterator eraId = eraIds.begin(); eraId != eraIds.end(); ++eraId) {
       CovariateStatistics& covariateStatistics = covariateIdToCovariateStatistics[*eraId];
       covariateStatistics.observationPeriodCount++;
       covariateStatistics.personIds.insert(personId);
     }
-    // std::cout << "Check 3\n";
   }
 
   void incRowId(){
@@ -185,15 +182,9 @@ struct ResultStruct {
   }
 
   S4 convertToAndromeda() {
-    Environment base = Environment::namespace_env("base");
-    Function writeLines = base["writeLines"];
-    writeLines("Check 3\n");
     flushOutcomesToAndromeda();
-    writeLines("Check 4\n");
     flushErasToAndromeda();
-    writeLines("Check 5\n");
     writeCovariateStatisticsToAndromeda();
-    writeLines("Check 6\n");
     return andromedaBuilder.getAndromeda();
   }
 private:

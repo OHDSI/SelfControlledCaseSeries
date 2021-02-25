@@ -470,14 +470,13 @@ void SccsConverter::processPerson(PersonData& personData) {
 }
 
 S4 SccsConverter::convertToSccs() {
-  Environment base = Environment::namespace_env("base");
-  Function writeLines = base["writeLines"];
-  writeLines("Check 1\n");
+  // Environment base = Environment::namespace_env("base");
+  // Function writeLines = base["writeLines"];
+  // writeLines("Check 1\n");
   while (personDataIterator.hasNext()) {
     PersonData personData = personDataIterator.next();
     processPerson(personData);
   }
-  writeLines("Check 2\n");
   return resultStruct.convertToAndromeda();
 }
 
