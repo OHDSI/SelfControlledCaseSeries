@@ -13,8 +13,8 @@ createCreateSccsIntervalDataArgs(
 )
 }
 \arguments{
-\item{eraCovariateSettings}{Either an object of type covariateSettings as created using
-the createCovariateSettings() function, or a list of such
+\item{eraCovariateSettings}{Either an object of type EraCovariateSettings as created using
+the createEraCovariateSettings() function, or a list of such
 objects.}
 
 \item{ageCovariateSettings}{An object of type ageCovariateSettings as created using the

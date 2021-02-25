@@ -34,8 +34,12 @@
 #'                                     [getDbSccsData] function.
 #' @param createStudyPopulationArgs    An object representing the arguments to be used when calling the
 #'                                     [getDbSccsData] function.
+#' @param design                       Either "SCCS" for the general self-controlled case series design,
+#'                                     or "SCRI" for the self-controlled risk interval design.
 #' @param createSccsIntervalDataArgs   An object representing the arguments to be used when calling the
-#'                                     [createSccsIntervalData] function.
+#'                                     [createSccsIntervalData] function. Ignored when `design = "SCRI"`.
+#' @param createScriIntervalDataArgs   An object representing the arguments to be used when calling the
+#'                                     [createScriIntervalData] function. Ignored when `design = "SCCS"`.
 #' @param fitSccsModelArgs             An object representing the arguments to be used when calling the
 #'                                     [fitSccsModel] function.
 #' @export
@@ -45,8 +49,11 @@ createSccsAnalysis <- function(analysisId = 1,
                                outcomeType = NULL,
                                getDbSccsDataArgs,
                                createStudyPopulationArgs,
+                               design = "SCCS",
                                createSccsIntervalDataArgs,
                                fitSccsModelArgs) {
+  if (!toupper(design) %in% c("SCCS", "SCRI"))
+    stop("The design argument should be either 'SCCS' or 'SCRI'")
   analysis <- list()
   for (name in names(formals(createSccsAnalysis))) {
     analysis[[name]] <- get(name)

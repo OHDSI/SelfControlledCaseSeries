@@ -322,10 +322,19 @@ runSccsAnalyses <- function(connectionDetails,
       referenceTable$sccsIntervalDataFile[rowId] <- sccsIntervalDataFileName
       if (!file.exists(file.path(outputFolder, sccsIntervalDataFileName))) {
 
-        args <- sccsAnalysis$createSccsIntervalDataArgs
+        design <- sccsAnalysis$design
+        sccs <- toupper(design) == "SCCS"
+        if (sccs) {
+          args <- sccsAnalysis$createSccsIntervalDataArgs
+        } else {
+          args <- sccsAnalysis$createScriIntervalDataArg
+        }
         covariateSettings <- args$eraCovariateSettings
         if (is(covariateSettings, "EraCovariateSettings"))
           covariateSettings <- list(covariateSettings)
+        if (!sccs) {
+          covariateSettings[[length(covariateSettings) + 1]] <- args$controlIntervalSettings
+        }
         instantiatedSettings <- list()
         for (settings in covariateSettings) {
           includeEraIds <- c()
@@ -356,10 +365,16 @@ runSccsAnalyses <- function(connectionDetails,
           settings$excludeEraIds <- excludeEraIds
           instantiatedSettings[[length(instantiatedSettings) + 1]] <- settings
         }
-        args$eraCovariateSettings <- instantiatedSettings
+        if (sccs) {
+          args$eraCovariateSettings <- instantiatedSettings
+        } else {
+          args$controlIntervalSettings <- instantiatedSettings[[length(instantiatedSettings)]]
+          args$eraCovariateSettings <- instantiatedSettings[1:(length(instantiatedSettings) - 1)]
+        }
         sccsDataFileName <- referenceTable$sccsDataFile[rowId]
         studyPopFile <- referenceTable$studyPopFile[rowId]
         sccsIntervalDataObjectsToCreate[[length(sccsIntervalDataObjectsToCreate) + 1]] <- list(args = args,
+                                                                                               sccs = sccs,
                                                                                                sccsDataFileName = file.path(outputFolder, sccsDataFileName),
                                                                                                studyPopFile = file.path(outputFolder, studyPopFile),
                                                                                                sccsIntervalDataFileName = file.path(outputFolder, sccsIntervalDataFileName))
@@ -472,7 +487,11 @@ createSccsIntervalDataObject <- function(params) {
   params$args$sccsData <- sccsData
   studyPopulation <- readRDS(params$studyPopFile)
   params$args$studyPopulation <- studyPopulation
-  sccsIntervalData <- do.call("createSccsIntervalData", params$args)
+  if (params$sccs) {
+    sccsIntervalData <- do.call("createSccsIntervalData", params$args)
+  } else {
+    sccsIntervalData <- do.call("createScriIntervalData", params$args)
+  }
   saveSccsIntervalData(sccsIntervalData, params$sccsIntervalDataFileName)
   return(NULL)
 }

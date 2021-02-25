@@ -20,7 +20,7 @@ createSccsIntervalData(
 \item{sccsData}{An object of type \link{SccsData} as created using the
 \link{getDbSccsData} function.}
 
-\item{eraCovariateSettings}{Either an object of type \code{covariateSettings} as created
+\item{eraCovariateSettings}{Either an object of type \code{EraCovariateSettings} as created
 using the \code{\link[=createEraCovariateSettings]{createEraCovariateSettings()}} function, or a
 list of such objects.}
 

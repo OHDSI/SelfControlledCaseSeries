@@ -24,7 +24,7 @@
 #'
 #' @template StudyPopulation
 #' @template SccsData
-#' @param eraCovariateSettings        Either an object of type `covariateSettings` as created
+#' @param eraCovariateSettings        Either an object of type `EraCovariateSettings` as created
 #'                                    using the [createEraCovariateSettings()] function, or a
 #'                                    list of such objects.
 #' @param ageCovariateSettings        An object of type `ageCovariateSettings` as created using the
@@ -86,7 +86,7 @@ createSccsIntervalData <- function(studyPopulation,
   settings <- addSeasonalitySettings(settings, seasonalityCovariateSettings, sccsData)
 
   settings <- addEraCovariateSettings(settings, eraCovariateSettings, sccsData)
-  settings$metaData$covariateSettingsList <- settings$covariateSettingsList
+  settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
   metaData <- append(studyPopulation$metaData, settings$metaData)
 
   ParallelLogger::logInfo("Converting person data to SCCS intervals. This might take a while.")
@@ -96,18 +96,20 @@ createSccsIntervalData <- function(studyPopulation,
   eras <- sccsData$eras %>%
     arrange(.data$caseId)
 
-  data <- convertToSccs(cases,
-                        outcomes,
-                        eras,
-                        !is.null(ageCovariateSettings),
-                        settings$ageOffset,
-                        settings$ageDesignMatrix,
-                        !is.null(seasonalityCovariateSettings),
-                        settings$seasonDesignMatrix,
-                        ageSeasonsCases,
-                        settings$covariateSettingsList,
-                        eventDependentObservation,
-                        settings$censorModel)
+  data <- convertToSccs(cases = cases,
+                        outcomes = outcomes,
+                        eras = eras,
+                        includeAge = !is.null(ageCovariateSettings),
+                        ageOffset = settings$ageOffset,
+                        ageDesignMatrix = settings$ageDesignMatrix,
+                        includeSeason = !is.null(seasonalityCovariateSettings),
+                        seasonDesignMatrix = settings$seasonDesignMatrix,
+                        ageSeasonsCases = ageSeasonsCases,
+                        covariateSettingsList = settings$covariateSettingsList,
+                        eventDependentObservation = eventDependentObservation,
+                        censorModel = settings$censorModel,
+                        scri = FALSE,
+                        controlIntervalId = 0)
 
   if (is.null(data$outcomes)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
@@ -274,7 +276,8 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
                                   covariateName = covariateSettings$label,
                                   originalEraId = 0,
                                   originalEraType = "",
-                                  originalEraName = "")
+                                  originalEraName = "",
+                                  isControlInterval = covariateSettings$isControlInterval)
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
         outputId <- outputId + 1
       } else {
@@ -292,7 +295,8 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
                       originalEraName = .data$eraName,
                       covariateName = paste(covariateSettings$label,
                                             .data$eraName,
-                                            sep = ": "))
+                                            sep = ": "),
+                      isControlInterval = FALSE)
 
           newCovariateRef <- tibble(covariateId = outputIds,
                                     originalEraId = covariateSettings$eraIds) %>%
@@ -316,7 +320,8 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
                                   covariateName = varNames,
                                   originaEraId = 0,
                                   originalEraType = "",
-                                  originalEraName = "")
+                                  originalEraName = "",
+                                  isControlInterval = FALSE)
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
       } else {
         outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$eraIds) - 1)
@@ -340,11 +345,12 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
                             c(endDays[1:length(endDays) - 1], ""),
                             sep = "")
 
-          newCovariateRef <- data.frame(covariateId = outputIds,
-                                        covariateName = varNames,
-                                        originalEraId = originalEraId,
-                                        originalEraType = originalEraType,
-                                        originalEraName = originalEraName)
+          newCovariateRef <- tibble(covariateId = outputIds,
+                                    covariateName = varNames,
+                                    originalEraId = originalEraId,
+                                    originalEraType = originalEraType,
+                                    originalEraName = originalEraName,
+                                    isControlInterval = FALSE)
           settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
         }
       }

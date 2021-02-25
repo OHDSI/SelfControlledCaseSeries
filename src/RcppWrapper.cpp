@@ -32,21 +32,24 @@ using namespace Rcpp;
 SEXP convertToSccs(const DataFrame& cases,
                    const DataFrame& outcomes,
                    const List& eras,
-                   bool includeAge,
-                   int ageOffset,
-                   NumericMatrix ageDesignMatrix,
-                   bool includeSeason,
-                   NumericMatrix seasonDesignMatrix,
-                   NumericVector ageSeasonsCases,
-                   List& covariateSettingsList,
-                   bool eventDependentObservation,
-                   List& censorModel) {
+                   const bool includeAge,
+                   const int ageOffset,
+                   const NumericMatrix& ageDesignMatrix,
+                   const bool includeSeason,
+                   const NumericMatrix& seasonDesignMatrix,
+                   const NumericVector& ageSeasonsCases,
+                   const List& covariateSettingsList,
+                   const bool eventDependentObservation,
+                   const List& censorModel,
+                   const bool scri,
+                   const int64_t controlIntervalId) {
 
   using namespace ohdsi::sccs;
 
   try {
     SccsConverter sccsConverter(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason,
-                                seasonDesignMatrix, ageSeasonsCases, covariateSettingsList, eventDependentObservation, censorModel);
+                                seasonDesignMatrix, ageSeasonsCases, covariateSettingsList, eventDependentObservation,
+                                censorModel, scri, controlIntervalId);
     return (sccsConverter.convertToSccs());
   } catch (std::exception &e) {
     forward_exception_to_r(e);

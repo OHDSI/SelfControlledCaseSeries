@@ -19,6 +19,7 @@ Features
 - Optionally add many covariates in one analysis (e.g. all drugs).
 - Options for constructing different types of covariates and risk windows, including pre-exposure windows (to capture contra-indications).
 - Optionally use regularization on all covariates except the outcome of interest.
+- Also provides the self-controlled risk interval design as a special case of the SCCS.
 
 Example
 =======

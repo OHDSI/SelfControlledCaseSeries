@@ -6,24 +6,26 @@
 using namespace Rcpp;
 
 // convertToSccs
-SEXP convertToSccs(const DataFrame& cases, const DataFrame& outcomes, const List& eras, bool includeAge, int ageOffset, NumericMatrix ageDesignMatrix, bool includeSeason, NumericMatrix seasonDesignMatrix, NumericVector ageSeasonsCases, List& covariateSettingsList, bool eventDependentObservation, List& censorModel);
-RcppExport SEXP _SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP outcomesSEXP, SEXP erasSEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP, SEXP includeSeasonSEXP, SEXP seasonDesignMatrixSEXP, SEXP ageSeasonsCasesSEXP, SEXP covariateSettingsListSEXP, SEXP eventDependentObservationSEXP, SEXP censorModelSEXP) {
+SEXP convertToSccs(const DataFrame& cases, const DataFrame& outcomes, const List& eras, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const NumericMatrix& seasonDesignMatrix, const NumericVector& ageSeasonsCases, const List& covariateSettingsList, const bool eventDependentObservation, const List& censorModel, const bool scri, const int64_t controlIntervalId);
+RcppExport SEXP _SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP outcomesSEXP, SEXP erasSEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP, SEXP includeSeasonSEXP, SEXP seasonDesignMatrixSEXP, SEXP ageSeasonsCasesSEXP, SEXP covariateSettingsListSEXP, SEXP eventDependentObservationSEXP, SEXP censorModelSEXP, SEXP scriSEXP, SEXP controlIntervalIdSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const DataFrame& >::type cases(casesSEXP);
     Rcpp::traits::input_parameter< const DataFrame& >::type outcomes(outcomesSEXP);
     Rcpp::traits::input_parameter< const List& >::type eras(erasSEXP);
-    Rcpp::traits::input_parameter< bool >::type includeAge(includeAgeSEXP);
-    Rcpp::traits::input_parameter< int >::type ageOffset(ageOffsetSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type ageDesignMatrix(ageDesignMatrixSEXP);
-    Rcpp::traits::input_parameter< bool >::type includeSeason(includeSeasonSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type seasonDesignMatrix(seasonDesignMatrixSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type ageSeasonsCases(ageSeasonsCasesSEXP);
-    Rcpp::traits::input_parameter< List& >::type covariateSettingsList(covariateSettingsListSEXP);
-    Rcpp::traits::input_parameter< bool >::type eventDependentObservation(eventDependentObservationSEXP);
-    Rcpp::traits::input_parameter< List& >::type censorModel(censorModelSEXP);
-    rcpp_result_gen = Rcpp::wrap(convertToSccs(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix, ageSeasonsCases, covariateSettingsList, eventDependentObservation, censorModel));
+    Rcpp::traits::input_parameter< const bool >::type includeAge(includeAgeSEXP);
+    Rcpp::traits::input_parameter< const int >::type ageOffset(ageOffsetSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type ageDesignMatrix(ageDesignMatrixSEXP);
+    Rcpp::traits::input_parameter< const bool >::type includeSeason(includeSeasonSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type seasonDesignMatrix(seasonDesignMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type ageSeasonsCases(ageSeasonsCasesSEXP);
+    Rcpp::traits::input_parameter< const List& >::type covariateSettingsList(covariateSettingsListSEXP);
+    Rcpp::traits::input_parameter< const bool >::type eventDependentObservation(eventDependentObservationSEXP);
+    Rcpp::traits::input_parameter< const List& >::type censorModel(censorModelSEXP);
+    Rcpp::traits::input_parameter< const bool >::type scri(scriSEXP);
+    Rcpp::traits::input_parameter< const int64_t >::type controlIntervalId(controlIntervalIdSEXP);
+    rcpp_result_gen = Rcpp::wrap(convertToSccs(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason, seasonDesignMatrix, ageSeasonsCases, covariateSettingsList, eventDependentObservation, censorModel, scri, controlIntervalId));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -112,7 +114,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SelfControlledCaseSeries_convertToSccs", (DL_FUNC) &_SelfControlledCaseSeries_convertToSccs, 12},
+    {"_SelfControlledCaseSeries_convertToSccs", (DL_FUNC) &_SelfControlledCaseSeries_convertToSccs, 14},
     {"_SelfControlledCaseSeries_simulateSccsOutcomes", (DL_FUNC) &_SelfControlledCaseSeries_simulateSccsOutcomes, 9},
     {"_SelfControlledCaseSeries_testEwad", (DL_FUNC) &_SelfControlledCaseSeries_testEwad, 6},
     {"_SelfControlledCaseSeries_testEwid", (DL_FUNC) &_SelfControlledCaseSeries_testEwid, 6},

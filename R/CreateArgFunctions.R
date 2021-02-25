@@ -86,8 +86,8 @@ createCreateStudyPopulationArgs <- function(firstOutcomeOnly = FALSE,
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param eraCovariateSettings           Either an object of type covariateSettings as created using
-#'                                       the createCovariateSettings() function, or a list of such
+#' @param eraCovariateSettings           Either an object of type EraCovariateSettings as created using
+#'                                       the createEraCovariateSettings() function, or a list of such
 #'                                       objects.
 #' @param ageCovariateSettings           An object of type ageCovariateSettings as created using the
 #'                                       createAgeCovariateSettings() function.
@@ -107,6 +107,26 @@ createCreateSccsIntervalDataArgs <- function(eraCovariateSettings,
                                              eventDependentObservation = FALSE) {
   analysis <- list()
   for (name in names(formals(createCreateSccsIntervalDataArgs))) {
+    analysis[[name]] <- get(name)
+  }
+  class(analysis) <- "args"
+  return(analysis)
+}
+
+#' Create a parameter object for the function createScriIntervalData
+#'
+#' @details
+#' Create an object defining the parameter values.
+#'
+#' @param eraCovariateSettings      Either an object of type EraCovariateSettings as created using the
+#'                                  createEraCovariateSettings() function, or a list of such objects.
+#' @param controlIntervalSettings   An object of type ControlIntervalSettings as created using the
+#'                                  createControlIntervalSettings() function.
+#'
+#' @export
+createCreateScriIntervalDataArgs <- function(eraCovariateSettings, controlIntervalSettings) {
+  analysis <- list()
+  for (name in names(formals(createCreateScriIntervalDataArgs))) {
     analysis[[name]] <- get(name)
   }
   class(analysis) <- "args"

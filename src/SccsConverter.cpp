@@ -40,15 +40,19 @@ SccsConverter::SccsConverter(const DataFrame& _cases,
                              const Rcpp::NumericMatrix& _ageDesignMatrix,
                              const bool _includeSeason,
                              const NumericMatrix& _seasonDesignMatrix,
-                             const NumericVector _ageSeasonsCases,
+                             const NumericVector& _ageSeasonsCases,
                              const List& _covariateSettingsList,
                              const bool _eventDependentObservation,
-                             const List& _censorModel) :
+                             const List& _censorModel,
+                             const bool _scri,
+                             const int64_t _controlIntervalId) :
                              personDataIterator(_cases, _outcomes, _eras),
                              includeAge(_includeAge),
                              ageOffset(_ageOffset),
                              includeSeason(_includeSeason),
-                             eventDependentObservation(_eventDependentObservation) {
+                             eventDependentObservation(_eventDependentObservation),
+                             scri(_scri),
+                             controlIntervalId(_controlIntervalId) {
 
                                ageDesignMatrix = _ageDesignMatrix;
                                seasonDesignMatrix = _seasonDesignMatrix;
@@ -210,6 +214,16 @@ bool SccsConverter::isNanOrInf(const double x) {
 
 bool SccsConverter::invalidWeight(const double weight, const double startValue) {
   return isNanOrInf(weight) || isNanOrInf(startValue) || weight > 1000 * startValue;
+}
+
+void SccsConverter::removeNonRiskOrControlIntervals(std::vector<ConcomitantEra>& concomitantEras) {
+  for (std::vector<ConcomitantEra>::iterator era = concomitantEras.begin(); era != concomitantEras.end(); ++era) {
+    if (era->eraIdToValue.size() == 0) {
+      concomitantEras.erase(era--);
+    } else {
+      era->eraIdToValue.erase(controlIntervalId);
+    }
+  }
 }
 
 void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData) {
@@ -462,6 +476,9 @@ void SccsConverter::processPerson(PersonData& personData) {
   std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, 0, personData.endDay);
   if (concomitantEras.size() == 1) { // Not informative
     return;
+  }
+  if (scri) {
+    removeNonRiskOrControlIntervals(concomitantEras);
   }
   if (eventDependentObservation) {
     computeEventDepObsWeights(concomitantEras, personData);

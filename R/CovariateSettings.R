@@ -86,6 +86,7 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
   for (name in names(formals(createEraCovariateSettings))) {
     analysis[[name]] <- get(name)
   }
+  analysis$isControlInterval <- FALSE
   class(analysis) <- "EraCovariateSettings"
   return(analysis)
 }
@@ -165,5 +166,74 @@ createSeasonalityCovariateSettings <- function(seasonKnots = 5,
     analysis[[name]] <- get(name)
   }
   class(analysis) <- "SeasonalityCovariateSettings"
+  return(analysis)
+}
+
+#' Create control interval settings
+#'
+#' @details
+#' Create an object specifying how to create a control interval for the self-controlled risk interval (SCRI)
+#' design.
+#'
+#' @param includeEraIds         One or more IDs of variables in the [SccsData] object that should be
+#'                              used to construct this covariate. If no IDs are specified, all
+#'                              variables will be used.
+#' @param excludeEraIds         One or more IDs of variables in the \[SccsData] object that should not
+#'                              be used to construct this covariate.
+#' @param start                 The start of the control interval (in days) relative to the `startAnchor`.
+#' @param startAnchor           The anchor point for the start of the control interval. Can be `"era start"`
+#'                              or `"era end"`.
+#' @param end                   The end of the control interval (in days) relative to the `endAnchor`.
+#' @param endAnchor             The anchor point for the end of the control interval. Can be `"era start"`
+#'                              or `"era end"`.
+#' @param firstOccurrenceOnly   Should only the first occurrence of the exposure be used?
+#'
+#' @return
+#' An object of type `ControlSettings`.
+#'
+#' @export
+createControlIntervalSettings <- function(includeEraIds = NULL,
+                                   excludeEraIds = NULL,
+                                   start = 0,
+                                   startAnchor = "era start",
+                                   end = 0,
+                                   endAnchor = "era end",
+                                   firstOccurrenceOnly = FALSE) {
+  if (!grepl("start$|end$", startAnchor, ignore.case = TRUE)) {
+    stop("startAnchor should have value 'era start' or 'era end'")
+  }
+  if (!grepl("start$|end$", endAnchor, ignore.case = TRUE)) {
+    stop("endAnchor should have value 'era start' or 'era end'")
+  }
+  isEnd <- function(anchor) {
+    return(grepl("end$", anchor, ignore.case = TRUE))
+  }
+  if (end < start && !isEnd(endAnchor))
+    stop("End day always precedes start day. Either pick a later end day, or set endAnchor to 'era end'.")
+
+  # Make sure string is exact:
+  if (isEnd(startAnchor)) {
+    startAnchor <- "era end"
+  } else {
+    startAnchor <- "era start"
+  }
+  if (isEnd(endAnchor)) {
+    endAnchor <- "era end"
+  } else {
+    endAnchor <- "era start"
+  }
+  analysis <- createEraCovariateSettings(includeEraIds = includeEraIds,
+                                         excludeEraIds = excludeEraIds,
+                                         label = "Control interval",
+                                         stratifyById = FALSE,
+                                         start = start,
+                                         startAnchor = startAnchor,
+                                         end = end,
+                                         endAnchor = endAnchor,
+                                         firstOccurrenceOnly = firstOccurrenceOnly,
+                                         splitPoints = c(),
+                                         allowRegularization = FALSE)
+  analysis$isControlInterval <- TRUE
+  class(analysis) <- "ControlIntervalSettings"
   return(analysis)
 }

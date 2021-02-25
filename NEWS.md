@@ -1,9 +1,11 @@
-SelfControlledCaseSeries 2.0.1
+SelfControlledCaseSeries 3.0.0
 ==============================
 
 Changes
 
-1. Downloading person and observation period IDs as strings to avoid issues with 64-bit integers. (These IDs are not used by SCCS, and are used for reference only).
+1. Adding the self-controlled risk interval design.
+
+2. Downloading person and observation period IDs as strings to avoid issues with 64-bit integers. (These IDs are not used by SCCS, and are used for reference only).
 
 BugFixes
 

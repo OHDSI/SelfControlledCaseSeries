@@ -81,6 +81,9 @@ rCode <- ParallelLogger::createArgFunction("createStudyPopulation",
 rCode <- ParallelLogger::createArgFunction("createSccsIntervalData",
                                            excludeArgs = c("sccsData", "studyPopulation"),
                                            rCode = rCode)
+rCode <- ParallelLogger::createArgFunction("createScriIntervalData",
+                                           excludeArgs = c("sccsData", "studyPopulation"),
+                                           rCode = rCode)
 rCode <- ParallelLogger::createArgFunction("fitSccsModel",
                                            excludeArgs = c("sccsIntervalData", "population"),
                                            rCode = rCode)

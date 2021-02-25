@@ -266,10 +266,12 @@ public:
                 const Rcpp::NumericMatrix& _ageDesignMatrix,
                 const bool _includeSeason,
                 const NumericMatrix& _seasonDesignMatrix,
-                const NumericVector _ageSeasonsCases,
+                const NumericVector& _ageSeasonsCases,
                 const List& _covariateSettingsList,
                 const bool _eventDependentObservation,
-                const List& _censorModel);
+                const List& _censorModel,
+                const bool _scri,
+                const int64_t _controlIntervalId);
   S4 convertToSccs();
   static const int ageIdOffset = 100;
   static const int seasonIdOffset = 200;
@@ -280,6 +282,7 @@ private:
   std::vector<ConcomitantEra> buildConcomitantEras(std::vector<Era>& eras, const int startDay, const int endDay);
   void addToResult(std::vector<ConcomitantEra>& concomitantEras, std::vector<Era>& outcomes, const int64_t& observationPeriodId);
   void addToResult(const ConcomitantEra& era, int outcomeCount, const double duration, const int64_t& observationPeriodId);
+  void removeNonRiskOrControlIntervals(std::vector<ConcomitantEra>& concomitantEras);
   void computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData);
   int dateDifference(struct tm &date1, struct tm &date2);
   struct tm addMonth(const struct tm &date);
@@ -301,6 +304,8 @@ private:
   WeightFunction* weightFunction;
   bool hasAgeSeasonsCases;
   std::set<int64_t> ageSeasonsCases;
+  bool scri;
+  const int64_t controlIntervalId;
 };
 }
 }
