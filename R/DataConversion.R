@@ -111,7 +111,7 @@ createSccsIntervalData <- function(studyPopulation,
                         scri = FALSE,
                         controlIntervalId = 0)
 
-  if (is.null(data$outcomes)) {
+  if (is.null(data$outcomes) || is.null(data$covariates)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
     data <- createEmptySccsIntervalData()
     if (nrow(settings$covariateRef) > 0) {
