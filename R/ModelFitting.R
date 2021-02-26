@@ -58,6 +58,7 @@ fitSccsModel <- function(sccsIntervalData,
     coefficients <- c(0)
     estimates <- NULL
     priorVariance <- 0
+    logLikelihood <- NA
     status <- "Could not estimate because there was no data"
   } else {
     # Build list of IDs that should not be regularized, and see if there is anything that needs
@@ -151,15 +152,23 @@ fitSccsModel <- function(sccsIntervalData,
         ci$evaluations <- NULL
         estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
         estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
+        for (param in needCi) {
+          llNull <- Cyclops::getCyclopsProfileLogLikelihood(object = fit,
+                                                            parm = param,
+                                                            x = 0,
+                                                            includePenalty = FALSE)$value
+          estimates$llr[estimates$covariateId == param] <- fit$log_likelihood - llNull
+        }
       }
       # Remove regularized estimates with logRr = 0:
-      estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr) | estimates$covariateId <
-                               1000, ]
+      estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr) | estimates$covariateId < 1000, ]
       priorVariance <- fit$variance[1]
+      logLikelihood <- fit$log_likelihood
     }
   }
   result <- list(estimates = estimates,
                  priorVariance = priorVariance,
+                 logLikelihood = logLikelihood,
                  status = status,
                  metaData = metaData)
   class(result) <- "SccsModel"
@@ -205,9 +214,10 @@ print.SccsModel <- function(x, ...) {
                      exp(d$logLb95),
                      exp(d$logUb95),
                      d$logRr,
-                     d$seLogRr)
+                     d$seLogRr,
+                     d$llr)
 
-    colnames(output) <- c("Name", "ID", "Estimate", "LB95CI", "UB95CI", "logRr", "seLogRr")
+    colnames(output) <- c("Name", "ID", "Estimate", "LB95CI", "UB95CI", "LogRr", "SeLogRr", "LogLR")
     print(output, n = 25)
   }
 }

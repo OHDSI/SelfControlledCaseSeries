@@ -7,6 +7,8 @@ Changes
 
 2. Downloading person and observation period IDs as strings to avoid issues with 64-bit integers. (These IDs are not used by SCCS, and are used for reference only).
 
+3. Outputting log likelihood ratio as part of estimates.
+
 BugFixes
 
 1. Fixed syntax error in SQL when using a nesting cohort.

@@ -580,7 +580,8 @@ summarizeSccsAnalyses <- function(referenceTable, outputFolder) {
                                ci95lb = exp(estimates$logLb95[j]),
                                ci95ub = exp(estimates$logUb95[j]),
                                logRr = estimates$logRr[j],
-                               seLogRr = estimates$seLogRr[j])
+                               seLogRr = estimates$seLogRr[j],
+                               llr = estimates$llr)
         if (grepl(".*, day -?[0-9]+--?[0-9]*$", estimates$covariateName[j])) {
           name <- as.character(estimates$covariateName[j])
           pos1 <- attr(regexpr("^[^:]*:", name),"match.length") - 1

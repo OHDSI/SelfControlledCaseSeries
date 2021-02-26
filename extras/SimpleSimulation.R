@@ -18,6 +18,13 @@ covarSettings <- createEraCovariateSettings(label = "Exposures of interest",
                                             end = 0,
                                             endAnchor = "era end")
 
+preExpCovarSettings <- createEraCovariateSettings(label = "Pre exp",
+                                            includeEraIds = 1,
+                                            stratifyById = FALSE,
+                                            start = -14,
+                                            end = -1,
+                                            endAnchor = "era start")
+
 studyPop <- createStudyPopulation(sccsData = sccsData,
                                   outcomeId = settings$outcomeId,
                                   firstOutcomeOnly = FALSE,
@@ -37,7 +44,7 @@ controlIntervalSettings <- createControlIntervalSettings(includeEraIds = 1,
 
 sccsIntervalData <- createScriIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
-                                           eraCovariateSettings = covarSettings,
+                                           eraCovariateSettings = list(covarSettings, preExpCovarSettings),
                                            controlIntervalSettings = controlIntervalSettings)
 
 model <- fitSccsModel(sccsIntervalData)
