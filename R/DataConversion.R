@@ -156,6 +156,7 @@ addAgeSettings <- function(settings,
   if (is.null(ageCovariateSettings)) {
     settings$ageOffset <- 0
     settings$ageDesignMatrix <- matrix()
+    return(settings)
   } else {
     if (length(ageCovariateSettings$ageKnots) == 1) {
       ageKnots <- studyPopulation$outcomes %>%
@@ -165,6 +166,12 @@ addAgeSettings <- function(settings,
         quantile(seq(0.01, 0.99, length.out = ageCovariateSettings$ageKnots))
     } else {
       ageKnots <- ageCovariateSettings$ageKnots
+    }
+    if (length(ageKnots) > nrow(studyPopulation$outcomes)) {
+      warning("There are more age knots than cases. Removing age from model")
+      settings$ageOffset <- 0
+      settings$ageDesignMatrix <- matrix()
+      return(settings)
     }
     settings$ageOffset <- ageKnots[1]
     ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)],
@@ -184,8 +191,8 @@ addAgeSettings <- function(settings,
                 allowRegularization = ageCovariateSettings$allowRegularization,
                 computeConfidenceIntervals = ageCovariateSettings$computeConfidenceIntervals)
     settings$metaData$age <- age
+    return(settings)
   }
-  return(settings)
 }
 
 addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsData) {

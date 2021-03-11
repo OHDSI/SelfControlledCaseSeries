@@ -54,11 +54,11 @@ fitSccsModel <- function(sccsIntervalData,
     return(result)
   }
   start <- Sys.time()
+  estimates <- NULL
+  priorVariance <- 0
+  logLikelihood <- NA
   if (sccsIntervalData$outcomes %>% count() %>% pull() == 0) {
     coefficients <- c(0)
-    estimates <- NULL
-    priorVariance <- 0
-    logLikelihood <- NA
     status <- "Could not estimate because there was no data"
   } else {
     # Build list of IDs that should not be regularized, and see if there is anything that needs
@@ -152,7 +152,7 @@ fitSccsModel <- function(sccsIntervalData,
         ci$evaluations <- NULL
         estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
         estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
-        for (param in needCi) {
+        for (param in intersect(needCi, estimates$covariateId)) {
           llNull <- Cyclops::getCyclopsProfileLogLikelihood(object = fit,
                                                             parm = param,
                                                             x = 0,
