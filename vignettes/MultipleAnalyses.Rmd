@@ -18,7 +18,7 @@ vignette: >
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
-
+outputFolder <- "s:/temp/sccsVignette2"
 ```
 # Introduction
 
@@ -50,7 +50,7 @@ The function arguments you need to define have been divided into four groups:
 
 We need to tell R how to connect to the server where the data are. `SelfControlledCaseSeries` uses the `DatabaseConnector` package, which provides the `createConnectionDetails` function. Type `?createConnectionDetails` for the specific settings required for the various database management systems (DBMS). For example, one might connect to a PostgreSQL database using this code:
 
-```{r eval=TRUE}
+```{r eval=TRUE,eval=FALSE}
 connectionDetails <- createConnectionDetails(dbms = "postgresql", 
                                              server = "localhost/ohdsi", 
                                              user = "joe", 
