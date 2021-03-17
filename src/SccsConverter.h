@@ -115,7 +115,7 @@ struct ConcomitantEraCovariateComparator {
 struct ResultStruct {
 
   ResultStruct() :
-  rowId(0), covariateIdToCovariateStatistics() {
+  rowId(0), observedDays(), covariateIdToCovariateStatistics() {
     outcomeRowId = new std::vector<int64_t>;
     outcomeStratumId = new std::vector<int64_t>;
     outcomeY = new std::vector<int64_t>;
@@ -181,13 +181,23 @@ struct ResultStruct {
     rowId++;
   }
 
+  void addObservedDays(int64_t days) {
+    observedDays += days;
+  }
+
   S4 convertToAndromeda() {
     flushOutcomesToAndromeda();
     flushErasToAndromeda();
     writeCovariateStatisticsToAndromeda();
+    writeObservedDaysToAndromeda();
     return andromedaBuilder.getAndromeda();
   }
 private:
+  void writeObservedDaysToAndromeda() {
+    DataFrame data = DataFrame::create(Named("observedDays") = wrap(observedDays));
+    andromedaBuilder.appendToTable("observedDays", data);
+  }
+
   void writeCovariateStatisticsToAndromeda() {
     int size = covariateIdToCovariateStatistics.size();
     std::vector<int64_t> covariateId(size);
@@ -253,6 +263,7 @@ private:
   std::vector<int64_t>* eraCovariateId;
   std::vector<double>* eraCovariateValue;
   int64_t rowId;
+  int64_t observedDays;
   std::map<int64_t, CovariateStatistics> covariateIdToCovariateStatistics;
 };
 

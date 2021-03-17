@@ -101,13 +101,16 @@ createScriIntervalData <- function(studyPopulation,
   if (is.null(data$outcomes) || is.null(data$covariates)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
     data <- createEmptySccsIntervalData()
+    metaData$daysObserved <- 0
     if (nrow(settings$covariateRef) > 0) {
       data$covariateRef <- settings$covariateRef
     }
 
   } else {
     metaData$covariateStatistics <- collect(data$covariateStatistics)
+    metaData$daysObserved <- pull(data$observedDays, .data$observedDays)
     data$covariateStatistics <- NULL
+    data$observedDays <- NULL
     data$covariateRef <- settings$covariateRef
 
   }

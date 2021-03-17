@@ -9,6 +9,8 @@ Changes
 
 3. Outputting log likelihood ratio as part of estimates.
 
+4. Computing meta-data on covariates.
+
 BugFixes
 
 1. Fixed syntax error in SQL when using a nesting cohort.
