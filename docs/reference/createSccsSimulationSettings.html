@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
       </span>
     </div>
 
@@ -80,7 +80,7 @@
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
 </li>
 <li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -138,26 +138,26 @@
     <p>Create SCCS simulation settings</p>
     </div>
 
-    <pre class="usage"><span class='fu'>createSccsSimulationSettings</span>(
-  <span class='kw'>meanPatientTime</span> <span class='kw'>=</span> <span class='fl'>4</span> * <span class='fl'>365</span>,
-  <span class='kw'>sdPatientTime</span> <span class='kw'>=</span> <span class='fl'>2</span> * <span class='fl'>365</span>,
-  <span class='kw'>minAge</span> <span class='kw'>=</span> <span class='fl'>18</span> * <span class='fl'>365</span>,
-  <span class='kw'>maxAge</span> <span class='kw'>=</span> <span class='fl'>65</span> * <span class='fl'>365</span>,
-  <span class='kw'>minBaselineRate</span> <span class='kw'>=</span> <span class='fl'>0.001</span>,
-  <span class='kw'>maxBaselineRate</span> <span class='kw'>=</span> <span class='fl'>0.01</span>,
-  <span class='kw'>eraIds</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>2</span>),
-  <span class='kw'>patientUsages</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.2</span>, <span class='fl'>0.1</span>),
-  <span class='kw'>usageRate</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.01</span>, <span class='fl'>0.01</span>),
-  <span class='kw'>meanPrescriptionDurations</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>14</span>, <span class='fl'>30</span>),
-  <span class='kw'>sdPrescriptionDurations</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>7</span>, <span class='fl'>14</span>),
-  <span class='kw'>simulationRiskWindows</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='fu'><a href='createSimulationRiskWindow.html'>createSimulationRiskWindow</a></span>(<span class='kw'>relativeRisks</span> <span class='kw'>=</span> <span class='fl'>1</span>),
-    <span class='fu'><a href='createSimulationRiskWindow.html'>createSimulationRiskWindow</a></span>(<span class='kw'>relativeRisks</span> <span class='kw'>=</span> <span class='fl'>1.5</span>)),
-  <span class='kw'>includeAgeEffect</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>ageKnots</span> <span class='kw'>=</span> <span class='fl'>5</span>,
-  <span class='kw'>includeSeasonality</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>seasonKnots</span> <span class='kw'>=</span> <span class='fl'>5</span>,
-  <span class='kw'>outcomeId</span> <span class='kw'>=</span> <span class='fl'>10</span>
-)</pre>
+    <pre class="usage"><span class='fu'>createSccsSimulationSettings</span><span class='op'>(</span>
+  meanPatientTime <span class='op'>=</span> <span class='fl'>4</span> <span class='op'>*</span> <span class='fl'>365</span>,
+  sdPatientTime <span class='op'>=</span> <span class='fl'>2</span> <span class='op'>*</span> <span class='fl'>365</span>,
+  minAge <span class='op'>=</span> <span class='fl'>18</span> <span class='op'>*</span> <span class='fl'>365</span>,
+  maxAge <span class='op'>=</span> <span class='fl'>65</span> <span class='op'>*</span> <span class='fl'>365</span>,
+  minBaselineRate <span class='op'>=</span> <span class='fl'>0.001</span>,
+  maxBaselineRate <span class='op'>=</span> <span class='fl'>0.01</span>,
+  eraIds <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>2</span><span class='op'>)</span>,
+  patientUsages <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.2</span>, <span class='fl'>0.1</span><span class='op'>)</span>,
+  usageRate <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.01</span>, <span class='fl'>0.01</span><span class='op'>)</span>,
+  meanPrescriptionDurations <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>14</span>, <span class='fl'>30</span><span class='op'>)</span>,
+  sdPrescriptionDurations <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>7</span>, <span class='fl'>14</span><span class='op'>)</span>,
+  simulationRiskWindows <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='fu'><a href='createSimulationRiskWindow.html'>createSimulationRiskWindow</a></span><span class='op'>(</span>relativeRisks <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span>,
+    <span class='fu'><a href='createSimulationRiskWindow.html'>createSimulationRiskWindow</a></span><span class='op'>(</span>relativeRisks <span class='op'>=</span> <span class='fl'>1.5</span><span class='op'>)</span><span class='op'>)</span>,
+  includeAgeEffect <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  ageKnots <span class='op'>=</span> <span class='fl'>5</span>,
+  includeSeasonality <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  seasonKnots <span class='op'>=</span> <span class='fl'>5</span>,
+  outcomeId <span class='op'>=</span> <span class='fl'>10</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -257,7 +257,7 @@ function.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

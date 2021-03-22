@@ -214,10 +214,9 @@ print.SccsModel <- function(x, ...) {
                      exp(d$logLb95),
                      exp(d$logUb95),
                      d$logRr,
-                     d$seLogRr,
-                     d$llr)
+                     d$seLogRr)
 
-    colnames(output) <- c("Name", "ID", "Estimate", "LB95CI", "UB95CI", "LogRr", "SeLogRr", "LogLR")
+    colnames(output) <- c("Name", "ID", "Estimate", "LB95CI", "UB95CI", "LogRr", "SeLogRr")
     print(output, n = 25)
   }
 }

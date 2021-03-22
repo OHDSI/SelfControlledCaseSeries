@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
       </span>
     </div>
 
@@ -80,7 +80,7 @@
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
 </li>
 <li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -138,29 +138,29 @@
     <p>Run a list of analyses</p>
     </div>
 
-    <pre class="usage"><span class='fu'>runSccsAnalyses</span>(
-  <span class='no'>connectionDetails</span>,
-  <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>oracleTempSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>exposureDatabaseSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>exposureTable</span> <span class='kw'>=</span> <span class='st'>"drug_era"</span>,
-  <span class='kw'>outcomeDatabaseSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>outcomeTable</span> <span class='kw'>=</span> <span class='st'>"condition_era"</span>,
-  <span class='kw'>customCovariateDatabaseSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>customCovariateTable</span> <span class='kw'>=</span> <span class='st'>"cohort"</span>,
-  <span class='kw'>nestingCohortDatabaseSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>nestingCohortTable</span> <span class='kw'>=</span> <span class='st'>"cohort"</span>,
-  <span class='kw'>cdmVersion</span> <span class='kw'>=</span> <span class='fl'>5</span>,
-  <span class='kw'>outputFolder</span> <span class='kw'>=</span> <span class='st'>"./SccsOutput"</span>,
-  <span class='no'>sccsAnalysisList</span>,
-  <span class='no'>exposureOutcomeList</span>,
-  <span class='kw'>combineDataFetchAcrossOutcomes</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>getDbSccsDataThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>createStudyPopulationThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>createSccsIntervalDataThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>fitSccsModelThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>cvThreads</span> <span class='kw'>=</span> <span class='fl'>1</span>
-)</pre>
+    <pre class="usage"><span class='fu'>runSccsAnalyses</span><span class='op'>(</span>
+  <span class='va'>connectionDetails</span>,
+  <span class='va'>cdmDatabaseSchema</span>,
+  oracleTempSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  exposureDatabaseSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  exposureTable <span class='op'>=</span> <span class='st'>"drug_era"</span>,
+  outcomeDatabaseSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  outcomeTable <span class='op'>=</span> <span class='st'>"condition_era"</span>,
+  customCovariateDatabaseSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  customCovariateTable <span class='op'>=</span> <span class='st'>"cohort"</span>,
+  nestingCohortDatabaseSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  nestingCohortTable <span class='op'>=</span> <span class='st'>"cohort"</span>,
+  cdmVersion <span class='op'>=</span> <span class='fl'>5</span>,
+  outputFolder <span class='op'>=</span> <span class='st'>"./SccsOutput"</span>,
+  <span class='va'>sccsAnalysisList</span>,
+  <span class='va'>exposureOutcomeList</span>,
+  combineDataFetchAcrossOutcomes <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  getDbSccsDataThreads <span class='op'>=</span> <span class='fl'>1</span>,
+  createStudyPopulationThreads <span class='op'>=</span> <span class='fl'>1</span>,
+  createSccsIntervalDataThreads <span class='op'>=</span> <span class='fl'>1</span>,
+  fitSccsModelThreads <span class='op'>=</span> <span class='fl'>1</span>,
+  cvThreads <span class='op'>=</span> <span class='fl'>1</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -316,7 +316,7 @@ analysis.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

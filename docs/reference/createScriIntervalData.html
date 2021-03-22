@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Create age covariate settings — createAgeCovariateSettings • SelfControlledCaseSeries</title>
+<title>Create Self-Controlled Risk Interval (SCRI) era data — createScriIntervalData • SelfControlledCaseSeries</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Create age covariate settings — createAgeCovariateSettings" />
-<meta property="og:description" content="Create age covariate settings" />
+<meta property="og:title" content="Create Self-Controlled Risk Interval (SCRI) era data — createScriIntervalData" />
+<meta property="og:description" content="Create Self-Controlled Risk Interval (SCRI) era data" />
 
 
 
@@ -129,55 +129,63 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Create age covariate settings</h1>
-    <small class="dont-index">Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/R/CovariateSettings.R'><code>R/CovariateSettings.R</code></a></small>
-    <div class="hidden name"><code>createAgeCovariateSettings.Rd</code></div>
+    <h1>Create Self-Controlled Risk Interval (SCRI) era data</h1>
+    <small class="dont-index">Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/R/ScriDataConversion.R'><code>R/ScriDataConversion.R</code></a></small>
+    <div class="hidden name"><code>createScriIntervalData.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Create age covariate settings</p>
+    <p>Create Self-Controlled Risk Interval (SCRI) era data</p>
     </div>
 
-    <pre class="usage"><span class='fu'>createAgeCovariateSettings</span><span class='op'>(</span>
-  ageKnots <span class='op'>=</span> <span class='fl'>5</span>,
-  allowRegularization <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  computeConfidenceIntervals <span class='op'>=</span> <span class='cn'>FALSE</span>
+    <pre class="usage"><span class='fu'>createScriIntervalData</span><span class='op'>(</span>
+  <span class='va'>studyPopulation</span>,
+  <span class='va'>sccsData</span>,
+  <span class='va'>eraCovariateSettings</span>,
+  <span class='va'>controlIntervalSettings</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>ageKnots</th>
-      <td><p>If a single number is provided this is assumed to indicate the
-number of knots to use for the spline, and the knots are
-automatically spaced according to equal percentiles of the data.
-If more than one number is provided these are assumed to be the
-exact location of the knots in age-days</p></td>
+      <th>studyPopulation</th>
+      <td><p>An object created using the <code><a href='createStudyPopulation.html'>createStudyPopulation()</a></code> function.</p></td>
     </tr>
     <tr>
-      <th>allowRegularization</th>
-      <td><p>When fitting the model, should the covariates defined here be
-allowed to be regularized?</p></td>
+      <th>sccsData</th>
+      <td><p>An object of type <a href='SccsData-class.html'>SccsData</a> as created using the
+<a href='getDbSccsData.html'>getDbSccsData</a> function.</p></td>
     </tr>
     <tr>
-      <th>computeConfidenceIntervals</th>
-      <td><p>Should confidence intervals be computed for the covariates
-defined here? Setting this to FALSE might save computing time
-when fitting the model. Will be turned to FALSE automatically
-when <code>allowRegularization = TRUE</code>.</p></td>
+      <th>eraCovariateSettings</th>
+      <td><p>Either an object of type <code>EraCovariateSettings</code> as created
+using the <code><a href='createEraCovariateSettings.html'>createEraCovariateSettings()</a></code> function, or a
+list of such objects.</p></td>
+    </tr>
+    <tr>
+      <th>controlIntervalSettings</th>
+      <td><p>An object of type <code>ControlIntervalSettings</code> as created
+using the <code><a href='createControlIntervalSettings.html'>createControlIntervalSettings()</a></code> function.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An object of type <code>AgeCovariateSettings</code>.</p>
+    <p>An object of type <a href='SccsIntervalData-class.html'>SccsIntervalData</a>.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Create an object specifying whether and how age should be included in the model. Age can be
-included by splitting patient time into calendar months. During a month, the relative risk
-attributed to age is assumed to be constant, and the risk from month to month is modeled using a
-cubic spline.</p>
+    <p>This function creates interval data according to the elf-Controlled Risk Interval (SCRI) design.
+Unlike the generic SCCS design, where all patient time is used to establish a background rate,
+in the SCRI design a specific control interval (relative to the exposure) needs to be defined.
+The final model will only include time that is either part of the risk interval (defined using
+the <code>eraCovariateSettings</code> argument, or the control interval (defined using <code>controlIntervalSettings</code>).</p>
+    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
+
+    <p>Greene SK, Kulldorff M, Lewis EM, Li R, Yin R, Weintraub ES, Fireman BH, Lieu TA, Nordin JD,
+Glanz JM, Baxter R, Jacobsen SJ, Broder KR, Lee GM. Near real-time surveillance for influenza
+vaccine safety: proof-of-concept in the Vaccine Safety Datalink Project. Am J Epidemiol. 2010
+Jan 15;171(2):177-88. doi: 10.1093/aje/kwp345.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

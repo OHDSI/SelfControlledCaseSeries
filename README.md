@@ -77,9 +77,8 @@ Installation
 2. In R, use the following commands to download and install MethodEvaluation:
 
   ```r
-  install.packages("drat")
-  drat::addRepo("OHDSI")
-  install.packages("SelfControlledCaseSeries")
+  install.packages("remotes")
+  remotes::install_github("ohdsi/SelfControlledCaseSeries")
   ```
 
 User Documentation

@@ -304,7 +304,7 @@ sccsAnalysisList2 <- list(sccsAnalysisA, sccsAnalysisB)
 
 In this example, the first analysis (analysisID = 1) will use cohort definition 1 as outcome, whilst the second analysis analysis (analysisID = 2) will use cohort definition 2 as outcome.
 
-The same mechanism can be used to specifiy types for the exposureId.
+The same mechanism can be used to specify types for the exposureId.
 
 # Executing multiple analyses
 

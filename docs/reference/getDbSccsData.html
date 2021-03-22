@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
       </span>
     </div>
 
@@ -80,7 +80,7 @@
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
 </li>
 <li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -138,30 +138,30 @@
     <p>Load all data needed to perform an SCCS analysis from the database.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>getDbSccsData</span>(
-  <span class='no'>connectionDetails</span>,
-  <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>oracleTempSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>outcomeDatabaseSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>outcomeTable</span> <span class='kw'>=</span> <span class='st'>"condition_era"</span>,
-  <span class='no'>outcomeIds</span>,
-  <span class='kw'>exposureDatabaseSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>exposureTable</span> <span class='kw'>=</span> <span class='st'>"drug_era"</span>,
-  <span class='kw'>exposureIds</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(),
-  <span class='kw'>useCustomCovariates</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>customCovariateDatabaseSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>customCovariateTable</span> <span class='kw'>=</span> <span class='st'>"cohort"</span>,
-  <span class='kw'>customCovariateIds</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(),
-  <span class='kw'>useNestingCohort</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>nestingCohortDatabaseSchema</span> <span class='kw'>=</span> <span class='no'>cdmDatabaseSchema</span>,
-  <span class='kw'>nestingCohortTable</span> <span class='kw'>=</span> <span class='st'>"cohort"</span>,
-  <span class='kw'>nestingCohortId</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>deleteCovariatesSmallCount</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>studyStartDate</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>studyEndDate</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>cdmVersion</span> <span class='kw'>=</span> <span class='st'>"5"</span>,
-  <span class='kw'>maxCasesPerOutcome</span> <span class='kw'>=</span> <span class='fl'>0</span>
-)</pre>
+    <pre class="usage"><span class='fu'>getDbSccsData</span><span class='op'>(</span>
+  <span class='va'>connectionDetails</span>,
+  <span class='va'>cdmDatabaseSchema</span>,
+  oracleTempSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  outcomeDatabaseSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  outcomeTable <span class='op'>=</span> <span class='st'>"condition_era"</span>,
+  <span class='va'>outcomeIds</span>,
+  exposureDatabaseSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  exposureTable <span class='op'>=</span> <span class='st'>"drug_era"</span>,
+  exposureIds <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='op'>)</span>,
+  useCustomCovariates <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  customCovariateDatabaseSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  customCovariateTable <span class='op'>=</span> <span class='st'>"cohort"</span>,
+  customCovariateIds <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='op'>)</span>,
+  useNestingCohort <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  nestingCohortDatabaseSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  nestingCohortTable <span class='op'>=</span> <span class='st'>"cohort"</span>,
+  nestingCohortId <span class='op'>=</span> <span class='cn'>NULL</span>,
+  deleteCovariatesSmallCount <span class='op'>=</span> <span class='fl'>100</span>,
+  studyStartDate <span class='op'>=</span> <span class='st'>""</span>,
+  studyEndDate <span class='op'>=</span> <span class='st'>""</span>,
+  cdmVersion <span class='op'>=</span> <span class='st'>"5"</span>,
+  maxCasesPerOutcome <span class='op'>=</span> <span class='fl'>0</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -339,7 +339,7 @@ for example a cohort of diabetics patients.</p></li>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

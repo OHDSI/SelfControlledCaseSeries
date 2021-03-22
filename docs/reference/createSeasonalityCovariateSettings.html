@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
       </span>
     </div>
 
@@ -80,7 +80,7 @@
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
 </li>
 <li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -138,33 +138,34 @@
     <p>Create seasonality settings</p>
     </div>
 
-    <pre class="usage"><span class='fu'>createSeasonalityCovariateSettings</span>(
-  <span class='kw'>seasonKnots</span> <span class='kw'>=</span> <span class='fl'>5</span>,
-  <span class='kw'>allowRegularization</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>computeConfidenceIntervals</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
-)</pre>
+    <pre class="usage"><span class='fu'>createSeasonalityCovariateSettings</span><span class='op'>(</span>
+  seasonKnots <span class='op'>=</span> <span class='fl'>5</span>,
+  allowRegularization <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  computeConfidenceIntervals <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>seasonKnots</th>
-      <td><p>If a single number is provided this is assumed to indicate the number
-of knots to use for the spline, and the knots are automatically equally
-spaced across the year. If more than one number is provided these are
-assumed to be the exact location of the knots in days relative to the
-start of the year.</p></td>
+      <td><p>If a single number is provided this is assumed to indicate the
+number of knots to use for the spline, and the knots are
+automatically equally spaced across the year. If more than one
+number is provided these are assumed to be the exact location of
+the knots in days relative to the start of the year.</p></td>
     </tr>
     <tr>
       <th>allowRegularization</th>
-      <td><p>When fitting the model, should the covariates defined here be allowed
-to be regularized?</p></td>
+      <td><p>When fitting the model, should the covariates defined here be
+allowed to be regularized?</p></td>
     </tr>
     <tr>
       <th>computeConfidenceIntervals</th>
-      <td><p>Should confidence intervals be computed for the covariates defined
-here? Setting this to FALSE might save computing time when fitting the
-model. Will be turned to FALSE  automatically when <code>allowRegularization = TRUE</code>.</p></td>
+      <td><p>Should confidence intervals be computed for the covariates
+defined here? Setting this to FALSE might save computing time
+when fitting the model. Will be turned to FALSE automatically
+when <code>allowRegularization = TRUE</code>.</p></td>
     </tr>
     </table>
 
@@ -173,10 +174,10 @@ model. Will be turned to FALSE  automatically when <code>allowRegularization = T
     <p>An object of type <code>seasonalitySettings</code>.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Create an object specifying whether and how seasonality should be included in the model. Seasonality
-can be included by splitting patient time into calendar months. During a month, the relative risk
-attributed to season is assumed to be constant, and the risk from month to month is modeled using a
-cyclic cubic spline.</p>
+    <p>Create an object specifying whether and how seasonality should be included in the model.
+Seasonality can be included by splitting patient time into calendar months. During a month, the
+relative risk attributed to season is assumed to be constant, and the risk from month to month is
+modeled using a cyclic cubic spline.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -193,7 +194,7 @@ cyclic cubic spline.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
