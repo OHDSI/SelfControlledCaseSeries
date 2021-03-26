@@ -99,7 +99,10 @@ fitSccsModel <- function(sccsIntervalData,
     if (!needRegularization) {
       prior <- createPrior("none")
     } else {
-      prior$exclude <- nonRegularized
+      covariateIds <- sccsIntervalData$covariates %>%
+        distinct(.data$covariateId) %>%
+        pull()
+      prior$exclude <- intersect(nonRegularized, covariateIds)
     }
     cyclopsData <- Cyclops::convertToCyclopsData(sccsIntervalData$outcomes,
                                                  sccsIntervalData$covariates,
@@ -138,7 +141,7 @@ fitSccsModel <- function(sccsIntervalData,
         estimates$seLogRr <- NA
       } else {
         ci <- tryCatch({
-          result <- confint(fit, parm = estimates$covariateId, includePenalty = TRUE)
+          result <- confint(fit, parm = intersect(needCi, estimates$covariateId), includePenalty = TRUE)
           attr(result, "dimnames")[[1]] <- 1:length(attr(result, "dimnames")[[1]])
           result <- as.data.frame(result)
           rownames(result) <- NULL

@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 3.0.1
+==============================
+
+BugFixes
+
+1. Prevent error when excluding variable not in data from regularization.
+
+
 SelfControlledCaseSeries 3.0.0
 ==============================
 
