@@ -28,6 +28,10 @@
 #' @param control       The control object used to control the cross-validation used to determine the
 #'                      hyperparameters of the prior (if applicable). See
 #'                      [Cyclops::createControl] for details.
+#' @param profileGrid           A one-dimensional grid of points on the log(relative risk) scale where
+#'                              the likelihood for coefficient of variables is sampled. Only done for
+#'                              variables for which the confidence interval is also computed. Set to
+#'                              NULL to skip profiling.
 #'
 #' @return
 #' An object of type `SccsModel`. Generic functions `print`, `coef`, and
@@ -44,7 +48,8 @@ fitSccsModel <- function(sccsIntervalData,
                          control = createControl(cvType = "auto",
                                                  selectorType = "byPid",
                                                  startingVariance = 0.1,
-                                                 noiseLevel = "quiet")) {
+                                                 noiseLevel = "quiet"),
+                         profileGrid = seq(log(0.1), log(10), length.out = 1000)) {
   ParallelLogger::logTrace("Fitting SCCS model")
   metaData <- attr(sccsIntervalData, "metaData")
   if (!is.null(metaData$error)) {
@@ -57,6 +62,7 @@ fitSccsModel <- function(sccsIntervalData,
   estimates <- NULL
   priorVariance <- 0
   logLikelihood <- NA
+  logLikelihoodProfiles <- NULL
   if (sccsIntervalData$outcomes %>% count() %>% pull() == 0) {
     coefficients <- c(0)
     status <- "Could not estimate because there was no data"
@@ -66,6 +72,7 @@ fitSccsModel <- function(sccsIntervalData,
     nonRegularized <- c()
     needRegularization <- FALSE
     needCi <- c()
+    needProfile <- c()
     covariateSettingsList <- metaData$covariateSettingsList
     for (i in 1:length(covariateSettingsList)) {
       if (covariateSettingsList[[i]]$allowRegularization) {
@@ -73,6 +80,9 @@ fitSccsModel <- function(sccsIntervalData,
       } else {
         nonRegularized <- c(nonRegularized, covariateSettingsList[[i]]$outputIds)
         needCi <- c(needCi, covariateSettingsList[[i]]$outputIds)
+      }
+      if (isTRUE(covariateSettingsList[[i]]$profileLikelihood)) {
+        needProfile <- c(needProfile, covariateSettingsList[[i]]$outputIds)
       }
     }
     if (!is.null(metaData$age)) {
@@ -120,58 +130,74 @@ fitSccsModel <- function(sccsIntervalData,
       estimates <- NULL
       priorVariance <- 0
       status <- fit
-    } else if (fit$return_flag == "ILLCONDITIONED") {
-      coefficients <- c(0)
-      estimates <- NULL
-      priorVariance <- 0
-      status <- "ILL CONDITIONED, CANNOT FIT"
-    } else if (fit$return_flag == "MAX_ITERATIONS") {
-      coefficients <- c(0)
-      estimates <- NULL
-      priorVariance <- 0
-      status <- "REACHED MAXIMUM NUMBER OF ITERATIONS, CANNOT FIT"
     } else {
-      status <- "OK"
-      estimates <- coef(fit)
-      estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
-      estimates <- merge(estimates, collect(sccsIntervalData$covariateRef), all.x = TRUE)
-      if (length(needCi) == 0) {
-        estimates$logLb95 <- NA
-        estimates$logUb95 <- NA
-        estimates$seLogRr <- NA
-      } else {
-        ci <- tryCatch({
-          result <- confint(fit, parm = intersect(needCi, estimates$covariateId), includePenalty = TRUE)
-          attr(result, "dimnames")[[1]] <- 1:length(attr(result, "dimnames")[[1]])
-          result <- as.data.frame(result)
-          rownames(result) <- NULL
-          result
-        }, error = function(e) {
-          missing(e)  # suppresses R CMD check note
-          data.frame(covariate = 0, logLb95 = 0, logUb95 = 0)
-        })
-        names(ci)[names(ci) == "2.5 %"] <- "logLb95"
-        names(ci)[names(ci) == "97.5 %"] <- "logUb95"
-        ci$evaluations <- NULL
-        estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
-        estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
-        for (param in intersect(needCi, estimates$covariateId)) {
-          llNull <- Cyclops::getCyclopsProfileLogLikelihood(object = fit,
-                                                            parm = param,
-                                                            x = 0,
-                                                            includePenalty = FALSE)$value
-          estimates$llr[estimates$covariateId == param] <- fit$log_likelihood - llNull
+      if (!is.null(profileGrid)) {
+        covariateIds <- intersect(needProfile, as.numeric(Cyclops::getCovariateIds(cyclopsData)))
+        getLikelihoodProfile <- function(covariateId) {
+          logLikelihoodProfile <- Cyclops::getCyclopsProfileLogLikelihood(object = fit,
+                                                                          parm = covariateId,
+                                                                          x = profileGrid,
+                                                                          includePenalty = TRUE)$value
+          names(logLikelihoodProfile) <- profileGrid
+          return(logLikelihoodProfile)
         }
+        logLikelihoodProfiles <- lapply(covariateIds, getLikelihoodProfile)
+        names(logLikelihoodProfiles) <- covariateIds
       }
-      # Remove regularized estimates with logRr = 0:
-      estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr) | estimates$covariateId < 1000, ]
-      priorVariance <- fit$variance[1]
-      logLikelihood <- fit$log_likelihood
+      if (fit$return_flag == "ILLCONDITIONED") {
+        coefficients <- c(0)
+        estimates <- NULL
+        priorVariance <- 0
+        status <- "ILL CONDITIONED, CANNOT FIT"
+      } else if (fit$return_flag == "MAX_ITERATIONS") {
+        coefficients <- c(0)
+        estimates <- NULL
+        priorVariance <- 0
+        status <- "REACHED MAXIMUM NUMBER OF ITERATIONS, CANNOT FIT"
+      } else {
+        status <- "OK"
+        estimates <- coef(fit)
+        estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
+        estimates <- merge(estimates, collect(sccsIntervalData$covariateRef), all.x = TRUE)
+        if (length(needCi) == 0) {
+          estimates$logLb95 <- NA
+          estimates$logUb95 <- NA
+          estimates$seLogRr <- NA
+        } else {
+          ci <- tryCatch({
+            result <- confint(fit, parm = intersect(needCi, estimates$covariateId), includePenalty = TRUE)
+            attr(result, "dimnames")[[1]] <- 1:length(attr(result, "dimnames")[[1]])
+            result <- as.data.frame(result)
+            rownames(result) <- NULL
+            result
+          }, error = function(e) {
+            missing(e)  # suppresses R CMD check note
+            data.frame(covariate = 0, logLb95 = 0, logUb95 = 0)
+          })
+          names(ci)[names(ci) == "2.5 %"] <- "logLb95"
+          names(ci)[names(ci) == "97.5 %"] <- "logUb95"
+          ci$evaluations <- NULL
+          estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
+          estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
+          for (param in intersect(needCi, estimates$covariateId)) {
+            llNull <- Cyclops::getCyclopsProfileLogLikelihood(object = fit,
+                                                              parm = param,
+                                                              x = 0,
+                                                              includePenalty = FALSE)$value
+            estimates$llr[estimates$covariateId == param] <- fit$log_likelihood - llNull
+          }
+        }
+        # Remove regularized estimates with logRr = 0:
+        estimates <- estimates[estimates$logRr != 0 | !is.na(estimates$seLogRr) | estimates$covariateId < 1000, ]
+        priorVariance <- fit$variance[1]
+        logLikelihood <- fit$log_likelihood
+      }
     }
   }
   result <- list(estimates = estimates,
                  priorVariance = priorVariance,
                  logLikelihood = logLikelihood,
+                 logLikelihoodProfiles = logLikelihoodProfiles,
                  status = status,
                  metaData = metaData)
   class(result) <- "SccsModel"

@@ -1,5 +1,9 @@
-SelfControlledCaseSeries 3.0.1
+SelfControlledCaseSeries 3.1.0
 ==============================
+
+Changes
+
+1. Adding likelihood profile to SCCS model objects if `profileLikelihood` argument is set to `TRUE` when calling `createEraCovariateSettings()`.
 
 BugFixes
 

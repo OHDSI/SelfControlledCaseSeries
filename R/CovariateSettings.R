@@ -43,6 +43,11 @@
 #'                              be relative to the end of the main risk window instead.
 #' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
 #'                              to be regularized?
+#' @param profileLikelihood     When fitting the model, should the likelihood profile be computed for
+#'                              the covariate defined here? The likelihood profile can be used to
+#'                              avoid making normal approximations on the likelihood and can be used in
+#'                              methods specifically designed to make use of the profile, but may take a
+#'                              while to compute.
 #'
 #' @return
 #' An object of type `EraCovariateSettings`.
@@ -58,7 +63,10 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
                                        endAnchor = "era end",
                                        firstOccurrenceOnly = FALSE,
                                        splitPoints = c(),
-                                       allowRegularization = FALSE) {
+                                       allowRegularization = FALSE,
+                                       profileLikelihood = FALSE) {
+  if (allowRegularization && profileLikelihood)
+    stop("Cannot profile the likelihood of regularized covariates")
   if (!grepl("start$|end$", startAnchor, ignore.case = TRUE)) {
     stop("startAnchor should have value 'era start' or 'era end'")
   }

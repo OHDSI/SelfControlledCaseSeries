@@ -100,7 +100,8 @@ covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
                                               includeEraIds = diclofenac,
                                               start = 0,
                                               end = 0,
-                                              endAnchor = "era end")
+                                              endAnchor = "era end",
+                                              profileLikelihood = TRUE)
 
 sccsIntervalData <- createSccsIntervalData(studyPop,
                                            sccsData,

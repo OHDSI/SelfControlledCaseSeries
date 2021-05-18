@@ -15,7 +15,8 @@ createEraCovariateSettings(
   endAnchor = "era end",
   firstOccurrenceOnly = FALSE,
   splitPoints = c(),
-  allowRegularization = FALSE
+  allowRegularization = FALSE,
+  profileLikelihood = FALSE
 )
 }
 \arguments{
@@ -53,6 +54,12 @@ be relative to the end of the main risk window instead.}
 
 \item{allowRegularization}{When fitting the model, should the covariates defined here be allowed
 to be regularized?}
+
+\item{profileLikelihood}{When fitting the model, should the likelihood profile be computed for
+the covariate defined here? The likelihood profile can be used to
+avoid making normal approximations on the likelihood and can be used in
+methods specifically designed to make use of the profile, but may take a
+while to compute.}
 }
 \value{
 An object of type \code{EraCovariateSettings}.
