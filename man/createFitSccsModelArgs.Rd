@@ -7,7 +7,9 @@
 createFitSccsModelArgs(
   prior = createPrior("laplace", useCrossValidation = TRUE),
   control = createControl(cvType = "auto", selectorType = "byPid", startingVariance =
-    0.1, noiseLevel = "quiet")
+    0.1, noiseLevel = "quiet"),
+  profileGrid = NULL,
+  profileBounds = c(log(0.1), log(10))
 )
 }
 \arguments{
@@ -16,6 +18,11 @@ createFitSccsModelArgs(
 \item{control}{The control object used to control the cross-validation used to determine the
 hyperparameters of the prior (if applicable). See Cyclops::createControl for
 details.}
+
+\item{profileGrid}{A one-dimensional grid of points on the log(relative risk) scale where the
+likelihood for coefficient of variables is sampled. See details.}
+
+\item{profileBounds}{}
 }
 \description{
 Create a parameter object for the function fitSccsModel

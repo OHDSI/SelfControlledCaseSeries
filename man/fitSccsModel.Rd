@@ -9,7 +9,8 @@ fitSccsModel(
   prior = createPrior("laplace", useCrossValidation = TRUE),
   control = createControl(cvType = "auto", selectorType = "byPid", startingVariance =
     0.1, noiseLevel = "quiet"),
-  profileGrid = seq(log(0.1), log(10), length.out = 1000)
+  profileGrid = NULL,
+  profileBounds = c(log(0.1), log(10))
 )
 }
 \arguments{
@@ -24,9 +25,7 @@ hyperparameters of the prior (if applicable). See
 \link[Cyclops:createControl]{Cyclops::createControl} for details.}
 
 \item{profileGrid}{A one-dimensional grid of points on the log(relative risk) scale where
-the likelihood for coefficient of variables is sampled. Only done for
-variables for which the confidence interval is also computed. Set to
-NULL to skip profiling.}
+the likelihood for coefficient of variables is sampled. See details.}
 }
 \value{
 An object of type \code{SccsModel}. Generic functions \code{print}, \code{coef}, and
@@ -38,6 +37,11 @@ Fit the SCCS model
 \details{
 Fits the SCCS model as a conditional Poisson regression. When allowed, coefficients for some or all
 covariates can be regularized.
+
+Likelihood profiling is only done for variables for which \code{profileLikelihood} is set to \code{TRUE} when
+calling \code{\link[=createEraCovariateSettings]{createEraCovariateSettings()}}. Either specify the \code{profileGrid} for a completely user-
+defined grid, or \code{profileBounds} for an adaptive grid. Both should be defined on the log IRR scale.
+When both \code{profileGrid} and \code{profileGrid} are \code{NULL} likelihood profiling is disabled.
 }
 \references{
 Suchard, M.A., Simpson, S.E., Zorych, I., Ryan, P., and Madigan, D. (2013). Massive parallelization

@@ -138,17 +138,22 @@ createCreateScriIntervalDataArgs <- function(eraCovariateSettings, controlInterv
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param prior     The prior used to fit the model. See Cyclops::createPrior for details.
-#' @param control   The control object used to control the cross-validation used to determine the
-#'                  hyperparameters of the prior (if applicable). See Cyclops::createControl for
-#'                  details.
+#' @param prior           The prior used to fit the model. See Cyclops::createPrior for details.
+#' @param control         The control object used to control the cross-validation used to determine the
+#'                        hyperparameters of the prior (if applicable). See Cyclops::createControl for
+#'                        details.
+#' @param profileGrid     A one-dimensional grid of points on the log(relative risk) scale where the
+#'                        likelihood for coefficient of variables is sampled. See details.
+#' @param profileBounds
 #'
 #' @export
 createFitSccsModelArgs <- function(prior = createPrior("laplace", useCrossValidation = TRUE),
                                    control = createControl(cvType = "auto",
                                                            selectorType = "byPid",
                                                            startingVariance = 0.1,
-                                                           noiseLevel = "quiet")) {
+                                                           noiseLevel = "quiet"),
+                                   profileGrid = NULL,
+                                   profileBounds = c(log(0.1), log(10))) {
   analysis <- list()
   for (name in names(formals(createFitSccsModelArgs))) {
     analysis[[name]] <- get(name)

@@ -22,6 +22,11 @@
 #' Fits the SCCS model as a conditional Poisson regression. When allowed, coefficients for some or all
 #' covariates can be regularized.
 #'
+#' Likelihood profiling is only done for variables for which `profileLikelihood` is set to `TRUE` when
+#' calling [createEraCovariateSettings()]. Either specify the `profileGrid` for a completely user-
+#' defined grid, or `profileBounds` for an adaptive grid. Both should be defined on the log IRR scale.
+#' When both `profileGrid` and `profileGrid` are `NULL` likelihood profiling is disabled.
+#'
 #' @template SccsIntervalData
 #' @param prior         The prior used to fit the model. See [Cyclops::createPrior] for
 #'                      details.
@@ -29,9 +34,7 @@
 #'                      hyperparameters of the prior (if applicable). See
 #'                      [Cyclops::createControl] for details.
 #' @param profileGrid           A one-dimensional grid of points on the log(relative risk) scale where
-#'                              the likelihood for coefficient of variables is sampled. Only done for
-#'                              variables for which the confidence interval is also computed. Set to
-#'                              NULL to skip profiling.
+#'                              the likelihood for coefficient of variables is sampled. See details.
 #'
 #' @return
 #' An object of type `SccsModel`. Generic functions `print`, `coef`, and
@@ -49,7 +52,11 @@ fitSccsModel <- function(sccsIntervalData,
                                                  selectorType = "byPid",
                                                  startingVariance = 0.1,
                                                  noiseLevel = "quiet"),
-                         profileGrid = seq(log(0.1), log(10), length.out = 1000)) {
+                         profileGrid = NULL,
+                         profileBounds = c(log(0.1), log(10))) {
+  if (!is.null(profileGrid) && !is.null(profileBounds))
+    stop("Specify either profileGrid or profileBounds")
+
   ParallelLogger::logTrace("Fitting SCCS model")
   metaData <- attr(sccsIntervalData, "metaData")
   if (!is.null(metaData$error)) {
@@ -131,15 +138,17 @@ fitSccsModel <- function(sccsIntervalData,
       priorVariance <- 0
       status <- fit
     } else {
-      if (!is.null(profileGrid)) {
+      if (!is.null(profileGrid) || !is.null(profileBounds)) {
         covariateIds <- intersect(needProfile, as.numeric(Cyclops::getCovariateIds(cyclopsData)))
         getLikelihoodProfile <- function(covariateId) {
           logLikelihoodProfile <- Cyclops::getCyclopsProfileLogLikelihood(object = fit,
                                                                           parm = covariateId,
                                                                           x = profileGrid,
-                                                                          includePenalty = TRUE)$value
-          names(logLikelihoodProfile) <- profileGrid
-          return(logLikelihoodProfile)
+                                                                          bounds = profileBounds,
+                                                                          tolerance = 0.1,
+                                                                          includePenalty = FALSE)
+          names(logLikelihoodProfile$value) <- logLikelihoodProfile$point
+          return(logLikelihoodProfile$value)
         }
         logLikelihoodProfiles <- lapply(covariateIds, getLikelihoodProfile)
         names(logLikelihoodProfiles) <- covariateIds
