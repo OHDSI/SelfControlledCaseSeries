@@ -22,7 +22,8 @@ details.}
 \item{profileGrid}{A one-dimensional grid of points on the log(relative risk) scale where the
 likelihood for coefficient of variables is sampled. See details.}
 
-\item{profileBounds}{}
+\item{profileBounds}{The bounds (on the log relative risk scale) for the adaptive sampling of the
+likelihood function.}
 }
 \description{
 Create a parameter object for the function fitSccsModel

@@ -26,6 +26,9 @@ hyperparameters of the prior (if applicable). See
 
 \item{profileGrid}{A one-dimensional grid of points on the log(relative risk) scale where
 the likelihood for coefficient of variables is sampled. See details.}
+
+\item{profileBounds}{The bounds (on the log relative risk scale) for the adaptive sampling
+of the likelihood function.}
 }
 \value{
 An object of type \code{SccsModel}. Generic functions \code{print}, \code{coef}, and

@@ -144,7 +144,8 @@ createCreateScriIntervalDataArgs <- function(eraCovariateSettings, controlInterv
 #'                        details.
 #' @param profileGrid     A one-dimensional grid of points on the log(relative risk) scale where the
 #'                        likelihood for coefficient of variables is sampled. See details.
-#' @param profileBounds
+#' @param profileBounds   The bounds (on the log relative risk scale) for the adaptive sampling of the
+#'                        likelihood function.
 #'
 #' @export
 createFitSccsModelArgs <- function(prior = createPrior("laplace", useCrossValidation = TRUE),

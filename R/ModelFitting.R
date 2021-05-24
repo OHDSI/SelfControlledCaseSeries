@@ -35,6 +35,8 @@
 #'                      [Cyclops::createControl] for details.
 #' @param profileGrid           A one-dimensional grid of points on the log(relative risk) scale where
 #'                              the likelihood for coefficient of variables is sampled. See details.
+#' @param profileBounds         The bounds (on the log relative risk scale) for the adaptive sampling
+#'                              of the likelihood function.
 #'
 #' @return
 #' An object of type `SccsModel`. Generic functions `print`, `coef`, and
