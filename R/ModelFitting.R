@@ -149,8 +149,12 @@ fitSccsModel <- function(sccsIntervalData,
                                                                           bounds = profileBounds,
                                                                           tolerance = 0.1,
                                                                           includePenalty = FALSE)
-          names(logLikelihoodProfile$value) <- logLikelihoodProfile$point
-          return(logLikelihoodProfile$value)
+          if (is.null(logLikelihoodProfile)) {
+            return(NULL)
+          } else {
+            names(logLikelihoodProfile$value) <- logLikelihoodProfile$point
+            return(logLikelihoodProfile$value)
+          }
         }
         logLikelihoodProfiles <- lapply(covariateIds, getLikelihoodProfile)
         names(logLikelihoodProfiles) <- covariateIds
