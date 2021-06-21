@@ -34,7 +34,10 @@
 #'                                         instance.  Requires read permissions to this database. On
 #'                                         SQL Server, this should specify both the database and the
 #'                                         schema, so for example 'cdm_instance.dbo'.
-#' @param oracleTempSchema                 A schema where temp tables can be created in Oracle.
+#' @param oracleTempSchema    DEPRECATED: use `tempEmulationSchema` instead.
+#' @param tempEmulationSchema Some database platforms like Oracle and Impala do not truly support temp tables. To
+#'                            emulate temp tables, provide a schema with write privileges where temp tables
+#'                            can be created.
 #' @param outcomeDatabaseSchema            The name of the database schema that is the location where
 #'                                         the data used to define the outcome cohorts is available. If
 #'                                         `outcomeTable = "CONDITION_ERA"`, `outcomeDatabaseSchema` is not
@@ -92,7 +95,8 @@
 #' @export
 runSccsAnalyses <- function(connectionDetails,
                             cdmDatabaseSchema,
-                            oracleTempSchema = cdmDatabaseSchema,
+                            oracleTempSchema = NULL,
+                            tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
                             exposureDatabaseSchema = cdmDatabaseSchema,
                             exposureTable = "drug_era",
                             outcomeDatabaseSchema = cdmDatabaseSchema,
@@ -115,6 +119,10 @@ runSccsAnalyses <- function(connectionDetails,
     stopifnot(class(exposureOutcome) == "exposureOutcome")
   for (sccsAnalysis in sccsAnalysisList)
     stopifnot(class(sccsAnalysis) == "sccsAnalysis")
+  if (!is.null(oracleTempSchema) && oracleTempSchema != "") {
+    warning("The 'oracleTempSchema' argument is deprecated. Use 'tempEmulationSchema' instead.")
+    tempEmulationSchema <- oracleTempSchema
+  }
   uniqueExposureOutcomeList <- unique(ParallelLogger::selectFromList(exposureOutcomeList,
                                                                      c("exposureId", "outcomeId")))
   if (length(uniqueExposureOutcomeList) != length(exposureOutcomeList))
@@ -253,7 +261,7 @@ runSccsAnalyses <- function(connectionDetails,
       customCovariateIds <- unique(customCovariateIds)
       args <- list(connectionDetails = connectionDetails,
                    cdmDatabaseSchema = cdmDatabaseSchema,
-                   oracleTempSchema = oracleTempSchema,
+                   tempEmulationSchema = tempEmulationSchema,
                    exposureDatabaseSchema = exposureDatabaseSchema,
                    exposureTable = exposureTable,
                    outcomeDatabaseSchema = outcomeDatabaseSchema,

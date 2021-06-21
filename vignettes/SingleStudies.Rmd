@@ -62,6 +62,7 @@ connectionDetails <- createConnectionDetails(dbms = "postgresql",
 
 cdmDatabaseSchema <- "my_cdm_data"
 cohortDatabaseSchema <- "my_results"
+options(sqlRenderTempEmulationSchema = NULL)
 cdmVersion <- "5"
 ```
 
@@ -140,7 +141,6 @@ diclofenac <- 1124300
 
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
-                          oracleTempSchema = oracleTempSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
                           outcomeTable = outcomeTable,
                           outcomeIds = 1,
@@ -469,7 +469,6 @@ ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
 
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
-                          oracleTempSchema = oracleTempSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
                           outcomeTable = outcomeTable,
                           outcomeIds = 1,
@@ -539,7 +538,6 @@ Another approach could be to add all drugs into the model. Again, the first step
 ```{r eval=FALSE}
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
-                          oracleTempSchema = oracleTempSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
                           outcomeTable = outcomeTable,
                           outcomeIds = 1,

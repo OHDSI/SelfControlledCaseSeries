@@ -60,6 +60,7 @@ outputFolder <- "s:/temp/sccsVignette2"
 
 cdmDatabaseSchema <- "my_cdm_data"
 cohortDatabaseSchema <- "my_cohorts"
+options(sqlRenderTempEmulationSchema = NULL)
 cdmVersion <- "5"
 ```
 
@@ -314,7 +315,6 @@ We can now run the analyses against the hypotheses of interest using the `runScs
 result <- runSccsAnalyses(
   connectionDetails = connectionDetails,
   cdmDatabaseSchema = cdmDatabaseSchema,
-  oracleTempSchema = cdmDatabaseSchema,
   exposureDatabaseSchema = cdmDatabaseSchema,
   exposureTable = "drug_era",
   outcomeDatabaseSchema = cohortDatabaseSchema,

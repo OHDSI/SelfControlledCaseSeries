@@ -41,8 +41,6 @@ Suggests:
 	knitr,
 	rmarkdown,
 	EmpiricalCalibration
-Remotes:
-  ohdsi/EmpiricalCalibration
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes

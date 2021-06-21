@@ -5,6 +5,8 @@ Changes
 
 1. Adding likelihood profile to SCCS model objects if `profileLikelihood` argument is set to `TRUE` when calling `createEraCovariateSettings()`.
 
+2. Deprecating `oracleTempSchema` argument in favor of `tempEmulationSchema` in accordance with new `SqlRender` convention.
+
 BugFixes
 
 1. Prevent error when excluding variable not in data from regularization.

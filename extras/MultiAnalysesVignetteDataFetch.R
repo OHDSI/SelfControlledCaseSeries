@@ -22,23 +22,18 @@ library(DatabaseConnector)
 library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "s:/andromedaTemp")
 
-pw <- NULL
-dbms <- "pdw"
-user <- NULL
-server <- Sys.getenv("PDW_SERVER")
-cdmDatabaseSchema <- "CDM_IBM_MDCD_V1153.dbo"
-cohortDatabaseSchema <- "scratch.dbo"
-oracleTempSchema <- NULL
-outcomeTable <- "mschuemi_sccs_vignette"
+connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = "redshift",
+                                                                connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcr"),
+                                                                user = keyring::key_get("redShiftUserName"),
+                                                                password = keyring::key_get("redShiftPassword"))
+cdmDatabaseSchema <- "cdm_truven_mdcr_v1477"
+cohortDatabaseSchema <- "scratch_mschuemi"
+outcomeTable <- "sccs_vignette"
+options(sqlRenderTempEmulationSchema = NULL)
+outcomeTable <- "sccs_vignette"
 port <- Sys.getenv("PDW_PORT")
 cdmVersion <- "5"
 outputFolder <- "s:/temp/sccsVignette2"
-
-connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
-                                                                server = server,
-                                                                user = user,
-                                                                password = pw,
-                                                                port = port)
 
 connection <- DatabaseConnector::connect(connectionDetails)
 
@@ -201,7 +196,6 @@ saveSccsAnalysisList(sccsAnalysisList, "s:/temp/sccsVignette2/sccsAnalysisList.t
 
 result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
-                          oracleTempSchema = cdmDatabaseSchema,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
                           outcomeDatabaseSchema = cohortDatabaseSchema,

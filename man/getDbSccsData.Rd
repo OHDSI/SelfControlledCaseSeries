@@ -7,7 +7,8 @@
 getDbSccsData(
   connectionDetails,
   cdmDatabaseSchema,
-  oracleTempSchema = cdmDatabaseSchema,
+  oracleTempSchema = NULL,
+  tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
   outcomeDatabaseSchema = cdmDatabaseSchema,
   outcomeTable = "condition_era",
   outcomeIds,
@@ -38,7 +39,11 @@ instance.  Requires read permissions to this database. On SQL
 Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.}
 
-\item{oracleTempSchema}{A schema where temp tables can be created in Oracle.}
+\item{oracleTempSchema}{DEPRECATED: use \code{tempEmulationSchema} instead.}
+
+\item{tempEmulationSchema}{Some database platforms like Oracle and Impala do not truly support temp tables. To
+emulate temp tables, provide a schema with write privileges where temp tables
+can be created.}
 
 \item{outcomeDatabaseSchema}{The name of the database schema that is the location where
 the data used to define the outcome cohorts is available. If

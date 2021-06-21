@@ -50,7 +50,10 @@
 #'                                        instance.  Requires read permissions to this database. On SQL
 #'                                        Server, this should specify both the database and the
 #'                                        schema, so for example 'cdm_instance.dbo'.
-#' @param oracleTempSchema                A schema where temp tables can be created in Oracle.
+#' @param oracleTempSchema    DEPRECATED: use `tempEmulationSchema` instead.
+#' @param tempEmulationSchema Some database platforms like Oracle and Impala do not truly support temp tables. To
+#'                            emulate temp tables, provide a schema with write privileges where temp tables
+#'                            can be created.
 #' @param outcomeDatabaseSchema           The name of the database schema that is the location where
 #'                                        the data used to define the outcome cohorts is available. If
 #'                                        outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
@@ -113,7 +116,8 @@
 #' @export
 getDbSccsData <- function(connectionDetails,
                           cdmDatabaseSchema,
-                          oracleTempSchema = cdmDatabaseSchema,
+                          oracleTempSchema = NULL,
+                          tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
                           outcomeDatabaseSchema = cdmDatabaseSchema,
                           outcomeTable = "condition_era",
                           outcomeIds,
@@ -143,7 +147,10 @@ getDbSccsData <- function(connectionDetails,
     stop("exposureIds must be a (vector of) numeric")
   if (useCustomCovariates && !is.null(customCovariateIds) && length(customCovariateIds) > 0 && !is.numeric(customCovariateIds))
     stop("customCovariateIds must be a (vector of) numeric")
-
+  if (!is.null(oracleTempSchema) && oracleTempSchema != "") {
+    warning("The 'oracleTempSchema' argument is deprecated. Use 'tempEmulationSchema' instead.")
+    tempEmulationSchema <- oracleTempSchema
+  }
   start <- Sys.time()
   conn <- DatabaseConnector::connect(connectionDetails)
   on.exit(DatabaseConnector::disconnect(conn))
@@ -158,7 +165,7 @@ getDbSccsData <- function(connectionDetails,
                                    dropTableIfExists = TRUE,
                                    createTable = TRUE,
                                    tempTable = TRUE,
-                                   oracleTempSchema = oracleTempSchema)
+                                   tempEmulationSchema = tempEmulationSchema)
   }
 
   if (!useCustomCovariates || is.null(customCovariateIds) || length(customCovariateIds) == 0) {
@@ -171,14 +178,14 @@ getDbSccsData <- function(connectionDetails,
                                    dropTableIfExists = TRUE,
                                    createTable = TRUE,
                                    tempTable = TRUE,
-                                   oracleTempSchema = oracleTempSchema)
+                                   tempEmulationSchema = tempEmulationSchema)
   }
 
   ParallelLogger::logInfo("Selecting outcomes")
   sql <- SqlRender::loadRenderTranslateSql("SelectOutcomes.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
-                                           oracleTempSchema = oracleTempSchema,
+                                           tempEmulationSchema = tempEmulationSchema,
                                            cdm_database_schema = cdmDatabaseSchema,
                                            outcome_database_schema = outcomeDatabaseSchema,
                                            outcome_table = outcomeTable,
@@ -195,7 +202,7 @@ getDbSccsData <- function(connectionDetails,
   sql <- SqlRender::loadRenderTranslateSql("CreateCases.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
-                                           oracleTempSchema = oracleTempSchema,
+                                           tempEmulationSchema = tempEmulationSchema,
                                            cdm_database_schema = cdmDatabaseSchema,
                                            use_nesting_cohort = useNestingCohort,
                                            nesting_cohort_database_schema = nestingCohortDatabaseSchema,
@@ -211,20 +218,20 @@ getDbSccsData <- function(connectionDetails,
                                  dropTableIfExists = TRUE,
                                  createTable = TRUE,
                                  tempTable = TRUE,
-                                 oracleTempSchema = oracleTempSchema)
+                                 tempEmulationSchema = tempEmulationSchema)
 
   ParallelLogger::logInfo("Counting outcomes")
   sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
-                                           oracleTempSchema = oracleTempSchema,
+                                           tempEmulationSchema = tempEmulationSchema,
                                            use_nesting_cohort = useNestingCohort,
                                            study_start_date = studyStartDate,
                                            study_end_date = studyEndDate)
   DatabaseConnector::executeSql(conn, sql)
 
   sql <- "SELECT * FROM #counts;"
-  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
+  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, tempEmulationSchema = tempEmulationSchema)
   outcomeCounts <- as_tibble(DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE))
 
 
@@ -241,7 +248,7 @@ getDbSccsData <- function(connectionDetails,
       sql <- SqlRender::loadRenderTranslateSql("SampleCases.sql",
                                                packageName = "SelfControlledCaseSeries",
                                                dbms = connectionDetails$dbms,
-                                               oracleTempSchema = oracleTempSchema,
+                                               tempEmulationSchema = tempEmulationSchema,
                                                max_cases_per_outcome = maxCasesPerOutcome)
       DatabaseConnector::executeSql(conn, sql)
     }
@@ -251,7 +258,7 @@ getDbSccsData <- function(connectionDetails,
   sql <- SqlRender::loadRenderTranslateSql("CreateEras.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
-                                           oracleTempSchema = oracleTempSchema,
+                                           tempEmulationSchema = tempEmulationSchema,
                                            cdm_database_schema = cdmDatabaseSchema,
                                            outcome_database_schema = outcomeDatabaseSchema,
                                            outcome_table = outcomeTable,
@@ -275,7 +282,7 @@ getDbSccsData <- function(connectionDetails,
   sql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
-                                           oracleTempSchema = oracleTempSchema,
+                                           tempEmulationSchema = tempEmulationSchema,
                                            sampled_cases = sampledCases)
   DatabaseConnector::querySqlToAndromeda(connection = conn,
                                          sql = sql,
@@ -300,7 +307,7 @@ getDbSccsData <- function(connectionDetails,
   sql <- SqlRender::loadRenderTranslateSql("QueryEras.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
-                                           oracleTempSchema = oracleTempSchema)
+                                           tempEmulationSchema = tempEmulationSchema)
   DatabaseConnector::querySqlToAndromeda(connection = conn,
                                          sql = sql,
                                          andromeda = sccsData,
@@ -308,7 +315,7 @@ getDbSccsData <- function(connectionDetails,
                                          snakeCaseToCamelCase = TRUE)
 
   sql <- "SELECT era_type, era_id, era_name FROM #era_ref"
-  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, oracleTempSchema = oracleTempSchema)
+  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, tempEmulationSchema = tempEmulationSchema)
   DatabaseConnector::querySqlToAndromeda(connection = conn,
                                          sql = sql,
                                          andromeda = sccsData,
@@ -319,7 +326,7 @@ getDbSccsData <- function(connectionDetails,
   sql <- SqlRender::loadRenderTranslateSql("RemoveTempTables.sql",
                                            packageName = "SelfControlledCaseSeries",
                                            dbms = connectionDetails$dbms,
-                                           oracleTempSchema = oracleTempSchema,
+                                           tempEmulationSchema = tempEmulationSchema,
                                            study_start_date = studyStartDate,
                                            study_end_date = studyEndDate,
                                            sampled_cases = sampledCases,

@@ -23,28 +23,22 @@ library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "s:/andromedaTemp")
 
 folder <- "s:/temp/vignetteSccs"
-pw <- NULL
-dbms <- "pdw"
-user <- NULL
-server <- Sys.getenv("PDW_SERVER")
-cdmDatabaseSchema <- "CDM_IBM_MDCD_V1153.dbo"
-cohortDatabaseSchema <- "scratch.dbo"
-oracleTempSchema <- NULL
-outcomeTable <- "mschuemi_sccs_vignette"
-port <- Sys.getenv("PDW_PORT")
+connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = "redshift",
+                                                                connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcr"),
+                                                                user = keyring::key_get("redShiftUserName"),
+                                                                password = keyring::key_get("redShiftPassword"))
+cdmDatabaseSchema <- "cdm_truven_mdcr_v1477"
+cohortDatabaseSchema <- "scratch_mschuemi"
+outcomeTable <- "sccs_vignette"
 cdmVersion <- "5"
+options(sqlRenderTempEmulationSchema = NULL)
 
-connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
-                                                                server = server,
-                                                                user = user,
-                                                                password = pw,
-                                                                port = port)
 
 connection <- DatabaseConnector::connect(connectionDetails)
 
 sql <- loadRenderTranslateSql("vignette.sql",
                               packageName = "SelfControlledCaseSeries",
-                              dbms = dbms,
+                              dbms = connectionDetails$dbms,
                               cdmDatabaseSchema = cdmDatabaseSchema,
                               cohortDatabaseSchema = cohortDatabaseSchema,
                               outcomeTable = outcomeTable)
@@ -67,7 +61,6 @@ ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
 # Main section: one drug in the model ### Simple model ### ----------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
-                          oracleTempSchema = oracleTempSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
                           outcomeTable = outcomeTable,
                           outcomeIds = 1,
@@ -209,7 +202,6 @@ model
 # Add PPIs ------------------------------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
-                          oracleTempSchema = oracleTempSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
                           outcomeTable = outcomeTable,
                           outcomeIds = 1,
@@ -252,7 +244,6 @@ model
 # Add all drugs -------------------------------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
-                          oracleTempSchema = oracleTempSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
                           outcomeTable = outcomeTable,
                           outcomeIds = 1,
