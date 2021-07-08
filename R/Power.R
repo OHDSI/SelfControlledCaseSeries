@@ -50,7 +50,17 @@ computeMdrr <- function(sccsIntervalData,
   if (!method %in% c("proportion", "binomial", "SRL1", "SRL2", "ageEffects"))
     stop("Method must be either 'proportion', 'binomial', 'SRL1', 'SRL2', or 'ageEffects'.")
 
+  # For power calculations we only use subjects who are both exposed and have the outcome
+  # The sccsIntervalData may contain unexposed subjects used to fit age and season effects,
+  # or effect of other exposures, so we should remove those first.
+
+  exposedStratumIds <- sccsIntervalData$covariates %>%
+    filter(.data$covariateId == exposureCovariateId) %>%
+    distinct(.data$stratumId) %>%
+    pull()
+
   overall <- sccsIntervalData$outcomes %>%
+    filter(.data$stratumId %in% exposedStratumIds) %>%
     summarise(time = sum(.data$time, na.rm = TRUE),
               observationPeriods = n_distinct(.data$stratumId),
               events = sum(.data$y, na.rm = TRUE)) %>%

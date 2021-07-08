@@ -15,6 +15,8 @@ BugFixes
 
 1. Prevent error when excluding variable not in data from regularization.
 
+2. Removing unexposed subjects when computing power to avoid overestimating statistical power.
+
 
 SelfControlledCaseSeries 3.0.0
 ==============================
