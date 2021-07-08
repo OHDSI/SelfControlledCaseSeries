@@ -11,6 +11,8 @@ Changes
 
 4. Adding `highlightExposedEvents` argument to `plotExposureCentered` function.
 
+5. Switching power calculation default method to signed root likelihood ratio as recommended by Musonda et al. (2005).
+
 BugFixes
 
 1. Prevent error when excluding variable not in data from regularization.

@@ -46,7 +46,7 @@ computeMdrr <- function(sccsIntervalData,
                         alpha = 0.05,
                         power = 0.8,
                         twoSided = TRUE,
-                        method = "binomial") {
+                        method = "SRL1") {
   if (!method %in% c("proportion", "binomial", "SRL1", "SRL2", "ageEffects"))
     stop("Method must be either 'proportion', 'binomial', 'SRL1', 'SRL2', or 'ageEffects'.")
 
