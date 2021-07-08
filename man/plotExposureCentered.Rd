@@ -8,6 +8,8 @@ plotExposureCentered(
   studyPopulation,
   sccsData,
   exposureEraId = NULL,
+  highlightExposedEvents = TRUE,
+  title = NULL,
   fileName = NULL
 )
 }
@@ -20,6 +22,10 @@ plotExposureCentered(
 \item{exposureEraId}{The exposure to create the era data for. If not specified it is
 assumed to be the one exposure for which the data was loaded from
 the database.}
+
+\item{highlightExposedEvents}{Highlight events that occurred during the exposure era using a different color?}
+
+\item{title}{Optional: the main title for the plot}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'.
 See the function \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} for supported file formats.}

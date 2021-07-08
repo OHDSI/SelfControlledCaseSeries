@@ -7,6 +7,10 @@ Changes
 
 2. Deprecating `oracleTempSchema` argument in favor of `tempEmulationSchema` in accordance with new `SqlRender` convention.
 
+3. Adding optional `title` argument to all plotting functions.
+
+4. Adding `highlightExposedEvents` argument to `plotExposureCentered` function.
+
 BugFixes
 
 1. Prevent error when excluding variable not in data from regularization.

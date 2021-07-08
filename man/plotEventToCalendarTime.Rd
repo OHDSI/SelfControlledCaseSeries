@@ -4,10 +4,12 @@
 \alias{plotEventToCalendarTime}
 \title{Plot the count of events over calendar time.}
 \usage{
-plotEventToCalendarTime(studyPopulation, fileName = NULL)
+plotEventToCalendarTime(studyPopulation, title = NULL, fileName = NULL)
 }
 \arguments{
 \item{studyPopulation}{An object created using the \code{\link[=createStudyPopulation]{createStudyPopulation()}} function.}
+
+\item{title}{Optional: the main title for the plot}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'.
 See the function \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} for supported file formats.}

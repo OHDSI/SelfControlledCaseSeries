@@ -4,13 +4,20 @@
 \alias{plotAgeSpans}
 \title{Plot the age ranges spanned by each observation period.}
 \usage{
-plotAgeSpans(studyPopulation, maxPersons = 10000, fileName = NULL)
+plotAgeSpans(
+  studyPopulation,
+  maxPersons = 10000,
+  title = NULL,
+  fileName = NULL
+)
 }
 \arguments{
 \item{studyPopulation}{An object created using the \code{\link[=createStudyPopulation]{createStudyPopulation()}} function.}
 
 \item{maxPersons}{The maximum number of persons to plot. If there are more than this number of persons
 a random sample will be taken to avoid visual clutter.}
+
+\item{title}{Optional: the main title for the plot}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'.
 See the function \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} for supported file formats.}

@@ -4,13 +4,15 @@
 \alias{plotSeasonality}
 \title{Plot the seasonality effect}
 \usage{
-plotSeasonality(sccsModel, rrLim = c(0.1, 10), fileName = NULL)
+plotSeasonality(sccsModel, rrLim = c(0.1, 10), title = NULL, fileName = NULL)
 }
 \arguments{
 \item{sccsModel}{An object of type \code{sccsModel} as created using the
 \code{\link{fitSccsModel}} function.}
 
 \item{rrLim}{The limits on the incidence rate ratio scale in the plot.}
+
+\item{title}{Optional: the main title for the plot}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
 function \code{ggsave} in the ggplot2 package for supported file formats.}

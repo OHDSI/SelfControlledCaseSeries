@@ -19,8 +19,9 @@
 #' @template StudyPopulation
 #' @param maxPersons  The maximum number of persons to plot. If there are more than this number of persons
 #'                    a random sample will be taken to avoid visual clutter.
-#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
-#'                          See the function [ggplot2::ggsave()] for supported file formats.
+#' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'.
+#'                    See the function [ggplot2::ggsave()] for supported file formats.
+#' @param title       Optional: the main title for the plot
 #'
 #' @details
 #' Plots a line per patient from their age at observation start to their age at observation end.
@@ -32,6 +33,7 @@
 #' @export
 plotAgeSpans <- function(studyPopulation,
                          maxPersons = 10000,
+                         title = NULL,
                          fileName = NULL) {
   cases <- studyPopulation$cases %>%
     transmute(startAge = .data$ageInDays, endAge = .data$ageInDays + .data$endDay) %>%
@@ -62,8 +64,12 @@ plotAgeSpans <- function(studyPopulation,
                    axis.text.x = theme,
                    strip.text.x = theme,
                    strip.background = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(hjust = 0.5),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
+  if (!is.null(title)) {
+    plot <- plot + ggplot2::ggtitle(title)
+  }
   # fileName <- "S:/temp/plot.png"
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
@@ -75,6 +81,7 @@ plotAgeSpans <- function(studyPopulation,
 #' @template StudyPopulation
 #' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
 #'                          See the function [ggplot2::ggsave()] for supported file formats.
+#' @param title             Optional: the main title for the plot
 #'
 #' @details
 #' This plot shows whether there is a difference in time between (first) event and the observation period end for periods that are '
@@ -95,6 +102,7 @@ plotAgeSpans <- function(studyPopulation,
 #'
 #' @export
 plotEventObservationDependence <- function(studyPopulation,
+                                           title = NULL,
                                            fileName = NULL) {
 
 
@@ -126,8 +134,12 @@ plotEventObservationDependence <- function(studyPopulation,
                    axis.text.x = theme,
                    strip.text.y = theme,
                    strip.background = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(hjust = 0.5),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
+  if (!is.null(title)) {
+    plot <- plot + ggplot2::ggtitle(title)
+  }
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
@@ -135,13 +147,15 @@ plotEventObservationDependence <- function(studyPopulation,
 
 #' Plot information centered around the start of exposure
 #'
-#' @param exposureEraId               The exposure to create the era data for. If not specified it is
-#'                                    assumed to be the one exposure for which the data was loaded from
-#'                                    the database.
+#' @param exposureEraId       The exposure to create the era data for. If not specified it is
+#'                            assumed to be the one exposure for which the data was loaded from
+#'                            the database.
 #' @template StudyPopulation
 #' @template SccsData
-#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
-#'                          See the function [ggplot2::ggsave()] for supported file formats.
+#' @param highlightExposedEvents Highlight events that occurred during the exposure era using a different color?
+#' @param fileName            Name of the file where the plot should be saved, for example 'plot.png'.
+#'                            See the function [ggplot2::ggsave()] for supported file formats.
+#' @param title               Optional: the main title for the plot
 #'
 #' @details
 #' This plot shows the number of events and the number of subjects under observation in week-sized intervals relative to the start
@@ -155,6 +169,8 @@ plotEventObservationDependence <- function(studyPopulation,
 plotExposureCentered <- function(studyPopulation,
                                  sccsData,
                                  exposureEraId = NULL,
+                                 highlightExposedEvents = TRUE,
+                                 title = NULL,
                                  fileName = NULL) {
 
   if (is.null(exposureEraId)) {
@@ -217,13 +233,22 @@ plotExposureCentered <- function(studyPopulation,
     summarise(observed = n(),
               .groups = "drop_last")
 
-  events <- events %>%
-    transmute(.data$start,
-              .data$end,
-              type = "Events",
-              count1 = .data$eventsUnexposed,
-              count2 = .data$eventsExposed)
+  if (highlightExposedEvents) {
+    events <- events %>%
+      transmute(.data$start,
+                .data$end,
+                type = "Events",
+                count1 = .data$eventsUnexposed,
+                count2 = .data$eventsExposed)
+  } else {
+    events <- events %>%
+      transmute(.data$start,
+                .data$end,
+                type = "Events",
+                count1 = .data$eventsUnexposed + .data$eventsExposed,
+                count2 = NA)
 
+  }
   observed <- observed %>%
     transmute(.data$start,
               .data$end,
@@ -251,8 +276,12 @@ plotExposureCentered <- function(studyPopulation,
                    axis.text.x = theme,
                    strip.text.y = theme,
                    strip.background = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(hjust = 0.5),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
+  if (!is.null(title)) {
+    plot <- plot + ggplot2::ggtitle(title)
+  }
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
@@ -263,6 +292,7 @@ plotExposureCentered <- function(studyPopulation,
 #' @template StudyPopulation
 #' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
 #'                          See the function [ggplot2::ggsave()] for supported file formats.
+#' @param title             Optional: the main title for the plot
 #'
 #' @return
 #' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
@@ -270,6 +300,7 @@ plotExposureCentered <- function(studyPopulation,
 #'
 #' @export
 plotEventToCalendarTime <- function(studyPopulation,
+                                    title = NULL,
                                     fileName = NULL) {
   dates <- studyPopulation$outcomes %>%
     inner_join(studyPopulation$cases , by = "caseId") %>%
@@ -289,8 +320,12 @@ plotEventToCalendarTime <- function(studyPopulation,
                    axis.text.x = theme,
                    strip.text.y = theme,
                    strip.background = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(hjust = 0.5),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
+  if (!is.null(title)) {
+    plot <- plot + ggplot2::ggtitle(title)
+  }
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
@@ -307,12 +342,16 @@ plotEventToCalendarTime <- function(studyPopulation,
 #' @param rrLim       The limits on the incidence rate ratio scale in the plot.
 #' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                    function \code{ggsave} in the ggplot2 package for supported file formats.
+#' @param title       Optional: the main title for the plot
 #'
 #' @return
 #' A Ggplot object. Use the ggsave function to save to file.
 #'
 #' @export
-plotAgeEffect <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
+plotAgeEffect <- function(sccsModel,
+                          rrLim = c(0.1, 10),
+                          title = NULL,
+                          fileName = NULL) {
   estimates <- sccsModel$estimates
   estimates <- estimates[estimates$covariateId >= 100 & estimates$covariateId < 200, ]
   splineCoefs <- c(0, estimates$logRr)
@@ -338,7 +377,7 @@ plotAgeEffect <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
     ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Relative risk",
-                                lim = rrLim,
+                                limits = rrLim,
                                 trans = "log10",
                                 breaks = breaks,
                                 labels = breaks) +
@@ -350,8 +389,12 @@ plotAgeEffect <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
                    axis.text.x = theme,
                    strip.text.x = theme,
                    strip.background = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(hjust = 0.5),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
+  if (!is.null(title)) {
+    plot <- plot + ggplot2::ggtitle(title)
+  }
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
@@ -367,13 +410,16 @@ plotAgeEffect <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
 #' @param rrLim       The limits on the incidence rate ratio scale in the plot.
 #' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                    function \code{ggsave} in the ggplot2 package for supported file formats.
+#' @param title       Optional: the main title for the plot
 #'
 #' @return
 #' A Ggplot object. Use the ggsave function to save to file.
 #'
 #' @export
-
-plotSeasonality <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
+plotSeasonality <- function(sccsModel,
+                            rrLim = c(0.1, 10),
+                            title = NULL,
+                            fileName = NULL) {
   estimates <- sccsModel$estimates
   estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, ]
   splineCoefs <- c(0, estimates$logRr)
@@ -394,7 +440,7 @@ plotSeasonality <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
     ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
     ggplot2::scale_y_continuous("Relative risk",
-                                lim = rrLim,
+                                limits = rrLim,
                                 trans = "log10",
                                 breaks = breaks,
                                 labels = breaks) +
@@ -406,10 +452,13 @@ plotSeasonality <- function(sccsModel, rrLim = c(0.1, 10), fileName = NULL) {
                    axis.text.x = theme,
                    strip.text.x = theme,
                    strip.background = ggplot2::element_blank(),
+                   plot.title = ggplot2::element_text(hjust = 0.5),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
+  if (!is.null(title)) {
+    plot <- plot + ggplot2::ggtitle(title)
+  }
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
   return(plot)
 }
-
