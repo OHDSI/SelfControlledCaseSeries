@@ -14,8 +14,7 @@ fitModelsAndPickBest <- function(data) {
       for (i in 1:ncol(S)) {
         product[,(1 + ncol(M)*(i-1)):(ncol(M)*i)] <- S[,i]*M
       }
-      return
-      product
+      return(product)
     }
 
     #--------------------------------------------------------#
