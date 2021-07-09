@@ -10,7 +10,7 @@ computeMdrr(
   alpha = 0.05,
   power = 0.8,
   twoSided = TRUE,
-  method = "binomial"
+  method = "SRL1"
 )
 }
 \arguments{
