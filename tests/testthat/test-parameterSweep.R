@@ -1,5 +1,6 @@
-library("testthat")
-# options(fftempdir = 's:/fftemp')
+library(testthat)
+library(SelfControlledCaseSeries)
+
 
 set.seed(123)
 sampleSize <- 1000
@@ -21,10 +22,10 @@ test_that("Support functions", {
   studyPop <- createStudyPopulation(sccsData = sccsData,
                                     outcomeId = 10)
   sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                   sccsData = sccsData,
-                                   eraCovariateSettings = covar,
-                                   ageCovariateSettings = ageSettings,
-                                   seasonalityCovariateSettings = seasonSettings)
+                                             sccsData = sccsData,
+                                             eraCovariateSettings = covar,
+                                             ageCovariateSettings = ageSettings,
+                                             seasonalityCovariateSettings = seasonSettings)
 
   s <- summary(sccsIntervalData)
   expect_equal(class(s), "summary.SccsIntervalData")
@@ -57,11 +58,11 @@ test_that("Parameter sweep", {
                                               naivePeriod = naivePeriod,
                                               firstOutcomeOnly = firstOutcomeOnly)
             sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                             sccsData = sccsData,
-                                             eraCovariateSettings = covar,
-                                             ageCovariateSettings = if (includeAgeAndSeason) ageSettings else NULL,
-                                             seasonalityCovariateSettings = if (includeAgeAndSeason) seasonSettings else NULL,
-                                             eventDependentObservation = eventDependentObservation)
+                                                       sccsData = sccsData,
+                                                       eraCovariateSettings = covar,
+                                                       ageCovariateSettings = if (includeAgeAndSeason) ageSettings else NULL,
+                                                       seasonalityCovariateSettings = if (includeAgeAndSeason) seasonSettings else NULL,
+                                                       eventDependentObservation = eventDependentObservation)
             expect_equivalent(class(sccsIntervalData), "SccsIntervalData")
             # Not enough data to fit age and season:
             if (!includeAgeAndSeason) {
@@ -75,4 +76,25 @@ test_that("Parameter sweep", {
   }
   # Each analysis should produce a unique estimate:
   expect_equal(length(coefs), length(unique(coefs)))
+})
+
+test_that("Plots", {
+  studyPop <- createStudyPopulation(sccsData = sccsData,
+                                    outcomeId = 10,
+                                    naivePeriod = 0,
+                                    firstOutcomeOnly = TRUE)
+
+  plot <- plotAgeSpans(studyPopulation = studyPop)
+  expect_s3_class(plot, "ggplot")
+
+  plot <- plotEventToCalendarTime(studyPopulation = studyPop)
+  expect_s3_class(plot, "ggplot")
+
+  plot <- plotEventObservationDependence(studyPopulation = studyPop)
+  expect_s3_class(plot, "ggplot")
+
+  plot <- plotExposureCentered(studyPopulation = studyPop,
+                               sccsData = sccsData,
+                               exposureEraId = 1)
+  expect_s3_class(plot, "ggplot")
 })

@@ -68,7 +68,7 @@ test_that("Simple SCRI era construction", {
                   startDay = 1,
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
-  eras <- tibble(eraType = c("hoi", "hei"),
+  eras <- tibble(eraType = c("hoi", "rx"),
                  caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
@@ -96,7 +96,7 @@ test_that("Outcome on boundary or control interval", {
                   startDay = 1,
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
-  eras <- tibble(eraType = c("hoi", "hei"),
+  eras <- tibble(eraType = c("hoi", "rx"),
                  caseId = c(1, 1),
                  eraId = c(10, 11),
                  value = c(1, 1),
@@ -123,7 +123,7 @@ test_that("Merging overlapping control intervals", {
                   startDay = 1,
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
-  eras <- tibble(eraType = c("hoi", "hei", "hei"),
+  eras <- tibble(eraType = c("hoi", "rx", "rx"),
                  caseId = c(1, 1, 1),
                  eraId = c(10, 11, 11),
                  value = c(1, 1, 1),
@@ -150,7 +150,7 @@ test_that("Control intervals overlapping with a risk window", {
                   startDay = 1,
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
-  eras <- tibble(eraType = c("hoi", "hei", "hei"),
+  eras <- tibble(eraType = c("hoi", "rx", "rx"),
                  caseId = c(1, 1, 1),
                  eraId = c(10, 11, 11),
                  value = c(1, 1, 1),

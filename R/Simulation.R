@@ -163,7 +163,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
     endDay <- startDay + duration
     endDay[endDay > cases$observationDays[observationPeriodId]] <- cases$observationDays[observationPeriodId][endDay >
                                                                                                                 cases$observationDays[observationPeriodId]]
-    newEras <- tibble(eraType = "hei",
+    newEras <- tibble(eraType = "rx",
                       caseId = observationPeriodId,
                       eraId = settings$eraIds[i],
                       value = 1,

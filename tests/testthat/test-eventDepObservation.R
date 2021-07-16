@@ -98,7 +98,7 @@ test_that("Produces same results as SCCS package when using event-dependent obse
                   censoredDays = 0)
 
   cases$noninformativeEndCensor <- cases$observationDays == max(cases$observationDays)
-  heiEras <- tibble(eraType = "hei",
+  heiEras <- tibble(eraType = "rx",
                     caseId = as.numeric(data$personId),
                     eraId = 1,
                     value = 1,
