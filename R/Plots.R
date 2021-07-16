@@ -192,6 +192,10 @@ plotExposureCentered <- function(studyPopulation,
     filter(.data$startDay >= 0, .data$startDay < .data$caseEndDay) %>%
     collect()
 
+  if (nrow(exposures) == 0) {
+    warning("No exposures found with era ID ", exposureEraId)
+    return(NULL)
+  }
   firstExposures <- exposures %>%
     group_by(.data$caseId, .data$caseEndDay) %>%
     summarise(startDay = min(.data$startDay, na.rm = TRUE),

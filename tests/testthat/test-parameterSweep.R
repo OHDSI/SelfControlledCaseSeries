@@ -97,4 +97,8 @@ test_that("Plots", {
                                sccsData = sccsData,
                                exposureEraId = 1)
   expect_s3_class(plot, "ggplot")
+
+  expect_warning(plotExposureCentered(studyPopulation = studyPop,
+                                      sccsData = sccsData,
+                                      exposureEraId = 999))
 })

@@ -9,12 +9,17 @@ createCohorts(connectionDetails)
 
 test_that("Running multiple analyses against Eunomia", {
 
+  # Adding empty exposure and outcome cohorts:
   exposureOutcomeList <- list(createExposureOutcome(exposureId = 1,
                                                     outcomeId = 3),
                               createExposureOutcome(exposureId = 2,
                                                     outcomeId = 3),
                               createExposureOutcome(exposureId = 1,
-                                                    outcomeId = 4))
+                                                    outcomeId = 4),
+                              createExposureOutcome(exposureId = 999,
+                                                    outcomeId = 4),
+                              createExposureOutcome(exposureId = 1,
+                                                    outcomeId = 999))
 
   getDbSccsDataArgs1 <- createGetDbSccsDataArgs(deleteCovariatesSmallCount = 1)
 
@@ -73,7 +78,7 @@ test_that("Running multiple analyses against Eunomia", {
 
   analysisSum <- summarizeSccsAnalyses(result, outputFolder)
 
-  expect_equal(nrow(analysisSum), 3)
+  expect_equal(nrow(analysisSum), 5)
 
   unlink(outputFolder, recursive = TRUE)
 })
