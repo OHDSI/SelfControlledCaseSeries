@@ -59,6 +59,14 @@ done(false) {
   resultSet = dbSendQuery(connection, sql);
 }
 
+AndromedaTableIterator::~AndromedaTableIterator() {
+  if (!done) {
+    Environment dbi = Environment::namespace_env("DBI");
+    Function dbClearResult = dbi["dbClearResult"];
+    dbClearResult(resultSet);
+  }
+}
+
 bool AndromedaTableIterator::hasNext() {
   if (done)
     return false;

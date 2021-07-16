@@ -1,4 +1,5 @@
-library("testthat")
+library(testthat)
+library(SelfControlledCaseSeries)
 # Simulation:
 set.seed(123)
 n <- 2e+05
@@ -86,7 +87,8 @@ x$summary$coefficients <- c(0.762933)
 x$modelfit <- matrix(c(-3122.776, -3122.776, -3122.776, -3122.776), nrow = 2)
 
 test_that("Produces same results as SCCS package when using event-dependent observation periods", {
-  cases <- tibble(observationPeriodId = data$personId,
+  cases <- tibble(observationPeriodId = as.numeric(data$personId),
+                  caseId = as.numeric(data$personId),
                   personId = data$personId,
                   observationDays = data$censorDate - data$observationStartDate + 1,
                   ageInDays = data$ageInDays,
@@ -96,20 +98,20 @@ test_that("Produces same results as SCCS package when using event-dependent obse
                   censoredDays = 0)
 
   cases$noninformativeEndCensor <- cases$observationDays == max(cases$observationDays)
-  heiEras <- tibble(eraType = "rx",
-                    observationPeriodId = data$personId,
+  heiEras <- tibble(eraType = "hei",
+                    caseId = as.numeric(data$personId),
                     eraId = 1,
                     value = 1,
                     startDay = data$exposureStartDate - data$observationStartDate,
                     endDay = data$exposureEndDate - data$observationStartDate)
   hoiEras <- tibble(eraType = "hoi",
-                    observationPeriodId = data$personId,
+                    caseId = as.numeric(data$personId),
                     eraId = 2,
                     value = 1,
                     startDay = data$eventDate - data$observationStartDate,
                     endDay = data$eventDate - data$observationStartDate)
   eras <- rbind(heiEras, hoiEras)
-  eras <- eras[order(eras$observationPeriodId), ]
+  eras <- eras[order(eras$caseId), ]
 
 
   eraRef <- eras %>%
@@ -122,16 +124,7 @@ test_that("Produces same results as SCCS package when using event-dependent obse
   attr(sccsData, "metaData") <- list(outcomeIds = 2,
                                      attrition = tibble(outcomeId = 2))
 
-
-  # sccsData <- list(cases = ff::as.ffdf(cases),
-  #                  eras = ff::as.ffdf(eras),
-  #                  metaData = list(outcomeIds = 2),
-  #                  covariateRef = ff::as.ffdf(tibble(eraId = c(1),
-  #                                                        covariateName = c(""))))
-
   studyPop <- createStudyPopulation(sccsData = sccsData)
-
-
 
   sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                    sccsData = sccsData,
