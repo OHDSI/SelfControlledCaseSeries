@@ -27,10 +27,10 @@ Depends:
 	DatabaseConnector (>= 4.0.0),
 	Andromeda
 Imports:
-	SqlRender (>= 1.6.0),
+	SqlRender (>= 1.8.0),
 	dplyr (>= 1.0.0),
 	Rcpp (>= 0.11.2),
-	ParallelLogger (>= 2.0.0),
+	ParallelLogger (>= 2.0.2),
 	splines,
 	ggplot2,
 	methods,
@@ -40,7 +40,10 @@ Suggests:
 	testthat,
 	knitr,
 	rmarkdown,
-	EmpiricalCalibration
+	EmpiricalCalibration,
+	Eunomia
+Remotes:
+  ohdsi/SqlRender@develop,
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
