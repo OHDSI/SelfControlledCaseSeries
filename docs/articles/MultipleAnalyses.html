@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
       </span>
     </div>
 
@@ -85,13 +85,13 @@
 
       
 
-      </header><script src="MultipleAnalyses_files/header-attrs-2.6/header-attrs.js"></script><div class="row">
+      </header><script src="MultipleAnalyses_files/header-attrs-2.9/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Running multiple analyses at once using the SelfControlledCaseSeries package</h1>
                         <h4 class="author">Martijn J. Schuemie</h4>
             
-            <h4 class="date">2021-03-22</h4>
+            <h4 class="date">2021-07-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/vignettes/MultipleAnalyses.Rmd"><code>vignettes/MultipleAnalyses.Rmd</code></a></small>
       <div class="hidden name"><code>MultipleAnalyses.Rmd</code></div>
@@ -142,6 +142,7 @@
 
 <span class="va">cdmDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_cdm_data"</span>
 <span class="va">cohortDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_cohorts"</span>
+<span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>sqlRenderTempEmulationSchema <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>
 <span class="va">cdmVersion</span> <span class="op">&lt;-</span> <span class="st">"5"</span></code></pre></div>
 <p>The last three lines define the <code>cdmDatabaseSchema</code> and <code>cohortDatabaseSchema</code> variables, as well as the CDM version. We’ll use these later to tell R where the data in CDM format live, where we want to store the (outcome) cohorts, and what version CDM is used. Note that for Microsoft SQL Server, databaseschemas need to specify both the database and the schema, so for example <code>cdmDatabaseSchema &lt;- "my_cdm_data.dbo"</code>.</p>
 <p>We also need to prepare our exposures and outcomes of interest. The drug_era table in the OMOP Common Data Model already contains prespecified cohorts of users at the ingredient level, so we will use that for the exposures. For the outcomes, we want to restrict our analysis only to those events that are recorded in an inpatient setting, so we will need to create a custom cohort table. For this example, we are only interested in GI bleed (concept ID 192671) .</p>
@@ -362,7 +363,6 @@
 <code class="sourceCode R"><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/runSccsAnalyses.html">runSccsAnalyses</a></span><span class="op">(</span>
   connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,
   cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  oracleTempSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
   exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
   exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,
   outcomeDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>,
@@ -1037,7 +1037,7 @@
 <p>Now that we have produced estimates for all outcomes including our negative controls, we can perform empirical calibration to estimate the bias of the various analyses included in our study. We will create the calibration effect plots for every analysis ID. In each plot, the blue dots represent our negative control exposures, and the yellow diamond represents our exposure of interest: diclofenac. An unbiased, well-calibrated analysis should have 95% of the negative controls between the dashed lines (ie. 95% should have p &gt; .05).</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"EmpiricalCalibration"</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/EmpiricalCalibration">EmpiricalCalibration</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/EmpiricalCalibration/">EmpiricalCalibration</a></span><span class="op">)</span>
 
 <span class="co"># Analysis 1: Simplest model</span>
 <span class="va">negCons</span> <span class="op">&lt;-</span> <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">!=</span> <span class="fl">1124300</span>, <span class="op">]</span>
@@ -1100,7 +1100,7 @@
 ## 
 ##   Martijn Schuemie, Patrick Ryan, Trevor Shaddox and Marc Suchard
 ##   (2021). SelfControlledCaseSeries: Self-Controlled Case Series. R
-##   package version 3.0.0.
+##   package version 3.1.0.
 ##   https://github.com/OHDSI/SelfControlledCaseSeries
 ## 
 ## A BibTeX entry for LaTeX users is
@@ -1109,7 +1109,7 @@
 ##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},
 ##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},
 ##     year = {2021},
-##     note = {R package version 3.0.0},
+##     note = {R package version 3.1.0},
 ##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},
 ##   }</code></pre>
 <p>Further, <code>SelfControlledCaseSeries</code> makes extensive use of the <code>Cyclops</code> package.</p>

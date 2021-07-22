@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
       </span>
     </div>
 
@@ -149,7 +149,8 @@
   endAnchor <span class='op'>=</span> <span class='st'>"era end"</span>,
   firstOccurrenceOnly <span class='op'>=</span> <span class='cn'>FALSE</span>,
   splitPoints <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='op'>)</span>,
-  allowRegularization <span class='op'>=</span> <span class='cn'>FALSE</span>
+  allowRegularization <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  profileLikelihood <span class='op'>=</span> <span class='cn'>FALSE</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -211,6 +212,14 @@ be relative to the end of the main risk window instead.</p></td>
       <th>allowRegularization</th>
       <td><p>When fitting the model, should the covariates defined here be allowed
 to be regularized?</p></td>
+    </tr>
+    <tr>
+      <th>profileLikelihood</th>
+      <td><p>When fitting the model, should the likelihood profile be computed for
+the covariate defined here? The likelihood profile can be used to
+avoid making normal approximations on the likelihood and can be used in
+methods specifically designed to make use of the profile, but may take a
+while to compute.</p></td>
     </tr>
     </table>
 

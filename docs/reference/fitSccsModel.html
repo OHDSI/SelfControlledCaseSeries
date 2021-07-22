@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
       </span>
     </div>
 
@@ -142,7 +142,9 @@
   <span class='va'>sccsIntervalData</span>,
   prior <span class='op'>=</span> <span class='fu'>createPrior</span><span class='op'>(</span><span class='st'>"laplace"</span>, useCrossValidation <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>,
   control <span class='op'>=</span> <span class='fu'>createControl</span><span class='op'>(</span>cvType <span class='op'>=</span> <span class='st'>"auto"</span>, selectorType <span class='op'>=</span> <span class='st'>"byPid"</span>, startingVariance <span class='op'>=</span>
-    <span class='fl'>0.1</span>, noiseLevel <span class='op'>=</span> <span class='st'>"quiet"</span><span class='op'>)</span>
+    <span class='fl'>0.1</span>, noiseLevel <span class='op'>=</span> <span class='st'>"quiet"</span><span class='op'>)</span>,
+  profileGrid <span class='op'>=</span> <span class='cn'>NULL</span>,
+  profileBounds <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/Log.html'>log</a></span><span class='op'>(</span><span class='fl'>0.1</span><span class='op'>)</span>, <span class='fu'><a href='https://rdrr.io/r/base/Log.html'>log</a></span><span class='op'>(</span><span class='fl'>10</span><span class='op'>)</span><span class='op'>)</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -164,6 +166,16 @@ details.</p></td>
 hyperparameters of the prior (if applicable). See
 <a href='https://rdrr.io/pkg/Cyclops/man/createControl.html'>Cyclops::createControl</a> for details.</p></td>
     </tr>
+    <tr>
+      <th>profileGrid</th>
+      <td><p>A one-dimensional grid of points on the log(relative risk) scale where
+the likelihood for coefficient of variables is sampled. See details.</p></td>
+    </tr>
+    <tr>
+      <th>profileBounds</th>
+      <td><p>The bounds (on the log relative risk scale) for the adaptive sampling
+of the likelihood function.</p></td>
+    </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
@@ -174,6 +186,10 @@ hyperparameters of the prior (if applicable). See
 
     <p>Fits the SCCS model as a conditional Poisson regression. When allowed, coefficients for some or all
 covariates can be regularized.</p>
+<p>Likelihood profiling is only done for variables for which <code>profileLikelihood</code> is set to <code>TRUE</code> when
+calling <code><a href='createEraCovariateSettings.html'>createEraCovariateSettings()</a></code>. Either specify the <code>profileGrid</code> for a completely user-
+defined grid, or <code>profileBounds</code> for an adaptive grid. Both should be defined on the log IRR scale.
+When both <code>profileGrid</code> and <code>profileGrid</code> are <code>NULL</code> likelihood profiling is disabled.</p>
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
     <p>Suchard, M.A., Simpson, S.E., Zorych, I., Ryan, P., and Madigan, D. (2013). Massive parallelization

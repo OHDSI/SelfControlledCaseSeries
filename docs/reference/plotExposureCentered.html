@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
       </span>
     </div>
 
@@ -142,6 +142,8 @@
   <span class='va'>studyPopulation</span>,
   <span class='va'>sccsData</span>,
   exposureEraId <span class='op'>=</span> <span class='cn'>NULL</span>,
+  highlightExposedEvents <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  title <span class='op'>=</span> <span class='cn'>NULL</span>,
   fileName <span class='op'>=</span> <span class='cn'>NULL</span>
 <span class='op'>)</span></pre>
 
@@ -162,6 +164,14 @@
       <td><p>The exposure to create the era data for. If not specified it is
 assumed to be the one exposure for which the data was loaded from
 the database.</p></td>
+    </tr>
+    <tr>
+      <th>highlightExposedEvents</th>
+      <td><p>Highlight events that occurred during the exposure era using a different color?</p></td>
+    </tr>
+    <tr>
+      <th>title</th>
+      <td><p>Optional: the main title for the plot</p></td>
     </tr>
     <tr>
       <th>fileName</th>

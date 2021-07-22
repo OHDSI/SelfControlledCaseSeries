@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
       </span>
     </div>
 
@@ -132,6 +132,23 @@
       <small>Source: <a href='https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
+    <div id="selfcontrolledcaseseries-310" class="section level1">
+<h1 class="page-header" data-toc-text="3.1.0">
+<a href="#selfcontrolledcaseseries-310" class="anchor"></a>SelfControlledCaseSeries 3.1.0</h1>
+<p>Changes</p>
+<ol>
+<li><p>Adding likelihood profile to SCCS model objects if <code>profileLikelihood</code> argument is set to <code>TRUE</code> when calling <code><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings()</a></code>.</p></li>
+<li><p>Deprecating <code>oracleTempSchema</code> argument in favor of <code>tempEmulationSchema</code> in accordance with new <code>SqlRender</code> convention.</p></li>
+<li><p>Adding optional <code>title</code> argument to all plotting functions.</p></li>
+<li><p>Adding <code>highlightExposedEvents</code> argument to <code>plotExposureCentered</code> function.</p></li>
+<li><p>Switching power calculation default method to signed root likelihood ratio as recommended by Musonda et al. (2005).</p></li>
+</ol>
+<p>BugFixes</p>
+<ol>
+<li><p>Prevent error when excluding variable not in data from regularization.</p></li>
+<li><p>Removing unexposed subjects when computing power to avoid overestimating statistical power.</p></li>
+</ol>
+</div>
     <div id="selfcontrolledcaseseries-300" class="section level1">
 <h1 class="page-header" data-toc-text="3.0.0">
 <a href="#selfcontrolledcaseseries-300" class="anchor"></a>SelfControlledCaseSeries 3.0.0</h1>

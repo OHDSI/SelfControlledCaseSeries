@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
       </span>
     </div>
 
@@ -141,7 +141,8 @@
     <pre class="usage"><span class='fu'>getDbSccsData</span><span class='op'>(</span>
   <span class='va'>connectionDetails</span>,
   <span class='va'>cdmDatabaseSchema</span>,
-  oracleTempSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
+  oracleTempSchema <span class='op'>=</span> <span class='cn'>NULL</span>,
+  tempEmulationSchema <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/options.html'>getOption</a></span><span class='op'>(</span><span class='st'>"sqlRenderTempEmulationSchema"</span><span class='op'>)</span>,
   outcomeDatabaseSchema <span class='op'>=</span> <span class='va'>cdmDatabaseSchema</span>,
   outcomeTable <span class='op'>=</span> <span class='st'>"condition_era"</span>,
   <span class='va'>outcomeIds</span>,
@@ -180,7 +181,13 @@ schema, so for example 'cdm_instance.dbo'.</p></td>
     </tr>
     <tr>
       <th>oracleTempSchema</th>
-      <td><p>A schema where temp tables can be created in Oracle.</p></td>
+      <td><p>DEPRECATED: use <code>tempEmulationSchema</code> instead.</p></td>
+    </tr>
+    <tr>
+      <th>tempEmulationSchema</th>
+      <td><p>Some database platforms like Oracle and Impala do not truly support temp tables. To
+emulate temp tables, provide a schema with write privileges where temp tables
+can be created.</p></td>
     </tr>
     <tr>
       <th>outcomeDatabaseSchema</th>

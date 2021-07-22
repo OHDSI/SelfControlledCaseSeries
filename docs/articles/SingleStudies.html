@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
       </span>
     </div>
 
@@ -85,13 +85,13 @@
 
       
 
-      </header><script src="SingleStudies_files/header-attrs-2.6/header-attrs.js"></script><div class="row">
+      </header><script src="SingleStudies_files/header-attrs-2.9/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Single studies using the SelfControlledCaseSeries package</h1>
                         <h4 class="author">Martijn J. Schuemie, Marc A. Suchard and Patrick Ryan</h4>
             
-            <h4 class="date">2021-03-22</h4>
+            <h4 class="date">2021-07-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/vignettes/SingleStudies.Rmd"><code>vignettes/SingleStudies.Rmd</code></a></small>
       <div class="hidden name"><code>SingleStudies.Rmd</code></div>
@@ -142,6 +142,7 @@
 
 <span class="va">cdmDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_cdm_data"</span>
 <span class="va">cohortDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_results"</span>
+<span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>sqlRenderTempEmulationSchema <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>
 <span class="va">cdmVersion</span> <span class="op">&lt;-</span> <span class="st">"5"</span></code></pre></div>
 <p>The last three lines define the <code>cdmDatabaseSchema</code> and <code>cohortDatabaseSchema</code> variables,as well as the CDM version. We’ll use these later to tell R where the data in CDM format live, where we have stored our cohorts of interest, and what version CDM is used. Note that for Microsoft SQL Server, databaseschemas need to specify both the database and the schema, so for example <code>cdmDatabaseSchema &lt;- "my_cdm_data.dbo"</code>.</p>
 </div>
@@ -206,7 +207,6 @@
 
 <span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,
                           cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-                          oracleTempSchema <span class="op">=</span> <span class="va">oracleTempSchema</span>,
                           outcomeDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>,
                           outcomeTable <span class="op">=</span> <span class="va">outcomeTable</span>,
                           outcomeIds <span class="op">=</span> <span class="fl">1</span>,
@@ -222,7 +222,7 @@
 ## 
 ## Inherits from Andromeda:
 ## # Andromeda object
-## # Physical location:  C:\Users\mschuemi\AppData\Local\Temp\Rtmp6zeP33\fileb86039d94cfb.sqlite
+## # Physical location:  C:\Users\mschuemi\AppData\Local\Temp\Rtmp0M7sDI\file6d4286d265.sqlite
 ## 
 ## Tables:
 ## $cases (observationPeriodId, caseId, personId, observationDays, startYear, startMonth, startDay, ageInDays, censoredDays, noninformativeEndCensor)
@@ -535,7 +535,6 @@
 
 <span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,
                           cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-                          oracleTempSchema <span class="op">=</span> <span class="va">oracleTempSchema</span>,
                           outcomeDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>,
                           outcomeTable <span class="op">=</span> <span class="va">outcomeTable</span>,
                           outcomeIds <span class="op">=</span> <span class="fl">1</span>,
@@ -551,7 +550,7 @@
 ## 
 ## Inherits from Andromeda:
 ## # Andromeda object
-## # Physical location:  C:\Users\mschuemi\AppData\Local\Temp\Rtmp6zeP33\fileb8603c3414fe.sqlite
+## # Physical location:  C:\Users\mschuemi\AppData\Local\Temp\Rtmp0M7sDI\file6d438bb4195.sqlite
 ## 
 ## Tables:
 ## $cases (observationPeriodId, caseId, personId, observationDays, startYear, startMonth, startDay, ageInDays, censoredDays, noninformativeEndCensor)
@@ -614,7 +613,6 @@
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,
                           cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-                          oracleTempSchema <span class="op">=</span> <span class="va">oracleTempSchema</span>,
                           outcomeDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>,
                           outcomeTable <span class="op">=</span> <span class="va">outcomeTable</span>,
                           outcomeIds <span class="op">=</span> <span class="fl">1</span>,
@@ -654,27 +652,27 @@
 <code class="sourceCode R">  <span class="va">estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getModel.html">getModel</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>
   <span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op">==</span> <span class="va">diclofenac</span>, <span class="op">]</span></code></pre></div>
 <pre><code>## # A tibble: 5 x 10
-##   name     id estimate lb95Ci ub95Ci    logRr seLogRr originalEraId
-##   &lt;chr&gt; &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;         &lt;dbl&gt;
-## 1 Expo~  1000    1.20      NA     NA  0.180        NA       1124300
-## 2 Expo~  1001    1.37      NA     NA  0.318        NA       1124300
-## 3 Expo~  1002    1.19      NA     NA  0.176        NA       1124300
-## 4 Pre-~  1003    0.997     NA     NA -0.00287      NA       1124300
-## 5 Pre-~  1004    0.911     NA     NA -0.0932       NA       1124300
+##   name                  id estimate lb95Ci ub95Ci    logRr seLogRr originalEraId
+##   &lt;chr&gt;              &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;         &lt;dbl&gt;
+## 1 Exposure of inter~  1000    1.20      NA     NA  0.180        NA       1124300
+## 2 Exposure of inter~  1001    1.37      NA     NA  0.318        NA       1124300
+## 3 Exposure of inter~  1002    1.19      NA     NA  0.176        NA       1124300
+## 4 Pre-exposure: Dic~  1003    0.997     NA     NA -0.00287      NA       1124300
+## 5 Pre-exposure: Dic~  1004    0.911     NA     NA -0.0932       NA       1124300
 ## # ... with 2 more variables: originalEraType &lt;chr&gt;, originalEraName &lt;chr&gt;</code></pre>
 <p>Here we see that despite the extensive adjustments that are made in the model, the effect estimates for diclofenac have remained nearly the same.</p>
 <p>In case we’re interested, we can also look at the effect sizes for the PPIs:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op">%in%</span> <span class="va">ppis</span>, <span class="op">]</span></code></pre></div>
 <pre><code>## # A tibble: 6 x 10
-##   name     id estimate lb95Ci ub95Ci   logRr seLogRr originalEraId
-##   &lt;chr&gt; &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;         &lt;dbl&gt;
-## 1 Othe~  1614    0.844     NA     NA -0.170       NA        923645
-## 2 Othe~  1711    0.967     NA     NA -0.0336      NA        929887
-## 3 Othe~  1982    0.911     NA     NA -0.0932      NA        911735
-## 4 Othe~  2195    0.710     NA     NA -0.343       NA      19039926
-## 5 Othe~  2587    0.798     NA     NA -0.225       NA        904453
-## 6 Othe~  2956    0.863     NA     NA -0.147       NA        948078
+##   name                   id estimate lb95Ci ub95Ci   logRr seLogRr originalEraId
+##   &lt;chr&gt;               &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;         &lt;dbl&gt;
+## 1 Other exposures: O~  1614    0.844     NA     NA -0.170       NA        923645
+## 2 Other exposures: l~  1711    0.967     NA     NA -0.0336      NA        929887
+## 3 Other exposures: r~  1982    0.911     NA     NA -0.0932      NA        911735
+## 4 Other exposures: d~  2195    0.710     NA     NA -0.343       NA      19039926
+## 5 Other exposures: E~  2587    0.798     NA     NA -0.225       NA        904453
+## 6 Other exposures: p~  2956    0.863     NA     NA -0.147       NA        948078
 ## # ... with 2 more variables: originalEraType &lt;chr&gt;, originalEraName &lt;chr&gt;</code></pre>
 <p>Note that because we used regularization, we are not able to compute the confidence intervals for these estimates. We do again see that PPIs all have relative risks lower than 1 as we would expect.</p>
 </div>
@@ -725,7 +723,7 @@
 ## 
 ##   Martijn Schuemie, Patrick Ryan, Trevor Shaddox and Marc Suchard
 ##   (2021). SelfControlledCaseSeries: Self-Controlled Case Series. R
-##   package version 3.0.0.
+##   package version 3.1.0.
 ##   https://github.com/OHDSI/SelfControlledCaseSeries
 ## 
 ## A BibTeX entry for LaTeX users is
@@ -734,7 +732,7 @@
 ##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},
 ##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},
 ##     year = {2021},
-##     note = {R package version 3.0.0},
+##     note = {R package version 3.1.0},
 ##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},
 ##   }</code></pre>
 <p>Furthermore, <code>SelfControlledCaseSeries</code> makes extensive use of the <code>Cyclops</code> package.</p>
