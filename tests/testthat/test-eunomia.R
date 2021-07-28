@@ -8,6 +8,7 @@ createCohorts(connectionDetails)
 # connection <- connect(connectionDetails)
 
 test_that("Running multiple analyses against Eunomia", {
+  skip_if(compareVersion(as.character(packageVersion("SqlRender")), "1.8.0") < 0)
 
   # Adding empty exposure and outcome cohorts:
   exposureOutcomeList <- list(createExposureOutcome(exposureId = 1,
