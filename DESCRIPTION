@@ -27,7 +27,7 @@ Depends:
 	DatabaseConnector (>= 4.0.0),
 	Andromeda
 Imports:
-	SqlRender (>= 1.8.0),
+	SqlRender (>= 1.7.0),
 	dplyr (>= 1.0.0),
 	Rcpp (>= 0.11.2),
 	ParallelLogger (>= 2.0.2),
@@ -42,8 +42,6 @@ Suggests:
 	rmarkdown,
 	EmpiricalCalibration,
 	Eunomia
-Remotes:
-  ohdsi/SqlRender@develop,
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
