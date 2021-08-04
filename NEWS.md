@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 3.1.1
+==============================
+
+Changes
+
+1. Fixing seed for regularization cross-validation to improve reproducibility.
+
+
 SelfControlledCaseSeries 3.1.0
 ==============================
 
