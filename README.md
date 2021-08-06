@@ -67,7 +67,7 @@ SelfControlledCaseSeries is an R package, with some functions implemented in C++
 
 System Requirements
 ===================
-Requires R (version 3.2.2 or higher). Installation on Windows requires [RTools](http://cran.r-project.org/bin/windows/Rtools/). Libraries used in SelfControlledCaseSeries require Java.
+Requires R (version 3.2.2 or higher). Installation on Windows requires [RTools](https://cran.r-project.org/bin/windows/Rtools/). Libraries used in SelfControlledCaseSeries require Java.
 
 Installation
 ============
