@@ -10,7 +10,9 @@ createSccsIntervalData(
   eraCovariateSettings,
   ageCovariateSettings = NULL,
   seasonalityCovariateSettings = NULL,
-  minCasesForAgeSeason = 10000,
+  calendarTimeCovariateSettings = NULL,
+  minCasesForAgeSeason = NULL,
+  minCasesForTimeCovariates = 10000,
   eventDependentObservation = FALSE
 )
 }
@@ -30,7 +32,12 @@ list of such objects.}
 \item{seasonalityCovariateSettings}{An object of type \code{seasonalityCovariateSettings} as created using the
 \code{\link[=createSeasonalityCovariateSettings]{createSeasonalityCovariateSettings()}} function.}
 
-\item{minCasesForAgeSeason}{Minimum number of cases to use to fit age and season splines. If
+\item{calendarTimeCovariateSettings}{An object of type \code{calendarTimeCovariateSettings} as created using the
+\code{\link[=createCalendarTimeCovariateSettings]{createCalendarTimeCovariateSettings()}} function.}
+
+\item{minCasesForAgeSeason}{DEPRECATED: Use \code{minCasesForTimeCovariates} instead.}
+
+\item{minCasesForTimeCovariates}{Minimum number of cases to use to fit age, season and calendar time splines. If
 needed (and available), cases that are not exposed will be included.}
 
 \item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to

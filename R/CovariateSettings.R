@@ -177,6 +177,51 @@ createSeasonalityCovariateSettings <- function(seasonKnots = 5,
   return(analysis)
 }
 
+#' Create calendar time settings
+#'
+#' @details
+#' Create an object specifying whether and how calendar time should be included in the model.
+#' Calendar time can be included by splitting patient time into calendar months. During a month, the
+#' relative risk attributed to calendar time is assumed to be constant, and the risk from month to month is
+#' modeled using a cubic spline.
+#'
+#' Whereas the seasonality covariate uses a cyclic spline, repeating every year, this calendar time covariate
+#' can model trends over years.
+#'
+#' @param calendarTimeKnots            If a single number is provided this is assumed to indicate the
+#'                                     number of knots to use for the spline, and the knots are
+#'                                     automatically spaced according to equal percentiles of the data.
+#'                                     If a series of dates is provided these are assumed to be the exact location of
+#'                                     the knots.
+#' @param allowRegularization          When fitting the model, should the covariates defined here be
+#'                                     allowed to be regularized?
+#' @param computeConfidenceIntervals   Should confidence intervals be computed for the covariates
+#'                                     defined here? Setting this to FALSE might save computing time
+#'                                     when fitting the model. Will be turned to FALSE automatically
+#'                                     when `allowRegularization = TRUE`.
+#'
+#' @return
+#' An object of type `seasonalitySettings`.
+#'
+#' @export
+createCalendarTimeCovariateSettings <- function(calendarTimeKnots = 5,
+                                                allowRegularization = FALSE,
+                                                computeConfidenceIntervals = FALSE) {
+  if (length(calendarTimeKnots) != 1 && !is(calendarTimeKnots, "Date")) {
+    stop("The 'calendarTimeKnots' should be either a single integer or a vector of dates.")
+  }
+  if (computeConfidenceIntervals && allowRegularization) {
+    computeConfidenceIntervals <- FALSE
+    warning("computeConfidenceIntervals is set to FALSE because allowRegularization is TRUE")
+  }
+  analysis <- list()
+  for (name in names(formals(createCalendarTimeCovariateSettings))) {
+    analysis[[name]] <- get(name)
+  }
+  class(analysis) <- "CalendarTimeCovariateSettings"
+  return(analysis)
+}
+
 #' Create control interval settings
 #'
 #' @details
@@ -201,12 +246,12 @@ createSeasonalityCovariateSettings <- function(seasonKnots = 5,
 #'
 #' @export
 createControlIntervalSettings <- function(includeEraIds = NULL,
-                                   excludeEraIds = NULL,
-                                   start = 0,
-                                   startAnchor = "era start",
-                                   end = 0,
-                                   endAnchor = "era end",
-                                   firstOccurrenceOnly = FALSE) {
+                                          excludeEraIds = NULL,
+                                          start = 0,
+                                          startAnchor = "era start",
+                                          end = 0,
+                                          endAnchor = "era end",
+                                          firstOccurrenceOnly = FALSE) {
   if (!grepl("start$|end$", startAnchor, ignore.case = TRUE)) {
     stop("startAnchor should have value 'era start' or 'era end'")
   }

@@ -1,9 +1,11 @@
-SelfControlledCaseSeries 3.1.1
+SelfControlledCaseSeries 3.2.0
 ==============================
 
 Changes
 
-1. Fixing seed for regularization cross-validation to improve reproducibility.
+1. Adding optional calendar time covariate.
+
+2. Fixing seed for regularization cross-validation to improve reproducibility.
 
 
 SelfControlledCaseSeries 3.1.0

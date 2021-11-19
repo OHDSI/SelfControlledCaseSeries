@@ -17,7 +17,7 @@
 # limitations under the License.
 
 # Format and check code
-OhdsiRTools::formatRFolder()
+styler::style_pkg()
 OhdsiRTools::checkUsagePackage("SelfControlledCaseSeries")
 OhdsiRTools::updateCopyrightYearFolder()
 devtools::spell_check()
@@ -60,6 +60,7 @@ rCode <- ParallelLogger::createArgFunction("getDbSccsData",
                                            excludeArgs = c("connectionDetails",
                                                            "cdmDatabaseSchema",
                                                            "oracleTempSchema",
+                                                           "tempEmulationSchema",
                                                            "exposureDatabaseSchema",
                                                            "exposureTable",
                                                            "outcomeDatabaseSchema",
@@ -87,5 +88,5 @@ rCode <- ParallelLogger::createArgFunction("createScriIntervalData",
 rCode <- ParallelLogger::createArgFunction("fitSccsModel",
                                            excludeArgs = c("sccsIntervalData", "population"),
                                            rCode = rCode)
+rCode <- styler::style_text(rCode)
 writeLines(rCode, "r/CreateArgFunctions.R")
-OhdsiRTools::formatRFile("r/CreateArgFunctions.R")

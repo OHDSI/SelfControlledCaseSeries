@@ -40,7 +40,10 @@ SccsConverter::SccsConverter(const DataFrame& _cases,
                              const Rcpp::NumericMatrix& _ageDesignMatrix,
                              const bool _includeSeason,
                              const NumericMatrix& _seasonDesignMatrix,
-                             const NumericVector& _ageSeasonsCases,
+                             const bool _includeCalendarTime,
+                             const int _calendarTimeOffset,
+                             const NumericMatrix& _calendarTimeDesignMatrix,
+                             const NumericVector& _timeCovariateCases,
                              const List& _covariateSettingsList,
                              const bool _eventDependentObservation,
                              const List& _censorModel,
@@ -50,12 +53,15 @@ SccsConverter::SccsConverter(const DataFrame& _cases,
                              includeAge(_includeAge),
                              ageOffset(_ageOffset),
                              includeSeason(_includeSeason),
+                             includeCalendarTime(_includeCalendarTime),
+                             calendarTimeOffset(_calendarTimeOffset),
                              eventDependentObservation(_eventDependentObservation),
                              scri(_scri),
                              controlIntervalId(_controlIntervalId) {
 
                                ageDesignMatrix = _ageDesignMatrix;
                                seasonDesignMatrix = _seasonDesignMatrix;
+                               calendarTimeDesignMatrix = _calendarTimeDesignMatrix;
 
                                for (int i = 0; i < _covariateSettingsList.size(); i++) {
                                  CovariateSettings covariateSettings(as<List>(_covariateSettingsList[i]));
@@ -75,13 +81,13 @@ SccsConverter::SccsConverter(const DataFrame& _cases,
                                    weightFunction = new WsmallEgid2(p);
                                  }
                                }
-                               if (_ageSeasonsCases.size() != 0) {
-                                 hasAgeSeasonsCases = true;
-                                 for (int i = 0; i < _ageSeasonsCases.size(); i++) {
-                                   ageSeasonsCases.insert(_ageSeasonsCases[i]);
+                               if (_timeCovariateCases.size() != 0) {
+                                 hasTimeCovariateCases = true;
+                                 for (int i = 0; i < _timeCovariateCases.size(); i++) {
+                                   timeCovariateCases.insert(_timeCovariateCases[i]);
                                  }
                                } else
-                                 hasAgeSeasonsCases = false;
+                                 hasTimeCovariateCases = false;
                              }
 
 std::vector<Era> SccsConverter::mergeOverlapping(std::vector<Era>& eras) {
@@ -322,9 +328,22 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const PersonData& perso
         eras.push_back(era);
       }
     }
+    if (includeCalendarTime){
+      int monthIndex = (startOfMonth.tm_year + 1900) * 12 + startOfMonth.tm_mon - calendarTimeOffset;
+      if (monthIndex < 0) {
+        monthIndex = 0;
+      } else if (monthIndex >= calendarTimeDesignMatrix.nrow()) {
+        monthIndex = calendarTimeDesignMatrix.nrow() - 1;
+      }
+      for (int i = 0; i < calendarTimeDesignMatrix.ncol(); i++){
+        Era era(eraStartDay, nextEraStartDay - 1, calendarTimeIdOffset + i, calendarTimeDesignMatrix(monthIndex, i));
+        eras.push_back(era);
+      }
+    }
     eraStartDay = nextEraStartDay;
-    month = startOfNextMonth.tm_mon;
-    startOfNextMonth = addMonth(startOfNextMonth);
+    startOfMonth = startOfNextMonth;
+    month = startOfMonth.tm_mon;
+    startOfNextMonth = addMonth(startOfMonth);
     nextEraStartDay = std::min(dateDifference(startOfNextMonth, startDate), personData.endDay + 1);
   }
 }
@@ -465,9 +484,9 @@ void SccsConverter::processPerson(PersonData& personData) {
   }
   clipEras(outputEras, 0, personData.endDay);
   outputEras = mergeOverlapping(outputEras);
-  if (includeAge || includeSeason) {
+  if (includeAge || includeSeason || includeCalendarTime) {
     if (outputEras.size() == 0)  // No exposures: still use to fit age and/or season splines?
-      if (hasAgeSeasonsCases && ageSeasonsCases.find(personData.caseId) == ageSeasonsCases.end())
+      if (hasTimeCovariateCases && timeCovariateCases.find(personData.caseId) == timeCovariateCases.end())
         return;
     addMonthEras(outputEras, personData);
   }

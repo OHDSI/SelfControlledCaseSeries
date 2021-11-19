@@ -8,27 +8,26 @@ createCreateSccsIntervalDataArgs(
   eraCovariateSettings,
   ageCovariateSettings = NULL,
   seasonalityCovariateSettings = NULL,
-  minCasesForAgeSeason = 10000,
+  calendarTimeCovariateSettings = NULL,
+  minCasesForAgeSeason = NULL,
+  minCasesForTimeCovariates = 10000,
   eventDependentObservation = FALSE
 )
 }
 \arguments{
-\item{eraCovariateSettings}{Either an object of type EraCovariateSettings as created using
-the createEraCovariateSettings() function, or a list of such
-objects.}
+\item{eraCovariateSettings}{Either an object of type EraCovariateSettings as created using the createEraCovariateSettings() function, or a list of such objects.}
 
-\item{ageCovariateSettings}{An object of type ageCovariateSettings as created using the
-createAgeCovariateSettings() function.}
+\item{ageCovariateSettings}{An object of type ageCovariateSettings as created using the createAgeCovariateSettings() function.}
 
-\item{seasonalityCovariateSettings}{An object of type seasonalityCovariateSettings as created
-using the createSeasonalityCovariateSettings() function.}
+\item{seasonalityCovariateSettings}{An object of type seasonalityCovariateSettings as created using the createSeasonalityCovariateSettings() function.}
 
-\item{minCasesForAgeSeason}{Minimum number of cases to use to fit age and season splines.
-If needed (and available), cases that are not exposed will be
-included.}
+\item{calendarTimeCovariateSettings}{An object of type calendarTimeCovariateSettings as created using the createCalendarTimeCovariateSettings() function.}
 
-\item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to
-adjust for event-dependent observation time?}
+\item{minCasesForAgeSeason}{DEPRECATED: Use minCasesForTimeCovariates instead.}
+
+\item{minCasesForTimeCovariates}{Minimum number of cases to use to fit age, season and calendar time splines. If needed (and available), cases that are not exposed will be included.}
+
+\item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to adjust for event-dependent observation time?}
 }
 \description{
 Create a parameter object for the function createSccsIntervalData

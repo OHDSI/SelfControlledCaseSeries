@@ -277,7 +277,10 @@ public:
                 const Rcpp::NumericMatrix& _ageDesignMatrix,
                 const bool _includeSeason,
                 const NumericMatrix& _seasonDesignMatrix,
-                const NumericVector& _ageSeasonsCases,
+                const bool _includeCalendarTime,
+                const int _calendarTimeOffset,
+                const NumericMatrix& _calendarTimeDesignMatrix,
+                const NumericVector& _timeCovariateCases,
                 const List& _covariateSettingsList,
                 const bool _eventDependentObservation,
                 const List& _censorModel,
@@ -286,6 +289,7 @@ public:
   S4 convertToSccs();
   static const int ageIdOffset = 100;
   static const int seasonIdOffset = 200;
+  static const int calendarTimeIdOffset = 300;
 private:
   void processPerson(PersonData& personData);
   void clipEras(std::vector<Era>& eras, const int startDay, const int endDay);
@@ -310,11 +314,14 @@ private:
   NumericMatrix ageDesignMatrix;
   bool includeSeason;
   NumericMatrix seasonDesignMatrix;
+  bool includeCalendarTime;
+  int calendarTimeOffset;
+  NumericMatrix calendarTimeDesignMatrix;
   std::vector<CovariateSettings> covariateSettingsVector;
   bool eventDependentObservation;
   WeightFunction* weightFunction;
-  bool hasAgeSeasonsCases;
-  std::set<int64_t> ageSeasonsCases;
+  bool hasTimeCovariateCases;
+  std::set<int64_t> timeCovariateCases;
   bool scri;
   const int64_t controlIntervalId;
 };

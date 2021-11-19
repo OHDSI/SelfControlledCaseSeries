@@ -1,8 +1,8 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 3.1.1
-Date: 2021-08-04
+Version: 3.2.0
+Date: 2021-11-19
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
@@ -45,6 +45,6 @@ Suggests:
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Roxygen: list(markdown = TRUE)
 Encoding: UTF-8

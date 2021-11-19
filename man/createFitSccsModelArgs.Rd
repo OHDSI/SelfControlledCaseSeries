@@ -15,15 +15,11 @@ createFitSccsModelArgs(
 \arguments{
 \item{prior}{The prior used to fit the model. See Cyclops::createPrior for details.}
 
-\item{control}{The control object used to control the cross-validation used to determine the
-hyperparameters of the prior (if applicable). See Cyclops::createControl for
-details.}
+\item{control}{The control object used to control the cross-validation used to determine the hyperparameters of the prior (if applicable). See Cyclops::createControl for details.}
 
-\item{profileGrid}{A one-dimensional grid of points on the log(relative risk) scale where the
-likelihood for coefficient of variables is sampled. See details.}
+\item{profileGrid}{A one-dimensional grid of points on the log(relative risk) scale where the likelihood for coefficient of variables is sampled. See details.}
 
-\item{profileBounds}{The bounds (on the log relative risk scale) for the adaptive sampling of the
-likelihood function.}
+\item{profileBounds}{The bounds (on the log relative risk scale) for the adaptive sampling of the likelihood function.}
 }
 \description{
 Create a parameter object for the function fitSccsModel

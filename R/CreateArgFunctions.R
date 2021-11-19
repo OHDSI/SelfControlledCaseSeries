@@ -5,29 +5,15 @@
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param useCustomCovariates          Create covariates from a custom table?
-#' @param useNestingCohort             Should the study be nested in a cohort (e.g. people with a
-#'                                     specific indication)? If not, the study will be nested in the
-#'                                     general population.
-#' @param nestingCohortId              A cohort definition ID identifying the records in the
-#'                                     nestingCohortTable to use as nesting cohort.
-#' @param deleteCovariatesSmallCount   The minimum count for a covariate to appear in the data to be
-#'                                     kept.
-#' @param studyStartDate               A calendar date specifying the minimum date where data is used.
-#'                                     Date format is 'yyyymmdd'.
-#' @param studyEndDate                 A calendar date specifying the maximum date where data is used.
-#'                                     Date format is 'yyyymmdd'.
-#' @param maxCasesPerOutcome           If there are more than this number of cases for a single outcome
-#'                                     cases will be sampled to this size. maxCasesPerOutcome = 0
-#'                                     indicates no maximum size.
-#' @param exposureIds                  A list of identifiers to define the exposures of interest. If
-#'                                     exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID. If
-#'                                     exposureTable <> DRUG_ERA, exposureIds is used to select the
-#'                                     cohort_concept_id in the cohort-like table. If no exposureIds
-#'                                     are provided, all drugs or cohorts in the exposureTable are
-#'                                     included as exposures.
-#' @param customCovariateIds           A list of cohort definition IDS identifying the records in the
-#'                                     customCovariateTable to use for building custom covariates.
+#' @param useCustomCovariates  Create covariates from a custom table?
+#' @param useNestingCohort  Should the study be nested in a cohort (e.g. people with a specific indication)? If not, the study will be nested in the general population.
+#' @param nestingCohortId  A cohort definition ID identifying the records in the nestingCohortTable to use as nesting cohort.
+#' @param deleteCovariatesSmallCount  The minimum count for a covariate to appear in the data to be kept.
+#' @param studyStartDate  A calendar date specifying the minimum date where data is used. Date format is 'yyyymmdd'.
+#' @param studyEndDate  A calendar date specifying the maximum date where data is used. Date format is 'yyyymmdd'.
+#' @param maxCasesPerOutcome  If there are more than this number of cases for a single outcome cases will be sampled to this size. maxCasesPerOutcome = 0 indicates no maximum size.
+#' @param exposureIds  A list of identifiers to define the exposures of interest. If exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID. If exposureTable <> DRUG_ERA, exposureIds is used to select the cohort_concept_id in the cohort-like table. If no exposureIds are provided, all drugs or cohorts in the exposureTable are included as exposures.
+#' @param customCovariateIds  A list of cohort definition IDS identifying the records in the customCovariateTable to use for building custom covariates.
 #'
 #' @export
 createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
@@ -52,21 +38,10 @@ createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param firstOutcomeOnly   Whether only the first occurrence of an outcome should be considered.
-#' @param naivePeriod        The number of days at the start of a patient's observation period that
-#'                           should not be included in the risk calculations. Note that the naive
-#'                           period can be used to determine current covariate status right after the
-#'                           naive period, and whether an outcome is the first one.
-#' @param minAge             Minimum age at which patient time will be included in the analysis. Note
-#'                           that information prior to the min age is still used to determine exposure
-#'                           status after the minimum age (e.g. when a prescription was started just
-#'                           prior to reaching the minimum age). Also, outcomes occurring before the
-#'                           minimum age is reached will be considered as prior outcomes when using
-#'                           first outcomes only. Age should be specified in years, but non-integer
-#'                           values are allowed. If not specified, no age restriction will be applied.
-#' @param maxAge             Maximum age at which patient time will be included in the analysis. Age
-#'                           should be specified in years, but non-integer values are allowed. If not
-#'                           specified, no age restriction will be applied.
+#' @param firstOutcomeOnly  Whether only the first occurrence of an outcome should be considered.
+#' @param naivePeriod  The number of days at the start of a patient's observation period that should not be included in the risk calculations. Note that the naive period can be used to determine current covariate status right after the naive period, and whether an outcome is the first one.
+#' @param minAge  Minimum age at which patient time will be included in the analysis. Note that information prior to the min age is still used to determine exposure status after the minimum age (e.g. when a prescription was started just prior to reaching the minimum age). Also, outcomes occurring before the minimum age is reached will be considered as prior outcomes when using first outcomes only. Age should be specified in years, but non-integer values are allowed. If not specified, no age restriction will be applied.
+#' @param maxAge  Maximum age at which patient time will be included in the analysis. Age should be specified in years, but non-integer values are allowed. If not specified, no age restriction will be applied.
 #'
 #' @export
 createCreateStudyPopulationArgs <- function(firstOutcomeOnly = FALSE,
@@ -86,24 +61,21 @@ createCreateStudyPopulationArgs <- function(firstOutcomeOnly = FALSE,
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param eraCovariateSettings           Either an object of type EraCovariateSettings as created using
-#'                                       the createEraCovariateSettings() function, or a list of such
-#'                                       objects.
-#' @param ageCovariateSettings           An object of type ageCovariateSettings as created using the
-#'                                       createAgeCovariateSettings() function.
-#' @param seasonalityCovariateSettings   An object of type seasonalityCovariateSettings as created
-#'                                       using the createSeasonalityCovariateSettings() function.
-#' @param minCasesForAgeSeason           Minimum number of cases to use to fit age and season splines.
-#'                                       If needed (and available), cases that are not exposed will be
-#'                                       included.
-#' @param eventDependentObservation      Should the extension proposed by Farrington et al. be used to
-#'                                       adjust for event-dependent observation time?
+#' @param eraCovariateSettings  Either an object of type EraCovariateSettings as created using the createEraCovariateSettings() function, or a list of such objects.
+#' @param ageCovariateSettings  An object of type ageCovariateSettings as created using the createAgeCovariateSettings() function.
+#' @param seasonalityCovariateSettings  An object of type seasonalityCovariateSettings as created using the createSeasonalityCovariateSettings() function.
+#' @param calendarTimeCovariateSettings  An object of type calendarTimeCovariateSettings as created using the createCalendarTimeCovariateSettings() function.
+#' @param minCasesForAgeSeason  DEPRECATED: Use minCasesForTimeCovariates instead.
+#' @param minCasesForTimeCovariates  Minimum number of cases to use to fit age, season and calendar time splines. If needed (and available), cases that are not exposed will be included.
+#' @param eventDependentObservation  Should the extension proposed by Farrington et al. be used to adjust for event-dependent observation time?
 #'
 #' @export
 createCreateSccsIntervalDataArgs <- function(eraCovariateSettings,
                                              ageCovariateSettings = NULL,
                                              seasonalityCovariateSettings = NULL,
-                                             minCasesForAgeSeason = 10000,
+                                             calendarTimeCovariateSettings = NULL,
+                                             minCasesForAgeSeason = NULL,
+                                             minCasesForTimeCovariates = 10000,
                                              eventDependentObservation = FALSE) {
   analysis <- list()
   for (name in names(formals(createCreateSccsIntervalDataArgs))) {
@@ -118,13 +90,12 @@ createCreateSccsIntervalDataArgs <- function(eraCovariateSettings,
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param eraCovariateSettings      Either an object of type EraCovariateSettings as created using the
-#'                                  createEraCovariateSettings() function, or a list of such objects.
-#' @param controlIntervalSettings   An object of type ControlIntervalSettings as created using the
-#'                                  createControlIntervalSettings() function.
+#' @param eraCovariateSettings  Either an object of type EraCovariateSettings as created using the createEraCovariateSettings() function, or a list of such objects.
+#' @param controlIntervalSettings  An object of type ControlIntervalSettings as created using the createControlIntervalSettings() function.
 #'
 #' @export
-createCreateScriIntervalDataArgs <- function(eraCovariateSettings, controlIntervalSettings) {
+createCreateScriIntervalDataArgs <- function(eraCovariateSettings,
+                                             controlIntervalSettings) {
   analysis <- list()
   for (name in names(formals(createCreateScriIntervalDataArgs))) {
     analysis[[name]] <- get(name)
@@ -138,22 +109,14 @@ createCreateScriIntervalDataArgs <- function(eraCovariateSettings, controlInterv
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param prior           The prior used to fit the model. See Cyclops::createPrior for details.
-#' @param control         The control object used to control the cross-validation used to determine the
-#'                        hyperparameters of the prior (if applicable). See Cyclops::createControl for
-#'                        details.
-#' @param profileGrid     A one-dimensional grid of points on the log(relative risk) scale where the
-#'                        likelihood for coefficient of variables is sampled. See details.
-#' @param profileBounds   The bounds (on the log relative risk scale) for the adaptive sampling of the
-#'                        likelihood function.
+#' @param prior  The prior used to fit the model. See Cyclops::createPrior for details.
+#' @param control  The control object used to control the cross-validation used to determine the hyperparameters of the prior (if applicable). See Cyclops::createControl for details.
+#' @param profileGrid  A one-dimensional grid of points on the log(relative risk) scale where the likelihood for coefficient of variables is sampled. See details.
+#' @param profileBounds  The bounds (on the log relative risk scale) for the adaptive sampling of the likelihood function.
 #'
 #' @export
 createFitSccsModelArgs <- function(prior = createPrior("laplace", useCrossValidation = TRUE),
-                                   control = createControl(cvType = "auto",
-                                                           selectorType = "byPid",
-                                                           startingVariance = 0.1,
-                                                           seed = 1,
-                                                           noiseLevel = "quiet"),
+                                   control = createControl(cvType = "auto", selectorType = "byPid", startingVariance = 0.1, seed = 1, noiseLevel = "quiet"),
                                    profileGrid = NULL,
                                    profileBounds = c(log(0.1), log(10))) {
   analysis <- list()

@@ -7,6 +7,7 @@ summary(sccsData)
 ageSettings <- createAgeCovariateSettings(ageKnots = 5)
 
 seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
+calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5)
 covarSettings <- createEraCovariateSettings(label = "Exposure of interest",
                                             includeEraIds = c(1, 2),
                                             start = 0,
@@ -21,9 +22,10 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = covarSettings,
-                                           ageCovariateSettings = ageSettings,
-                                           seasonalityCovariateSettings = seasonalitySettings,
-                                           minCasesForAgeSeason = 10000)
+                                           # ageCovariateSettings = ageSettings,
+                                           # seasonalityCovariateSettings = seasonalitySettings,
+                                           calendarTimeCovariateSettings = calendarTimeSettings,
+                                           minCasesForTimeCovariates = 10000)
 
 model <- fitSccsModel(sccsIntervalData, prior = createPrior("none"))
 

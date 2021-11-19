@@ -36,8 +36,11 @@ SEXP convertToSccs(const DataFrame& cases,
                    const int ageOffset,
                    const NumericMatrix& ageDesignMatrix,
                    const bool includeSeason,
+                   const bool includeCalendarTime,
+                   const int calendarTimeOffset,
+                   const NumericMatrix& calendarTimeDesignMatrix,
                    const NumericMatrix& seasonDesignMatrix,
-                   const NumericVector& ageSeasonsCases,
+                   const NumericVector& timeCovariateCases,
                    const List& covariateSettingsList,
                    const bool eventDependentObservation,
                    const List& censorModel,
@@ -48,7 +51,8 @@ SEXP convertToSccs(const DataFrame& cases,
 
   try {
     SccsConverter sccsConverter(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason,
-                                seasonDesignMatrix, ageSeasonsCases, covariateSettingsList, eventDependentObservation,
+                                seasonDesignMatrix, includeCalendarTime, calendarTimeOffset, calendarTimeDesignMatrix,
+                                timeCovariateCases, covariateSettingsList, eventDependentObservation,
                                 censorModel, scri, controlIntervalId);
     return (sccsConverter.convertToSccs());
   } catch (std::exception &e) {

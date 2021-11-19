@@ -31,7 +31,10 @@
 #'                                    [createAgeCovariateSettings()] function.
 #' @param seasonalityCovariateSettings An object of type `seasonalityCovariateSettings` as created using the
 #'                                    [createSeasonalityCovariateSettings()] function.
-#' @param minCasesForAgeSeason        Minimum number of cases to use to fit age and season splines. If
+#' @param calendarTimeCovariateSettings An object of type `calendarTimeCovariateSettings` as created using the
+#'                                    [createCalendarTimeCovariateSettings()] function.
+#' @param minCasesForAgeSeason        DEPRECATED: Use `minCasesForTimeCovariates` instead.
+#' @param minCasesForTimeCovariates   Minimum number of cases to use to fit age, season and calendar time splines. If
 #'                                    needed (and available), cases that are not exposed will be included.
 #' @param eventDependentObservation   Should the extension proposed by Farrington et al. be used to
 #'                                    adjust for event-dependent observation time?
@@ -50,25 +53,31 @@ createSccsIntervalData <- function(studyPopulation,
                                    eraCovariateSettings,
                                    ageCovariateSettings = NULL,
                                    seasonalityCovariateSettings = NULL,
-                                   minCasesForAgeSeason = 10000,
+                                   calendarTimeCovariateSettings = NULL,
+                                   minCasesForAgeSeason = NULL,
+                                   minCasesForTimeCovariates = 10000,
                                    eventDependentObservation = FALSE) {
+  if (!is.null(minCasesForAgeSeason)) {
+    warning("Argument 'minCasesForAgeSeason' in 'createSccsIntervalData()' is deprecated. Use 'minCasesForTimeCovariates' instead.")
+    minCasesForTimeCovariates <- minCasesForAgeSeason
+  }
+
   start <- Sys.time()
   if (nrow(studyPopulation$outcomes) == 0) {
     sccsIntervalData <- createEmptySccsIntervalData()
     metaData <- studyPopulation$metaData
     metaData$error <- "Error: No cases left"
     attr(sccsIntervalData, "metaData") <- metaData
-
     class(sccsIntervalData) <- "SccsIntervalData"
     attr(class(sccsIntervalData), "package") <- "SelfControlledCaseSeries"
     return(sccsIntervalData)
   }
 
-  ageSeasonsCases <- numeric(0)
+  timeCovariateCases <- numeric(0)
   if (!is.null(ageCovariateSettings) || !is.null(seasonalityCovariateSettings)) {
-    if (nrow(studyPopulation$cases) > minCasesForAgeSeason) {
+    if (nrow(studyPopulation$cases) > minCasesForTimeCovariates) {
       set.seed(0)
-      ageSeasonsCases <- sample(studyPopulation$cases$caseId, minCasesForAgeSeason, replace = FALSE)
+      timeCovariateCases <- sample(studyPopulation$cases$caseId, minCasesForTimeCovariates, replace = FALSE)
     }
   }
 
@@ -84,6 +93,7 @@ createSccsIntervalData <- function(studyPopulation,
   }
   settings <- addAgeSettings(settings, ageCovariateSettings, studyPopulation)
   settings <- addSeasonalitySettings(settings, seasonalityCovariateSettings, sccsData)
+  settings <- addCalendarTimeSettings(settings, calendarTimeCovariateSettings, studyPopulation)
 
   settings <- addEraCovariateSettings(settings, eraCovariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
@@ -104,7 +114,10 @@ createSccsIntervalData <- function(studyPopulation,
                         ageDesignMatrix = settings$ageDesignMatrix,
                         includeSeason = !is.null(seasonalityCovariateSettings),
                         seasonDesignMatrix = settings$seasonDesignMatrix,
-                        ageSeasonsCases = ageSeasonsCases,
+                        includeCalendarTime = !is.null(calendarTimeCovariateSettings),
+                        calendarTimeOffset = settings$calendarTimeOffset,
+                        calendarTimeDesignMatrix = settings$calendarTimeDesignMatrix,
+                        timeCovariateCases = timeCovariateCases,
                         covariateSettingsList = settings$covariateSettingsList,
                         eventDependentObservation = eventDependentObservation,
                         censorModel = settings$censorModel,
@@ -225,6 +238,53 @@ addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsD
     settings$metaData$seasonality <- seasonality
   }
   return(settings)
+}
+
+addCalendarTimeSettings <- function(settings,
+                                    calendarTimeCovariateSettings,
+                                    studyPopulation) {
+  if (is.null(calendarTimeCovariateSettings)) {
+    settings$calendarTimeOffset <- 0
+    settings$calendarTimeDesignMatrix <- matrix()
+    return(settings)
+  } else {
+    if (length(calendarTimeCovariateSettings$calendarTimeKnots) == 1) {
+      calendarTimeKnots <- studyPopulation$outcomes %>%
+        inner_join(studyPopulation$cases, by = "caseId") %>%
+        mutate(outcomeDate = .data$startDate + .data$outcomeDay) %>%
+        transmute(outcomeMonth = as.numeric(format(.data$outcomeDate,'%Y')) * 12 + as.numeric(format(.data$outcomeDate,'%m')) - 1) %>%
+        pull() %>%
+        quantile(seq(0.01, 0.99, length.out = calendarTimeCovariateSettings$calendarTimeKnots))
+    } else {
+      knotDates <- calendarTimeCovariateSettings$calendarTimeKnots
+      calendarTimeKnots <- as.numeric(format(knotDates,'%Y')) * 12 + as.numeric(format(knotDates,'%m')) - 1
+    }
+    if (length(calendarTimeKnots) > nrow(studyPopulation$outcomes)) {
+      warning("There are more calendar time knots than cases. Removing calendar time from model")
+      settings$calendarTimeOffset <- 0
+      settings$calendarTimeDesignMatrix <- matrix()
+      return(settings)
+    }
+    settings$calendarTimeOffset <- calendarTimeKnots[1]
+    calendarTimeDesignMatrix <- splines::bs(calendarTimeKnots[1]:calendarTimeKnots[length(calendarTimeKnots)],
+                                            knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+                                            Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))])
+    # Fixing first beta to zero, so dropping first column of design matrix:
+    settings$calendarTimeDesignMatrix <- calendarTimeDesignMatrix[, 2:ncol(calendarTimeDesignMatrix)]
+    splineCovariateRef <- tibble(covariateId = 300:(300 + length(calendarTimeKnots) - 1),
+                                 covariateName = paste("Calendar time spline component",
+                                                       1:(length(calendarTimeKnots))),
+                                 originalEraId = 0,
+                                 originalEraType = "",
+                                 originalEraName = "")
+    settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
+    calendarTime <- list(calendarTimeKnots = calendarTimeKnots,
+                         covariateIds = splineCovariateRef$covariateId,
+                         allowRegularization = calendarTimeCovariateSettings$allowRegularization,
+                         computeConfidenceIntervals = calendarTimeCovariateSettings$computeConfidenceIntervals)
+    settings$metaData$calendarTime <- calendarTime
+    return(settings)
+  }
 }
 
 addEventDependentObservationSettings <- function(settings,
