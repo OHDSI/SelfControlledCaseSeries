@@ -69,6 +69,8 @@ createSimulationRiskWindow <- function(start = 0,
 #' @param maxAge                      The maximum age in days.
 #' @param minBaselineRate             The minimum baseline rate (per day).
 #' @param maxBaselineRate             The maximum baseline rate (per day).
+#' @param minCalendarTime             The minimum date patients are to be observed.
+#' @param maxCalendarTime             The maximum date patients are to be observed.
 #' @param eraIds                The IDs for the covariates to be generated.
 #' @param patientUsages               The fraction of patients that use the drugs.
 #' @param usageRate                   The rate of prescriptions per person that uses the drug.
@@ -82,6 +84,8 @@ createSimulationRiskWindow <- function(start = 0,
 #' @param ageKnots                    Number of knots in the age spline.
 #' @param includeSeasonality          Include seasonality for the outcome?
 #' @param seasonKnots                 Number of knots in the seasonality spline.
+#' @param includeCalendarTimeEffect   Include a calendar time effect for the outcome?
+#' @param calendarTimeKnots           Number of knots in the calendar time spline.
 #' @param outcomeId                   The ID to be used for the outcome.
 #'
 #' @return

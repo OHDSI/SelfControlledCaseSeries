@@ -42,6 +42,10 @@ createSccsSimulationSettings(
 
 \item{maxBaselineRate}{The maximum baseline rate (per day).}
 
+\item{minCalendarTime}{The minimum date patients are to be observed.}
+
+\item{maxCalendarTime}{The maximum date patients are to be observed.}
+
 \item{eraIds}{The IDs for the covariates to be generated.}
 
 \item{patientUsages}{The fraction of patients that use the drugs.}
@@ -64,6 +68,10 @@ function.}
 \item{includeSeasonality}{Include seasonality for the outcome?}
 
 \item{seasonKnots}{Number of knots in the seasonality spline.}
+
+\item{includeCalendarTimeEffect}{Include a calendar time effect for the outcome?}
+
+\item{calendarTimeKnots}{Number of knots in the calendar time spline.}
 
 \item{outcomeId}{The ID to be used for the outcome.}
 }
