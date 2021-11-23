@@ -125,7 +125,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
   return(analysis)
 }
 
-simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
+simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOffset) {
   # Simulate a batch of persons, and eliminate non-cases
   n <- 1000
 
@@ -313,7 +313,7 @@ simulateSccsData <- function(nCases, settings) {
   eras <- tibble()
   lastCaseId <- 0
   while (nrow(cases) < nCases) {
-    batch <- simulateBatch(settings, ageFun, seasonFun, lastCaseId)
+    batch <- simulateBatch(settings, ageFun, seasonFun, calendarTimeFun, lastCaseId)
     need <- nCases - nrow(cases)
     if (nrow(batch$cases) < need) {
       cases <- rbind(cases, batch$cases)
@@ -336,6 +336,7 @@ simulateSccsData <- function(nCases, settings) {
   attr(data, "metaData") <- list(sccsSimulationSettings = settings,
                                  ageFun = ageFun,
                                  seasonFun = seasonFun,
+                                 calendarTimeFun = calendarTimeFun,
                                  exposureIds = settings$eraIds,
                                  outcomeIds = settings$outcomeId,
                                  attrition = tibble(outcomeId = settings$outcomeId,

@@ -11,6 +11,8 @@ createSccsSimulationSettings(
   maxAge = 65 * 365,
   minBaselineRate = 0.001,
   maxBaselineRate = 0.01,
+  minCalendarTime = as.Date("2000-01-01"),
+  maxCalendarTime = as.Date("2010-01-01"),
   eraIds = c(1, 2),
   patientUsages = c(0.2, 0.1),
   usageRate = c(0.01, 0.01),
@@ -22,6 +24,8 @@ createSccsSimulationSettings(
   ageKnots = 5,
   includeSeasonality = TRUE,
   seasonKnots = 5,
+  includeCalendarTimeEffect = TRUE,
+  calendarTimeKnots = 5,
   outcomeId = 10
 )
 }

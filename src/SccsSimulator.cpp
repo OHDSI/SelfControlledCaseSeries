@@ -34,7 +34,10 @@ namespace sccs {
 SccsSimulator::SccsSimulator(const List& _cases, const List& _eras,  const std::vector<double> _baselineRates, const List& _eraRrs,
                              const bool _includeAge, const int _ageOffset, const std::vector<double> _ageRrs, const bool _includeSeasonality,
                              const std::vector<double> _seasonRrs, const bool _includeCalendarTimeEffect, const int _calendarTimeOffset,
-                             const std::vector<double> _calendarTimeRrs) : baselineRates(_baselineRates), includeAge(_includeAge), ageOffset(_ageOffset), ageRrs(_ageRrs), includeSeasonality(_includeSeasonality), seasonRrs(_seasonRrs), includeCalendarTimeEffect(_includeCalendarTimeEffect, calendarTimeOffset(_calendarTimeOffset, calendarTimeRrs(_calendarTimeRrs) {
+                             const std::vector<double> _calendarTimeRrs) : baselineRates(_baselineRates), includeAge(_includeAge),
+                             ageOffset(_ageOffset), ageRrs(_ageRrs), includeSeasonality(_includeSeasonality), seasonRrs(_seasonRrs),
+                             includeCalendarTimeEffect(_includeCalendarTimeEffect), calendarTimeOffset(_calendarTimeOffset),
+                             calendarTimeRrs(_calendarTimeRrs) {
   casesCaseId = _cases["caseId"];
   casesObservationDays = _cases["observationDays"];
   casesAgeInDays = _cases["ageInDays"];
