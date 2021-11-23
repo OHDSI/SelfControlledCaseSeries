@@ -4,10 +4,12 @@ settings <- createSccsSimulationSettings(includeAgeEffect = TRUE, includeSeasona
 
 sccsData <- simulateSccsData(1000, settings)
 summary(sccsData)
-ageSettings <- createAgeCovariateSettings(ageKnots = 5)
-
-seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
-calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5)
+ageSettings <- createAgeCovariateSettings(ageKnots = 5,
+                                          allowRegularization = TRUE)
+seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5,
+                                                          allowRegularization = TRUE)
+calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5,
+                                                            allowRegularization = TRUE)
 covarSettings <- createEraCovariateSettings(label = "Exposure of interest",
                                             includeEraIds = c(1, 2),
                                             start = 0,
@@ -19,19 +21,40 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
                                   firstOutcomeOnly = FALSE,
                                   naivePeriod = 0)
 
+plotAgeSpans(studyPop)
+
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = covarSettings,
-                                           # ageCovariateSettings = ageSettings,
-                                           # seasonalityCovariateSettings = seasonalitySettings,
+                                           ageCovariateSettings = ageSettings,
+                                           seasonalityCovariateSettings = seasonalitySettings,
                                            calendarTimeCovariateSettings = calendarTimeSettings,
                                            minCasesForTimeCovariates = 10000)
 
-model <- fitSccsModel(sccsIntervalData, prior = createPrior("none"))
+# model <- fitSccsModel(sccsIntervalData, prior = createPrior("none"))
+# Use weak prior on age, season, and calendar time because otherwise may be ill-defined:
+model <- fitSccsModel(sccsIntervalData, prior = createPrior(priorType = "laplace", variance = 1))
+
+
+estimate1 <- model$estimates[model$estimates$originalEraId == 1, ]
+estimate2 <- model$estimates[model$estimates$originalEraId == 2, ]
+writeLines(sprintf("True RR: %0.2f, estimate: %0.2f (%0.2f-%0.2f)",
+                   settings$simulationRiskWindows[[1]]$relativeRisks,
+                   exp(estimate1$logRr),
+                   exp(estimate1$logLb95),
+                   exp(estimate1$logUb95)))
+writeLines(sprintf("True RR: %0.2f, estimate: %0.2f (%0.2f-%0.2f)",
+                   settings$simulationRiskWindows[[2]]$relativeRisks,
+                   exp(estimate2$logRr),
+                   exp(estimate2$logLb95),
+                   exp(estimate2$logUb95)))
+
+
 
 # model
-# plotSeasonality(model)
-# plotAgeEffect(model)
+plotSeasonality(model)
+plotAgeEffect(model)
+plotCalendarTime(model)
 
 ### Plot simulated seasonality ###
 estimates <- model$estimates

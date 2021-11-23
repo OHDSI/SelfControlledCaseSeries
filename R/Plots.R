@@ -548,22 +548,26 @@ plotCalendarTime <- function(sccsModel,
   estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
   splineCoefs <- c(0, estimates$logRr)
   calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
-  # calendarTimeKnots <-
+  calendarTimeKnots <- as.Date(sprintf("%s-%s-%s",
+                                      floor(calendarTimeKnots / 12),
+                                      calendarTimeKnots %% 12 + 1,
+                                      15))
   calendarTime <- seq(min(calendarTimeKnots), max(calendarTimeKnots), length.out = 100)
-  seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
-  logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
+  calendarTimeDesignMatrix <- splines::bs(calendarTime,
+                                          knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+                                          Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))])
+  logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
-  data <- data.frame(season = season, rr = rr)
+  data <- data.frame(calendarTime = calendarTime, rr = rr)
 
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
-  seasonBreaks <- 1:12
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(data, ggplot2::aes(x = season, y = rr)) +
-    ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = calendarTime, y = rr)) +
+    # ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
-    ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
+    ggplot2::scale_x_date("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",
                                 limits = rrLim,
                                 trans = "log10",
@@ -571,7 +575,7 @@ plotCalendarTime <- function(sccsModel,
                                 labels = breaks) +
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
                    panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.major = ggplot2::element_line(colour = "#AAAAAA", size = 0.2),
                    axis.ticks = ggplot2::element_blank(),
                    axis.text.y = themeRA,
                    axis.text.x = theme,
