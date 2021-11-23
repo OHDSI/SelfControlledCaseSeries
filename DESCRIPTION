@@ -42,6 +42,8 @@ Suggests:
 	rmarkdown,
 	EmpiricalCalibration,
 	Eunomia
+Remotes:
+  ohdsi/Eunomia
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
