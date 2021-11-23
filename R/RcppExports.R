@@ -5,8 +5,8 @@ convertToSccs <- function(cases, outcomes, eras, includeAge, ageOffset, ageDesig
     .Call('_SelfControlledCaseSeries_convertToSccs', PACKAGE = 'SelfControlledCaseSeries', cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason, includeCalendarTime, calendarTimeOffset, calendarTimeDesignMatrix, seasonDesignMatrix, timeCovariateCases, covariateSettingsList, eventDependentObservation, censorModel, scri, controlIntervalId)
 }
 
-simulateSccsOutcomes <- function(cases, eras, baselineRates, eraRrs, includeAge, ageOffset, ageRrs, includeSeasonality, seasonRrs) {
-    .Call('_SelfControlledCaseSeries_simulateSccsOutcomes', PACKAGE = 'SelfControlledCaseSeries', cases, eras, baselineRates, eraRrs, includeAge, ageOffset, ageRrs, includeSeasonality, seasonRrs)
+simulateSccsOutcomes <- function(cases, eras, baselineRates, eraRrs, includeAgeEffect, ageOffset, ageRrs, includeSeasonality, seasonRrs, includeCalendarTimeEffect, calendarTimeOffset, calendarTimeRrs) {
+    .Call('_SelfControlledCaseSeries_simulateSccsOutcomes', PACKAGE = 'SelfControlledCaseSeries', cases, eras, baselineRates, eraRrs, includeAgeEffect, ageOffset, ageRrs, includeSeasonality, seasonRrs, includeCalendarTimeEffect, calendarTimeOffset, calendarTimeRrs)
 }
 
 testEwad <- function(p, present, astart, aend, start, end) {

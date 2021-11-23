@@ -94,6 +94,8 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          maxAge = 65 * 365,
                                          minBaselineRate = 0.001,
                                          maxBaselineRate = 0.01,
+                                         minCalendarTime = as.Date("2000-01-01"),
+                                         maxCalendarTime = as.Date("2010-01-01"),
                                          eraIds = c(1, 2),
                                          patientUsages = c(0.2, 0.1),
                                          usageRate = c(0.01, 0.01),
@@ -105,6 +107,8 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          ageKnots = 5,
                                          includeSeasonality = TRUE,
                                          seasonKnots = 5,
+                                         includeCalendarTimeEffect = TRUE,
+                                         calendarTimeKnots = 5,
                                          outcomeId = 10) {
   # First: get default values:
   analysis <- list()
@@ -129,10 +133,16 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
   observationDays <- round(rnorm(n, settings$meanPatientTime, settings$sdPatientTime))
   observationDays[observationDays < 1] <- 1
   observationDays[observationDays > settings$maxAge - settings$minAge] <- settings$maxAge - settings$minAge
+  maxCalendarDays <- as.numeric(settings$maxCalendarTime) - as.numeric(settings$minCalendarTime)
+  observationDays[observationDays > maxCalendarDays] <- maxCalendarDays
   ageInDays <- round(runif(n, settings$minAge, settings$maxAge - observationDays))
-  startYear <- round(runif(n, 2000, 2010))
-  startMonth <- round(runif(n, 1, 12))
-  startDay <- round(runif(n, 1, 28))
+  startDate <- round(runif(n,
+                     rep(as.numeric(settings$minCalendarTime), n),
+                     as.numeric(settings$maxCalendarTime) - observationDays))
+  startDate <- as.Date(startDate, origin = "1970-01-01")
+  startYear <- as.numeric(format(startDate, format = "%Y"))
+  startMonth <- as.numeric(format(startDate, format = "%m"))
+  startDay <- as.numeric(format(startDate, format = "%d"))
   cases <- tibble(observationPeriodId = 1:n,
                   caseId = 1:n,
                   personId = 1:n,
@@ -141,6 +151,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                   startYear = startYear,
                   startMonth = startMonth,
                   startDay = startDay,
+                  startDate = as.numeric(startDate),
                   censoredDays = 0,
                   noninformativeEndCensor = 0)
 
@@ -185,6 +196,11 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
   } else {
     seasonRrs <- c(0)
   }
+  if (settings$includeCalendarTimeEffect) {
+    calendarTimeRrs <- exp(calendarTimeFun(as.numeric(settings$minCalendarTime):as.numeric(settings$maxCalendarTime)))
+  } else {
+    calendarTimeRrs <- c(0)
+  }
   # Apply risk windows:
   newEras <- tibble()
   eraIds <- c()
@@ -226,11 +242,14 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
                                    newEras,
                                    baselineRates,
                                    eraRrs,
-                                   settings$includeAge,
+                                   settings$includeAgeEffect,
                                    settings$minAge,
                                    ageRrs,
                                    settings$includeSeasonality,
-                                   seasonRrs)
+                                   seasonRrs,
+                                   settings$includeCalendarTimeEffect,
+                                   as.numeric(settings$minCalendarTime),
+                                   calendarTimeRrs)
   outcomes <- tibble(eraType = "hoi",
                      caseId = outcomes$caseId,
                      eraId = settings$outcomeId,
@@ -248,6 +267,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
   cases$caseId <- cases$caseId + caseIdOffset
   cases$observationPeriodId <- cases$observationPeriodId + caseIdOffset
   cases$personId <- cases$personId + caseIdOffset
+  cases$startDate <- NULL
   eras$caseId <- eras$caseId + caseIdOffset
   result <- list(cases = cases, eras = eras)
   return(result)
@@ -266,21 +286,29 @@ simulateBatch <- function(settings, ageFun, seasonFun, caseIdOffset) {
 simulateSccsData <- function(nCases, settings) {
   if (settings$includeAgeEffect) {
     age <- seq(settings$minAge, settings$maxAge, length.out = settings$ageKnots)
-    risk <- runif(settings$ageKnots, -2, 2)
-    ageFun <- splinefun(age, risk)
+    ageRisk <- runif(settings$ageKnots, -2, 2)
+    ageFun <- splinefun(age, ageRisk)
   } else {
     ageFun <- NULL
   }
   if (settings$includeSeasonality) {
     seasonKnots <- seq(1, 366, length.out = settings$seasonKnots)
-    risk <- runif(settings$seasonKnots - 1, -2, 2)
+    seasonRisk <- runif(settings$seasonKnots - 1, -2, 2)
     seasonFun <- function(x) {
       designMatrix <- cyclicSplineDesign(x, seasonKnots)
-      return(apply(designMatrix %*% risk, 1, sum))
+      return(apply(designMatrix %*% seasonRisk, 1, sum))
     }
   } else {
     seasonFun <- NULL
   }
+  if (settings$includeCalendarTimeEffect) {
+    calendarTime <- seq(settings$minCalendarTime, settings$maxCalendarTime, length.out = settings$calendarTimeKnots)
+    calendarTimeRisk <- runif(settings$calendarTimeKnots, -2, 2)
+    calendarTimeFun <- splinefun(as.numeric(calendarTime), calendarTimeRisk)
+  } else {
+    calendarTimeFun <- NULL
+  }
+
   cases <- tibble()
   eras <- tibble()
   lastCaseId <- 0

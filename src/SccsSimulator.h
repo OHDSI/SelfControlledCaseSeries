@@ -31,7 +31,9 @@ namespace sccs {
 
 class SccsSimulator {
 public:
-  SccsSimulator(const List& _cases, const List& _eras,  const std::vector<double>& _baselineRates, const List& _eraRrs, const bool _includeAge, const int _ageOffset, const std::vector<double> _ageRrs, const bool _includeSeasonality, const std::vector<double> _seasonRrs);
+  SccsSimulator(const List& _cases, const List& _eras, const std::vector<double> _baselineRates, const List& _eraRrs, const bool _includeAge,
+                const int _ageOffset, const std::vector<double> _ageRrs, const bool _includeSeasonality, const std::vector<double> _seasonRrs,
+                const bool _includeCalendarTimeEffect, const int _calendarTimeOffset, const std::vector<double> _calendarTimeRrs);
   List simulateOutcomes();
 private:
   void processPerson(const int caseIndex, const int eraStartIndex, const int eraEndIndex);
@@ -41,6 +43,7 @@ private:
   NumericVector casesStartYear;
   NumericVector casesStartMonth;
   NumericVector casesStartDay;
+  NumericVector casesStartDate;
   NumericVector erasCaseId;
   NumericVector erasEraId;
   NumericVector erasStartDay;
@@ -54,6 +57,9 @@ private:
   std::vector<double> ageRrs;
   bool includeSeasonality;
   std::vector<double> seasonRrs;
+  bool includeCalendarTimeEffect;
+  int calendarTimeOffset;
+  std::vector<double> calendarTimeRrs;
   std::default_random_engine generator;
 };
 }

@@ -31,14 +31,17 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace sccs {
 
-SccsSimulator::SccsSimulator(const List& _cases, const List& _eras,  const std::vector<double>& _baselineRates, const List& _eraRrs, const bool _includeAge, const int _ageOffset, const std::vector<double> _ageRrs, const bool _includeSeasonality, const std::vector<double> _seasonRrs) :
-baselineRates(_baselineRates), includeAge(_includeAge), ageOffset(_ageOffset), ageRrs(_ageRrs), includeSeasonality(_includeSeasonality), seasonRrs(_seasonRrs) {
+SccsSimulator::SccsSimulator(const List& _cases, const List& _eras,  const std::vector<double> _baselineRates, const List& _eraRrs,
+                             const bool _includeAge, const int _ageOffset, const std::vector<double> _ageRrs, const bool _includeSeasonality,
+                             const std::vector<double> _seasonRrs, const bool _includeCalendarTimeEffect, const int _calendarTimeOffset,
+                             const std::vector<double> _calendarTimeRrs) : baselineRates(_baselineRates), includeAge(_includeAge), ageOffset(_ageOffset), ageRrs(_ageRrs), includeSeasonality(_includeSeasonality), seasonRrs(_seasonRrs), includeCalendarTimeEffect(_includeCalendarTimeEffect, calendarTimeOffset(_calendarTimeOffset, calendarTimeRrs(_calendarTimeRrs) {
   casesCaseId = _cases["caseId"];
   casesObservationDays = _cases["observationDays"];
   casesAgeInDays = _cases["ageInDays"];
   casesStartYear = _cases["startYear"];
   casesStartMonth = _cases["startMonth"];
   casesStartDay = _cases["startDay"];
+  casesStartDate = _cases["startDate"];
   erasCaseId = _eras["caseId"];
   erasEraId = _eras["eraId"];
   erasStartDay = _eras["startDay"];
@@ -63,6 +66,7 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
   std::time_t time1 = std::mktime(&startDate);
   std::time_t time2 = std::mktime(&startOfYear);
   int startDayOfYear = std::difftime(time1, time2) / (60 * 60 * 24);
+  int calendarTimeAtStart = casesStartDate[caseIndex];
 
   for (int day = 0; day < casesObservationDays[caseIndex]; day++){
     // Start with baseline rate:
@@ -90,6 +94,12 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
       int dayOfYear = (startDayOfYear + day) % 365;
       // Rcout << dayOfYear << " " << seasonRrs[dayOfYear] << "\n";
       dailyRate *= seasonRrs[dayOfYear];
+    }
+
+    // Multiply by calendar time RR:
+    if (includeCalendarTimeEffect){
+      int calendarTime = calendarTimeAtStart + day;
+      dailyRate *= calendarTimeRrs[calendarTime - calendarTimeOffset];
     }
 
     // Sample outcomes:
