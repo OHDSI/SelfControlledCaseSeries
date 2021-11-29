@@ -26,7 +26,8 @@ runSccsAnalyses(
   createStudyPopulationThreads = 1,
   createSccsIntervalDataThreads = 1,
   fitSccsModelThreads = 1,
-  cvThreads = 1
+  cvThreads = 1,
+  analysesToExclude = NULL
 )
 }
 \arguments{
@@ -110,6 +111,9 @@ models.}
 validation when estimating the hyperparameter for the
 outcome model. Note that the total number of CV threads at
 one time could be \code{fitSccsModelThreads * cvThreads}.}
+
+\item{analysesToExclude}{Analyses to exclude. See the Analyses to Exclude section for
+details.}
 }
 \value{
 A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
@@ -127,4 +131,20 @@ the analyses have anything in common, and will take advantage of this fact. For 
 specify several analyses that only differ in the way the outcome model is fitted, then this
 function will extract the data and fit the propensity model only once, and re-use this in all the
 analysis.
+\subsection{Analyses to Exclude}{
+
+Normally, \code{runSccsAnalyses} will run all combinations of exposure-outcome-analyses settings.
+However, sometimes we may not need all those combinations. Using the \code{analysesToExclude} argument,
+we can remove certain items from the full matrix. This argument should be a data frame with at least
+one of the following columns:
+\itemize{
+\item exposureId
+\item outcomeId
+\item analysisId
+}
+
+This data frame will be joined to the outcome model reference table before executing, and matching rows
+will be removed. For example, if one specifies only one exposure ID and analysis ID, then any analyses with
+that exposure and that analysis ID will be skipped.
+}
 }

@@ -27,7 +27,7 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = "redshift
                                                                 connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcr"),
                                                                 user = keyring::key_get("redShiftUserName"),
                                                                 password = keyring::key_get("redShiftPassword"))
-cdmDatabaseSchema <- "cdm_truven_mdcr_v1477"
+cdmDatabaseSchema <- "cdm_truven_mdcr_v1838"
 cohortDatabaseSchema <- "scratch_mschuemi"
 outcomeTable <- "sccs_vignette"
 cdmVersion <- "5"
@@ -58,6 +58,9 @@ DatabaseConnector::disconnect(connection)
 diclofenac <- 1124300
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
 
+if (!file.exists(folder))
+  dir.create(folder)
+
 # Main section: one drug in the model ### Simple model ### ----------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
@@ -80,6 +83,8 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
 
 plotAgeSpans(studyPop)
 
+plotCalendarTimeSpans(studyPop)
+
 plotEventObservationDependence(studyPop)
 
 plotExposureCentered(studyPop, sccsData, exposureEraId = diclofenac)
@@ -101,13 +106,13 @@ sccsIntervalData <- createSccsIntervalData(studyPop,
                                            eraCovariateSettings = covarDiclofenac)
 
 
-saveSccsIntervalData(sccsIntervalData, "s:/temp/vignetteSccs/intervalData1.zip")
-sccsIntervalData <- loadSccsIntervalData("s:/temp/vignetteSccs/intervalData1.zip")
+saveSccsIntervalData(sccsIntervalData, file.path(folder, "intervalData1.zip"))
+sccsIntervalData <- loadSccsIntervalData(file.path(folder, "intervalData1.zip"))
 sccsIntervalData
 summary(sccsIntervalData)
 
 model <- fitSccsModel(sccsIntervalData)
-saveRDS(model, "s:/temp/vignetteSccs/simpleModel.rds")
+saveRDS(model, file.path(folder, "simpleModel.rds"))
 
 coef(model)
 confint(model)
@@ -125,7 +130,7 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            eraCovariateSettings = list(covarDiclofenac, covarPreDiclofenac))
 
 model <- fitSccsModel(sccsIntervalData)
-saveRDS(model, "s:/temp/vignetteSccs/preExposureModel.rds")
+saveRDS(model, file.path(folder, "preExposureModel.rds"))
 coef(model)
 
 # Risk windows: Adding window splits --------------------------------
@@ -150,35 +155,39 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                                                        covarPreDiclofenacSplit))
 
 model <- fitSccsModel(sccsIntervalData)
-saveRDS(model, "s:/temp/vignetteSccs/splitModel.rds")
+saveRDS(model, file.path(folder, "splitModel.rds"))
 coef(model)
 
-# Adding age and seasonality -------------------------------------------------
+# Adding age, seasonality, and calendar time -------------------------------------------------
 
 ageCovariateSettings <- createAgeCovariateSettings(ageKnots = 5)
 
 seasonalityCovariateSettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
+
+calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5)
 
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = list(covarDiclofenacSplit,
                                                                        covarPreDiclofenacSplit),
                                            ageCovariateSettings = ageCovariateSettings,
-                                           seasonalityCovariateSettings = seasonalityCovariateSettings)
+                                           seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                           calendarTimeCovariateSettings = calendarTimeSettings)
 
 model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
                                                                 selectorType = "byPid",
                                                                 startingVariance = 0.1,
                                                                 noiseLevel = "quiet",
                                                                 threads = 30))
-saveRDS(model, "s:/temp/vignetteSccs/ageAndSeasonModel.rds")
-# model <- readRDS('s:/temp/vignetteSccs/ageAndSeasonModel.rds')
+saveRDS(model, file.path(folder, "ageSeasonCalendarTimeModel.rds"))
+# model <- readRDS('s:/temp/vignetteSccs/ageSeasonCalendarTimeModel.rds')
 model
 
 plotAgeEffect(model)
 
 plotSeasonality(model)
 
+plotCalendarTimeEffect(model)
 # Adding time-dependent observation periods ----------------------------------------------
 
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
@@ -187,6 +196,7 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                                                        covarPreDiclofenacSplit),
                                            ageCovariateSettings = ageCovariateSettings,
                                            seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                           calendarTimeCovariateSettings = calendarTimeSettings,
                                            eventDependentObservation = TRUE)
 
 model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
@@ -194,7 +204,7 @@ model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
                                                                 startingVariance = 0.1,
                                                                 noiseLevel = "quiet",
                                                                 threads = 30))
-saveRDS(model, "s:/temp/vignetteSccs/eventDepModel.rds")
+saveRDS(model, file.path(folder, "eventDepModel.rds"))
 
 model
 
@@ -209,8 +219,8 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureTable = "drug_era",
                           exposureIds = c(diclofenac, ppis),
                           cdmVersion = cdmVersion)
-saveSccsData(sccsData, "s:/temp/vignetteSccs/data2.zip")
-sccsData <- loadSccsData('s:/temp/vignetteSccs/data2.zip')
+saveSccsData(sccsData, file.path(folder, "data2.zip"))
+sccsData <- loadSccsData(file.path(folder, "data2.zip"))
 summary(sccsData)
 
 studyPop <- createStudyPopulation(sccsData = sccsData,
@@ -232,6 +242,7 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                                                        covarPpis),
                                            ageCovariateSettings = ageCovariateSettings,
                                            seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                           calendarTimeCovariateSettings = calendarTimeSettings,
                                            eventDependentObservation = TRUE)
 
 model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
@@ -239,7 +250,7 @@ model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
                                                                 startingVariance = 0.1,
                                                                 noiseLevel = "quiet",
                                                                 threads = 30))
-saveRDS(model, "s:/temp/vignetteSccs/ppiModel.rds")
+saveRDS(model, file.path(folder, "ppiModel.rds"))
 model
 # Add all drugs -------------------------------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
@@ -251,8 +262,8 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureTable = "drug_era",
                           exposureIds = c(),
                           cdmVersion = cdmVersion)
-saveSccsData(sccsData, "s:/temp/vignetteSccs/data3.zip")
-sccsData <- loadSccsData('s:/temp/vignetteSccs/data3.zip')
+saveSccsData(sccsData, file.path(folder, "data3.zip"))
+sccsData <- loadSccsData(file.path(folder, "data3.zip"))
 
 summary(sccsData)
 
@@ -276,10 +287,11 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                                                        covarAllDrugs),
                                            ageCovariateSettings = ageCovariateSettings,
                                            seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                           calendarTimeCovariateSettings = calendarTimeSettings,
                                            eventDependentObservation = TRUE)
 
-saveSccsIntervalData(sccsIntervalData, "s:/temp/vignetteSccs/sccsIntervalDataAllDrugs.zip")
-sccsIntervalData <- loadSccsIntervalData("s:/temp/vignetteSccs/sccsIntervalDataAllDrugs.zip")
+saveSccsIntervalData(sccsIntervalData, file.path(folder, "sccsIntervalDataAllDrugs.zip"))
+sccsIntervalData <- loadSccsIntervalData(file.path(folder, "sccsIntervalDataAllDrugs.zip"))
 summary(sccsIntervalData)
 
 control <- createControl(cvType = "auto",
@@ -289,7 +301,7 @@ control <- createControl(cvType = "auto",
                          threads = 30)
 
 model <- fitSccsModel(sccsIntervalData, control = control)
-saveRDS(model, "s:/temp/vignetteSccs/allDrugsModel.rds")
+saveRDS(model, file.path(folder, "allDrugsModel.rds"))
 model
 estimates <- getModel(model)
 estimates[estimates$originalEraId == diclofenac, ]

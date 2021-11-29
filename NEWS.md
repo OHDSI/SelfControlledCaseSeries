@@ -5,7 +5,9 @@ Changes
 
 1. Adding optional calendar time covariate.
 
-2. Fixing seed for regularization cross-validation to improve reproducibility.
+2. Added the `analysesToExclude` argument to `runSccsAnalyses()`, allowing the users to specify exposure-outcome-analysis combinations to exclude from execution.
+
+3. Fixing seed for regularization cross-validation to improve reproducibility.
 
 
 SelfControlledCaseSeries 3.1.0

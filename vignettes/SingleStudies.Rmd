@@ -364,16 +364,16 @@ if (file.exists("s:/temp/vignetteSccs")) {
 We see that the risk for the three exposure windows is more or less the same, suggesting a constant risk. We also see that the period 60 to 30 days prior to exposure does not seem to show a decreased risk, suggesting the effect of the contra-indication does not extend more than 30 days before the exposure.
 
 
-## Including age and seasonality
+## Including age, seasonality, and calendar time
 
-Often both the rate of exposure and the outcome change with age, and can even depend on the season. This may lead to confounding and may bias our estimates. To correct for this we can include age and/or season into the model. 
+Often both the rate of exposure and the outcome change with age, and can even depend on the season or calendar time in general (e.g. rates may be higher in 2021 compared to 2020). This may lead to confounding and may bias our estimates. To correct for this we can include age, season, and/or calendar time into the model. 
 
-For computational reasons we assume the effect of both age and season are constant within each calendar month. We assume that the rate from one month to the next can be different, but we also assume that subsequent months have somewhat similar rates. This is implemented by using cubic spline functions.
+For computational reasons we assume the effect of age, season, and calendar time are constant within each calendar month. We assume that the rate from one month to the next can be different, but we also assume that subsequent months have somewhat similar rates. This is implemented by using cubic spline functions.
 
 ![Spline for seasonality](spline.png)
 *Figure 1*. Example of how a spline is used for seasonality: within a month, the risk attributable to seasonality is assumed to be constant, but from month to month the risks are assumed to follow a cyclic cubic spline.
 
-Note that the by default all people that have the outcome will be used to estimate the effect of age and seasonality on the outcome, so not just the people exposed to the drug of interest. We can add age and seasonality like this:
+Note that the by default all people that have the outcome will be used to estimate the effect of age and seasonality on the outcome, so not just the people exposed to the drug of interest. We can add age, seasonality, and calendar time like this:
 
 
 ```{r eval=FALSE}
@@ -381,13 +381,16 @@ ageCovariateSettings <- createAgeCovariateSettings(ageKnots = 5)
 
 seasonalityCovariateSettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
 
+calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5)
+
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = list(covarDiclofenacSplit,
                                                                        covarPreDiclofenacSplit),
 
                                            ageCovariateSettings = ageCovariateSettings,
-                                           seasonalityCovariateSettings = seasonalityCovariateSettings)
+                                           seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                           calendarTimeCovariateSettings = calendarTimeSettings)
   
 model <- fitSccsModel(sccsIntervalData)
 ```
@@ -398,19 +401,19 @@ Again, we can inspect the model:
 model
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")) {
-  model <- readRDS("s:/temp/vignetteSccs/ageAndSeasonModel.rds")
+if (file.exists("s:/temp/vignetteSccs/ageSeasonCalendarTimeModel.rds")) {
+  model <- readRDS("s:/temp/vignetteSccs/ageSeasonCalendarTimeModel.rds")
   model
 }
 ```
 
-We see that our estimates for exposed and pre-exposure time have not changes much. We can plot the spline curves for age and season to learn more:
+We see that our estimates for exposed and pre-exposure time have not changes much. We can plot the spline curves for age, season, and calendar time to learn more:
 
 ```{r eval=FALSE}
 plotAgeEffect(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")) {
+if (file.exists("s:/temp/vignetteSccs/ageSeasonCalendarTimeModel.rds")) {
   plotAgeEffect(model)
 }
 ```
@@ -419,12 +422,21 @@ if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")) {
 plotSeasonality(model)
 ```
 ```{r echo=FALSE,message=FALSE}
-if (file.exists("s:/temp/vignetteSccs/ageAndSeasonModel.rds")) {
+if (file.exists("s:/temp/vignetteSccs/ageSeasonCalendarTimeModel.rds")) {
   plotSeasonality(model)
 }
 ```
 
-We see a strong effect for age on the outcome, but this effect is spread out over many years and so it less likely to affect the estimates for any individual, since most people are only observed for a few years in the database. We do not see a strong effect for season.
+```{r eval=FALSE}
+plotCalendarTimeEffect(model)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs/ageSeasonCalendarTimeModel.rds")) {
+  plotCalendarTimeEffect(model)
+}
+```
+
+We see a strong effect for age on the outcome, but this effect is spread out over many years and so it less likely to affect the estimates for any individual, since most people are only observed for a few years in the database. We do not see a strong effect for season, but we do see an increasing trend over the years, with a drop near the end of observation time.
 
 
 ## Considering event-dependent observation time
@@ -438,6 +450,7 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                                                        covarPreDiclofenacSplit),
                                            ageCovariateSettings = ageCovariateSettings,
                                            seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                           calendarTimeCovariateSettings = calendarTimeSettings,
                                            eventDependentObservation = TRUE)
 
 model <- fitSccsModel(sccsIntervalData)
@@ -512,6 +525,7 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                                                        covarPpis),
                                            ageCovariateSettings = ageCovariateSettings,
                                            seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                           calendarTimeCovariateSettings = calendarTimeSettings,
                                            eventDependentObservation = TRUE)
 
 model <- fitSccsModel(sccsIntervalData)
@@ -570,6 +584,7 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                                                        covarAllDrugs),
                                            ageCovariateSettings = ageCovariateSettings,
                                            seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                           calendarTimeCovariateSettings = calendarTimeSettings,
                                            eventDependentObservation = TRUE)
 
 model <- fitSccsModel(sccsIntervalData)

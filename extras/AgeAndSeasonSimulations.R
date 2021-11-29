@@ -55,7 +55,7 @@ writeLines(sprintf("True RR: %0.2f, estimate: %0.2f (%0.2f-%0.2f)",
 # model
 # plotSeasonality(model)
 # plotAgeEffect(model)
-# plotCalendarTime(model)
+# plotCalendarTimeEffect(model)
 
 ### Plot simulated seasonality ###
 estimates <- model$estimates

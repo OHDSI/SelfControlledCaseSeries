@@ -53,7 +53,7 @@ plotAgeSpans <- function(studyPopulation,
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(cases, ggplot2::aes(x = .data$startAge, xmin = .data$startAge, xmax = .data$endAge, y = rank)) +
     ggplot2::geom_vline(xintercept = ageBreaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
-    ggplot2::geom_errorbarh(color = rgb(0, 0, 0.8)) +
+    ggplot2::geom_errorbarh(color = rgb(0, 0, 0.8), alpha = 0.8) +
     ggplot2::scale_x_continuous("Age (years)", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Case rank") +
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
@@ -174,7 +174,7 @@ plotExposureCentered <- function(studyPopulation,
                                  fileName = NULL) {
 
   if (is.null(exposureEraId)) {
-    exposureEraId <- attr(sccsData, "metaData")$exposureEraIds
+    exposureEraId <- attr(sccsData, "metaData")$exposureIds
     if (length(exposureEraId) != 1) {
       stop("No exposure ID specified, but multiple exposures found")
     }
@@ -540,18 +540,18 @@ plotCalendarTimeSpans <- function(studyPopulation,
 #' A Ggplot object. Use the ggsave function to save to file.
 #'
 #' @export
-plotCalendarTime <- function(sccsModel,
-                             rrLim = c(0.1, 10),
-                             title = NULL,
-                             fileName = NULL) {
+plotCalendarTimeEffect <- function(sccsModel,
+                                   rrLim = c(0.1, 10),
+                                   title = NULL,
+                                   fileName = NULL) {
   estimates <- sccsModel$estimates
   estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
   splineCoefs <- c(0, estimates$logRr)
   calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
   calendarTimeKnots <- as.Date(sprintf("%s-%s-%s",
-                                      floor(calendarTimeKnots / 12),
-                                      calendarTimeKnots %% 12 + 1,
-                                      15))
+                                       floor(calendarTimeKnots / 12),
+                                       calendarTimeKnots %% 12 + 1,
+                                       15))
   calendarTime <- seq(min(calendarTimeKnots), max(calendarTimeKnots), length.out = 100)
   calendarTimeDesignMatrix <- splines::bs(calendarTime,
                                           knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],

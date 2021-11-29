@@ -49,7 +49,7 @@ test_that("Running multiple analyses against Eunomia", {
 
   fitSccsModelArgs <- createFitSccsModelArgs()
 
-  sccsAnalysis1 <- createSccsAnalysis(analysisId = 3,
+  sccsAnalysis1 <- createSccsAnalysis(analysisId = 1,
                                       description = "Including pre-exposure",
                                       getDbSccsDataArgs = getDbSccsDataArgs1,
                                       createStudyPopulationArgs = createStudyPopulationArgs1,
@@ -59,6 +59,9 @@ test_that("Running multiple analyses against Eunomia", {
   sccsAnalysisList <- list(sccsAnalysis1)
 
   outputFolder <- tempfile(pattern = "sccsOutput")
+
+  analysesToExclude <- data.frame(exposureId = c(1),
+                                  outcomeId = c(3))
   suppressWarnings(
     result <- runSccsAnalyses(connectionDetails = connectionDetails,
                               cdmDatabaseSchema = "main",
@@ -68,7 +71,8 @@ test_that("Running multiple analyses against Eunomia", {
                               outcomeTable = "cohort",
                               outputFolder = outputFolder,
                               exposureOutcomeList = exposureOutcomeList,
-                              sccsAnalysisList = sccsAnalysisList)
+                              sccsAnalysisList = sccsAnalysisList,
+                              analysesToExclude = analysesToExclude)
   )
   #
   #   studyPop <- readRDS(file.path(outputFolder, result$studyPopFile[1]))
