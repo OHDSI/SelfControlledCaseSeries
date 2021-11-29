@@ -30,3 +30,5 @@
 #' @import DatabaseConnector
 #' @useDynLib SelfControlledCaseSeries
 NULL
+
+cache <- new.env()
