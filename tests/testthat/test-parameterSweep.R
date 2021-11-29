@@ -42,7 +42,7 @@ test_that("Support functions", {
   p <- plotSeasonality(model)
   expect_is(p, "ggplot")
 
-  p <- plotCalendarTime(model)
+  p <- plotCalendarTimeEffect(model)
   expect_is(p, "ggplot")
 })
 

@@ -294,7 +294,7 @@ runSccsAnalyses <- function(connectionDetails,
     args <- analysisRow$fitSccsModelArgs
     args$control$threads <- cvThreads
     sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(args = args,
-                                                                             sccsIntervalDataFileName = file.path(outputFolder, refRow$sccsIntervalDataFileName),
+                                                                             sccsIntervalDataFileName = file.path(outputFolder, refRow$sccsIntervalDataFile),
                                                                              sccsModelFileName = file.path(outputFolder, sccsModelFile))
   }
 
@@ -429,7 +429,7 @@ createReferenceTable <- function(sccsAnalysisList,
                                                            "outcomeId")))
   }
 
-  # Compute unions of concept sets -------------
+  # Compute unions of concept sets
   referenceTable$sccsDataFile <- ""
   referenceTable$loadId <- NA
   loadConcepts <- list()
@@ -507,8 +507,6 @@ createReferenceTable <- function(sccsAnalysisList,
                                     referenceTable$outcomeId[i]))
   }
   referenceTable$sccsModelFile <- generateFileName(1:nrow(referenceTable))
-
-
 
   # Remove rows that the user specified to exclude ---------------------------------
   if (!is.null(analysesToExclude)) {

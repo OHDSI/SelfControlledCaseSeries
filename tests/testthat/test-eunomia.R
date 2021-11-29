@@ -74,16 +74,11 @@ test_that("Running multiple analyses against Eunomia", {
                               sccsAnalysisList = sccsAnalysisList,
                               analysesToExclude = analysesToExclude)
   )
-  #
-  #   studyPop <- readRDS(file.path(outputFolder, result$studyPopFile[1]))
-  #   sccsData <- loadSccsData(file.path(outputFolder, result$sccsDataFile[1]))
-  #
-  #   plotAgeSpans(studyPop)
-  #   SelfControlledCaseSeries::plotExposureCentered(studyPop, sccsData, 1)
+  expect_equal(sum(result$exposureId == 1 && result$outcomeId == 3), 0)
 
   analysisSum <- summarizeSccsAnalyses(result, outputFolder)
 
-  expect_equal(nrow(analysisSum), 5)
+  expect_equal(nrow(analysisSum), 4)
 
   unlink(outputFolder, recursive = TRUE)
 })

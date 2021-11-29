@@ -34,6 +34,7 @@ Imports:
 	splines,
 	ggplot2,
 	methods,
+	utils,
 	cli,
 	pillar
 Suggests:
