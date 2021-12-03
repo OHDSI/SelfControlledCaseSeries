@@ -272,6 +272,9 @@ print.SccsModel <- function(x, ...) {
 #'
 #' @export
 getModel <- function(sccsModel) {
+  if (class(sccsModel) !=  "SccsModel")
+    stop("the sccsModel argument must be of type 'sccsModel'.")
+
   d <- sccsModel$estimates
   # d$seLogRr <- (d$logUb95 - d$logRr)/qnorm(0.975)
   output <- tibble(d$covariateName,
@@ -295,4 +298,52 @@ getModel <- function(sccsModel) {
                         "originalEraType",
                         "originalEraName")
   return(output)
+}
+
+#' Does the model contain an age effect?
+#'
+#' @param sccsModel   An object of type \code{sccsModel} as created using the
+#'                    \code{\link{fitSccsModel}} function.
+#'
+#' @return
+#' TRUE if the model contains an age effect, otherwise FALSE.
+#'
+#' @export
+hasAgeEffect <- function(sccsModel) {
+  if (class(sccsModel) !=  "SccsModel")
+    stop("the sccsModel argument must be of type 'sccsModel'.")
+  estimates <- sccsModel$estimates
+  return(any(estimates$covariateId >= 100 & estimates$covariateId < 200))
+}
+
+#' Does the model contain an age effect?
+#'
+#' @param sccsModel   An object of type \code{sccsModel} as created using the
+#'                    \code{\link{fitSccsModel}} function.
+#'
+#' @return
+#' TRUE if the model contains an age effect, otherwise FALSE.
+#'
+#' @export
+hasSeasonality <- function(sccsModel) {
+  if (class(sccsModel) !=  "SccsModel")
+    stop("the sccsModel argument must be of type 'sccsModel'.")
+  estimates <- sccsModel$estimates
+  return(any(estimates$covariateId >= 200 & estimates$covariateId < 300))
+}
+
+#' Does the model contain an age effect?
+#'
+#' @param sccsModel   An object of type \code{sccsModel} as created using the
+#'                    \code{\link{fitSccsModel}} function.
+#'
+#' @return
+#' TRUE if the model contains an age effect, otherwise FALSE.
+#'
+#' @export
+hasCalendarTimeEffect <- function(sccsModel) {
+  if (class(sccsModel) !=  "SccsModel")
+    stop("the sccsModel argument must be of type 'sccsModel'.")
+  estimates <- sccsModel$estimates
+  return(any(estimates$covariateId >= 300 & estimates$covariateId < 400))
 }

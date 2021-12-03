@@ -4,10 +4,19 @@
 \alias{plotEventToCalendarTime}
 \title{Plot the count of events over calendar time.}
 \usage{
-plotEventToCalendarTime(studyPopulation, title = NULL, fileName = NULL)
+plotEventToCalendarTime(
+  studyPopulation,
+  sccsModel = NULL,
+  title = NULL,
+  fileName = NULL
+)
 }
 \arguments{
 \item{studyPopulation}{An object created using the \code{\link[=createStudyPopulation]{createStudyPopulation()}} function.}
+
+\item{sccsModel}{Optional: A fitted SCCS model as created using \code{\link[=fitSccsModel]{fitSccsModel()}}. If the
+model contains splines for seasonality and or calendar time a panel will
+be added with outcome counts adjusted for these splines.}
 
 \item{title}{Optional: the main title for the plot}
 

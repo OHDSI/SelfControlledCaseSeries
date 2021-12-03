@@ -249,15 +249,22 @@ addCalendarTimeSettings <- function(settings,
     return(settings)
   } else {
     if (length(calendarTimeCovariateSettings$calendarTimeKnots) == 1) {
-      calendarTimeKnots <- studyPopulation$outcomes %>%
-        inner_join(studyPopulation$cases, by = "caseId") %>%
-        mutate(outcomeDate = .data$startDate + .data$outcomeDay) %>%
-        transmute(outcomeMonth = as.numeric(format(.data$outcomeDate,'%Y')) * 12 + as.numeric(format(.data$outcomeDate,'%m')) - 1) %>%
-        pull() %>%
-        quantile(seq(0.01, 0.99, length.out = calendarTimeCovariateSettings$calendarTimeKnots))
+      observationPeriodCounts <- computeObservedPerMonth(studyPopulation) %>%
+        arrange(.data$month) %>%
+        mutate(cumCount = cumsum(.data$observationPeriodCount ))
+
+      total <- observationPeriodCounts %>%
+        tail(1) %>%
+        pull(.data$cumCount)
+
+      cutoffs <- total *  quantile(seq(0.01, 0.99, length.out = calendarTimeCovariateSettings$calendarTimeKnots))
+      calendarTimeKnots = rep(0, calendarTimeCovariateSettings$calendarTimeKnots)
+      for (i in 1:calendarTimeCovariateSettings$calendarTimeKnots) {
+        calendarTimeKnots[i] <- min(observationPeriodCounts$month[observationPeriodCounts$cumCount >= cutoffs[i]])
+      }
     } else {
       knotDates <- calendarTimeCovariateSettings$calendarTimeKnots
-      calendarTimeKnots <- as.numeric(format(knotDates,'%Y')) * 12 + as.numeric(format(knotDates,'%m')) - 1
+      calendarTimeKnots <- convertDateToMonth(knotDates)
     }
     if (length(calendarTimeKnots) > nrow(studyPopulation$outcomes)) {
       warning("There are more calendar time knots than cases. Removing calendar time from model")
@@ -285,6 +292,61 @@ addCalendarTimeSettings <- function(settings,
     settings$metaData$calendarTime <- calendarTime
     return(settings)
   }
+}
+
+convertDateToMonth <- function(date) {
+  return(as.numeric(format(date, '%Y')) * 12 + as.numeric(format(date, '%m')) - 1)
+}
+
+convertMonthToStartDate <- function(month) {
+  year <- floor(month / 12)
+  month <- floor(month %% 12) + 1
+  return(as.Date(sprintf("%s-%s-%s",
+                         year,
+                         month,
+                         1)))
+}
+
+convertMonthToEndDate <- function(month) {
+  year <- floor(month / 12)
+  month <- floor(month %% 12) + 1
+  year <- if_else(month == 12, year + 1, year)
+  month <- if_else(month == 12, 1, month + 1)
+  return(as.Date(sprintf("%s-%s-%s",
+                         year,
+                         month,
+                         1)) - 1)
+}
+
+computeObservedPerMonth <- function(studyPopulation) {
+  observationPeriods <- studyPopulation$cases %>%
+    mutate(endDate = .data$startDate + .data$endDay) %>%
+    mutate(startMonth = convertDateToMonth(.data$startDate),
+           endMonth = convertDateToMonth(.data$endDate) + 1) %>%
+    select(.data$startMonth, .data$endMonth)
+
+  months <- full_join(
+    observationPeriods %>%
+      group_by(.data$startMonth) %>%
+      summarise(startCount = n()) %>%
+      rename(month = .data$startMonth),
+    observationPeriods %>%
+      group_by(.data$endMonth) %>%
+      summarise(endCount = n()) %>%
+      rename(month = .data$endMonth),
+    by = "month") %>%
+    mutate(startCount = ifelse(is.na(.data$startCount), 0, .data$startCount),
+           endCount = ifelse(is.na(.data$endCount), 0, .data$endCount))
+
+  months <- months %>%
+    arrange(.data$month) %>%
+    mutate(cumStarts = cumsum(.data$startCount),
+           cumEnds = cumsum(.data$endCount)) %>%
+    mutate(observationPeriodCount = .data$cumStarts - .data$cumEnds) %>%
+    select(.data$month, .data$observationPeriodCount)
+  head(-1)
+
+  return(months)
 }
 
 addEventDependentObservationSettings <- function(settings,

@@ -294,6 +294,9 @@ plotExposureCentered <- function(studyPopulation,
 #' Plot the count of events over calendar time.
 #'
 #' @template StudyPopulation
+#' @param sccsModel         Optional: A fitted SCCS model as created using [fitSccsModel()]. If the
+#'                          model contains splines for seasonality and or calendar time a panel will
+#'                          be added with outcome counts adjusted for these splines.
 #' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
 #'                          See the function [ggplot2::ggsave()] for supported file formats.
 #' @param title             Optional: the main title for the plot
@@ -304,18 +307,78 @@ plotExposureCentered <- function(studyPopulation,
 #'
 #' @export
 plotEventToCalendarTime <- function(studyPopulation,
+                                    sccsModel = NULL,
                                     title = NULL,
                                     fileName = NULL) {
-  dates <- studyPopulation$outcomes %>%
-    inner_join(studyPopulation$cases , by = "caseId") %>%
-    transmute(outcomeDate = .data$startDate  + .data$outcomeDay)
+  data <- computeOutcomeRatePerMonth(studyPopulation) %>%
+    mutate(monthStartDate = convertMonthToStartDate(.data$month),
+           monthEndDate = convertMonthToEndDate(.data$month))
 
+  plotData <- bind_rows(
+    select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$rate) %>%
+      mutate(type = "Outcomes per person"),
+    select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$observationPeriodCount) %>%
+      mutate(type = "Observed persons"),
+  )
+
+  levels <- c("Observed persons", "Outcomes per person")
+
+  if (!is.null(sccsModel)) {
+    data$adjustedRate <- data$rate
+    if (hasCalendarTimeEffect(sccsModel)) {
+      estimates <- sccsModel$estimates
+      estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
+      splineCoefs <- c(0, estimates$logRr)
+      calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
+      calendarTime <- data$month
+      calendarTime[calendarTime < calendarTimeKnots[1]] <- calendarTimeKnots[1]
+      calendarTime[calendarTime > calendarTimeKnots[length(calendarTimeKnots)]] <- calendarTimeKnots[length(calendarTimeKnots)]
+      calendarTimeDesignMatrix <- splines::bs(calendarTime,
+                                              knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+                                              Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))])
+      logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
+      logRr <- logRr - mean(logRr)
+      data$calendarTimeRr <- exp(logRr)
+      data <- data %>%
+        mutate(adjustedRate = .data$adjustedRate / .data$calendarTimeRr)
+
+    }
+
+    if (hasSeasonality(sccsModel)) {
+      estimates <- sccsModel$estimates
+      estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, ]
+      splineCoefs <- c(0, estimates$logRr)
+      seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
+      season <- 1:12
+      seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
+      logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
+      logRr <- logRr - mean(logRr)
+
+      data <- data %>%
+        mutate(monthOfYear = .data$month %% 12 + 1) %>%
+        inner_join(tibble(monthOfYear = season,
+                          seasonRr = exp(logRr)),
+                   by = "monthOfYear")
+
+      data <- data %>%
+        mutate(adjustedRate = .data$adjustedRate / .data$seasonRr)
+    }
+    plotData <- bind_rows(
+      plotData,
+      select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$adjustedRate) %>%
+        mutate(type = "Adj. outcomes per person"),
+    )
+    levels <- c(levels, "Adj. outcomes per person")
+  }
+
+  plotData$type <- factor(plotData$type, levels = rev(levels))
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(dates, ggplot2::aes(x = .data$outcomeDate)) +
-    ggplot2::geom_histogram(binwidth = 30.5, fill = rgb(0, 0, 0.8), alpha = 0.8) +
+  plot <- ggplot2::ggplot(plotData, ggplot2::aes(xmin = .data$monthStartDate, xmax = .data$monthEndDate + 1)) +
+    ggplot2::geom_rect(ggplot2::aes(ymax = .data$value), ymin = 0, fill = rgb(0, 0, 0.8), alpha = 0.8, size = 0) +
     ggplot2::scale_x_date("Calendar time") +
-    ggplot2::scale_y_continuous("Frequency") +
+    ggplot2::scale_y_continuous("Count") +
+    ggplot2::facet_grid(.data$type ~ ., scales = "free_y") +
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
                    panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
                    panel.grid.major = ggplot2::element_line(colour = "#AAAAAA"),
@@ -327,12 +390,26 @@ plotEventToCalendarTime <- function(studyPopulation,
                    plot.title = ggplot2::element_text(hjust = 0.5),
                    legend.title = ggplot2::element_blank(),
                    legend.position = "top")
+  # plot
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }
   if (!is.null(fileName))
-    ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
+    ggplot2::ggsave(fileName, plot, width = 7, height = 1 + (2 * length(levels)), dpi = 400)
   return(plot)
+}
+
+computeOutcomeRatePerMonth <- function(studyPopulation) {
+  observationPeriodCounts <- computeObservedPerMonth(studyPopulation)
+  outcomeCounts <- studyPopulation$outcomes %>%
+    inner_join(studyPopulation$cases , by = "caseId") %>%
+    transmute(month = convertDateToMonth(.data$startDate + .data$outcomeDay)) %>%
+    group_by(.data$month) %>%
+    summarise(outcomeCount = n())
+  data <- observationPeriodCounts %>%
+    inner_join(outcomeCounts, by = "month") %>%
+    mutate(rate = .data$outcomeCount / .data$observationPeriodCount)
+  return(data)
 }
 
 
@@ -356,6 +433,9 @@ plotAgeEffect <- function(sccsModel,
                           rrLim = c(0.1, 10),
                           title = NULL,
                           fileName = NULL) {
+  if (!hasAgeEffect(sccsModel))
+    stop("The model does not contain an age effect.")
+
   estimates <- sccsModel$estimates
   estimates <- estimates[estimates$covariateId >= 100 & estimates$covariateId < 200, ]
   splineCoefs <- c(0, estimates$logRr)
@@ -424,6 +504,9 @@ plotSeasonality <- function(sccsModel,
                             rrLim = c(0.1, 10),
                             title = NULL,
                             fileName = NULL) {
+  if (!hasAgeEffect(sccsModel))
+    stop("The model does not contain seasonality.")
+
   estimates <- sccsModel$estimates
   estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, ]
   splineCoefs <- c(0, estimates$logRr)
@@ -544,14 +627,13 @@ plotCalendarTimeEffect <- function(sccsModel,
                                    rrLim = c(0.1, 10),
                                    title = NULL,
                                    fileName = NULL) {
+  if (!hasCalendarTimeEffect(sccsModel))
+    stop("The model does not contain a calendar time effect.")
+
   estimates <- sccsModel$estimates
   estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
   splineCoefs <- c(0, estimates$logRr)
   calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
-  calendarTimeKnots <- as.Date(sprintf("%s-%s-%s",
-                                       floor(calendarTimeKnots / 12),
-                                       calendarTimeKnots %% 12 + 1,
-                                       15))
   calendarTime <- seq(min(calendarTimeKnots), max(calendarTimeKnots), length.out = 100)
   calendarTimeDesignMatrix <- splines::bs(calendarTime,
                                           knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
@@ -559,13 +641,12 @@ plotCalendarTimeEffect <- function(sccsModel,
   logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
-  data <- data.frame(calendarTime = calendarTime, rr = rr)
+  data <- data.frame(calendarTime = convertMonthToStartDate(calendarTime) + 14, rr = rr)
 
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = calendarTime, y = rr)) +
-    # ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
     ggplot2::scale_x_date("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",
