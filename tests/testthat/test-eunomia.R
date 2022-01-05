@@ -74,7 +74,7 @@ test_that("Running multiple analyses against Eunomia", {
                               sccsAnalysisList = sccsAnalysisList,
                               analysesToExclude = analysesToExclude)
   )
-  expect_equal(sum(result$exposureId == 1 && result$outcomeId == 3), 0)
+  expect_equal(sum(result$exposureId == 1 & result$outcomeId == 3), 0)
 
   analysisSum <- summarizeSccsAnalyses(result, outputFolder)
 
