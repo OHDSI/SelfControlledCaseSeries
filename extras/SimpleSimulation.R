@@ -36,6 +36,11 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            ageCovariateSettings = createAgeCovariateSettings(ageKnots = 5),
                                            seasonalityCovariateSettings = createSeasonalityCovariateSettings(seasonKnots = 5))
 
+model <- fitSccsModel(sccsIntervalData)
+
+print(model)
+print(sprintf("True IRR = %0.2f", rw$relativeRisks))
+
 controlIntervalSettings <- createControlIntervalSettings(includeEraIds = 1,
                                                          start = -28,
                                                          startAnchor = "era start",

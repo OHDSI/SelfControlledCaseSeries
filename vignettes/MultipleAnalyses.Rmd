@@ -365,12 +365,12 @@ Note that some of the file names will appear several times in the table. For exa
 We can create a summary of the results using `summarizeSccsAnalyses()`:
 ```{r eval=FALSE}
 analysisSum <- summarizeSccsAnalyses(result, outputFolder)
-analysisSum
+head(analysisSum)
 ```
 ```{r echo=FALSE,message=FALSE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   analysisSum <- readRDS(file.path(outputFolder, "analysisSummary.rds"))
-  analysisSum
+  head(analysisSum)
 }
 ```
 

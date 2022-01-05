@@ -1,6 +1,8 @@
 library(SelfControlledCaseSeries)
-options(andromedaTempFolder = "d:/andromedaTemp")
-settings <- createSccsSimulationSettings(includeAgeEffect = TRUE, includeSeasonality = TRUE)
+options(andromedaTempFolder = "s:/andromedaTemp")
+settings <- createSccsSimulationSettings(includeAgeEffect = F,
+                                         includeCalendarTimeEffect = F,
+                                         includeSeasonality = TRUE)
 
 sccsData <- simulateSccsData(1000, settings)
 # summary(sccsData)
@@ -27,14 +29,14 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = covarSettings,
-                                           ageCovariateSettings = ageSettings,
+                                           # ageCovariateSettings = ageSettings,
                                            seasonalityCovariateSettings = seasonalitySettings,
                                            calendarTimeCovariateSettings = calendarTimeSettings,
                                            minCasesForTimeCovariates = 10000)
 
-# model <- fitSccsModel(sccsIntervalData, prior = createPrior("none"))
-# Use weak prior on age, season, and calendar time because otherwise may be ill-defined:
-model <- fitSccsModel(sccsIntervalData, prior = createPrior(priorType = "laplace", variance = 1))
+model <- fitSccsModel(sccsIntervalData, prior = createPrior("none"))
+# # Use weak prior on age, season, and calendar time because otherwise may be ill-defined:
+# model <- fitSccsModel(sccsIntervalData, prior = createPrior(priorType = "laplace", variance = 1))
 
 
 estimate1 <- model$estimates[model$estimates$originalEraId == 1, ]
@@ -56,6 +58,7 @@ writeLines(sprintf("True RR: %0.2f, estimate: %0.2f (%0.2f-%0.2f)",
 # plotSeasonality(model)
 # plotAgeEffect(model)
 # plotCalendarTimeEffect(model)
+plotEventToCalendarTime(studyPop, model)
 
 ### Plot simulated seasonality ###
 estimates <- model$estimates

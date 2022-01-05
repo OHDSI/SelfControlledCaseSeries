@@ -23,23 +23,24 @@ library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "s:/andromedaTemp")
 
 connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = "redshift",
-                                                                connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcr"),
+                                                                connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcd"),
                                                                 user = keyring::key_get("redShiftUserName"),
                                                                 password = keyring::key_get("redShiftPassword"))
-cdmDatabaseSchema <- "cdm_truven_mdcr_v1477"
+cdmDatabaseSchema <- "cdm_truven_mdcd_v1734"
 cohortDatabaseSchema <- "scratch_mschuemi"
 outcomeTable <- "sccs_vignette"
 options(sqlRenderTempEmulationSchema = NULL)
 outcomeTable <- "sccs_vignette"
-port <- Sys.getenv("PDW_PORT")
 cdmVersion <- "5"
 outputFolder <- "s:/temp/sccsVignette2"
 
+
+# Create cohorts ---------------------------------------
 connection <- DatabaseConnector::connect(connectionDetails)
 
 sql <- loadRenderTranslateSql("vignette.sql",
                               packageName = "SelfControlledCaseSeries",
-                              dbms = dbms,
+                              dbms = connectionDetails$dbms,
                               cdmDatabaseSchema = cdmDatabaseSchema,
                               cohortDatabaseSchema = cohortDatabaseSchema,
                               outcomeTable = outcomeTable)
@@ -63,6 +64,8 @@ DatabaseConnector::querySql(connection, sql)
 
 DatabaseConnector::disconnect(connection)
 
+
+# Create settings -----------------------------
 negativeControls <- c(705178,
                       705944,
                       710650,
@@ -194,6 +197,7 @@ saveSccsAnalysisList(sccsAnalysisList, "s:/temp/sccsVignette2/sccsAnalysisList.t
 # exposureOutcomeList <- loadExposureOutcomeList('s:/temp/sccsVignette2/exposureOutcomeList.txt')
 # sccsAnalysisList <- loadSccsAnalysisList('s:/temp/sccsVignette2/sccsAnalysisList.txt')
 
+# Run analyses --------------------------------------------------------
 result <- runSccsAnalyses(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           exposureDatabaseSchema = cdmDatabaseSchema,
@@ -219,3 +223,4 @@ saveRDS(analysisSum, file.path(outputFolder, "analysisSummary.rds"))
 
 sccsData <- loadSccsData(file.path(outputFolder, result$sccsDataFile[1]))
 summary(sccsData)
+

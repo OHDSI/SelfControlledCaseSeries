@@ -377,7 +377,7 @@ plotEventToCalendarTime <- function(studyPopulation,
   plot <- ggplot2::ggplot(plotData, ggplot2::aes(xmin = .data$monthStartDate, xmax = .data$monthEndDate + 1)) +
     ggplot2::geom_rect(ggplot2::aes(ymax = .data$value), ymin = 0, fill = rgb(0, 0, 0.8), alpha = 0.8, size = 0) +
     ggplot2::scale_x_date("Calendar time") +
-    ggplot2::scale_y_continuous("Count") +
+    ggplot2::scale_y_continuous("Count", limits = c(0, NA)) +
     ggplot2::facet_grid(.data$type ~ ., scales = "free_y") +
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
                    panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
@@ -504,7 +504,7 @@ plotSeasonality <- function(sccsModel,
                             rrLim = c(0.1, 10),
                             title = NULL,
                             fileName = NULL) {
-  if (!hasAgeEffect(sccsModel))
+  if (!hasSeasonality(sccsModel))
     stop("The model does not contain seasonality.")
 
   estimates <- sccsModel$estimates

@@ -158,6 +158,10 @@ runSccsAnalyses <- function(connectionDetails,
                                          combineDataFetchAcrossOutcomes,
                                          analysesToExclude)
 
+  sccsAnalysisPerRow <- attr(referenceTable, "sccsAnalysisPerRow")
+  instantiatedExposureOutcomePerRow <- attr(referenceTable, "instantiatedExposureOutcomePerRow")
+  loadConceptsPerLoad <- attr(referenceTable, "loadConceptsPerLoad")
+
   # Create arguments for sccsData objects ----------------------------
   sccsDataObjectsToCreate <- list()
   for (sccsDataFileName in unique(referenceTable$sccsDataFile)) {
@@ -166,7 +170,7 @@ runSccsAnalyses <- function(connectionDetails,
         filter(.data$sccsDataFile == sccsDataFileName) %>%
         head(1)
 
-      loadConcepts <- attr(referenceTable, "loadConcepts")[[referenceRow$loadId]]
+      loadConcepts <- loadConceptsPerLoad[[referenceRow$loadId]]
       if (length(loadConcepts$exposureIds) == 1 && loadConcepts$exposureIds[1] == "all")
         loadConcepts$exposureIds <- c()
       useCustomCovariates <- (length(loadConcepts$customCovariateIds) > 0)
@@ -208,8 +212,7 @@ runSccsAnalyses <- function(connectionDetails,
   studyPopFilesToCreate <- list()
   for (studyPopFile in uniqueStudyPopFiles) {
     refRow <- referenceTable[referenceTable$studyPopFile == studyPopFile, ][1, ]
-    analysisRow <- ParallelLogger::matchInList(sccsAnalysisList,
-                                               list(analysisId = refRow$analysisId))[[1]]
+    analysisRow <- sccsAnalysisPerRow[[refRow$rowId]]
     args <- analysisRow$createStudyPopulationArgs
     args$outcomeId <- refRow$outcomeId
     studyPopFilesToCreate[[length(studyPopFilesToCreate) + 1]] <- list(args = args,
@@ -223,8 +226,8 @@ runSccsAnalyses <- function(connectionDetails,
   sccsIntervalDataObjectsToCreate <- list()
   for (sccsIntervalDataFile in sccsIntervalDataFiles) {
     refRow <- referenceTable[referenceTable$sccsIntervalDataFile == sccsIntervalDataFile, ][1, ]
-    analysisRow <- ParallelLogger::matchInList(sccsAnalysisList,
-                                               list(analysisId = refRow$analysisId))[[1]]
+    analysisRow <- sccsAnalysisPerRow[[refRow$rowId]]
+    exposureOutcome <- instantiatedExposureOutcomePerRow[[refRow$rowId]]
     design <- analysisRow$design
     sccs <- toupper(design) == "SCCS"
     if (sccs) {
@@ -289,8 +292,7 @@ runSccsAnalyses <- function(connectionDetails,
   sccsModelObjectsToCreate <- list()
   for (sccsModelFile in sccsModelFiles) {
     refRow <- referenceTable[referenceTable$sccsModelFile == sccsModelFile, ][1, ]
-    analysisRow <- ParallelLogger::matchInList(sccsAnalysisList,
-                                               list(analysisId = refRow$analysisId))[[1]]
+    analysisRow <- sccsAnalysisPerRow[[refRow$rowId]]
     args <- analysisRow$fitSccsModelArgs
     args$control$threads <- cvThreads
     sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(args = args,
@@ -300,7 +302,10 @@ runSccsAnalyses <- function(connectionDetails,
 
   referenceTable$loadId <- NULL
   referenceTable$studyPopId <- NULL
+  referenceTable$rowId <- NULL
   attr(referenceTable, "loadConcepts") <- NULL
+  attr(referenceTable, "sccsAnalysisPerRow") <- NULL
+  attr(referenceTable, "instantiatedExposureOutcomePerRow") <- NULL
   saveRDS(referenceTable, file.path(outputFolder, "outcomeModelReference.rds"))
 
   # Construction of objects -------------------------------------------------------------------------
@@ -345,15 +350,26 @@ createReferenceTable <- function(sccsAnalysisList,
                                  combineDataFetchAcrossOutcomes,
                                  analysesToExclude) {
   referenceTable <- tibble()
+  sccsAnalysisPerRow <- list()
+  instantiatedExposureOutcomePerRow <- list()
+  rowId <- 1
   for (sccsAnalysis in sccsAnalysisList) {
-    analysisId <- sccsAnalysis$analysisId
     for (exposureOutcome in exposureOutcomeList) {
-      exposureId <- .selectByType(sccsAnalysis$exposureType, exposureOutcome$exposureId, "exposure")
-      outcomeId <- .selectByType(sccsAnalysis$outcomeType, exposureOutcome$outcomeId, "outcome")
-      row <- tibble(exposureId = exposureId, outcomeId = outcomeId, analysisId = analysisId)
+      instantiatedExposureOutcome <- exposureOutcome
+      instantiatedExposureOutcome$exposureId <- .selectByType(sccsAnalysis$exposureType, exposureOutcome$exposureId, "exposure")
+      instantiatedExposureOutcome$outcomeId <- .selectByType(sccsAnalysis$outcomeType, exposureOutcome$outcomeId, "outcome")
+      row <- tibble(rowId = rowId,
+                    exposureId = instantiatedExposureOutcome$exposureId,
+                    outcomeId = instantiatedExposureOutcome$outcomeId,
+                    analysisId = sccsAnalysis$analysisId)
       referenceTable <- rbind(referenceTable, row)
+      sccsAnalysisPerRow[[rowId]] <- sccsAnalysis
+      instantiatedExposureOutcomePerRow[[rowId]] <- instantiatedExposureOutcome
+      rowId <- rowId + 1
     }
   }
+  attr(referenceTable, "sccsAnalysisPerRow") <- sccsAnalysisPerRow
+  attr(referenceTable, "instantiatedExposureOutcomePerRow") <- instantiatedExposureOutcomePerRow
 
   # Determine if loading calls can be combined for efficiency ----------------------------
 
@@ -432,7 +448,7 @@ createReferenceTable <- function(sccsAnalysisList,
   # Compute unions of concept sets
   referenceTable$sccsDataFile <- ""
   referenceTable$loadId <- NA
-  loadConcepts <- list()
+  loadConceptsPerLoad <- list()
   for (loadId in 1:length(uniqueLoads)) {
     uniqueLoad <- uniqueLoads[[loadId]]
     groupables <- ParallelLogger::matchInList(conceptsPerLoad, uniqueLoad)
@@ -458,7 +474,7 @@ createReferenceTable <- function(sccsAnalysisList,
       }
       rowIds <- c(rowIds, groupable$rowId)
     }
-    loadConcepts[[loadId]] <- list(exposureIds = exposureIds,
+    loadConceptsPerLoad[[loadId]] <- list(exposureIds = exposureIds,
                                    outcomeIds = outcomeIds,
                                    customCovariateIds = customCovariateIds,
                                    nestingCohortId = groupables[[1]]$nestingCohortId,
@@ -470,7 +486,7 @@ createReferenceTable <- function(sccsAnalysisList,
     referenceTable$loadId[rowIds] <- loadId
     referenceTable$sccsDataFile[rowIds] <- sccsDataFileName
   }
-  attr(referenceTable, "loadConcepts") <- loadConcepts
+  attr(referenceTable, "loadConceptsPerLoad") <- loadConceptsPerLoad
 
   # Add study population filenames --------------------------
   analysisIds <- unlist(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId"))

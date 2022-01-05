@@ -227,8 +227,8 @@ covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
                                               end = 0,
                                               endAnchor = "era end")
 
-sccsIntervalData <- createSccsIntervalData(studyPop,
-                                           sccsData,
+sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
+                                           sccsData = sccsData,
                                            eraCovariateSettings = covarDiclofenac)
 
 summary(sccsIntervalData)
@@ -303,7 +303,7 @@ covarPreDiclofenac <- createEraCovariateSettings(label = "Pre-exposure",
                                                  endAnchor = "era start")
 
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                           sccsData,
+                                           sccsData = sccsData,
                                            eraCovariateSettings = list(covarDiclofenac, 
                                                                        covarPreDiclofenac))
 
@@ -344,7 +344,7 @@ covarPreDiclofenacSplit <- createEraCovariateSettings(label = "Pre-exposure",
                                                       splitPoints = c(-30))
 
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                           sccsData,
+                                           sccsData = sccsData,
                                            eraCovariateSettings = list(covarDiclofenacSplit,
                                                                        covarPreDiclofenacSplit))
 ```
