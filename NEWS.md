@@ -9,6 +9,8 @@ Changes
 
 3. Fixing seed for regularization cross-validation to improve reproducibility.
 
+4. Added the `computeTimeStability()` function.
+
 
 SelfControlledCaseSeries 3.1.0
 ==============================

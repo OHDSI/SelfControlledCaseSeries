@@ -1,8 +1,8 @@
 library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "s:/andromedaTemp")
 settings <- createSccsSimulationSettings(includeAgeEffect = F,
-                                         includeCalendarTimeEffect = F,
-                                         includeSeasonality = TRUE)
+                                         includeCalendarTimeEffect = TRUE,
+                                         includeSeasonality = F)
 
 sccsData <- simulateSccsData(1000, settings)
 # summary(sccsData)
@@ -30,7 +30,7 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = covarSettings,
                                            # ageCovariateSettings = ageSettings,
-                                           seasonalityCovariateSettings = seasonalitySettings,
+                                           # seasonalityCovariateSettings = seasonalitySettings,
                                            calendarTimeCovariateSettings = calendarTimeSettings,
                                            minCasesForTimeCovariates = 10000)
 
@@ -57,8 +57,10 @@ writeLines(sprintf("True RR: %0.2f, estimate: %0.2f (%0.2f-%0.2f)",
 # model
 # plotSeasonality(model)
 # plotAgeEffect(model)
-# plotCalendarTimeEffect(model)
+plotCalendarTimeEffect(model)
 plotEventToCalendarTime(studyPop, model)
+computeTimeStability(studyPop)$stable
+computeTimeStability(studyPop, model)$stable
 
 ### Plot simulated seasonality ###
 estimates <- model$estimates
@@ -187,6 +189,7 @@ themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
 plot <- ggplot2::ggplot(data, ggplot2::aes(x = x, y = y, group = type, color = type)) +
   ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
   ggplot2::geom_line(lwd = 1) +
+  ggplot2::geom_vline(xintercept = SelfControlledCaseSeries:::convertMonthToStartDate(calendarTimeKnots)) +
   ggplot2::scale_x_date("calendarTime") +
   ggplot2::scale_y_continuous("Relative risk",
                               limits = rrLim,
@@ -206,3 +209,4 @@ plot <- ggplot2::ggplot(data, ggplot2::aes(x = x, y = y, group = type, color = t
                  legend.title = ggplot2::element_blank(),
                  legend.position = "top")
 print(plot)
+# SelfControlledCaseSeries:::convertMonthToStartDate(calendarTimeKnots)

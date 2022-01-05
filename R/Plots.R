@@ -310,59 +310,17 @@ plotEventToCalendarTime <- function(studyPopulation,
                                     sccsModel = NULL,
                                     title = NULL,
                                     fileName = NULL) {
-  data <- computeOutcomeRatePerMonth(studyPopulation) %>%
-    mutate(monthStartDate = convertMonthToStartDate(.data$month),
-           monthEndDate = convertMonthToEndDate(.data$month))
-
+  data <- computeOutcomeRatePerMonth(studyPopulation)
   plotData <- bind_rows(
     select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$rate) %>%
       mutate(type = "Outcomes per person"),
     select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$observationPeriodCount) %>%
       mutate(type = "Observed persons"),
   )
-
   levels <- c("Observed persons", "Outcomes per person")
 
   if (!is.null(sccsModel)) {
-    data$adjustedRate <- data$rate
-    if (hasCalendarTimeEffect(sccsModel)) {
-      estimates <- sccsModel$estimates
-      estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
-      splineCoefs <- c(0, estimates$logRr)
-      calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
-      calendarTime <- data$month
-      calendarTime[calendarTime < calendarTimeKnots[1]] <- calendarTimeKnots[1]
-      calendarTime[calendarTime > calendarTimeKnots[length(calendarTimeKnots)]] <- calendarTimeKnots[length(calendarTimeKnots)]
-      calendarTimeDesignMatrix <- splines::bs(calendarTime,
-                                              knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-                                              Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))])
-      logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
-      logRr <- logRr - mean(logRr)
-      data$calendarTimeRr <- exp(logRr)
-      data <- data %>%
-        mutate(adjustedRate = .data$adjustedRate / .data$calendarTimeRr)
-
-    }
-
-    if (hasSeasonality(sccsModel)) {
-      estimates <- sccsModel$estimates
-      estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, ]
-      splineCoefs <- c(0, estimates$logRr)
-      seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
-      season <- 1:12
-      seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
-      logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
-      logRr <- logRr - mean(logRr)
-
-      data <- data %>%
-        mutate(monthOfYear = .data$month %% 12 + 1) %>%
-        inner_join(tibble(monthOfYear = season,
-                          seasonRr = exp(logRr)),
-                   by = "monthOfYear")
-
-      data <- data %>%
-        mutate(adjustedRate = .data$adjustedRate / .data$seasonRr)
-    }
+    data <- adjustOutcomeRatePerMonth(data, sccsModel)
     plotData <- bind_rows(
       plotData,
       select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$adjustedRate) %>%
@@ -398,20 +356,6 @@ plotEventToCalendarTime <- function(studyPopulation,
     ggplot2::ggsave(fileName, plot, width = 7, height = 1 + (2 * length(levels)), dpi = 400)
   return(plot)
 }
-
-computeOutcomeRatePerMonth <- function(studyPopulation) {
-  observationPeriodCounts <- computeObservedPerMonth(studyPopulation)
-  outcomeCounts <- studyPopulation$outcomes %>%
-    inner_join(studyPopulation$cases , by = "caseId") %>%
-    transmute(month = convertDateToMonth(.data$startDate + .data$outcomeDay)) %>%
-    group_by(.data$month) %>%
-    summarise(outcomeCount = n())
-  data <- observationPeriodCounts %>%
-    inner_join(outcomeCounts, by = "month") %>%
-    mutate(rate = .data$outcomeCount / .data$observationPeriodCount)
-  return(data)
-}
-
 
 #' Plot the age effect
 #'

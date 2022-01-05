@@ -257,7 +257,7 @@ addCalendarTimeSettings <- function(settings,
         tail(1) %>%
         pull(.data$cumCount)
 
-      cutoffs <- total *  quantile(seq(0.01, 0.99, length.out = calendarTimeCovariateSettings$calendarTimeKnots))
+      cutoffs <- total *  seq(0.01, 0.99, length.out = calendarTimeCovariateSettings$calendarTimeKnots)
       calendarTimeKnots = rep(0, calendarTimeCovariateSettings$calendarTimeKnots)
       for (i in 1:calendarTimeCovariateSettings$calendarTimeKnots) {
         calendarTimeKnots[i] <- min(observationPeriodCounts$month[observationPeriodCounts$cumCount >= cutoffs[i]])
