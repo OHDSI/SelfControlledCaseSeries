@@ -1,6 +1,6 @@
 # @file SelfControlledCaseSeries.R
 #
-# Copyright 2021 Observational Health Data Sciences and Informatics
+# Copyright 2022 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 #
@@ -23,7 +23,7 @@
 #' @importFrom SqlRender loadRenderTranslateSql translateSql
 #' @importFrom grDevices rgb
 #' @importFrom methods is
-#' @importFrom stats aggregate coef confint dgamma nlm pgamma pnorm printCoefmat qnorm rnorm rpois runif splinefun quantile
+#' @importFrom stats aggregate coef confint dgamma nlm pgamma pnorm printCoefmat qnorm rnorm rpois runif splinefun quantile ppois
 #' @importFrom utils head tail
 #' @import dplyr
 #' @import Cyclops
