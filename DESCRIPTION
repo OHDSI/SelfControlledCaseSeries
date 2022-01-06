@@ -2,7 +2,7 @@ Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
 Version: 3.2.0
-Date: 2021-11-19
+Date: 2022-01-06
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
