@@ -26,6 +26,6 @@ Compute stability of outcome rate over time
 \details{
 Computes for each calendar month the rate of the outcome, and evaluates whether that rate is constant over time. If
 splines are used to adjust for seasonality and/or calendar time, these adjustments are taken into consideration. For each
-month a two-sidede p-value is computed against the null hypothesis that the rate in that month equals the mean rate. This
+month a two-sided p-value is computed against the null hypothesis that the rate in that month equals the mean rate. This
 p-value is compared to an alpha value, using a Bonferroni correction to adjust for the multiple testing across months.
 }

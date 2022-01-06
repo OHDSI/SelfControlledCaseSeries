@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.2.0</span>
       </span>
     </div>
 
@@ -145,6 +145,8 @@
   maxAge <span class='op'>=</span> <span class='fl'>65</span> <span class='op'>*</span> <span class='fl'>365</span>,
   minBaselineRate <span class='op'>=</span> <span class='fl'>0.001</span>,
   maxBaselineRate <span class='op'>=</span> <span class='fl'>0.01</span>,
+  minCalendarTime <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/as.Date.html'>as.Date</a></span><span class='op'>(</span><span class='st'>"2000-01-01"</span><span class='op'>)</span>,
+  maxCalendarTime <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/as.Date.html'>as.Date</a></span><span class='op'>(</span><span class='st'>"2010-01-01"</span><span class='op'>)</span>,
   eraIds <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>2</span><span class='op'>)</span>,
   patientUsages <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.2</span>, <span class='fl'>0.1</span><span class='op'>)</span>,
   usageRate <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.01</span>, <span class='fl'>0.01</span><span class='op'>)</span>,
@@ -156,6 +158,8 @@
   ageKnots <span class='op'>=</span> <span class='fl'>5</span>,
   includeSeasonality <span class='op'>=</span> <span class='cn'>TRUE</span>,
   seasonKnots <span class='op'>=</span> <span class='fl'>5</span>,
+  includeCalendarTimeEffect <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  calendarTimeKnots <span class='op'>=</span> <span class='fl'>5</span>,
   outcomeId <span class='op'>=</span> <span class='fl'>10</span>
 <span class='op'>)</span></pre>
 
@@ -185,6 +189,14 @@
     <tr>
       <th>maxBaselineRate</th>
       <td><p>The maximum baseline rate (per day).</p></td>
+    </tr>
+    <tr>
+      <th>minCalendarTime</th>
+      <td><p>The minimum date patients are to be observed.</p></td>
+    </tr>
+    <tr>
+      <th>maxCalendarTime</th>
+      <td><p>The maximum date patients are to be observed.</p></td>
     </tr>
     <tr>
       <th>eraIds</th>
@@ -228,6 +240,14 @@ function.</p></td>
     <tr>
       <th>seasonKnots</th>
       <td><p>Number of knots in the seasonality spline.</p></td>
+    </tr>
+    <tr>
+      <th>includeCalendarTimeEffect</th>
+      <td><p>Include a calendar time effect for the outcome?</p></td>
+    </tr>
+    <tr>
+      <th>calendarTimeKnots</th>
+      <td><p>Number of knots in the calendar time spline.</p></td>
     </tr>
     <tr>
       <th>outcomeId</th>

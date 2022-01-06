@@ -675,6 +675,48 @@ if (file.exists("s:/temp/vignetteSccs")) {
 
 Here we see that overall the two distributions are somewhat similar, with little evidence that censoring tends to lead to shorter times to the end of observation.
 
+## Stability of the outcome over calendar time
+
+If the rate of the outcome changes as a function of calendar time, this could introduce bias. For example, if the outcome is more prevalent during winter, and the exposure also tends to occur in winter, this will create an association between the two that likely doesn't imply causation. We can check for patterns over time:
+
+```{r eval=FALSE}
+plotEventToCalendarTime(studyPop)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")) {
+  plotEventToCalendarTime(studyPop)
+}
+```
+
+In the top of the plot, we see the rate of the outcome (within those persons that are observed) does change over time. 
+
+Earlier, we've seen we can adjust for these types of patterns by including splines, for example for age, season, and calendar time. We can use the same plot to evaluate if these adjustments have been sufficient. For example, using the model we fitted earlier adjusting for age, season, and calendar time:
+
+```{r eval=FALSE}
+plotEventToCalendarTime(studyPop, model)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")) {
+  model <- readRDS("s:/temp/vignetteSccs/ageSeasonCalendarTimeModel.rds")
+  plotEventToCalendarTime(studyPop, model)
+}
+```
+
+Here, the top plot shows the rate of the outcome, after adjusting for the age, season, and calendar time effect. We see that the adjustment wasn't completely effective, and in fact may have over-adjusted. A more formal way to evaluate this is by using:
+
+```{r eval=FALSE}
+diagnostic <- computeTimeStability(studyPop, model)
+head(diagnostic[, c("monthStartDate", "monthEndDate", "p", "alpha", "stable")])
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists("s:/temp/vignetteSccs")) {
+  diagnostic <- computeTimeStability(studyPop, model)
+  head(diagnostic[, c("monthStartDate", "monthEndDate", "p", "alpha", "stable")])
+}
+```
+
+This shows that, even after adjustment using the splines, there are months where the rate differs significantly from the mean rate, indicating temporal instability. We may want to change the knots in the splines, or possibly restrict our analysis to calendar time that is more stable.
+
 
 # Acknowledgments
 

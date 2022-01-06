@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.2.0</span>
       </span>
     </div>
 
@@ -160,7 +160,8 @@
   createStudyPopulationThreads <span class='op'>=</span> <span class='fl'>1</span>,
   createSccsIntervalDataThreads <span class='op'>=</span> <span class='fl'>1</span>,
   fitSccsModelThreads <span class='op'>=</span> <span class='fl'>1</span>,
-  cvThreads <span class='op'>=</span> <span class='fl'>1</span>
+  cvThreads <span class='op'>=</span> <span class='fl'>1</span>,
+  analysesToExclude <span class='op'>=</span> <span class='cn'>NULL</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -291,6 +292,11 @@ validation when estimating the hyperparameter for the
 outcome model. Note that the total number of CV threads at
 one time could be <code>fitSccsModelThreads * cvThreads</code>.</p></td>
     </tr>
+    <tr>
+      <th>analysesToExclude</th>
+      <td><p>Analyses to exclude. See the Analyses to Exclude section for
+details.</p></td>
+    </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
@@ -306,7 +312,22 @@ outcome model should be fitted). When you provide several analyses it will deter
 the analyses have anything in common, and will take advantage of this fact. For example, if we
 specify several analyses that only differ in the way the outcome model is fitted, then this
 function will extract the data and fit the propensity model only once, and re-use this in all the
-analysis.</p>
+analysis.</p><h3 class='hasAnchor' id='arguments'><a class='anchor' href='#arguments'></a>Analyses to Exclude</h3>
+
+
+<p>Normally, <code>runSccsAnalyses</code> will run all combinations of exposure-outcome-analyses settings.
+However, sometimes we may not need all those combinations. Using the <code>analysesToExclude</code> argument,
+we can remove certain items from the full matrix. This argument should be a data frame with at least
+one of the following columns:</p><ul>
+<li><p>exposureId</p></li>
+<li><p>outcomeId</p></li>
+<li><p>analysisId</p></li>
+</ul>
+
+<p>This data frame will be joined to the outcome model reference table before executing, and matching rows
+will be removed. For example, if one specifies only one exposure ID and analysis ID, then any analyses with
+that exposure and that analysis ID will be skipped.</p>
+
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

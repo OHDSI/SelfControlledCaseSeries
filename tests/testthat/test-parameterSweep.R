@@ -11,7 +11,7 @@ settings <- createSccsSimulationSettings(simulationRiskWindows = simulationRiskW
                                          outcomeId = 10)
 sccsData <- simulateSccsData(sampleSize, settings)
 
-test_that("Support functions", {
+test_that("Support functions and diagnostics", {
   s <- summary(sccsData)
   expect_equal(class(s), "summary.SccsData")
   expect_equal(s$caseCount, sampleSize)
@@ -44,6 +44,12 @@ test_that("Support functions", {
 
   p <- plotCalendarTimeEffect(model)
   expect_is(p, "ggplot")
+
+  p <- plotEventToCalendarTime(studyPop, model)
+  expect_is(p, "ggplot")
+
+  diagnostic <- computeTimeStability(studyPop, model)
+  expect_is(diagnostic, "data.frame")
 })
 
 test_that("Parameter sweep", {

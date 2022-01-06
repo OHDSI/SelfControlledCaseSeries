@@ -1,10 +1,10 @@
 library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "s:/andromedaTemp")
-settings <- createSccsSimulationSettings(includeAgeEffect = F,
+settings <- createSccsSimulationSettings(includeAgeEffect = TRUE,
                                          includeCalendarTimeEffect = TRUE,
-                                         includeSeasonality = F)
+                                         includeSeasonality = TRUE)
 
-sccsData <- simulateSccsData(1000, settings)
+sccsData <- simulateSccsData(5000, settings)
 # summary(sccsData)
 ageSettings <- createAgeCovariateSettings(ageKnots = 5,
                                           allowRegularization = TRUE)
@@ -29,8 +29,8 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = covarSettings,
-                                           # ageCovariateSettings = ageSettings,
-                                           # seasonalityCovariateSettings = seasonalitySettings,
+                                           ageCovariateSettings = ageSettings,
+                                           seasonalityCovariateSettings = seasonalitySettings,
                                            calendarTimeCovariateSettings = calendarTimeSettings,
                                            minCasesForTimeCovariates = 10000)
 
