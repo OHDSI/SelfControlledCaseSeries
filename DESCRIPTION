@@ -44,8 +44,7 @@ Suggests:
 	EmpiricalCalibration,
 	Eunomia
 Remotes:
-  ohdsi/Eunomia,
-  ohdsi/SqlRender
+  ohdsi/Eunomia
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
