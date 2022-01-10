@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 3.2.1
+==============================
+
+BugFixes
+
+1. Remove dependency on develop branch of `SqlRender`.
+
+
 SelfControlledCaseSeries 3.2.0
 ==============================
 
