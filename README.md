@@ -2,7 +2,7 @@ SelfControlledCaseSeries
 ========================
 
 [![Build Status](https://github.com/OHDSI/SelfControlledCaseSeries/workflows/R-CMD-check/badge.svg)](https://github.com/OHDSI/SelfControlledCaseSeries/actions?query=workflow%3AR-CMD-check)
-[![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=master)
+[![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=main)](https://codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=main)
 
 SelfControlledCaseSeries is part of [HADES](https://ohdsi.github.io/Hades).
 
@@ -86,9 +86,9 @@ User Documentation
 Documentation can be found on the [package website](https://ohdsi.github.io/SelfControlledCaseSeries).
 
 PDF versions of the documentation are also available:
-* Vignette: [Single studies using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/inst/doc/SingleStudies.pdf)
-* Vignette: [Running multiple analyses at once using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/inst/doc/MultipleAnalyses.pdf)
-* Package manual: [SelfControlledCaseSeries.pdf](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/master/extras/SelfControlledCaseSeries.pdf)
+* Vignette: [Single studies using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/SingleStudies.pdf)
+* Vignette: [Running multiple analyses at once using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/MultipleAnalyses.pdf)
+* Package manual: [SelfControlledCaseSeries.pdf](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/extras/SelfControlledCaseSeries.pdf)
 
 Support
 =======
