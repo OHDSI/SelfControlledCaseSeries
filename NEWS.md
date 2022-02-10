@@ -5,6 +5,8 @@ BugFixes
 
 1. Remove dependency on develop branch of `SqlRender`.
 
+2. Setting the default Cyclops control object to use `resetCoefficients = TRUE` to ensure we always get the exact same model, irrespective of the number of threads used.
+
 
 SelfControlledCaseSeries 3.2.0
 ==============================

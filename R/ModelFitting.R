@@ -54,6 +54,7 @@ fitSccsModel <- function(sccsIntervalData,
                                                  selectorType = "byPid",
                                                  startingVariance = 0.1,
                                                  seed = 1,
+                                                 resetCoefficients = TRUE,
                                                  noiseLevel = "quiet"),
                          profileGrid = NULL,
                          profileBounds = c(log(0.1), log(10))) {

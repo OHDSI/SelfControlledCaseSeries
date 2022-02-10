@@ -116,7 +116,7 @@ createCreateScriIntervalDataArgs <- function(eraCovariateSettings,
 #'
 #' @export
 createFitSccsModelArgs <- function(prior = createPrior("laplace", useCrossValidation = TRUE),
-                                   control = createControl(cvType = "auto", selectorType = "byPid", startingVariance = 0.1, seed = 1, noiseLevel = "quiet"),
+                                   control = createControl(cvType = "auto", selectorType = "byPid", startingVariance = 0.1, seed = 1, resetCoefficients = TRUE, noiseLevel = "quiet"),
                                    profileGrid = NULL,
                                    profileBounds = c(log(0.1), log(10))) {
   analysis <- list()
