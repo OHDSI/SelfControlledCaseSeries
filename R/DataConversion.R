@@ -338,13 +338,19 @@ computeObservedPerMonth <- function(studyPopulation) {
     mutate(startCount = ifelse(is.na(.data$startCount), 0, .data$startCount),
            endCount = ifelse(is.na(.data$endCount), 0, .data$endCount))
 
+  # Adding months with no starts and ends:
+  months <- months %>%
+    full_join(tibble(month = min(months$month):max(months$month)), by = "month") %>%
+    mutate(startCount = if_else(is.na(.data$startCount), 0, .data$startCount),
+           endCount = if_else(is.na(.data$endCount), 0, .data$endCount))
+
   months <- months %>%
     arrange(.data$month) %>%
     mutate(cumStarts = cumsum(.data$startCount),
            cumEnds = cumsum(.data$endCount)) %>%
     mutate(observationPeriodCount = .data$cumStarts - .data$cumEnds) %>%
-    select(.data$month, .data$observationPeriodCount)
-  head(-1)
+    select(.data$month, .data$observationPeriodCount) %>%
+    head(-1)
 
   return(months)
 }

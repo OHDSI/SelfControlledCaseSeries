@@ -7,6 +7,8 @@ BugFixes
 
 2. Setting the default Cyclops control object to use `resetCoefficients = TRUE` to ensure we always get the exact same model, irrespective of the number of threads used.
 
+3. Fixing missing months in `plotEventToCalendarTime()` when there are no observation period starts and ends in those months.
+
 
 SelfControlledCaseSeries 3.2.0
 ==============================
