@@ -74,7 +74,9 @@ createSccsIntervalData <- function(studyPopulation,
   }
 
   timeCovariateCases <- numeric(0)
-  if (!is.null(ageCovariateSettings) || !is.null(seasonalityCovariateSettings)) {
+  if (!is.null(ageCovariateSettings) ||
+      !is.null(seasonalityCovariateSettings) ||
+      !is.null(calendarTimeCovariateSettings)) {
     if (nrow(studyPopulation$cases) > minCasesForTimeCovariates) {
       set.seed(0)
       timeCovariateCases <- sample(studyPopulation$cases$caseId, minCasesForTimeCovariates, replace = FALSE)

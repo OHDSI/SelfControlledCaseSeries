@@ -12,6 +12,8 @@ Bug fixes
 
 1. Fixing missing months in `plotEventToCalendarTime()` when there are no observation period starts and ends in those months.
 
+2. Now limiting the number of unexposed cases when including only a calendar time spline (as set by `minCasesForTimeCovariates`).
+
 
 SelfControlledCaseSeries 3.2.1
 ==============================
