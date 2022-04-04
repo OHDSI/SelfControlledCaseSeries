@@ -1,13 +1,24 @@
+SelfControlledCaseSeries 3.3.0
+==============================
+
+Changes
+
+1. Setting the default Cyclops control object to use `resetCoefficients = TRUE` to ensure we always get the exact same model, irrespective of the number of threads used.
+
+2. Added `maxRatio` argument to `computeTimeStability()`.
+
+
+Bug fixes
+
+1. Fixing missing months in `plotEventToCalendarTime()` when there are no observation period starts and ends in those months.
+
+
 SelfControlledCaseSeries 3.2.1
 ==============================
 
 BugFixes
 
 1. Remove dependency on develop branch of `SqlRender`.
-
-2. Setting the default Cyclops control object to use `resetCoefficients = TRUE` to ensure we always get the exact same model, irrespective of the number of threads used.
-
-3. Fixing missing months in `plotEventToCalendarTime()` when there are no observation period starts and ends in those months.
 
 
 SelfControlledCaseSeries 3.2.0

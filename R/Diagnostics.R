@@ -78,13 +78,16 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
 #' @details
 #' Computes for each calendar month the rate of the outcome, and evaluates whether that rate is constant over time. If
 #' splines are used to adjust for seasonality and/or calendar time, these adjustments are taken into consideration. For each
-#' month a two-sided p-value is computed against the null hypothesis that the rate in that month equals the mean rate. This
-#' p-value is compared to an alpha value, using a Bonferroni correction to adjust for the multiple testing across months.
+#' month a two-sided p-value is computed against the null hypothesis that the rate in that month deviates from the mean rate
+#' no more than `maxRatio`. This p-value is compared to an alpha value, using a Bonferroni correction to adjust for the
+#' multiple testing across months.
 #'
 #' @template StudyPopulation
 #' @param sccsModel         Optional: A fitted SCCS model as created using [fitSccsModel()]. If the
 #'                          model contains splines for seasonality and or calendar time these will be adjusted
 #'                          for before computing stability.
+#' @param maxRatio          The maximum ratio between the (adjusted) rate in a month, and the mean (adjusted) rate that
+#'                          we would consider to be irrelevant.
 #' @param alpha             The alpha (type 1 error) used to test for stability. A Bonferroni correction will
 #'                          be applied for the number of months tested.
 #'
@@ -93,7 +96,7 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
 #' of the outcome is within the expected range for that month, assuming the rate is constant over time.
 #'
 #' @export
-computeTimeStability <- function(studyPopulation, sccsModel = NULL, alpha = 0.05) {
+computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.1, alpha = 0.05) {
   data <- computeOutcomeRatePerMonth(studyPopulation)
   if (is.null(sccsModel)) {
     data <- data %>%
@@ -101,11 +104,10 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, alpha = 0.05
   } else {
     data <- adjustOutcomeRatePerMonth(data, sccsModel)
   }
-
   computeTwoSidedP <- function(observed, expected) {
-    pUpperBound = 1 - ppois(observed, expected, lower.tail = TRUE)
-    pLowerBound = 1 - ppois(observed, expected, lower.tail = FALSE)
-    return(2 * pmin(pUpperBound, pLowerBound))
+    pUpperBound = 1 - ppois(observed, expected * maxRatio, lower.tail = TRUE)
+    pLowerBound = 1 - ppois(observed, expected / maxRatio, lower.tail = FALSE)
+    return(min(1, 2 * pmin(pUpperBound, pLowerBound)))
   }
 
   # Season and calendar time splines lack intercept, so need to compute expected count in indirect way:
