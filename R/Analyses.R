@@ -53,8 +53,18 @@ createSccsAnalysis <- function(analysisId = 1,
                                createSccsIntervalDataArgs = NULL,
                                createScriIntervalDataArgs = NULL,
                                fitSccsModelArgs) {
-  if (!toupper(design) %in% c("SCCS", "SCRI"))
-    stop("The design argument should be either 'SCCS' or 'SCRI'")
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertInt(analysisId, add = errorMessages)
+  checkmate::assertCharacter(description, len = 1, add = errorMessages)
+  checkmate::assertCharacter(exposureType, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(outcomeType, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertClass(getDbSccsDataArgs, "args", add = errorMessages)
+  checkmate::assertClass(createStudyPopulationArgs, "args", add = errorMessages)
+  checkmate::assertChoice(toupper(design), .var.name = "design", c("SCCS", "SCRI"), add = errorMessages)
+  checkmate::assertClass(createSccsIntervalDataArgs, "args", null.ok = TRUE, add = errorMessages)
+  checkmate::assertClass(createScriIntervalDataArgs, "args", null.ok = TRUE, add = errorMessages)
+  checkmate::assertClass(fitSccsModelArgs, "args", add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (toupper(design) == "SCCS" && is.null(createSccsIntervalDataArgs))
     stop("Must provide createSccsIntervalDataArgs argument when design = 'SCCS'")
   if (toupper(design) == "SCRI" && is.null(createScriIntervalDataArgs))
@@ -77,11 +87,13 @@ createSccsAnalysis <- function(analysisId = 1,
 #'
 #' @export
 saveSccsAnalysisList <- function(sccsAnalysisList, file) {
-  stopifnot(is.list(sccsAnalysisList))
-  stopifnot(length(sccsAnalysisList) > 0)
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(sccsAnalysisList, min.len = 1, add = errorMessages)
   for (i in 1:length(sccsAnalysisList)) {
-    stopifnot(class(sccsAnalysisList[[i]]) == "sccsAnalysis")
+    checkmate::assertClass(sccsAnalysisList[[i]], "sccsAnalysis", add = errorMessages)
   }
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   ParallelLogger::saveSettingsToJson(sccsAnalysisList, file)
 }
 
@@ -98,6 +110,9 @@ saveSccsAnalysisList <- function(sccsAnalysisList, file) {
 #'
 #' @export
 loadSccsAnalysisList <- function(file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   return(ParallelLogger::loadSettingsFromJson(file))
 }
 
@@ -116,6 +131,12 @@ loadSccsAnalysisList <- function(file) {
 #'
 #' @export
 createExposureOutcome <- function(exposureId, outcomeId, ...) {
+  errorMessages <- checkmate::makeAssertCollection()
+  if (!is.list(exposureId))
+    checkmate::assertInt(exposureId, add = errorMessages)
+  if (!is.list(outcomeId))
+    checkmate::assertInt(outcomeId, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
 
   exposureOutcome <- list(...)
   exposureOutcome$exposureId <- exposureId
@@ -134,11 +155,13 @@ createExposureOutcome <- function(exposureId, outcomeId, ...) {
 #'
 #' @export
 saveExposureOutcomeList <- function(exposureOutcomeList, file) {
-  stopifnot(is.list(exposureOutcomeList))
-  stopifnot(length(exposureOutcomeList) > 0)
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(exposureOutcomeList, min.len = 1, add = errorMessages)
   for (i in 1:length(exposureOutcomeList)) {
-    stopifnot(class(exposureOutcomeList[[i]]) == "exposureOutcome")
+    checkmate::assertClass(exposureOutcomeList[[i]], "exposureOutcome", add = errorMessages)
   }
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   ParallelLogger::saveSettingsToJson(exposureOutcomeList, file)
 }
 
@@ -154,5 +177,8 @@ saveExposureOutcomeList <- function(exposureOutcomeList, file) {
 #'
 #' @export
 loadExposureOutcomeList <- function(file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   return(ParallelLogger::loadSettingsFromJson(file))
 }

@@ -57,6 +57,23 @@ createSccsIntervalData <- function(studyPopulation,
                                    minCasesForAgeSeason = NULL,
                                    minCasesForTimeCovariates = 10000,
                                    eventDependentObservation = FALSE) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  if (is.list(eraCovariateSettings) && class(eraCovariateSettings) != "EraCovariateSettings") {
+    for (i in 1:length(eraCovariateSettings))
+      checkmate::assertClass(eraCovariateSettings[[i]], "EraCovariateSettings", add = errorMessages)
+  } else {
+    checkmate::assertClass(eraCovariateSettings, "EraCovariateSettings", add = errorMessages)
+  }
+  checkmate::assertClass(ageCovariateSettings, "ageSettings", null.ok = TRUE, add = errorMessages)
+  checkmate::assertClass(seasonalityCovariateSettings, "SeasonalityCovariateSettings", null.ok = TRUE, add = errorMessages)
+  checkmate::assertClass(calendarTimeCovariateSettings, "CalendarTimeCovariateSettings", null.ok = TRUE, add = errorMessages)
+  checkmate::assertInt(minCasesForAgeSeason, lower = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertInt(minCasesForTimeCovariates, lower = 1, add = errorMessages)
+  checkmate::assertLogical(eventDependentObservation, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (!is.null(minCasesForAgeSeason)) {
     warning("Argument 'minCasesForAgeSeason' in 'createSccsIntervalData()' is deprecated. Use 'minCasesForTimeCovariates' instead.")
     minCasesForTimeCovariates <- minCasesForAgeSeason
@@ -512,6 +529,11 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
 #'
 #' @export
 cyclicSplineDesign <- function(x, knots, ord = 4) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertNumeric(x, min.len = 1, add = errorMessages)
+  checkmate::assertNumeric(knots, min.len = 1, add = errorMessages)
+  checkmate::assertInt(ord, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   nk <- length(knots)
   if (ord < 2)
     stop("order too low")

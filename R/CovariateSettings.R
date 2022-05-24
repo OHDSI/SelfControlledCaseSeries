@@ -65,6 +65,20 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
                                        splitPoints = c(),
                                        allowRegularization = FALSE,
                                        profileLikelihood = FALSE) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertIntegerish(includeEraIds, null.ok = TRUE, add = errorMessages)
+  checkmate::assertIntegerish(excludeEraIds, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(label, len = 1, add = errorMessages)
+  checkmate::assertLogical(stratifyById, len = 1, add = errorMessages)
+  checkmate::assertInt(start, add = errorMessages)
+  checkmate::assertCharacter(startAnchor, len = 1, add = errorMessages)
+  checkmate::assertInt(end, add = errorMessages)
+  checkmate::assertCharacter(endAnchor, len = 1, add = errorMessages)
+  checkmate::assertLogical(firstOccurrenceOnly, len = 1, add = errorMessages)
+  checkmate::assertIntegerish(splitPoints, null.ok = TRUE, add = errorMessages)
+  checkmate::assertLogical(allowRegularization, len = 1, add = errorMessages)
+  checkmate::assertLogical(profileLikelihood, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (allowRegularization && profileLikelihood)
     stop("Cannot profile the likelihood of regularized covariates")
   if (!grepl("start$|end$", startAnchor, ignore.case = TRUE)) {
@@ -126,6 +140,11 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
 createAgeCovariateSettings <- function(ageKnots = 5,
                                        allowRegularization = FALSE,
                                        computeConfidenceIntervals = FALSE) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertInt(ageKnots, lower = 1, add = errorMessages)
+  checkmate::assertLogical(allowRegularization, len = 1, add = errorMessages)
+  checkmate::assertLogical(computeConfidenceIntervals, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (computeConfidenceIntervals && allowRegularization) {
     computeConfidenceIntervals <- FALSE
     warning("computeConfidenceIntervals is set to FALSE because allowRegularization is TRUE")
@@ -165,6 +184,11 @@ createAgeCovariateSettings <- function(ageKnots = 5,
 createSeasonalityCovariateSettings <- function(seasonKnots = 5,
                                                allowRegularization = FALSE,
                                                computeConfidenceIntervals = FALSE) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertInt(seasonKnots, lower = 1, add = errorMessages)
+  checkmate::assertLogical(allowRegularization, len = 1, add = errorMessages)
+  checkmate::assertLogical(computeConfidenceIntervals, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (computeConfidenceIntervals && allowRegularization) {
     computeConfidenceIntervals <- FALSE
     warning("computeConfidenceIntervals is set to FALSE because allowRegularization is TRUE")
@@ -207,6 +231,11 @@ createSeasonalityCovariateSettings <- function(seasonKnots = 5,
 createCalendarTimeCovariateSettings <- function(calendarTimeKnots = 5,
                                                 allowRegularization = FALSE,
                                                 computeConfidenceIntervals = FALSE) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertInt(calendarTimeKnots, lower = 1, add = errorMessages)
+  checkmate::assertLogical(allowRegularization, len = 1, add = errorMessages)
+  checkmate::assertLogical(computeConfidenceIntervals, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (length(calendarTimeKnots) != 1 && !is(calendarTimeKnots, "Date")) {
     stop("The 'calendarTimeKnots' should be either a single integer or a vector of dates.")
   }
@@ -252,6 +281,15 @@ createControlIntervalSettings <- function(includeEraIds = NULL,
                                           end = 0,
                                           endAnchor = "era end",
                                           firstOccurrenceOnly = FALSE) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertIntegerish(includeEraIds, null.ok = TRUE, add = errorMessages)
+  checkmate::assertIntegerish(excludeEraIds, null.ok = TRUE, add = errorMessages)
+  checkmate::assertInt(start, add = errorMessages)
+  checkmate::assertCharacter(startAnchor, len = 1, add = errorMessages)
+  checkmate::assertInt(end, add = errorMessages)
+  checkmate::assertCharacter(endAnchor, len = 1, add = errorMessages)
+  checkmate::assertLogical(firstOccurrenceOnly, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (!grepl("start$|end$", startAnchor, ignore.case = TRUE)) {
     stop("startAnchor should have value 'era start' or 'era end'")
   }

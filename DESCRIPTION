@@ -36,7 +36,8 @@ Imports:
 	methods,
 	utils,
 	cli,
-	pillar
+	pillar,
+	checkmate
 Suggests:
 	testthat,
 	knitr,
