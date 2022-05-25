@@ -133,30 +133,39 @@ runSccsAnalyses <- function(connectionDetails,
                             fitSccsModelThreads = 1,
                             cvThreads = 1,
                             analysesToExclude = NULL) {
-  for (exposureOutcome in exposureOutcomeList)
+  for (exposureOutcome in exposureOutcomeList) {
     stopifnot(class(exposureOutcome) == "exposureOutcome")
-  for (sccsAnalysis in sccsAnalysisList)
+  }
+  for (sccsAnalysis in sccsAnalysisList) {
     stopifnot(class(sccsAnalysis) == "sccsAnalysis")
+  }
   if (!is.null(oracleTempSchema) && oracleTempSchema != "") {
     warning("The 'oracleTempSchema' argument is deprecated. Use 'tempEmulationSchema' instead.")
     tempEmulationSchema <- oracleTempSchema
   }
-  uniqueExposureOutcomeList <- unique(ParallelLogger::selectFromList(exposureOutcomeList,
-                                                                     c("exposureId", "outcomeId")))
-  if (length(uniqueExposureOutcomeList) != length(exposureOutcomeList))
+  uniqueExposureOutcomeList <- unique(ParallelLogger::selectFromList(
+    exposureOutcomeList,
+    c("exposureId", "outcomeId")
+  ))
+  if (length(uniqueExposureOutcomeList) != length(exposureOutcomeList)) {
     stop("Duplicate exposure-outcomes pairs are not allowed")
+  }
   uniqueAnalysisIds <- unlist(unique(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId")))
-  if (length(uniqueAnalysisIds) != length(sccsAnalysisList))
+  if (length(uniqueAnalysisIds) != length(sccsAnalysisList)) {
     stop("Duplicate analysis IDs are not allowed")
+  }
 
-  if (!file.exists(outputFolder))
+  if (!file.exists(outputFolder)) {
     dir.create(outputFolder)
+  }
 
-  referenceTable <- createReferenceTable(sccsAnalysisList,
-                                         exposureOutcomeList,
-                                         outputFolder,
-                                         combineDataFetchAcrossOutcomes,
-                                         analysesToExclude)
+  referenceTable <- createReferenceTable(
+    sccsAnalysisList,
+    exposureOutcomeList,
+    outputFolder,
+    combineDataFetchAcrossOutcomes,
+    analysesToExclude
+  )
 
   sccsAnalysisPerRow <- attr(referenceTable, "sccsAnalysisPerRow")
   instantiatedExposureOutcomePerRow <- attr(referenceTable, "instantiatedExposureOutcomePerRow")
@@ -171,38 +180,44 @@ runSccsAnalyses <- function(connectionDetails,
         head(1)
 
       loadConcepts <- loadConceptsPerLoad[[referenceRow$loadId]]
-      if (length(loadConcepts$exposureIds) == 1 && loadConcepts$exposureIds[1] == "all")
+      if (length(loadConcepts$exposureIds) == 1 && loadConcepts$exposureIds[1] == "all") {
         loadConcepts$exposureIds <- c()
+      }
       useCustomCovariates <- (length(loadConcepts$customCovariateIds) > 0)
-      if (length(loadConcepts$customCovariateIds) == 1 && loadConcepts$customCovariateIds[1] == "all")
+      if (length(loadConcepts$customCovariateIds) == 1 && loadConcepts$customCovariateIds[1] == "all") {
         loadConcepts$customCovariateIds <- c()
+      }
       outcomeIds <- unique(loadConcepts$outcomeIds)
       exposureIds <- unique(loadConcepts$exposureIds)
       customCovariateIds <- unique(loadConcepts$customCovariateIds)
-      args <- list(connectionDetails = connectionDetails,
-                   cdmDatabaseSchema = cdmDatabaseSchema,
-                   tempEmulationSchema = tempEmulationSchema,
-                   exposureDatabaseSchema = exposureDatabaseSchema,
-                   exposureTable = exposureTable,
-                   outcomeDatabaseSchema = outcomeDatabaseSchema,
-                   outcomeTable = outcomeTable,
-                   customCovariateDatabaseSchema = customCovariateDatabaseSchema,
-                   customCovariateTable = customCovariateTable,
-                   nestingCohortDatabaseSchema = nestingCohortDatabaseSchema,
-                   nestingCohortTable = nestingCohortTable,
-                   cdmVersion = cdmVersion,
-                   exposureIds = exposureIds,
-                   outcomeIds = outcomeIds,
-                   useCustomCovariates = useCustomCovariates,
-                   customCovariateIds = customCovariateIds,
-                   useNestingCohort = loadConcepts$nestingCohortId != -1,
-                   nestingCohortId = loadConcepts$nestingCohortId,
-                   deleteCovariatesSmallCount = loadConcepts$deleteCovariatesSmallCount,
-                   studyStartDate = loadConcepts$studyStartDate,
-                   studyEndDate = loadConcepts$studyEndDate,
-                   maxCasesPerOutcome = loadConcepts$maxCasesPerOutcome)
-      sccsDataObjectsToCreate[[length(sccsDataObjectsToCreate) + 1]] <- list(args = args,
-                                                                             sccsDataFileName = file.path(outputFolder, sccsDataFileName))
+      args <- list(
+        connectionDetails = connectionDetails,
+        cdmDatabaseSchema = cdmDatabaseSchema,
+        tempEmulationSchema = tempEmulationSchema,
+        exposureDatabaseSchema = exposureDatabaseSchema,
+        exposureTable = exposureTable,
+        outcomeDatabaseSchema = outcomeDatabaseSchema,
+        outcomeTable = outcomeTable,
+        customCovariateDatabaseSchema = customCovariateDatabaseSchema,
+        customCovariateTable = customCovariateTable,
+        nestingCohortDatabaseSchema = nestingCohortDatabaseSchema,
+        nestingCohortTable = nestingCohortTable,
+        cdmVersion = cdmVersion,
+        exposureIds = exposureIds,
+        outcomeIds = outcomeIds,
+        useCustomCovariates = useCustomCovariates,
+        customCovariateIds = customCovariateIds,
+        useNestingCohort = loadConcepts$nestingCohortId != -1,
+        nestingCohortId = loadConcepts$nestingCohortId,
+        deleteCovariatesSmallCount = loadConcepts$deleteCovariatesSmallCount,
+        studyStartDate = loadConcepts$studyStartDate,
+        studyEndDate = loadConcepts$studyEndDate,
+        maxCasesPerOutcome = loadConcepts$maxCasesPerOutcome
+      )
+      sccsDataObjectsToCreate[[length(sccsDataObjectsToCreate) + 1]] <- list(
+        args = args,
+        sccsDataFileName = file.path(outputFolder, sccsDataFileName)
+      )
     }
   }
 
@@ -215,9 +230,11 @@ runSccsAnalyses <- function(connectionDetails,
     analysisRow <- sccsAnalysisPerRow[[refRow$rowId]]
     args <- analysisRow$createStudyPopulationArgs
     args$outcomeId <- refRow$outcomeId
-    studyPopFilesToCreate[[length(studyPopFilesToCreate) + 1]] <- list(args = args,
-                                                                       sccsDataFile = file.path(outputFolder, refRow$sccsDataFile),
-                                                                       studyPopFile = file.path(outputFolder, refRow$studyPopFile))
+    studyPopFilesToCreate[[length(studyPopFilesToCreate) + 1]] <- list(
+      args = args,
+      sccsDataFile = file.path(outputFolder, refRow$sccsDataFile),
+      studyPopFile = file.path(outputFolder, refRow$studyPopFile)
+    )
   }
 
   # Create arguments for interval data objects ---------------------------------------------------
@@ -236,8 +253,9 @@ runSccsAnalyses <- function(connectionDetails,
       args <- analysisRow$createScriIntervalDataArgs
     }
     covariateSettings <- args$eraCovariateSettings
-    if (is(covariateSettings, "EraCovariateSettings"))
+    if (is(covariateSettings, "EraCovariateSettings")) {
       covariateSettings <- list(covariateSettings)
+    }
     if (!sccs) {
       covariateSettings[[length(covariateSettings) + 1]] <- args$controlIntervalSettings
     }
@@ -247,8 +265,9 @@ runSccsAnalyses <- function(connectionDetails,
       if (length(settings$includeEraIds) != 0) {
         for (includeEraId in settings$includeEraIds) {
           if (is.character(includeEraId)) {
-            if (is.null(exposureOutcome[[includeEraId]]))
+            if (is.null(exposureOutcome[[includeEraId]])) {
               stop(paste("Variable", includeEraId, " not found in exposure-outcome pair"))
+            }
             includeEraIds <- c(includeEraIds, exposureOutcome[[includeEraId]])
           } else {
             includeEraIds <- c(includeEraIds, includeEraId)
@@ -259,8 +278,9 @@ runSccsAnalyses <- function(connectionDetails,
       if (length(settings$excludeEraIds) != 0) {
         for (excludeEraId in settings$excludeEraIds) {
           if (is.character(excludeEraId)) {
-            if (is.null(exposureOutcome[[excludeEraId]]))
+            if (is.null(exposureOutcome[[excludeEraId]])) {
               stop(paste("Variable", excludeEraId, " not found in exposure-outcome pair"))
+            }
             excludeEraIds <- c(excludeEraIds, exposureOutcome[[excludeEraId]])
           } else {
             excludeEraIds <- c(excludeEraIds, excludeEraId)
@@ -279,11 +299,13 @@ runSccsAnalyses <- function(connectionDetails,
     }
     sccsDataFileName <- refRow$sccsDataFile
     studyPopFile <- refRow$studyPopFile
-    sccsIntervalDataObjectsToCreate[[length(sccsIntervalDataObjectsToCreate) + 1]] <- list(args = args,
-                                                                                           sccs = sccs,
-                                                                                           sccsDataFileName = file.path(outputFolder, sccsDataFileName),
-                                                                                           studyPopFile = file.path(outputFolder, studyPopFile),
-                                                                                           sccsIntervalDataFileName = file.path(outputFolder, sccsIntervalDataFile))
+    sccsIntervalDataObjectsToCreate[[length(sccsIntervalDataObjectsToCreate) + 1]] <- list(
+      args = args,
+      sccs = sccs,
+      sccsDataFileName = file.path(outputFolder, sccsDataFileName),
+      studyPopFile = file.path(outputFolder, studyPopFile),
+      sccsIntervalDataFileName = file.path(outputFolder, sccsIntervalDataFile)
+    )
   }
 
   # Create arguments for model objects ---------------------------------------------
@@ -295,9 +317,11 @@ runSccsAnalyses <- function(connectionDetails,
     analysisRow <- sccsAnalysisPerRow[[refRow$rowId]]
     args <- analysisRow$fitSccsModelArgs
     args$control$threads <- cvThreads
-    sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(args = args,
-                                                                             sccsIntervalDataFileName = file.path(outputFolder, refRow$sccsIntervalDataFile),
-                                                                             sccsModelFileName = file.path(outputFolder, sccsModelFile))
+    sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(
+      args = args,
+      sccsIntervalDataFileName = file.path(outputFolder, refRow$sccsIntervalDataFile),
+      sccsModelFileName = file.path(outputFolder, sccsModelFile)
+    )
   }
 
   referenceTable$loadId <- NULL
@@ -358,10 +382,12 @@ createReferenceTable <- function(sccsAnalysisList,
       instantiatedExposureOutcome <- exposureOutcome
       instantiatedExposureOutcome$exposureId <- .selectByType(sccsAnalysis$exposureType, exposureOutcome$exposureId, "exposure")
       instantiatedExposureOutcome$outcomeId <- .selectByType(sccsAnalysis$outcomeType, exposureOutcome$outcomeId, "outcome")
-      row <- tibble(rowId = rowId,
-                    exposureId = instantiatedExposureOutcome$exposureId,
-                    outcomeId = instantiatedExposureOutcome$outcomeId,
-                    analysisId = sccsAnalysis$analysisId)
+      row <- tibble(
+        rowId = rowId,
+        exposureId = instantiatedExposureOutcome$exposureId,
+        outcomeId = instantiatedExposureOutcome$outcomeId,
+        analysisId = sccsAnalysis$analysisId
+      )
       referenceTable <- rbind(referenceTable, row)
       sccsAnalysisPerRow[[rowId]] <- sccsAnalysis
       instantiatedExposureOutcomePerRow[[rowId]] <- instantiatedExposureOutcome
@@ -384,8 +410,9 @@ createReferenceTable <- function(sccsAnalysisList,
       } else {
         for (exposureId in sccsAnalysis$getDbSccsDataArgs$exposureIds) {
           if (suppressWarnings(is.na(as.numeric(exposureId)))) {
-            if (is.null(exposureOutcome[[exposureId]]))
+            if (is.null(exposureOutcome[[exposureId]])) {
               stop(paste("Variable", exposureId, " not found in exposure-outcome pair"))
+            }
             exposureIds <- c(exposureIds, exposureOutcome[[exposureId]])
           } else {
             exposureIds <- c(exposureIds, as.numeric(exposureId))
@@ -400,8 +427,9 @@ createReferenceTable <- function(sccsAnalysisList,
         } else {
           for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
             if (is.character(customCovariateId)) {
-              if (is.null(exposureOutcome[[customCovariateId]]))
+              if (is.null(exposureOutcome[[customCovariateId]])) {
                 stop(paste("Variable", customCovariateId, " not found in exposure-outcome pair"))
+              }
               customCovariateIds <- c(customCovariateIds, exposureOutcome[[customCovariateId]])
             } else {
               customCovariateIds <- c(customCovariateIds, customCovariateId)
@@ -413,15 +441,17 @@ createReferenceTable <- function(sccsAnalysisList,
       if (sccsAnalysis$getDbSccsDataArgs$useNestingCohort) {
         nestingCohortId <- sccsAnalysis$getDbSccsDataArgs$nestingCohortId
       }
-      row <- list(outcomeId = outcomeId,
-                  exposureIds = exposureIds,
-                  customCovariateIds = customCovariateIds,
-                  nestingCohortId = nestingCohortId,
-                  deleteCovariatesSmallCount = sccsAnalysis$getDbSccsDataArgs$deleteCovariatesSmallCount,
-                  studyStartDate = sccsAnalysis$getDbSccsDataArgs$studyStartDate,
-                  studyEndDate = sccsAnalysis$getDbSccsDataArgs$studyEndDate,
-                  maxCasesPerOutcome = sccsAnalysis$getDbSccsDataArgs$maxCasesPerOutcome,
-                  rowId = rowId)
+      row <- list(
+        outcomeId = outcomeId,
+        exposureIds = exposureIds,
+        customCovariateIds = customCovariateIds,
+        nestingCohortId = nestingCohortId,
+        deleteCovariatesSmallCount = sccsAnalysis$getDbSccsDataArgs$deleteCovariatesSmallCount,
+        studyStartDate = sccsAnalysis$getDbSccsDataArgs$studyStartDate,
+        studyEndDate = sccsAnalysis$getDbSccsDataArgs$studyEndDate,
+        maxCasesPerOutcome = sccsAnalysis$getDbSccsDataArgs$maxCasesPerOutcome,
+        rowId = rowId
+      )
       conceptsPerLoad[[length(conceptsPerLoad) + 1]] <- row
       rowId <- rowId + 1
     }
@@ -429,20 +459,28 @@ createReferenceTable <- function(sccsAnalysisList,
 
   # Group loads where possible
   if (combineDataFetchAcrossOutcomes) {
-    uniqueLoads <- unique(ParallelLogger::selectFromList(conceptsPerLoad,
-                                                         c("nestingCohortId",
-                                                           "deleteCovariatesSmallCount",
-                                                           "studyStartDate",
-                                                           "studyEndDate",
-                                                           "maxCasesPerOutcome")))
+    uniqueLoads <- unique(ParallelLogger::selectFromList(
+      conceptsPerLoad,
+      c(
+        "nestingCohortId",
+        "deleteCovariatesSmallCount",
+        "studyStartDate",
+        "studyEndDate",
+        "maxCasesPerOutcome"
+      )
+    ))
   } else {
-    uniqueLoads <- unique(ParallelLogger::selectFromList(conceptsPerLoad,
-                                                         c("nestingCohortId",
-                                                           "deleteCovariatesSmallCount",
-                                                           "studyStartDate",
-                                                           "studyEndDate",
-                                                           "maxCasesPerOutcome",
-                                                           "outcomeId")))
+    uniqueLoads <- unique(ParallelLogger::selectFromList(
+      conceptsPerLoad,
+      c(
+        "nestingCohortId",
+        "deleteCovariatesSmallCount",
+        "studyStartDate",
+        "studyEndDate",
+        "maxCasesPerOutcome",
+        "outcomeId"
+      )
+    ))
   }
 
   # Compute unions of concept sets
@@ -474,14 +512,16 @@ createReferenceTable <- function(sccsAnalysisList,
       }
       rowIds <- c(rowIds, groupable$rowId)
     }
-    loadConceptsPerLoad[[loadId]] <- list(exposureIds = exposureIds,
-                                   outcomeIds = outcomeIds,
-                                   customCovariateIds = customCovariateIds,
-                                   nestingCohortId = groupables[[1]]$nestingCohortId,
-                                   deleteCovariatesSmallCount = groupables[[1]]$deleteCovariatesSmallCount,
-                                   studyStartDate = groupables[[1]]$studyStartDate,
-                                   studyEndDate = groupables[[1]]$studyEndDate,
-                                   maxCasesPerOutcome = groupables[[1]]$maxCasesPerOutcome)
+    loadConceptsPerLoad[[loadId]] <- list(
+      exposureIds = exposureIds,
+      outcomeIds = outcomeIds,
+      customCovariateIds = customCovariateIds,
+      nestingCohortId = groupables[[1]]$nestingCohortId,
+      deleteCovariatesSmallCount = groupables[[1]]$deleteCovariatesSmallCount,
+      studyStartDate = groupables[[1]]$studyStartDate,
+      studyEndDate = groupables[[1]]$studyEndDate,
+      maxCasesPerOutcome = groupables[[1]]$maxCasesPerOutcome
+    )
     sccsDataFileName <- .createSccsDataFileName(loadId)
     referenceTable$loadId[rowIds] <- loadId
     referenceTable$sccsDataFile[rowIds] <- sccsDataFileName
@@ -491,16 +531,26 @@ createReferenceTable <- function(sccsAnalysisList,
   # Add study population filenames --------------------------
   analysisIds <- unlist(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId"))
   uniqueStudyPopArgs <- unique(ParallelLogger::selectFromList(sccsAnalysisList, "createStudyPopulationArgs"))
-  uniqueStudyPopArgs <- lapply(uniqueStudyPopArgs, function(x) return(x[[1]]))
-  studyPopId <- sapply(sccsAnalysisList,
-                       function(sccsAnalysis, uniqueStudyPopArgs) return(which.list(uniqueStudyPopArgs,
-                                                                                    sccsAnalysis$createStudyPopulationArgs)),
-                       uniqueStudyPopArgs)
+  uniqueStudyPopArgs <- lapply(uniqueStudyPopArgs, function(x) {
+    return(x[[1]])
+  })
+  studyPopId <- sapply(
+    sccsAnalysisList,
+    function(sccsAnalysis, uniqueStudyPopArgs) {
+      return(which.list(
+        uniqueStudyPopArgs,
+        sccsAnalysis$createStudyPopulationArgs
+      ))
+    },
+    uniqueStudyPopArgs
+  )
   analysisIdToStudyPopId <- tibble(analysisId = analysisIds, studyPopId = studyPopId)
   referenceTable <- inner_join(referenceTable, analysisIdToStudyPopId, by = "analysisId")
-  referenceTable$studyPopFile <- .createStudyPopulationFileName(loadId = referenceTable$loadId,
-                                                                studyPopId = referenceTable$studyPopId,
-                                                                outcomeId = referenceTable$outcomeId)
+  referenceTable$studyPopFile <- .createStudyPopulationFileName(
+    loadId = referenceTable$loadId,
+    studyPopId = referenceTable$studyPopId,
+    outcomeId = referenceTable$outcomeId
+  )
 
   # Add interval data and model filenames -----------------------------------------------------
   for (sccsAnalysis in sccsAnalysisList) {
@@ -511,16 +561,20 @@ createReferenceTable <- function(sccsAnalysisList,
   }
 
   generateFileName <- function(i) {
-    return(.createSccsIntervalDataFileName(paste("Analysis_", referenceTable$analysisId[i], sep = ""),
-                                           referenceTable$exposureId[i],
-                                           referenceTable$outcomeId[i]))
+    return(.createSccsIntervalDataFileName(
+      paste("Analysis_", referenceTable$analysisId[i], sep = ""),
+      referenceTable$exposureId[i],
+      referenceTable$outcomeId[i]
+    ))
   }
   referenceTable$sccsIntervalDataFile <- generateFileName(1:nrow(referenceTable))
 
   generateFileName <- function(i) {
-    return(.createSccsModelFileName(paste("Analysis_", referenceTable$analysisId[i], sep = ""),
-                                    referenceTable$exposureId[i],
-                                    referenceTable$outcomeId[i]))
+    return(.createSccsModelFileName(
+      paste("Analysis_", referenceTable$analysisId[i], sep = ""),
+      referenceTable$exposureId[i],
+      referenceTable$outcomeId[i]
+    ))
   }
   referenceTable$sccsModelFile <- generateFileName(1:nrow(referenceTable))
 
@@ -535,9 +589,11 @@ createReferenceTable <- function(sccsAnalysisList,
     referenceTable <- referenceTable %>%
       anti_join(analysesToExclude, by = matchingColumns)
     countAfter <- nrow(referenceTable)
-    ParallelLogger::logInfo(sprintf("Removed %d of the %d exposure-outcome-analysis combinations as specified by the user.",
-                                    countBefore - countAfter,
-                                    countBefore))
+    ParallelLogger::logInfo(sprintf(
+      "Removed %d of the %d exposure-outcome-analysis combinations as specified by the user.",
+      countBefore - countAfter,
+      countBefore
+    ))
   }
 
   return(referenceTable)
@@ -545,7 +601,11 @@ createReferenceTable <- function(sccsAnalysisList,
 
 which.list <- function(list, object) {
   return(do.call("c", lapply(1:length(list), function(i, list, object) {
-    if (identical(list[[i]], object)) return(i) else return(c())
+    if (identical(list[[i]], object)) {
+      return(i)
+    } else {
+      return(c())
+    }
   }, list, object)))
 }
 
@@ -596,9 +656,11 @@ createSccsModelObject <- function(params) {
   sccsIntervalData <- loadSccsIntervalData(params$sccsIntervalDataFileName)
   params$args$sccsIntervalData <- sccsIntervalData
   # sccsModel <- do.call("fitSccsModel", params$args)
-  sccsModel <- fitSccsModel(sccsIntervalData = sccsIntervalData,
-                            prior = params$args$prior,
-                            control = params$args$control)
+  sccsModel <- fitSccsModel(
+    sccsIntervalData = sccsIntervalData,
+    prior = params$args$prior,
+    control = params$args$control
+  )
   saveRDS(sccsModel, params$sccsModelFileName)
   return(NULL)
 }
@@ -633,9 +695,10 @@ createSccsModelObject <- function(params) {
   if (is.null(type)) {
     if (is.list(value)) {
       stop(paste("Multiple ",
-                 label,
-                 "s specified, but none selected in analyses (comparatorType).",
-                 sep = ""))
+        label,
+        "s specified, but none selected in analyses (comparatorType).",
+        sep = ""
+      ))
     }
     return(value)
   } else {
@@ -672,25 +735,31 @@ summarizeSccsAnalyses <- function(referenceTable, outputFolder) {
     estimates <- sccsModel$estimates[sccsModel$estimates$originalEraId == referenceTable$exposureId[i], ]
     if (!is.null(estimates) && nrow(estimates) != 0) {
       for (j in 1:nrow(estimates)) {
-        estimatesToInsert <- c(rr = exp(estimates$logRr[j]),
-                               ci95lb = exp(estimates$logLb95[j]),
-                               ci95ub = exp(estimates$logUb95[j]),
-                               logRr = estimates$logRr[j],
-                               seLogRr = estimates$seLogRr[j],
-                               llr = estimates$llr)
+        estimatesToInsert <- c(
+          rr = exp(estimates$logRr[j]),
+          ci95lb = exp(estimates$logLb95[j]),
+          ci95ub = exp(estimates$logUb95[j]),
+          logRr = estimates$logRr[j],
+          seLogRr = estimates$seLogRr[j],
+          llr = estimates$llr
+        )
         if (grepl(".*, day -?[0-9]+--?[0-9]*$", estimates$covariateName[j])) {
           name <- as.character(estimates$covariateName[j])
-          pos1 <- attr(regexpr("^[^:]*:", name),"match.length") - 1
+          pos1 <- attr(regexpr("^[^:]*:", name), "match.length") - 1
           pos2 <- regexpr(", day -?[0-9]+--?[0-9]*$", name) + 2
-          label <- paste(substr(name, 1, pos1),
-                         substr(name, pos2, nchar(name)))
+          label <- paste(
+            substr(name, 1, pos1),
+            substr(name, pos2, nchar(name))
+          )
         } else {
           label <- sub(":.*$", "", estimates$covariateName[j])
         }
-        names(estimatesToInsert) <- paste0(names(estimatesToInsert),
-                                           "(",
-                                           label,
-                                           ")")
+        names(estimatesToInsert) <- paste0(
+          names(estimatesToInsert),
+          "(",
+          label,
+          ")"
+        )
         for (colName in names(estimatesToInsert)) {
           if (!(colName %in% colnames(result))) {
             result$newVar <- as.numeric(NA)

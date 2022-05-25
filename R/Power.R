@@ -47,8 +47,9 @@ computeMdrr <- function(sccsIntervalData,
                         power = 0.8,
                         twoSided = TRUE,
                         method = "SRL1") {
-  if (!method %in% c("proportion", "binomial", "SRL1", "SRL2", "ageEffects"))
+  if (!method %in% c("proportion", "binomial", "SRL1", "SRL2", "ageEffects")) {
     stop("Method must be either 'proportion', 'binomial', 'SRL1', 'SRL2', or 'ageEffects'.")
+  }
 
   # Check if there is anyone with the exposure at all;
   nExposed <- sccsIntervalData$covariates %>%
@@ -56,12 +57,14 @@ computeMdrr <- function(sccsIntervalData,
     count() %>%
     pull()
   if (nExposed == 0) {
-    result <- tibble(timeExposed = 0,
-                     timeTotal = 0,
-                     propTimeExposed = 0,
-                     propPopulationExposed = 0,
-                     events = 0,
-                     mdrr = Inf)
+    result <- tibble(
+      timeExposed = 0,
+      timeTotal = 0,
+      propTimeExposed = 0,
+      propPopulationExposed = 0,
+      events = 0,
+      mdrr = Inf
+    )
     return(result)
   }
 
@@ -76,9 +79,11 @@ computeMdrr <- function(sccsIntervalData,
 
   overall <- sccsIntervalData$outcomes %>%
     filter(.data$stratumId %in% exposedStratumIds) %>%
-    summarise(time = sum(.data$time, na.rm = TRUE),
-              observationPeriods = n_distinct(.data$stratumId),
-              events = sum(.data$y, na.rm = TRUE)) %>%
+    summarise(
+      time = sum(.data$time, na.rm = TRUE),
+      observationPeriods = n_distinct(.data$stratumId),
+      events = sum(.data$y, na.rm = TRUE)
+    ) %>%
     collect()
 
   exposed <- sccsIntervalData$outcomes %>%
@@ -101,57 +106,57 @@ computeMdrr <- function(sccsIntervalData,
 
   if (method == "distribution") {
     # expression 5
-    computePower <- function(p, z, r, n, alpha)
-    {
+    computePower <- function(p, z, r, n, alpha) {
       zbnum <- log(p) * sqrt(n * p * r * (1 - r)) - z * sqrt(p)
       zbden <- p * r + 1 - r
       zb <- zbnum / zbden
       power <- pnorm(zb)
-      if (power < alpha | n < 1)
+      if (power < alpha | n < 1) {
         power <- alpha
+      }
       return(power)
     }
   }
 
   if (method == "binomial") {
     # expression 6
-    computePower <- function(p, z, r, n, alpha)
-    {
-      pi <- p*r/(p*r + 1 - r)
+    computePower <- function(p, z, r, n, alpha) {
+      pi <- p * r / (p * r + 1 - r)
       tAlt <- asin(sqrt(pi))
       tNull <- asin(sqrt(r))
       zb <- sqrt(n * 4 * (tAlt - tNull)^2) - z
       power <- pnorm(zb)
-      if (power < alpha | n < 1)
+      if (power < alpha | n < 1) {
         power <- alpha
+      }
       return(power)
     }
   }
 
   if (method == "SRL1") {
     # expression 7
-    computePowerSrl <- function(b, z, r, n, alpha)
-    {
+    computePowerSrl <- function(b, z, r, n, alpha) {
       A <- 2 * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
       B <- b^2 / A * exp(b) * r * (1 - r) / (exp(b) * r + 1 - r)^2
       zb <- (sqrt(n * A) - z) / sqrt(B)
       power <- pnorm(zb)
-      if (power < alpha | n < 1)
+      if (power < alpha | n < 1) {
         power <- alpha
+      }
       return(power)
     }
   }
 
   if (method == "SRL2") {
     # expression 8
-    computePowerSrl <- function(b, z, r, n, alpha)
-    {
+    computePowerSrl <- function(b, z, r, n, alpha) {
       A <- 2 * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
       B <- b^2 / A * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * exp(b) * r * (1 - r) / (exp(b) * r + 1 - r)^2
       zb <- (sqrt(n * A) - z) / sqrt(B)
       power <- pnorm(zb)
-      if (power < alpha | n < 1)
+      if (power < alpha | n < 1) {
         power <- alpha
+      }
       return(power)
     }
   }
@@ -167,8 +172,7 @@ computeMdrr <- function(sccsIntervalData,
       M <- L + (H - L) / 2
       if (method %in% c("SRL1", "SRL2")) {
         powerM <- computePowerSrl(M, z, r, n, alpha)
-      }
-      else {
+      } else {
         powerM <- computePower(exp(M), z, r, n, alpha)
       }
       d <- powerM - power
@@ -179,18 +183,21 @@ computeMdrr <- function(sccsIntervalData,
       } else {
         return(M)
       }
-      if (M == 0 || M == 10)
+      if (M == 0 || M == 10) {
         return(M)
+      }
     }
   }
   mdLogRr <- binarySearch(z, r, n, power, alpha)
   mdrr <- exp(mdLogRr)
 
-  result <- tibble(timeExposed = timeExposed,
-                   timeTotal = timeTotal,
-                   propTimeExposed = round(r, 4),
-                   propPopulationExposed = round(pr, 4),
-                   events = n,
-                   mdrr = round(mdrr, 4))
+  result <- tibble(
+    timeExposed = timeExposed,
+    timeTotal = timeTotal,
+    propTimeExposed = round(r, 4),
+    propPopulationExposed = round(pr, 4),
+    events = n,
+    mdrr = round(mdrr, 4)
+  )
   return(result)
 }

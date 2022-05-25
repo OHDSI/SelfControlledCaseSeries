@@ -62,8 +62,9 @@ createSccsIntervalData <- function(studyPopulation,
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   if (is.list(eraCovariateSettings) && class(eraCovariateSettings) != "EraCovariateSettings") {
-    for (i in 1:length(eraCovariateSettings))
+    for (i in 1:length(eraCovariateSettings)) {
       checkmate::assertClass(eraCovariateSettings[[i]], "EraCovariateSettings", add = errorMessages)
+    }
   } else {
     checkmate::assertClass(eraCovariateSettings, "EraCovariateSettings", add = errorMessages)
   }
@@ -92,8 +93,8 @@ createSccsIntervalData <- function(studyPopulation,
 
   timeCovariateCases <- numeric(0)
   if (!is.null(ageCovariateSettings) ||
-      !is.null(seasonalityCovariateSettings) ||
-      !is.null(calendarTimeCovariateSettings)) {
+    !is.null(seasonalityCovariateSettings) ||
+    !is.null(calendarTimeCovariateSettings)) {
     if (nrow(studyPopulation$cases) > minCasesForTimeCovariates) {
       set.seed(0)
       timeCovariateCases <- sample(studyPopulation$cases$caseId, minCasesForTimeCovariates, replace = FALSE)
@@ -103,9 +104,11 @@ createSccsIntervalData <- function(studyPopulation,
   settings <- list()
   settings$metaData <- list()
   settings$covariateRef <- tibble()
-  settings <- addEventDependentObservationSettings(settings,
-                                                   eventDependentObservation,
-                                                   studyPopulation)
+  settings <- addEventDependentObservationSettings(
+    settings,
+    eventDependentObservation,
+    studyPopulation
+  )
   if (eventDependentObservation && settings$metaData$censorModel$model %in% c(1, 3) && !is.null(ageCovariateSettings)) {
     warning("Optimal censoring model adjusts for age, so removing age as separate covariate.")
     ageCovariateSettings <- NULL
@@ -125,23 +128,25 @@ createSccsIntervalData <- function(studyPopulation,
   eras <- sccsData$eras %>%
     arrange(.data$caseId)
 
-  data <- convertToSccs(cases = cases,
-                        outcomes = outcomes,
-                        eras = eras,
-                        includeAge = !is.null(ageCovariateSettings),
-                        ageOffset = settings$ageOffset,
-                        ageDesignMatrix = settings$ageDesignMatrix,
-                        includeSeason = !is.null(seasonalityCovariateSettings),
-                        seasonDesignMatrix = settings$seasonDesignMatrix,
-                        includeCalendarTime = !is.null(calendarTimeCovariateSettings),
-                        calendarTimeOffset = settings$calendarTimeOffset,
-                        calendarTimeDesignMatrix = settings$calendarTimeDesignMatrix,
-                        timeCovariateCases = timeCovariateCases,
-                        covariateSettingsList = settings$covariateSettingsList,
-                        eventDependentObservation = eventDependentObservation,
-                        censorModel = settings$censorModel,
-                        scri = FALSE,
-                        controlIntervalId = 0)
+  data <- convertToSccs(
+    cases = cases,
+    outcomes = outcomes,
+    eras = eras,
+    includeAge = !is.null(ageCovariateSettings),
+    ageOffset = settings$ageOffset,
+    ageDesignMatrix = settings$ageDesignMatrix,
+    includeSeason = !is.null(seasonalityCovariateSettings),
+    seasonDesignMatrix = settings$seasonDesignMatrix,
+    includeCalendarTime = !is.null(calendarTimeCovariateSettings),
+    calendarTimeOffset = settings$calendarTimeOffset,
+    calendarTimeDesignMatrix = settings$calendarTimeDesignMatrix,
+    timeCovariateCases = timeCovariateCases,
+    covariateSettingsList = settings$covariateSettingsList,
+    eventDependentObservation = eventDependentObservation,
+    censorModel = settings$censorModel,
+    scri = FALSE,
+    controlIntervalId = 0
+  )
 
   if (is.null(data$outcomes) || is.null(data$covariates)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
@@ -150,14 +155,12 @@ createSccsIntervalData <- function(studyPopulation,
     if (nrow(settings$covariateRef) > 0) {
       data$covariateRef <- settings$covariateRef
     }
-
   } else {
     metaData$covariateStatistics <- collect(data$covariateStatistics)
     metaData$daysObserved <- pull(data$observedDays, .data$observedDays)
     data$covariateStatistics <- NULL
     data$observedDays <- NULL
     data$covariateRef <- settings$covariateRef
-
   }
   attr(data, "metaData") <- metaData
   class(data) <- "SccsIntervalData"
@@ -169,19 +172,27 @@ createSccsIntervalData <- function(studyPopulation,
 }
 
 createEmptySccsIntervalData <- function() {
-  sccsIntervalData <- Andromeda::andromeda(outcomes = tibble(rowId = 1,
-                                                             stratumId = 1,
-                                                             time = 1,
-                                                             y = 1)[-1, ],
-                                           covariates = tibble(rowId = 1,
-                                                               stratumId = 1,
-                                                               covariateId = 1,
-                                                               covariateValue = 1)[-1, ],
-                                           covariateRef = tibble(covariateId = 1,
-                                                                 covariateName = "",
-                                                                 originalEraId = 1,
-                                                                 originalEraName = "",
-                                                                 originalEraType = "")[-1, ])
+  sccsIntervalData <- Andromeda::andromeda(
+    outcomes = tibble(
+      rowId = 1,
+      stratumId = 1,
+      time = 1,
+      y = 1
+    )[-1, ],
+    covariates = tibble(
+      rowId = 1,
+      stratumId = 1,
+      covariateId = 1,
+      covariateValue = 1
+    )[-1, ],
+    covariateRef = tibble(
+      covariateId = 1,
+      covariateName = "",
+      originalEraId = 1,
+      originalEraName = "",
+      originalEraType = ""
+    )[-1, ]
+  )
   return(sccsIntervalData)
 }
 
@@ -210,21 +221,28 @@ addAgeSettings <- function(settings,
     }
     settings$ageOffset <- ageKnots[1]
     ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)],
-                                   knots = ageKnots[2:(length(ageKnots) - 1)],
-                                   Boundary.knots = ageKnots[c(1, length(ageKnots))])
+      knots = ageKnots[2:(length(ageKnots) - 1)],
+      Boundary.knots = ageKnots[c(1, length(ageKnots))]
+    )
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$ageDesignMatrix <- ageDesignMatrix[, 2:ncol(ageDesignMatrix)]
-    splineCovariateRef <- tibble(covariateId = 100:(100 + length(ageKnots) - 1),
-                                 covariateName = paste("Age spline component",
-                                                       1:(length(ageKnots))),
-                                 originalEraId = 0,
-                                 originalEraType = "",
-                                 originalEraName = "")
+    splineCovariateRef <- tibble(
+      covariateId = 100:(100 + length(ageKnots) - 1),
+      covariateName = paste(
+        "Age spline component",
+        1:(length(ageKnots))
+      ),
+      originalEraId = 0,
+      originalEraType = "",
+      originalEraName = ""
+    )
     settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
-    age <- list(ageKnots = ageKnots,
-                covariateIds = splineCovariateRef$covariateId,
-                allowRegularization = ageCovariateSettings$allowRegularization,
-                computeConfidenceIntervals = ageCovariateSettings$computeConfidenceIntervals)
+    age <- list(
+      ageKnots = ageKnots,
+      covariateIds = splineCovariateRef$covariateId,
+      allowRegularization = ageCovariateSettings$allowRegularization,
+      computeConfidenceIntervals = ageCovariateSettings$computeConfidenceIntervals
+    )
     settings$metaData$age <- age
     return(settings)
   }
@@ -243,17 +261,23 @@ addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsD
     seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$seasonDesignMatrix <- seasonDesignMatrix[, 2:ncol(seasonDesignMatrix)]
-    splineCovariateRef <- tibble(covariateId = 200:(200 + length(seasonKnots) - 3),
-                                 covariateName = paste("Seasonality spline component",
-                                                       1:(length(seasonKnots) - 2)),
-                                 originalEraId = 0,
-                                 originalEraType = "",
-                                 originalEraName = "")
+    splineCovariateRef <- tibble(
+      covariateId = 200:(200 + length(seasonKnots) - 3),
+      covariateName = paste(
+        "Seasonality spline component",
+        1:(length(seasonKnots) - 2)
+      ),
+      originalEraId = 0,
+      originalEraType = "",
+      originalEraName = ""
+    )
     settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
-    seasonality <- list(seasonKnots = seasonKnots,
-                        covariateIds = splineCovariateRef$covariateId,
-                        allowRegularization = seasonalityCovariateSettings$allowRegularization,
-                        computeConfidenceIntervals = seasonalityCovariateSettings$computeConfidenceIntervals)
+    seasonality <- list(
+      seasonKnots = seasonKnots,
+      covariateIds = splineCovariateRef$covariateId,
+      allowRegularization = seasonalityCovariateSettings$allowRegularization,
+      computeConfidenceIntervals = seasonalityCovariateSettings$computeConfidenceIntervals
+    )
     settings$metaData$seasonality <- seasonality
   }
   return(settings)
@@ -270,14 +294,14 @@ addCalendarTimeSettings <- function(settings,
     if (length(calendarTimeCovariateSettings$calendarTimeKnots) == 1) {
       observationPeriodCounts <- computeObservedPerMonth(studyPopulation) %>%
         arrange(.data$month) %>%
-        mutate(cumCount = cumsum(.data$observationPeriodCount ))
+        mutate(cumCount = cumsum(.data$observationPeriodCount))
 
       total <- observationPeriodCounts %>%
         tail(1) %>%
         pull(.data$cumCount)
 
-      cutoffs <- total *  seq(0.01, 0.99, length.out = calendarTimeCovariateSettings$calendarTimeKnots)
-      calendarTimeKnots = rep(0, calendarTimeCovariateSettings$calendarTimeKnots)
+      cutoffs <- total * seq(0.01, 0.99, length.out = calendarTimeCovariateSettings$calendarTimeKnots)
+      calendarTimeKnots <- rep(0, calendarTimeCovariateSettings$calendarTimeKnots)
       for (i in 1:calendarTimeCovariateSettings$calendarTimeKnots) {
         calendarTimeKnots[i] <- min(observationPeriodCounts$month[observationPeriodCounts$cumCount >= cutoffs[i]])
       }
@@ -293,37 +317,46 @@ addCalendarTimeSettings <- function(settings,
     }
     settings$calendarTimeOffset <- calendarTimeKnots[1]
     calendarTimeDesignMatrix <- splines::bs(calendarTimeKnots[1]:calendarTimeKnots[length(calendarTimeKnots)],
-                                            knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-                                            Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))])
+      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+    )
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$calendarTimeDesignMatrix <- calendarTimeDesignMatrix[, 2:ncol(calendarTimeDesignMatrix)]
-    splineCovariateRef <- tibble(covariateId = 300:(300 + length(calendarTimeKnots) - 1),
-                                 covariateName = paste("Calendar time spline component",
-                                                       1:(length(calendarTimeKnots))),
-                                 originalEraId = 0,
-                                 originalEraType = "",
-                                 originalEraName = "")
+    splineCovariateRef <- tibble(
+      covariateId = 300:(300 + length(calendarTimeKnots) - 1),
+      covariateName = paste(
+        "Calendar time spline component",
+        1:(length(calendarTimeKnots))
+      ),
+      originalEraId = 0,
+      originalEraType = "",
+      originalEraName = ""
+    )
     settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
-    calendarTime <- list(calendarTimeKnots = calendarTimeKnots,
-                         covariateIds = splineCovariateRef$covariateId,
-                         allowRegularization = calendarTimeCovariateSettings$allowRegularization,
-                         computeConfidenceIntervals = calendarTimeCovariateSettings$computeConfidenceIntervals)
+    calendarTime <- list(
+      calendarTimeKnots = calendarTimeKnots,
+      covariateIds = splineCovariateRef$covariateId,
+      allowRegularization = calendarTimeCovariateSettings$allowRegularization,
+      computeConfidenceIntervals = calendarTimeCovariateSettings$computeConfidenceIntervals
+    )
     settings$metaData$calendarTime <- calendarTime
     return(settings)
   }
 }
 
 convertDateToMonth <- function(date) {
-  return(as.numeric(format(date, '%Y')) * 12 + as.numeric(format(date, '%m')) - 1)
+  return(as.numeric(format(date, "%Y")) * 12 + as.numeric(format(date, "%m")) - 1)
 }
 
 convertMonthToStartDate <- function(month) {
   year <- floor(month / 12)
   month <- floor(month %% 12) + 1
-  return(as.Date(sprintf("%s-%s-%s",
-                         year,
-                         month,
-                         1)))
+  return(as.Date(sprintf(
+    "%s-%s-%s",
+    year,
+    month,
+    1
+  )))
 }
 
 convertMonthToEndDate <- function(month) {
@@ -331,17 +364,21 @@ convertMonthToEndDate <- function(month) {
   month <- floor(month %% 12) + 1
   year <- if_else(month == 12, year + 1, year)
   month <- if_else(month == 12, 1, month + 1)
-  return(as.Date(sprintf("%s-%s-%s",
-                         year,
-                         month,
-                         1)) - 1)
+  return(as.Date(sprintf(
+    "%s-%s-%s",
+    year,
+    month,
+    1
+  )) - 1)
 }
 
 computeObservedPerMonth <- function(studyPopulation) {
   observationPeriods <- studyPopulation$cases %>%
     mutate(endDate = .data$startDate + .data$endDay) %>%
-    mutate(startMonth = convertDateToMonth(.data$startDate),
-           endMonth = convertDateToMonth(.data$endDate) + 1) %>%
+    mutate(
+      startMonth = convertDateToMonth(.data$startDate),
+      endMonth = convertDateToMonth(.data$endDate) + 1
+    ) %>%
     select(.data$startMonth, .data$endMonth)
 
   months <- full_join(
@@ -353,20 +390,27 @@ computeObservedPerMonth <- function(studyPopulation) {
       group_by(.data$endMonth) %>%
       summarise(endCount = n()) %>%
       rename(month = .data$endMonth),
-    by = "month") %>%
-    mutate(startCount = ifelse(is.na(.data$startCount), 0, .data$startCount),
-           endCount = ifelse(is.na(.data$endCount), 0, .data$endCount))
+    by = "month"
+  ) %>%
+    mutate(
+      startCount = ifelse(is.na(.data$startCount), 0, .data$startCount),
+      endCount = ifelse(is.na(.data$endCount), 0, .data$endCount)
+    )
 
   # Adding months with no starts and ends:
   months <- months %>%
     full_join(tibble(month = min(months$month):max(months$month)), by = "month") %>%
-    mutate(startCount = if_else(is.na(.data$startCount), 0, .data$startCount),
-           endCount = if_else(is.na(.data$endCount), 0, .data$endCount))
+    mutate(
+      startCount = if_else(is.na(.data$startCount), 0, .data$startCount),
+      endCount = if_else(is.na(.data$endCount), 0, .data$endCount)
+    )
 
   months <- months %>%
     arrange(.data$month) %>%
-    mutate(cumStarts = cumsum(.data$startCount),
-           cumEnds = cumsum(.data$endCount)) %>%
+    mutate(
+      cumStarts = cumsum(.data$startCount),
+      cumEnds = cumsum(.data$endCount)
+    ) %>%
     mutate(observationPeriodCount = .data$cumStarts - .data$cumEnds) %>%
     select(.data$month, .data$observationPeriodCount) %>%
     head(-1)
@@ -380,15 +424,16 @@ addEventDependentObservationSettings <- function(settings,
   if (!eventDependentObservation) {
     settings$censorModel <- list(model = 0, p = c(0))
   } else {
-
     data <- studyPopulation$outcomes %>%
       group_by(.data$caseId) %>%
       summarise(outcomeDay = min(.data$outcomeDay)) %>%
       inner_join(studyPopulation$cases, by = "caseId") %>%
-      transmute(astart = .data$ageInDays,
-                aend = .data$ageInDays + .data$endDay + 1,
-                aevent = .data$ageInDays + .data$outcomeDay + 1,
-                present = .data$noninformativeEndCensor == 1)
+      transmute(
+        astart = .data$ageInDays,
+        aend = .data$ageInDays + .data$endDay + 1,
+        aevent = .data$ageInDays + .data$outcomeDay + 1,
+        present = .data$noninformativeEndCensor == 1
+      )
 
     settings$censorModel <- fitModelsAndPickBest(data)
     settings$metaData$censorModel <- settings$censorModel
@@ -429,12 +474,14 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
       if (!covariateSettings$stratifyById) {
         # Create a single output ID
         covariateSettings$outputIds <- as.matrix(outputId)
-        newCovariateRef <- tibble(covariateId = outputId,
-                                  covariateName = covariateSettings$label,
-                                  originalEraId = 0,
-                                  originalEraType = "",
-                                  originalEraName = "",
-                                  isControlInterval = covariateSettings$isControlInterval)
+        newCovariateRef <- tibble(
+          covariateId = outputId,
+          covariateName = covariateSettings$label,
+          originalEraId = 0,
+          originalEraType = "",
+          originalEraName = "",
+          isControlInterval = covariateSettings$isControlInterval
+        )
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
         outputId <- outputId + 1
       } else {
@@ -447,16 +494,21 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
           warning(paste0("Could not find era with ID ", covariateSettings$eraIds, " in data"))
         } else {
           varNames <- varNames %>%
-            transmute(originalEraId = .data$eraId,
-                      originalEraType = .data$eraType,
-                      originalEraName = .data$eraName,
-                      covariateName = paste(covariateSettings$label,
-                                            .data$eraName,
-                                            sep = ": "),
-                      isControlInterval = FALSE)
+            transmute(
+              originalEraId = .data$eraId,
+              originalEraType = .data$eraType,
+              originalEraName = .data$eraName,
+              covariateName = paste(covariateSettings$label,
+                .data$eraName,
+                sep = ": "
+              ),
+              isControlInterval = FALSE
+            )
 
-          newCovariateRef <- tibble(covariateId = outputIds,
-                                    originalEraId = covariateSettings$eraIds) %>%
+          newCovariateRef <- tibble(
+            covariateId = outputIds,
+            originalEraId = covariateSettings$eraIds
+          ) %>%
             inner_join(varNames, by = "originalEraId")
           settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
         }
@@ -471,43 +523,55 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
         varNames <- paste(varNames, " day ", startDays, "-", c(endDays[1:length(endDays) - 1], ""))
         # covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
         covariateSettings$outputIds <- matrix(outputIds,
-                                              ncol = length(covariateSettings$splitPoints) + 1,
-                                              byrow = TRUE)
-        newCovariateRef <- tibble(covariateId = outputIds,
-                                  covariateName = varNames,
-                                  originaEraId = 0,
-                                  originalEraType = "",
-                                  originalEraName = "",
-                                  isControlInterval = FALSE)
+          ncol = length(covariateSettings$splitPoints) + 1,
+          byrow = TRUE
+        )
+        newCovariateRef <- tibble(
+          covariateId = outputIds,
+          covariateName = varNames,
+          originaEraId = 0,
+          originalEraType = "",
+          originalEraName = "",
+          isControlInterval = FALSE
+        )
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
       } else {
         outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$eraIds) - 1)
         outputId <- max(outputIds) + 1
         covariateSettings$outputIds <- matrix(outputIds,
-                                              ncol = length(covariateSettings$splitPoints) + 1,
-                                              byrow = TRUE)
+          ncol = length(covariateSettings$splitPoints) + 1,
+          byrow = TRUE
+        )
         if (any(covariateSettings$eraIds %in% eraRef$eraId)) {
           originalEraId <- rep(covariateSettings$eraIds,
-                               each = length(covariateSettings$splitPoints) + 1)
-          originalEraType <- eraRef$eraType[match(originalEraId,
-                                                  eraRef$eraId)]
-          originalEraName <- eraRef$eraName[match(originalEraId,
-                                                  eraRef$eraId)]
+            each = length(covariateSettings$splitPoints) + 1
+          )
+          originalEraType <- eraRef$eraType[match(
+            originalEraId,
+            eraRef$eraId
+          )]
+          originalEraName <- eraRef$eraName[match(
+            originalEraId,
+            eraRef$eraId
+          )]
           originalEraName[originalEraName == ""] <- originalEraId[originalEraName == ""]
           varNames <- paste(covariateSettings$label, ": ", originalEraName, sep = "")
           varNames <- paste(varNames,
-                            ", day ",
-                            startDays,
-                            "-",
-                            c(endDays[1:length(endDays) - 1], ""),
-                            sep = "")
+            ", day ",
+            startDays,
+            "-",
+            c(endDays[1:length(endDays) - 1], ""),
+            sep = ""
+          )
 
-          newCovariateRef <- tibble(covariateId = outputIds,
-                                    covariateName = varNames,
-                                    originalEraId = originalEraId,
-                                    originalEraType = originalEraType,
-                                    originalEraName = originalEraName,
-                                    isControlInterval = FALSE)
+          newCovariateRef <- tibble(
+            covariateId = outputIds,
+            covariateName = varNames,
+            originalEraId = originalEraId,
+            originalEraType = originalEraType,
+            originalEraName = originalEraName,
+            isControlInterval = FALSE
+          )
           settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
         }
       }
@@ -535,14 +599,17 @@ cyclicSplineDesign <- function(x, knots, ord = 4) {
   checkmate::assertInt(ord, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   nk <- length(knots)
-  if (ord < 2)
+  if (ord < 2) {
     stop("order too low")
-  if (nk < ord)
+  }
+  if (nk < ord) {
     stop("too few knots")
+  }
   knots <- sort(knots)
   k1 <- knots[1]
-  if (min(x) < k1 || max(x) > knots[nk])
+  if (min(x) < k1 || max(x) > knots[nk]) {
     stop("x out of range")
+  }
   xc <- knots[nk - ord + 1]
   knots <- c(k1 - (knots[nk] - knots[(nk - ord + 1):(nk - 1)]), knots)
   ind <- x > xc

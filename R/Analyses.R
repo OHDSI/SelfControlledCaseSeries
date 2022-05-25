@@ -65,10 +65,12 @@ createSccsAnalysis <- function(analysisId = 1,
   checkmate::assertClass(createScriIntervalDataArgs, "args", null.ok = TRUE, add = errorMessages)
   checkmate::assertClass(fitSccsModelArgs, "args", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (toupper(design) == "SCCS" && is.null(createSccsIntervalDataArgs))
+  if (toupper(design) == "SCCS" && is.null(createSccsIntervalDataArgs)) {
     stop("Must provide createSccsIntervalDataArgs argument when design = 'SCCS'")
-  if (toupper(design) == "SCRI" && is.null(createScriIntervalDataArgs))
+  }
+  if (toupper(design) == "SCRI" && is.null(createScriIntervalDataArgs)) {
     stop("Must provide createScriIntervalDataArgs argument when design = 'SCRI'")
+  }
   analysis <- list()
   for (name in names(formals(createSccsAnalysis))) {
     analysis[[name]] <- get(name)
@@ -132,10 +134,12 @@ loadSccsAnalysisList <- function(file) {
 #' @export
 createExposureOutcome <- function(exposureId, outcomeId, ...) {
   errorMessages <- checkmate::makeAssertCollection()
-  if (!is.list(exposureId))
+  if (!is.list(exposureId)) {
     checkmate::assertInt(exposureId, add = errorMessages)
-  if (!is.list(outcomeId))
+  }
+  if (!is.list(outcomeId)) {
     checkmate::assertInt(outcomeId, add = errorMessages)
+  }
   checkmate::reportAssertions(collection = errorMessages)
 
   exposureOutcome <- list(...)

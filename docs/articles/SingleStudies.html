@@ -19,6 +19,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -31,26 +33,17 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
-  <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
   <a href="../reference/index.html">Reference</a>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -64,13 +57,16 @@
     </li>
   </ul>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+  <a href="https://ohdsi.github.io/Hades" class="external-link"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
 </li>
 <li>
-  <a href="https://github.com/OHDSI/SelfControlledCaseSeries/">
+  <a href="https://github.com/OHDSI/SelfControlledCaseSeries/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -85,55 +81,83 @@
 
       
 
-      </header><script src="SingleStudies_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
+      </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Single studies using the SelfControlledCaseSeries package</h1>
-                        <h4 class="author">Martijn J. Schuemie, Marc A. Suchard and Patrick Ryan</h4>
+      <h1 data-toc-skip>Single studies using the
+SelfControlledCaseSeries package</h1>
+                        <h4 data-toc-skip class="author">Martijn J.
+Schuemie, Marc A. Suchard and Patrick Ryan</h4>
             
-            <h4 class="date">2022-01-10</h4>
+            <h4 data-toc-skip class="date">2022-05-25</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/master/vignettes/SingleStudies.Rmd"><code>vignettes/SingleStudies.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/SingleStudies.Rmd" class="external-link"><code>vignettes/SingleStudies.Rmd</code></a></small>
       <div class="hidden name"><code>SingleStudies.Rmd</code></div>
 
     </div>
 
     
     
-<div id="introduction" class="section level1">
-<h1 class="hasAnchor">
-<a href="#introduction" class="anchor"></a>Introduction</h1>
-<p>This vignette describes how you can use the <code>SelfControlledCaseSeries</code> package to perform a single Self-Controlled Case Series (SCCS) study. We will walk through all the steps needed to perform an exemplar study, and we have selected the well-studied topic of the effect of NSAIDs on gastrointestinal (GI) bleeding-related hospitalization. For simplicity, we focus on one NSAID: diclofenac.</p>
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
+<p>This vignette describes how you can use the
+<code>SelfControlledCaseSeries</code> package to perform a single
+Self-Controlled Case Series (SCCS) study. We will walk through all the
+steps needed to perform an exemplar study, and we have selected the
+well-studied topic of the effect of NSAIDs on gastrointestinal (GI)
+bleeding-related hospitalization. For simplicity, we focus on one NSAID:
+diclofenac.</p>
 </div>
-<div id="installation-instructions" class="section level1">
-<h1 class="hasAnchor">
-<a href="#installation-instructions" class="anchor"></a>Installation instructions</h1>
-<p>Before installing the <code>SelfControlledCaseSeries</code> package make sure you have Java available. For Windows users, RTools is also necessary. See <a href="https://ohdsi.github.io/Hades/rSetup.html">these instructions</a> for properly configuring your R environment.</p>
-<p>The <code>SelfControlledCaseSeries</code> package is maintained in a <a href="https://github.com/OHDSI/SelfControlledCaseSeries">Github repository</a>, and can be downloaded and installed from within R using the <code>remotes</code> package:</p>
+<div class="section level2">
+<h2 id="installation-instructions">Installation instructions<a class="anchor" aria-label="anchor" href="#installation-instructions"></a>
+</h2>
+<p>Before installing the <code>SelfControlledCaseSeries</code> package
+make sure you have Java available. For Windows users, RTools is also
+necessary. See <a href="https://ohdsi.github.io/Hades/rSetup.html" class="external-link">these
+instructions</a> for properly configuring your R environment.</p>
+<p>The <code>SelfControlledCaseSeries</code> package is maintained in a
+<a href="https://github.com/OHDSI/SelfControlledCaseSeries" class="external-link">Github
+repository</a>, and can be downloaded and installed from within R using
+the <code>remotes</code> package:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://remotes.r-lib.org">remotes</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/pkg/remotes/man/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"ohdsi/SelfControlledCaseSeries"</span><span class="op">)</span> </code></pre></div>
-<p>Once installed, you can type <code><a href="https://github.com/OHDSI/SelfControlledCaseSeries">library(SelfControlledCaseSeries)</a></code> to load the package.</p>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://remotes.r-lib.org" class="external-link">remotes</a></span><span class="op">)</span>
+<span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"ohdsi/SelfControlledCaseSeries"</span><span class="op">)</span> </code></pre></div>
+<p>Once installed, you can type
+<code><a href="https://github.com/OHDSI/SelfControlledCaseSeries" class="external-link">library(SelfControlledCaseSeries)</a></code> to load the package.</p>
 </div>
-<div id="overview" class="section level1">
-<h1 class="hasAnchor">
-<a href="#overview" class="anchor"></a>Overview</h1>
-<p>In the <code>SelfControlledCaseSeries</code> package a study requires at least three steps:</p>
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
+<p>In the <code>SelfControlledCaseSeries</code> package a study requires
+at least three steps:</p>
 <ol style="list-style-type: decimal">
 <li><p>Loading the necessary data from the database.</p></li>
-<li><p>Transforming the data into a format suitable for an SCCS study. This step includes the creation of covariates based on the variables extracted from the database, such as defining risk windows based on exposures. It also includes transforming the data into non-overlapping time intervals, with information on the various covariates and outcomes per interval.</p></li>
+<li><p>Transforming the data into a format suitable for an SCCS study.
+This step includes the creation of covariates based on the variables
+extracted from the database, such as defining risk windows based on
+exposures. It also includes transforming the data into non-overlapping
+time intervals, with information on the various covariates and outcomes
+per interval.</p></li>
 <li><p>Fitting the model using conditional Poisson regression.</p></li>
 </ol>
-<p>In the following sections these steps will be demonstrated for increasingly complex studies.</p>
+<p>In the following sections these steps will be demonstrated for
+increasingly complex studies.</p>
 </div>
-<div id="studies-with-a-single-drug" class="section level1">
-<h1 class="hasAnchor">
-<a href="#studies-with-a-single-drug" class="anchor"></a>Studies with a single drug</h1>
-<div id="configuring-the-connection-to-the-server" class="section level2">
-<h2 class="hasAnchor">
-<a href="#configuring-the-connection-to-the-server" class="anchor"></a>Configuring the connection to the server</h2>
-<p>We need to tell R how to connect to the server where the data are. <code>SelfControlledCaseSeries</code> uses the <code>DatabaseConnector</code> package, which provides the <code>createConnectionDetails</code> function. Type <code>?createConnectionDetails</code> for the specific settings required for the various database management systems (DBMS). For example, one might connect to a PostgreSQL database using this code:</p>
+<div class="section level2">
+<h2 id="studies-with-a-single-drug">Studies with a single drug<a class="anchor" aria-label="anchor" href="#studies-with-a-single-drug"></a>
+</h2>
+<div class="section level3">
+<h3 id="configuring-the-connection-to-the-server">Configuring the connection to the server<a class="anchor" aria-label="anchor" href="#configuring-the-connection-to-the-server"></a>
+</h3>
+<p>We need to tell R how to connect to the server where the data are.
+<code>SelfControlledCaseSeries</code> uses the
+<code>DatabaseConnector</code> package, which provides the
+<code>createConnectionDetails</code> function. Type
+<code>?createConnectionDetails</code> for the specific settings required
+for the various database management systems (DBMS). For example, one
+might connect to a PostgreSQL database using this code:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">connectionDetails</span> <span class="op">&lt;-</span> <span class="fu">createConnectionDetails</span><span class="op">(</span>dbms <span class="op">=</span> <span class="st">"postgresql"</span>, 
                                              server <span class="op">=</span> <span class="st">"localhost/ohdsi"</span>, 
@@ -142,15 +166,28 @@
 
 <span class="va">cdmDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_cdm_data"</span>
 <span class="va">cohortDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_results"</span>
-<span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>sqlRenderTempEmulationSchema <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>sqlRenderTempEmulationSchema <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>
 <span class="va">cdmVersion</span> <span class="op">&lt;-</span> <span class="st">"5"</span></code></pre></div>
-<p>The last three lines define the <code>cdmDatabaseSchema</code> and <code>cohortDatabaseSchema</code> variables,as well as the CDM version. We’ll use these later to tell R where the data in CDM format live, where we have stored our cohorts of interest, and what version CDM is used. Note that for Microsoft SQL Server, databaseschemas need to specify both the database and the schema, so for example <code>cdmDatabaseSchema &lt;- "my_cdm_data.dbo"</code>.</p>
+<p>The last three lines define the <code>cdmDatabaseSchema</code> and
+<code>cohortDatabaseSchema</code> variables,as well as the CDM version.
+We’ll use these later to tell R where the data in CDM format live, where
+we have stored our cohorts of interest, and what version CDM is used.
+Note that for Microsoft SQL Server, databaseschemas need to specify both
+the database and the schema, so for example
+<code>cdmDatabaseSchema &lt;- "my_cdm_data.dbo"</code>.</p>
 </div>
-<div id="preparing-the-health-outcome-of-interest" class="section level2">
-<h2 class="hasAnchor">
-<a href="#preparing-the-health-outcome-of-interest" class="anchor"></a>Preparing the health outcome of interest</h2>
-<p>We need to define the exposures and outcomes for our study. One way to do this is by writing SQL statements against the OMOP CDM that populate a table of events in which we are interested. The resulting table should have the same structure as the <code>cohort</code> table in the CDM. This means it should have the fields <code>cohort_definition_id</code>, <code>cohort_start_date</code>, <code>cohort_end_date</code>, and <code>subject_id</code>.</p>
-<p>For our example study, we have created a file called <em>vignette.sql</em> with the following contents:</p>
+<div class="section level3">
+<h3 id="preparing-the-health-outcome-of-interest">Preparing the health outcome of interest<a class="anchor" aria-label="anchor" href="#preparing-the-health-outcome-of-interest"></a>
+</h3>
+<p>We need to define the exposures and outcomes for our study. One way
+to do this is by writing SQL statements against the OMOP CDM that
+populate a table of events in which we are interested. The resulting
+table should have the same structure as the <code>cohort</code> table in
+the CDM. This means it should have the fields
+<code>cohort_definition_id</code>, <code>cohort_start_date</code>,
+<code>cohort_end_date</code>, and <code>subject_id</code>.</p>
+<p>For our example study, we have created a file called
+<em>vignette.sql</em> with the following contents:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">/***********************************</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">File vignette.sql </span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">***********************************/</span></span>
@@ -172,7 +209,14 @@
 <span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        <span class="kw">WHERE</span> ancestor_concept_id <span class="op">=</span> <span class="dv">192671</span> <span class="co">-- GI - Gastrointestinal haemorrhage</span></span>
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        )</span>
 <span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AND</span> visit_occurrence.visit_concept_id <span class="kw">IN</span> (<span class="dv">9201</span>, <span class="dv">9203</span>);</span></code></pre></div>
-<p>This is parameterized SQL which can be used by the <code>SqlRender</code> package. We use parameterized SQL so we do not have to pre-specify the names of the CDM and cohort schemas. That way, if we want to run the SQL on a different schema, we only need to change the parameter values; we do not have to change the SQL code. By also making use of translation functionality in <code>SqlRender</code>, we can make sure the SQL code can be run in many different environments.</p>
+<p>This is parameterized SQL which can be used by the
+<code>SqlRender</code> package. We use parameterized SQL so we do not
+have to pre-specify the names of the CDM and cohort schemas. That way,
+if we want to run the SQL on a different schema, we only need to change
+the parameter values; we do not have to change the SQL code. By also
+making use of translation functionality in <code>SqlRender</code>, we
+can make sure the SQL code can be run in many different
+environments.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(SqlRender)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>sql <span class="ot">&lt;-</span> <span class="fu">readSql</span>(<span class="st">"vignette.sql"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>sql <span class="ot">&lt;-</span> <span class="fu">render</span>(sql,</span>
@@ -183,25 +227,31 @@
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>connection <span class="ot">&lt;-</span> <span class="fu">connect</span>(connectionDetails)</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">executeSql</span>(connection, sql)</span></code></pre></div>
-<p>In this code, we first read the SQL from the file into memory. In the next line, we replace the three parameter names with the actual values. We then translate the SQL into the dialect appropriate for the DBMS we already specified in the <code>connectionDetails</code>. Next, we connect to the server, and submit the rendered and translated SQL.</p>
-<p>If all went well, we now have a table with the outcome of interest. We can see how many events:</p>
+<p>In this code, we first read the SQL from the file into memory. In the
+next line, we replace the three parameter names with the actual values.
+We then translate the SQL into the dialect appropriate for the DBMS we
+already specified in the <code>connectionDetails</code>. Next, we
+connect to the server, and submit the rendered and translated SQL.</p>
+<p>If all went well, we now have a table with the outcome of interest.
+We can see how many events:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"SELECT cohort_definition_id, COUNT(*) AS count"</span>,
+<code class="sourceCode R"><span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"SELECT cohort_definition_id, COUNT(*) AS count"</span>,
              <span class="st">"FROM @cohortDatabaseSchema.@outcomeTable"</span>,
              <span class="st">"GROUP BY cohort_definition_id"</span><span class="op">)</span>
-<span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SqlRender/man/render.html">render</a></span><span class="op">(</span><span class="va">sql</span>, 
+<span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/render.html" class="external-link">render</a></span><span class="op">(</span><span class="va">sql</span>, 
               cohortDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>, 
               outcomeTable <span class="op">=</span> <span class="st">"my_outcomes"</span><span class="op">)</span>
-<span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SqlRender/man/translate.html">translate</a></span><span class="op">(</span><span class="va">sql</span>, targetDialect <span class="op">=</span> <span class="va">connectionDetails</span><span class="op">$</span><span class="va">dbms</span><span class="op">)</span>
+<span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/translate.html" class="external-link">translate</a></span><span class="op">(</span><span class="va">sql</span>, targetDialect <span class="op">=</span> <span class="va">connectionDetails</span><span class="op">$</span><span class="va">dbms</span><span class="op">)</span>
 
 <span class="fu">querySql</span><span class="op">(</span><span class="va">connection</span>, <span class="va">sql</span><span class="op">)</span></code></pre></div>
-<pre><code>##   cohort_concept_id   count
-## 1                 1 1029443</code></pre>
+<pre><code><span class="co">##   cohort_concept_id   count</span>
+<span class="co">## 1                 1 1029443</span></code></pre>
 </div>
-<div id="extracting-the-data-from-the-server" class="section level2">
-<h2 class="hasAnchor">
-<a href="#extracting-the-data-from-the-server" class="anchor"></a>Extracting the data from the server</h2>
-<p>Now we can tell <code>SelfControlledCaseSeries</code> to extract all necessary data for our analysis:</p>
+<div class="section level3">
+<h3 id="extracting-the-data-from-the-server">Extracting the data from the server<a class="anchor" aria-label="anchor" href="#extracting-the-data-from-the-server"></a>
+</h3>
+<p>Now we can tell <code>SelfControlledCaseSeries</code> to extract all
+necessary data for our analysis:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">diclofenac</span> <span class="op">&lt;-</span> <span class="fl">1124300</span>
 
@@ -215,67 +265,97 @@
                           exposureIds <span class="op">=</span> <span class="va">diclofenac</span>,
                           cdmVersion <span class="op">=</span> <span class="va">cdmVersion</span><span class="op">)</span>
 <span class="va">sccsData</span></code></pre></div>
-<pre><code>## # SccsData object
-## 
-## Exposure cohort ID(s): 1124300
-## Outcome cohort ID(s): 1
-## 
-## Inherits from Andromeda:
-## # Andromeda object
-## # Physical location:  C:\Users\mschuemi.EU\AppData\Local\Temp\RtmpqGWYIv\file4bc075d73371.sqlite
-## 
-## Tables:
-## $cases (observationPeriodId, caseId, personId, observationDays, startYear, startMonth, startDay, ageInDays, censoredDays, noninformativeEndCensor)
-## $eraRef (eraType, eraId, eraName)
-## $eras (eraType, caseId, eraId, value, startDay, endDay)</code></pre>
-<p>There are many parameters, but they are all documented in the <code>SelfControlledCaseSeries</code> manual. In short, we are pointing the function to the table created earlier and indicating which cohort ID in that table identifies the outcome. Note that it is possible to fetch the data for multiple outcomes at once. We further point the function to the <code>drug_era</code> table, and specify the concept ID of our exposure of interest: diclofenac. Again, note that it is also possible to fetch data for multiple drugs at once. In fact, when we do not specify any exposure IDs the function will retrieve the data for all the drugs found in the <code>drug_era</code> table.</p>
-<p>All data about the patients, outcomes and exposures are extracted from the server and stored in the <code>sccsData</code> object. This object uses the <code>Andromeda</code> package to store information in a way that ensures R does not run out of memory, even when the data are large.</p>
-<p>We can use the generic <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> function to view some more information of the data we extracted:</p>
+<pre><code><span class="co">## <span style="color: #949494;"># SccsData object</span></span>
+<span class="co">## </span>
+<span class="co">## Exposure cohort ID(s): 1124300</span>
+<span class="co">## Outcome cohort ID(s): 1</span>
+<span class="co">## </span>
+<span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span>
+<span class="co">## <span style="color: #949494;"># Andromeda object</span></span>
+<span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\mschuemi.EU\AppData\Local\Temp\RtmpI7A2d4\filec394202148e8.sqlite</span></span>
+<span class="co">## </span>
+<span class="co">## Tables:</span>
+<span class="co">## $cases (observationPeriodId, caseId, personId, observationDays, startYear, startMonth, startDay, ageInDays, censoredDays, noninformativeEndCensor)</span>
+<span class="co">## $eraRef (eraType, eraId, eraName)</span>
+<span class="co">## $eras (eraType, caseId, eraId, value, startDay, endDay)</span></code></pre>
+<p>There are many parameters, but they are all documented in the
+<code>SelfControlledCaseSeries</code> manual. In short, we are pointing
+the function to the table created earlier and indicating which cohort ID
+in that table identifies the outcome. Note that it is possible to fetch
+the data for multiple outcomes at once. We further point the function to
+the <code>drug_era</code> table, and specify the concept ID of our
+exposure of interest: diclofenac. Again, note that it is also possible
+to fetch data for multiple drugs at once. In fact, when we do not
+specify any exposure IDs the function will retrieve the data for all the
+drugs found in the <code>drug_era</code> table.</p>
+<p>All data about the patients, outcomes and exposures are extracted
+from the server and stored in the <code>sccsData</code> object. This
+object uses the <code>Andromeda</code> package to store information in a
+way that ensures R does not run out of memory, even when the data are
+large.</p>
+<p>We can use the generic <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> function to view some
+more information of the data we extracted:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">sccsData</span><span class="op">)</span></code></pre></div>
-<pre><code>## SccsData object summary
-## 
-## Exposure cohort ID(s): 1124300
-## Outcome cohort ID(s): 1
-## 
-## Outcome counts:
-##   Outcome Subjects Outcome Events Outcome Observation Periods
-## 1           441552        3167367                      445224
-## 
-## Eras:
-## Number of era types: 2
-## Number of eras: 3282443</code></pre>
-<div id="saving-the-data-to-file" class="section level3">
-<h3 class="hasAnchor">
-<a href="#saving-the-data-to-file" class="anchor"></a>Saving the data to file</h3>
-<p>Creating the <code>sccsData</code> file can take considerable computing time, and it is probably a good idea to save it for future sessions. Because <code>sccsData</code> uses <code>Andromeda</code>, we cannot use R’s regular save function. Instead, we’ll have to use the <code><a href="../reference/saveSccsData.html">saveSccsData()</a></code> function:</p>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sccsData</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## SccsData object summary</span>
+<span class="co">## </span>
+<span class="co">## Exposure cohort ID(s): 1124300</span>
+<span class="co">## Outcome cohort ID(s): 1</span>
+<span class="co">## </span>
+<span class="co">## Outcome counts:</span>
+<span class="co">##   Outcome Subjects Outcome Events Outcome Observation Periods</span>
+<span class="co">## 1           441552        3167367                      445224</span>
+<span class="co">## </span>
+<span class="co">## Eras:</span>
+<span class="co">## Number of era types: 2</span>
+<span class="co">## Number of eras: 3282443</span></code></pre>
+<div class="section level4">
+<h4 id="saving-the-data-to-file">Saving the data to file<a class="anchor" aria-label="anchor" href="#saving-the-data-to-file"></a>
+</h4>
+<p>Creating the <code>sccsData</code> file can take considerable
+computing time, and it is probably a good idea to save it for future
+sessions. Because <code>sccsData</code> uses <code>Andromeda</code>, we
+cannot use R’s regular save function. Instead, we’ll have to use the
+<code><a href="../reference/saveSccsData.html">saveSccsData()</a></code> function:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/saveSccsData.html">saveSccsData</a></span><span class="op">(</span><span class="va">sccsData</span>, <span class="st">"diclofenacAndGiBleed.zip"</span><span class="op">)</span></code></pre></div>
-<p>We can use the <code><a href="../reference/loadSccsData.html">loadSccsData()</a></code> function to load the data in a future session.</p>
+<p>We can use the <code><a href="../reference/loadSccsData.html">loadSccsData()</a></code> function to load the data
+in a future session.</p>
 </div>
 </div>
-<div id="creating-the-study-population" class="section level2">
-<h2 class="hasAnchor">
-<a href="#creating-the-study-population" class="anchor"></a>Creating the study population</h2>
-<p>From the data fetched from the server we can now define the population we wish to study. If we retrieved data for multiple outcomes, we should now select only one, and possibly impose further restrictions:</p>
+<div class="section level3">
+<h3 id="creating-the-study-population">Creating the study population<a class="anchor" aria-label="anchor" href="#creating-the-study-population"></a>
+</h3>
+<p>From the data fetched from the server we can now define the
+population we wish to study. If we retrieved data for multiple outcomes,
+we should now select only one, and possibly impose further
+restrictions:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span>sccsData <span class="op">=</span> <span class="va">sccsData</span>,
                                   outcomeId <span class="op">=</span> <span class="fl">1</span>,
                                   firstOutcomeOnly <span class="op">=</span> <span class="cn">FALSE</span>,
                                   naivePeriod <span class="op">=</span> <span class="fl">180</span><span class="op">)</span></code></pre></div>
-<p>Here we specify we wish to study the outcome with ID 1. Since this was the only outcome for which we fetched the data, we could also have skipped this argument. We furthermore specify that the first 180 days of observation of every person, the so-called ‘naive period’, will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person.</p>
-<p>We can find out how many people (if any) were removed by any restrictions we imposed:</p>
+<p>Here we specify we wish to study the outcome with ID 1. Since this
+was the only outcome for which we fetched the data, we could also have
+skipped this argument. We furthermore specify that the first 180 days of
+observation of every person, the so-called ‘naive period’, will be
+excluded from the analysis. Note that data in the naive period will be
+used to determine exposure status at the start of follow-up (after the
+end of the naive period). We also specify we will use all occurrences of
+the outcome, not just the first one per person.</p>
+<p>We can find out how many people (if any) were removed by any
+restrictions we imposed:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/getAttritionTable.html">getAttritionTable</a></span><span class="op">(</span><span class="va">studyPop</span><span class="op">)</span></code></pre></div>
-<pre><code>## # A tibble: 2 x 5
-##   outcomeId description           outcomeSubjects outcomeEvents outcomeObsPerio~
-##       &lt;dbl&gt; &lt;chr&gt;                           &lt;dbl&gt;         &lt;dbl&gt;            &lt;dbl&gt;
-## 1         1 Outcomes                       441552       3167367           445224
-## 2         1 180 days naive period          397221       2873478           399607</code></pre>
+<pre><code><span class="co">## <span style="color: #949494;"># A tibble: 2 x 5</span></span>
+<span class="co">##   outcomeId description           outcomeSubjects outcomeEvents outcomeObsPerio~</span>
+<span class="co">##       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;">1</span>         1 Outcomes                       <span style="text-decoration: underline;">441</span>552       3<span style="text-decoration: underline;">167</span>367           <span style="text-decoration: underline;">445</span>224</span>
+<span class="co">## <span style="color: #BCBCBC;">2</span>         1 180 days naive period          <span style="text-decoration: underline;">397</span>221       2<span style="text-decoration: underline;">873</span>478           <span style="text-decoration: underline;">399</span>607</span></code></pre>
 </div>
-<div id="defining-a-simple-model" class="section level2">
-<h2 class="hasAnchor">
-<a href="#defining-a-simple-model" class="anchor"></a>Defining a simple model</h2>
+<div class="section level3">
+<h3 id="defining-a-simple-model">Defining a simple model<a class="anchor" aria-label="anchor" href="#defining-a-simple-model"></a>
+</h3>
 <p>Next, we can use the data to define a simple model to fit:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">covarDiclofenac</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"Exposure of interest"</span>,
@@ -288,23 +368,40 @@
                                            sccsData <span class="op">=</span> <span class="va">sccsData</span>,
                                            eraCovariateSettings <span class="op">=</span> <span class="va">covarDiclofenac</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></code></pre></div>
-<pre><code>## SccsIntervalData object summary
-## 
-## Outcome cohort ID: 1
-## 
-## Number of cases (observation periods): 49985
-## Number of eras (spans of time): 99970
-## Number of outcomes: 380313
-## Number of covariates: 1
-## Number of non-zero covariate values: 49985</code></pre>
-<p>In this example, we use the <code>createEraCovariateSettings</code> to define a single covariate: exposure to diclofenac. We specify that the risk window is from start of exposure to the end by setting start and end to 0, and defining the anchor for the end to be the era end, which for drug eras is the end of exposure.</p>
-<p>We then use the covariate definition in the <code>createSccsIntervalData</code> function to generate the <code>sccsIntervalData</code>. This represents the data in non-overlapping time intervals, with information on the various covariates and outcomes per interval.</p>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## SccsIntervalData object summary</span>
+<span class="co">## </span>
+<span class="co">## Outcome cohort ID: 1</span>
+<span class="co">## </span>
+<span class="co">## Number of cases (observation periods): 49985</span>
+<span class="co">## Number of eras (spans of time): 99970</span>
+<span class="co">## Number of outcomes: 380313</span>
+<span class="co">## Number of covariates: 1</span>
+<span class="co">## Number of non-zero covariate values: 49985</span></code></pre>
+<p>In this example, we use the <code>createEraCovariateSettings</code>
+to define a single covariate: exposure to diclofenac. We specify that
+the risk window is from start of exposure to the end by setting start
+and end to 0, and defining the anchor for the end to be the era end,
+which for drug eras is the end of exposure.</p>
+<p>We then use the covariate definition in the
+<code>createSccsIntervalData</code> function to generate the
+<code>sccsIntervalData</code>. This represents the data in
+non-overlapping time intervals, with information on the various
+covariates and outcomes per interval.</p>
 </div>
-<div id="power-calculations" class="section level2">
-<h2 class="hasAnchor">
-<a href="#power-calculations" class="anchor"></a>Power calculations</h2>
-<p>Before we start fitting an outcome model, we might be interested to know whether we have sufficient power to detect a particular effect size. It makes sense to perform these power calculations once the study population has been fully defined, so taking into account loss to the various inclusion and exclusion criteria. This means we will use the sccsIntervalData object we’ve just created as the basis for our power calculations. Since the sample size is fixed in retrospective studies (the data has already been collected), and the true effect size is unknown, the SelfControlledCaseSeries package provides a function to compute the minimum detectable relative risk (MDRR) instead:</p>
+<div class="section level3">
+<h3 id="power-calculations">Power calculations<a class="anchor" aria-label="anchor" href="#power-calculations"></a>
+</h3>
+<p>Before we start fitting an outcome model, we might be interested to
+know whether we have sufficient power to detect a particular effect
+size. It makes sense to perform these power calculations once the study
+population has been fully defined, so taking into account loss to the
+various inclusion and exclusion criteria. This means we will use the
+sccsIntervalData object we’ve just created as the basis for our power
+calculations. Since the sample size is fixed in retrospective studies
+(the data has already been collected), and the true effect size is
+unknown, the SelfControlledCaseSeries package provides a function to
+compute the minimum detectable relative risk (MDRR) instead:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/computeMdrr.html">computeMdrr</a></span><span class="op">(</span><span class="va">sccsIntervalData</span>,
             exposureCovariateId <span class="op">=</span> <span class="fl">1000</span>,
@@ -312,40 +409,54 @@
             power <span class="op">=</span> <span class="fl">0.8</span>,
             twoSided <span class="op">=</span> <span class="cn">TRUE</span>,
             method <span class="op">=</span> <span class="st">"binomial"</span><span class="op">)</span></code></pre></div>
-<pre><code>## # A tibble: 1 x 6
-##   timeExposed timeTotal propTimeExposed propPopExposued events  mdrr
-##         &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt;           &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-## 1     8767035 155897307          0.0562               1 380313  1.02</code></pre>
-<p>Note that we have to provide the covariate ID of the exposure of interest, which we learned by calling <code>summary</code> on sccsIntervalData earlier. This is because we may have many covariates in our model, but will likely only be interested in the MDRR of one.</p>
+<pre><code><span class="co">## <span style="color: #949494;"># A tibble: 1 x 6</span></span>
+<span class="co">##   timeExposed timeTotal propTimeExposed propPopulationExposed events  mdrr</span>
+<span class="co">##         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;">1</span>     8<span style="text-decoration: underline;">767</span>035 155<span style="text-decoration: underline;">897</span>307          0.056<span style="text-decoration: underline;">2</span>                     1 <span style="text-decoration: underline;">380</span>313  1.02</span></code></pre>
+<p>Note that we have to provide the covariate ID of the exposure of
+interest, which we learned by calling <code>summary</code> on
+sccsIntervalData earlier. This is because we may have many covariates in
+our model, but will likely only be interested in the MDRR of one.</p>
 </div>
-<div id="model-fitting" class="section level2">
-<h2 class="hasAnchor">
-<a href="#model-fitting" class="anchor"></a>Model fitting</h2>
+<div class="section level3">
+<h3 id="model-fitting">Model fitting<a class="anchor" aria-label="anchor" href="#model-fitting"></a>
+</h3>
 <p>The <code>fitSccsModel</code> function is used to fit the model:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></code></pre></div>
 <p>We can inspect the resulting model:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">model</span></code></pre></div>
-<pre><code>## SccsModel object
-## 
-## Outcome ID: 1
-## 
-## Outcome count:
-##   outcomeSubjects outcomeEvents outcomeObsPeriods
-## 1          397221       2873478            399607
-## 
-## Estimates:
-## # A tibble: 1 x 7
-##   Name                                ID Estimate LB95CI UB95CI LogRr SeLogRr
-##   &lt;chr&gt;                            &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
-## 1 Exposure of interest: diclofenac  1000     1.31   1.29   1.33 0.272 0.00711</code></pre>
-<p>This tells us what the estimated relative risk (the incidence rate ratio) is during exposure to diclofenac compared to non-exposed time.</p>
+<pre><code><span class="co">## SccsModel object</span>
+<span class="co">## </span>
+<span class="co">## Outcome ID: 1</span>
+<span class="co">## </span>
+<span class="co">## Outcome count:</span>
+<span class="co">##   outcomeSubjects outcomeEvents outcomeObsPeriods</span>
+<span class="co">## 1          397221       2873478            399607</span>
+<span class="co">## </span>
+<span class="co">## Estimates:</span>
+<span class="co">## <span style="color: #949494;"># A tibble: 1 x 7</span></span>
+<span class="co">##   Name                                ID Estimate LB95CI UB95CI LogRr SeLogRr</span>
+<span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest: diclofenac  <span style="text-decoration: underline;">1</span>000     1.31   1.29   1.33 0.272 0.007<span style="text-decoration: underline;">11</span></span></code></pre>
+<p>This tells us what the estimated relative risk (the incidence rate
+ratio) is during exposure to diclofenac compared to non-exposed
+time.</p>
 </div>
-<div id="adding-a-pre-exposure-window" class="section level2">
-<h2 class="hasAnchor">
-<a href="#adding-a-pre-exposure-window" class="anchor"></a>Adding a pre-exposure window</h2>
-<p>The fact that NSAIDs like diclofenac can cause GI bleeds is well known to doctors, and this knowledge affects prescribing behavior. For example, a patient who has just had a GI bleed is not likely to be prescribed diclofenac. This may lead to underestimation of the rate during unexposed time, because the unexposed time includes time just prior to exposure where observing of the outcome is unlikely because of this behavior. One solution to this problem that is often used is to introduce a separate ‘risk window’ just prior to exposure, to separate it from the remaining unexposed time. We can add such a ‘pre-exposure window’ to our analysis:</p>
+<div class="section level3">
+<h3 id="adding-a-pre-exposure-window">Adding a pre-exposure window<a class="anchor" aria-label="anchor" href="#adding-a-pre-exposure-window"></a>
+</h3>
+<p>The fact that NSAIDs like diclofenac can cause GI bleeds is well
+known to doctors, and this knowledge affects prescribing behavior. For
+example, a patient who has just had a GI bleed is not likely to be
+prescribed diclofenac. This may lead to underestimation of the rate
+during unexposed time, because the unexposed time includes time just
+prior to exposure where observing of the outcome is unlikely because of
+this behavior. One solution to this problem that is often used is to
+introduce a separate ‘risk window’ just prior to exposure, to separate
+it from the remaining unexposed time. We can add such a ‘pre-exposure
+window’ to our analysis:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">covarPreDiclofenac</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"Pre-exposure"</span>,
                                                  includeEraIds <span class="op">=</span> <span class="va">diclofenac</span>,
@@ -355,81 +466,115 @@
 
 <span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,
                                            sccsData <span class="op">=</span> <span class="va">sccsData</span>,
-                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">covarDiclofenac</span>, 
+                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarDiclofenac</span>, 
                                                                        <span class="va">covarPreDiclofenac</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></code></pre></div>
-<p>Here we created a new covariate definition in addition to the first one. We define the risk window to start 60 days prior to exposure, and end on the day just prior to exposure. We combine the two covariate settings in a list for the <code>createSccsIntervalData</code> function. Again, we can take a look at the results:</p>
+<p>Here we created a new covariate definition in addition to the first
+one. We define the risk window to start 60 days prior to exposure, and
+end on the day just prior to exposure. We combine the two covariate
+settings in a list for the <code>createSccsIntervalData</code> function.
+Again, we can take a look at the results:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">model</span></code></pre></div>
-<pre><code>## SccsModel object
-## 
-## Outcome ID: 1
-## 
-## Outcome count:
-##   outcomeSubjects outcomeEvents outcomeObsPeriods
-## 1          397221       2873478            399607
-## 
-## Estimates:
-## # A tibble: 2 x 7
-##   Name                                ID Estimate LB95CI UB95CI  LogRr SeLogRr
-##   &lt;chr&gt;                            &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;
-## 1 Exposure of interest: diclofenac  1000    1.29   1.27   1.31   0.255 0.00719
-## 2 Pre-exposure: diclofenac          1001    0.797  0.783  0.811 -0.227 0.00883</code></pre>
-<p>Here we indeed see a lower relative risk in the time preceding the exposure, indicating the outcome might be a contra-indication for the drug of interest.</p>
+<pre><code><span class="co">## SccsModel object</span>
+<span class="co">## </span>
+<span class="co">## Outcome ID: 1</span>
+<span class="co">## </span>
+<span class="co">## Outcome count:</span>
+<span class="co">##   outcomeSubjects outcomeEvents outcomeObsPeriods</span>
+<span class="co">## 1          397221       2873478            399607</span>
+<span class="co">## </span>
+<span class="co">## Estimates:</span>
+<span class="co">## <span style="color: #949494;"># A tibble: 2 x 7</span></span>
+<span class="co">##   Name                                ID Estimate LB95CI UB95CI  LogRr SeLogRr</span>
+<span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest: diclofenac  <span style="text-decoration: underline;">1</span>000    1.29   1.27   1.31   0.255 0.007<span style="text-decoration: underline;">19</span></span>
+<span class="co">## <span style="color: #BCBCBC;">2</span> Pre-exposure: diclofenac          <span style="text-decoration: underline;">1</span>001    0.797  0.783  0.811 -<span style="color: #BB0000;">0.227</span> 0.008<span style="text-decoration: underline;">83</span></span></code></pre>
+<p>Here we indeed see a lower relative risk in the time preceding the
+exposure, indicating the outcome might be a contra-indication for the
+drug of interest.</p>
 </div>
-<div id="splitting-risk-windows" class="section level2">
-<h2 class="hasAnchor">
-<a href="#splitting-risk-windows" class="anchor"></a>Splitting risk windows</h2>
-<p>Often we will want to split the risk windows into smaller parts and compute estimates for each part. This can give us insight into the temporal distribution of the risk. We can add this to the model:</p>
+<div class="section level3">
+<h3 id="splitting-risk-windows">Splitting risk windows<a class="anchor" aria-label="anchor" href="#splitting-risk-windows"></a>
+</h3>
+<p>Often we will want to split the risk windows into smaller parts and
+compute estimates for each part. This can give us insight into the
+temporal distribution of the risk. We can add this to the model:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">covarDiclofenacSplit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"Exposure of interest"</span>,
                                                    includeEraIds <span class="op">=</span> <span class="va">diclofenac</span>,
                                                    start <span class="op">=</span> <span class="fl">0</span>,
                                                    end <span class="op">=</span> <span class="fl">0</span>,
                                                    endAnchor <span class="op">=</span> <span class="st">"era end"</span>,
-                                                   splitPoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">14</span><span class="op">)</span><span class="op">)</span>
+                                                   splitPoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">14</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">covarPreDiclofenacSplit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"Pre-exposure"</span>,
                                                       includeEraIds <span class="op">=</span> <span class="va">diclofenac</span>,
                                                       start <span class="op">=</span> <span class="op">-</span><span class="fl">60</span>,
                                                       end <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>,
                                                       endAnchor <span class="op">=</span> <span class="st">"era start"</span>,
-                                                      splitPoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">30</span><span class="op">)</span><span class="op">)</span>
+                                                      splitPoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">30</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,
                                            sccsData <span class="op">=</span> <span class="va">sccsData</span>,
-                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
+                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
                                                                        <span class="va">covarPreDiclofenacSplit</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p>Here we’ve redefined out covariate definitions: We kept the same start and end dates, but enforced split points for the main exposure windows at 7 and 14 days. For the pre-exposure window we divided the window into two, at day 30 before the exposure start. Note that the split point dates indicate the end date of the preceding part, so the exposure is now split into day 0 to (and including) day 7, day 8 to (and including) day 14, and day 15 until the end of exposure. The results are:</p>
+<p>Here we’ve redefined out covariate definitions: We kept the same
+start and end dates, but enforced split points for the main exposure
+windows at 7 and 14 days. For the pre-exposure window we divided the
+window into two, at day 30 before the exposure start. Note that the
+split point dates indicate the end date of the preceding part, so the
+exposure is now split into day 0 to (and including) day 7, day 8 to (and
+including) day 14, and day 15 until the end of exposure. The results
+are:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">model</span></code></pre></div>
-<pre><code>## SccsModel object
-## 
-## Outcome ID: 1
-## 
-## Outcome count:
-##   outcomeSubjects outcomeEvents outcomeObsPeriods
-## 1          397221       2873478            399607
-## 
-## Estimates:
-## # A tibble: 5 x 7
-##   Name                                 ID Estimate LB95CI UB95CI   LogRr SeLogRr
-##   &lt;chr&gt;                             &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 Exposure of interest: diclofenac~  1000    0.971  0.931  1.01  -0.0292 0.0212 
-## 2 Exposure of interest: diclofenac~  1001    1.48   1.42   1.54   0.392  0.0193 
-## 3 Exposure of interest: diclofenac~  1002    1.31   1.29   1.33   0.271  0.00801
-## 4 Pre-exposure: diclofenac, day -6~  1003    0.884  0.865  0.904 -0.123  0.0113 
-## 5 Pre-exposure: diclofenac, day -2~  1004    0.701  0.683  0.720 -0.355  0.0132</code></pre>
-<p>We see that the risk for the three exposure windows is more or less the same, suggesting a constant risk. We also see that the period 60 to 30 days prior to exposure does not seem to show a decreased risk, suggesting the effect of the contra-indication does not extend more than 30 days before the exposure.</p>
+<pre><code><span class="co">## SccsModel object</span>
+<span class="co">## </span>
+<span class="co">## Outcome ID: 1</span>
+<span class="co">## </span>
+<span class="co">## Outcome count:</span>
+<span class="co">##   outcomeSubjects outcomeEvents outcomeObsPeriods</span>
+<span class="co">## 1          397221       2873478            399607</span>
+<span class="co">## </span>
+<span class="co">## Estimates:</span>
+<span class="co">## <span style="color: #949494;"># A tibble: 5 x 7</span></span>
+<span class="co">##   Name                                 ID Estimate LB95CI UB95CI   LogRr SeLogRr</span>
+<span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest: diclofenac~  <span style="text-decoration: underline;">1</span>000    0.971  0.931  1.01  -<span style="color: #BB0000;">0.029</span><span style="color: #BB0000; text-decoration: underline;">2</span> 0.021<span style="text-decoration: underline;">2</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">2</span> Exposure of interest: diclofenac~  <span style="text-decoration: underline;">1</span>001    1.48   1.42   1.54   0.392  0.019<span style="text-decoration: underline;">3</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">3</span> Exposure of interest: diclofenac~  <span style="text-decoration: underline;">1</span>002    1.31   1.29   1.33   0.271  0.008<span style="text-decoration: underline;">01</span></span>
+<span class="co">## <span style="color: #BCBCBC;">4</span> Pre-exposure: diclofenac, day -6~  <span style="text-decoration: underline;">1</span>003    0.884  0.865  0.904 -<span style="color: #BB0000;">0.123</span>  0.011<span style="text-decoration: underline;">3</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">5</span> Pre-exposure: diclofenac, day -2~  <span style="text-decoration: underline;">1</span>004    0.701  0.683  0.720 -<span style="color: #BB0000;">0.355</span>  0.013<span style="text-decoration: underline;">2</span></span></code></pre>
+<p>We see that the risk for the three exposure windows is more or less
+the same, suggesting a constant risk. We also see that the period 60 to
+30 days prior to exposure does not seem to show a decreased risk,
+suggesting the effect of the contra-indication does not extend more than
+30 days before the exposure.</p>
 </div>
-<div id="including-age-seasonality-and-calendar-time" class="section level2">
-<h2 class="hasAnchor">
-<a href="#including-age-seasonality-and-calendar-time" class="anchor"></a>Including age, seasonality, and calendar time</h2>
-<p>Often both the rate of exposure and the outcome change with age, and can even depend on the season or calendar time in general (e.g. rates may be higher in 2021 compared to 2020). This may lead to confounding and may bias our estimates. To correct for this we can include age, season, and/or calendar time into the model.</p>
-<p>For computational reasons we assume the effect of age, season, and calendar time are constant within each calendar month. We assume that the rate from one month to the next can be different, but we also assume that subsequent months have somewhat similar rates. This is implemented by using cubic spline functions.</p>
-<p><img src="spline.png" alt="Spline for seasonality"><em>Figure 1</em>. Example of how a spline is used for seasonality: within a month, the risk attributable to seasonality is assumed to be constant, but from month to month the risks are assumed to follow a cyclic cubic spline.</p>
-<p>Note that the by default all people that have the outcome will be used to estimate the effect of age and seasonality on the outcome, so not just the people exposed to the drug of interest. We can add age, seasonality, and calendar time like this:</p>
+<div class="section level3">
+<h3 id="including-age-seasonality-and-calendar-time">Including age, seasonality, and calendar time<a class="anchor" aria-label="anchor" href="#including-age-seasonality-and-calendar-time"></a>
+</h3>
+<p>Often both the rate of exposure and the outcome change with age, and
+can even depend on the season or calendar time in general (e.g. rates
+may be higher in 2021 compared to 2020). This may lead to confounding
+and may bias our estimates. To correct for this we can include age,
+season, and/or calendar time into the model.</p>
+<p>For computational reasons we assume the effect of age, season, and
+calendar time are constant within each calendar month. We assume that
+the rate from one month to the next can be different, but we also assume
+that subsequent months have somewhat similar rates. This is implemented
+by using cubic spline functions.</p>
+<p><img src="spline.png" alt="Spline for seasonality"><em>Figure
+1</em>. Example of how a spline is used for seasonality: within a month,
+the risk attributable to seasonality is assumed to be constant, but from
+month to month the risks are assumed to follow a cyclic cubic
+spline.</p>
+<p>Note that the by default all people that have the outcome will be
+used to estimate the effect of age and seasonality on the outcome, so
+not just the people exposed to the drug of interest. We can add age,
+seasonality, and calendar time like this:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ageCovariateSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createAgeCovariateSettings.html">createAgeCovariateSettings</a></span><span class="op">(</span>ageKnots <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>
 
@@ -439,7 +584,7 @@
 
 <span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,
                                            sccsData <span class="op">=</span> <span class="va">sccsData</span>,
-                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
+                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
                                                                        <span class="va">covarPreDiclofenacSplit</span><span class="op">)</span>,
 
                                            ageCovariateSettings <span class="op">=</span> <span class="va">ageCovariateSettings</span>,
@@ -450,37 +595,39 @@
 <p>Again, we can inspect the model:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">model</span></code></pre></div>
-<pre><code>## SccsModel object
-## 
-## Outcome ID: 1
-## 
-## Outcome count:
-##   outcomeSubjects outcomeEvents outcomeObsPeriods
-## 1          397221       2873478            399607
-## 
-## Estimates:
-## # A tibble: 18 x 7
-##    Name                               ID Estimate LB95CI UB95CI   LogRr  SeLogRr
-##    &lt;chr&gt;                           &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
-##  1 Age spline component 1            100    1.75  NA     NA      0.557  NA      
-##  2 Age spline component 2            101    2.08  NA     NA      0.731  NA      
-##  3 Age spline component 3            102    3.62  NA     NA      1.29   NA      
-##  4 Age spline component 4            103    3.44  NA     NA      1.23   NA      
-##  5 Age spline component 5            104    3.72  NA     NA      1.31   NA      
-##  6 Seasonality spline component 1    200    0.909 NA     NA     -0.0952 NA      
-##  7 Seasonality spline component 2    201    1.15  NA     NA      0.137  NA      
-##  8 Seasonality spline component 3    202    0.847 NA     NA     -0.166  NA      
-##  9 Calendar time spline component~   300    2.22  NA     NA      0.798  NA      
-## 10 Calendar time spline component~   301    2.79  NA     NA      1.02   NA      
-## 11 Calendar time spline component~   302    6.70  NA     NA      1.90   NA      
-## 12 Calendar time spline component~   303   13.9   NA     NA      2.63   NA      
-## 13 Calendar time spline component~   304    7.66  NA     NA      2.04   NA      
-## 14 Exposure of interest: diclofen~  1000    0.949  0.910  0.989 -0.0524  0.0212 
-## 15 Exposure of interest: diclofen~  1001    1.46   1.40   1.51   0.377   0.0194 
-## 16 Exposure of interest: diclofen~  1002    1.42   1.40   1.44   0.351   0.00802
-## 17 Pre-exposure: diclofenac, day ~  1003    0.865  0.846  0.884 -0.145   0.0114 
-## 18 Pre-exposure: diclofenac, day ~  1004    0.685  0.667  0.703 -0.378   0.0132</code></pre>
-<p>We see that our estimates for exposed and pre-exposure time have not changes much. We can plot the spline curves for age, season, and calendar time to learn more:</p>
+<pre><code><span class="co">## SccsModel object</span>
+<span class="co">## </span>
+<span class="co">## Outcome ID: 1</span>
+<span class="co">## </span>
+<span class="co">## Outcome count:</span>
+<span class="co">##   outcomeSubjects outcomeEvents outcomeObsPeriods</span>
+<span class="co">## 1          397221       2873478            399607</span>
+<span class="co">## </span>
+<span class="co">## Estimates:</span>
+<span class="co">## <span style="color: #949494;"># A tibble: 18 x 7</span></span>
+<span class="co">##    Name                               ID Estimate LB95CI UB95CI   LogRr  SeLogRr</span>
+<span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;"> 1</span> Age spline component 1            100    1.75  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      0.557  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 2</span> Age spline component 2            101    2.08  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      0.731  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 3</span> Age spline component 3            102    3.62  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      1.29   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 4</span> Age spline component 4            103    3.44  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      1.23   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 5</span> Age spline component 5            104    3.72  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      1.31   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 6</span> Seasonality spline component 1    200    0.909 <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">0.095</span><span style="color: #BB0000; text-decoration: underline;">2</span> <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 7</span> Seasonality spline component 2    201    1.15  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      0.137  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 8</span> Seasonality spline component 3    202    0.847 <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">0.166</span>  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 9</span> Calendar time spline component~   300    2.22  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      0.798  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;">10</span> Calendar time spline component~   301    2.79  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      1.02   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;">11</span> Calendar time spline component~   302    6.70  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      1.90   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;">12</span> Calendar time spline component~   303   13.9   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      2.63   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;">13</span> Calendar time spline component~   304    7.66  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      2.04   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;">14</span> Exposure of interest: diclofen~  <span style="text-decoration: underline;">1</span>000    0.949  0.910  0.989 -<span style="color: #BB0000;">0.052</span><span style="color: #BB0000; text-decoration: underline;">4</span>  0.021<span style="text-decoration: underline;">2</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">15</span> Exposure of interest: diclofen~  <span style="text-decoration: underline;">1</span>001    1.46   1.40   1.51   0.377   0.019<span style="text-decoration: underline;">4</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">16</span> Exposure of interest: diclofen~  <span style="text-decoration: underline;">1</span>002    1.42   1.40   1.44   0.351   0.008<span style="text-decoration: underline;">02</span></span>
+<span class="co">## <span style="color: #BCBCBC;">17</span> Pre-exposure: diclofenac, day ~  <span style="text-decoration: underline;">1</span>003    0.865  0.846  0.884 -<span style="color: #BB0000;">0.145</span>   0.011<span style="text-decoration: underline;">4</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">18</span> Pre-exposure: diclofenac, day ~  <span style="text-decoration: underline;">1</span>004    0.685  0.667  0.703 -<span style="color: #BB0000;">0.378</span>   0.013<span style="text-decoration: underline;">2</span></span></code></pre>
+<p>We see that our estimates for exposed and pre-exposure time have not
+changes much. We can plot the spline curves for age, season, and
+calendar time to learn more:</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plotAgeEffect.html">plotAgeEffect</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-33-1.png" width="700"></p>
@@ -490,16 +637,31 @@
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plotCalendarTimeEffect.html">plotCalendarTimeEffect</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-37-1.png" width="700"></p>
-<p>We see a strong effect for age on the outcome, but this effect is spread out over many years and so it less likely to affect the estimates for any individual, since most people are only observed for a few years in the database. We do not see a strong effect for season, but we do see an increasing trend over the years, with a drop near the end of observation time.</p>
+<p>We see a strong effect for age on the outcome, but this effect is
+spread out over many years and so it less likely to affect the estimates
+for any individual, since most people are only observed for a few years
+in the database. We do not see a strong effect for season, but we do see
+an increasing trend over the years, with a drop near the end of
+observation time.</p>
 </div>
-<div id="considering-event-dependent-observation-time" class="section level2">
-<h2 class="hasAnchor">
-<a href="#considering-event-dependent-observation-time" class="anchor"></a>Considering event-dependent observation time</h2>
-<p>The SCCS method requires that observation periods are independent of outcome times. This requirement is violated when outcomes increase the mortality rate, since censoring of the observation periods is then event-dependent. A modification to the SCCS has been proposed that attempts to correct for this. First, several models are fitted to estimate the amount and shape of the event-dependent censoring, and the best fitting model is selected. Next, this model is used to reweigh various parts of the observation time. This approach is also implemented in this package, and can be turned on using the <code>eventDependentObservation</code> argument of the <code>createSccsIntervalData</code> function:</p>
+<div class="section level3">
+<h3 id="considering-event-dependent-observation-time">Considering event-dependent observation time<a class="anchor" aria-label="anchor" href="#considering-event-dependent-observation-time"></a>
+</h3>
+<p>The SCCS method requires that observation periods are independent of
+outcome times. This requirement is violated when outcomes increase the
+mortality rate, since censoring of the observation periods is then
+event-dependent. A modification to the SCCS has been proposed that
+attempts to correct for this. First, several models are fitted to
+estimate the amount and shape of the event-dependent censoring, and the
+best fitting model is selected. Next, this model is used to reweigh
+various parts of the observation time. This approach is also implemented
+in this package, and can be turned on using the
+<code>eventDependentObservation</code> argument of the
+<code>createSccsIntervalData</code> function:</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,
                                            sccsData <span class="op">=</span> <span class="va">sccsData</span>,
-                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
+                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
                                                                        <span class="va">covarPreDiclofenacSplit</span><span class="op">)</span>,
                                            ageCovariateSettings <span class="op">=</span> <span class="va">ageCovariateSettings</span>,
                                            seasonalityCovariateSettings <span class="op">=</span> <span class="va">seasonalityCovariateSettings</span>,
@@ -510,44 +672,51 @@
 <p>Again, we can inspect the model:</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">model</span></code></pre></div>
-<pre><code>## SccsModel object
-## 
-## Outcome ID: 1
-## 
-## Outcome count:
-##   outcomeSubjects outcomeEvents outcomeObsPeriods
-## 1          397221       2873478            399607
-## 
-## Estimates:
-## # A tibble: 13 x 7
-##    Name                               ID Estimate LB95CI UB95CI   LogRr  SeLogRr
-##    &lt;chr&gt;                           &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
-##  1 Seasonality spline component 1    200   0.870  NA     NA     -0.139  NA      
-##  2 Seasonality spline component 2    201   1.25   NA     NA      0.225  NA      
-##  3 Seasonality spline component 3    202   0.868  NA     NA     -0.142  NA      
-##  4 Calendar time spline component~   300   0.478  NA     NA     -0.738  NA      
-##  5 Calendar time spline component~   301   0.266  NA     NA     -1.32   NA      
-##  6 Calendar time spline component~   302   0.128  NA     NA     -2.06   NA      
-##  7 Calendar time spline component~   303   0.0659 NA     NA     -2.72   NA      
-##  8 Calendar time spline component~   304   0.0165 NA     NA     -4.11   NA      
-##  9 Exposure of interest: diclofen~  1000   0.972   0.932  1.01  -0.0284  0.0211 
-## 10 Exposure of interest: diclofen~  1001   1.49    1.44   1.55   0.400   0.0193 
-## 11 Exposure of interest: diclofen~  1002   1.47    1.45   1.49   0.384   0.00790
-## 12 Pre-exposure: diclofenac, day ~  1003   0.916   0.896  0.936 -0.0879  0.0114 
-## 13 Pre-exposure: diclofenac, day ~  1004   0.712   0.693  0.730 -0.340   0.0132</code></pre>
+<pre><code><span class="co">## SccsModel object</span>
+<span class="co">## </span>
+<span class="co">## Outcome ID: 1</span>
+<span class="co">## </span>
+<span class="co">## Outcome count:</span>
+<span class="co">##   outcomeSubjects outcomeEvents outcomeObsPeriods</span>
+<span class="co">## 1          397221       2873478            399607</span>
+<span class="co">## </span>
+<span class="co">## Estimates:</span>
+<span class="co">## <span style="color: #949494;"># A tibble: 13 x 7</span></span>
+<span class="co">##    Name                               ID Estimate LB95CI UB95CI   LogRr  SeLogRr</span>
+<span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;"> 1</span> Seasonality spline component 1    200   0.870  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">0.139</span>  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 2</span> Seasonality spline component 2    201   1.25   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      0.225  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 3</span> Seasonality spline component 3    202   0.868  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">0.142</span>  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 4</span> Calendar time spline component~   300   0.478  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">0.738</span>  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 5</span> Calendar time spline component~   301   0.266  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">1.32</span>   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 6</span> Calendar time spline component~   302   0.128  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">2.06</span>   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 7</span> Calendar time spline component~   303   0.065<span style="text-decoration: underline;">9</span> <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">2.72</span>   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 8</span> Calendar time spline component~   304   0.016<span style="text-decoration: underline;">5</span> <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">4.11</span>   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 9</span> Exposure of interest: diclofen~  <span style="text-decoration: underline;">1</span>000   0.972   0.932  1.01  -<span style="color: #BB0000;">0.028</span><span style="color: #BB0000; text-decoration: underline;">4</span>  0.021<span style="text-decoration: underline;">1</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">10</span> Exposure of interest: diclofen~  <span style="text-decoration: underline;">1</span>001   1.49    1.44   1.55   0.400   0.019<span style="text-decoration: underline;">3</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">11</span> Exposure of interest: diclofen~  <span style="text-decoration: underline;">1</span>002   1.47    1.45   1.49   0.384   0.007<span style="text-decoration: underline;">90</span></span>
+<span class="co">## <span style="color: #BCBCBC;">12</span> Pre-exposure: diclofenac, day ~  <span style="text-decoration: underline;">1</span>003   0.916   0.896  0.936 -<span style="color: #BB0000;">0.087</span><span style="color: #BB0000; text-decoration: underline;">9</span>  0.011<span style="text-decoration: underline;">4</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">13</span> Pre-exposure: diclofenac, day ~  <span style="text-decoration: underline;">1</span>004   0.712   0.693  0.730 -<span style="color: #BB0000;">0.340</span>   0.013<span style="text-decoration: underline;">2</span></span></code></pre>
 </div>
 </div>
-<div id="studies-with-more-than-one-drug" class="section level1">
-<h1 class="hasAnchor">
-<a href="#studies-with-more-than-one-drug" class="anchor"></a>Studies with more than one drug</h1>
-<p>Although we are usually interested in the effect of a single drug or drug class, it could be beneficial to add exposure to other drugs to the analysis if we believe those drugs represent time-varying confounders that we wish to correct for.</p>
-<div id="adding-a-class-of-drugs" class="section level2">
-<h2 class="hasAnchor">
-<a href="#adding-a-class-of-drugs" class="anchor"></a>Adding a class of drugs</h2>
-<p>For example, oftentimes diclofenac is co-prescribed with proton-pump inhibitors (PPIs) to mitigate the risk of GI bleeding. We would like our estimate to represent just the effect of the diclofenac, so we need to keep the effect of the PPIs separate. First we have to retrieve the information on PPI exposure from the database:</p>
+<div class="section level2">
+<h2 id="studies-with-more-than-one-drug">Studies with more than one drug<a class="anchor" aria-label="anchor" href="#studies-with-more-than-one-drug"></a>
+</h2>
+<p>Although we are usually interested in the effect of a single drug or
+drug class, it could be beneficial to add exposure to other drugs to the
+analysis if we believe those drugs represent time-varying confounders
+that we wish to correct for.</p>
+<div class="section level3">
+<h3 id="adding-a-class-of-drugs">Adding a class of drugs<a class="anchor" aria-label="anchor" href="#adding-a-class-of-drugs"></a>
+</h3>
+<p>For example, oftentimes diclofenac is co-prescribed with proton-pump
+inhibitors (PPIs) to mitigate the risk of GI bleeding. We would like our
+estimate to represent just the effect of the diclofenac, so we need to
+keep the effect of the PPIs separate. First we have to retrieve the
+information on PPI exposure from the database:</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">diclofenac</span> <span class="op">&lt;-</span> <span class="fl">1124300</span>
-<span class="va">ppis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">911735</span>, <span class="fl">929887</span>, <span class="fl">923645</span>, <span class="fl">904453</span>, <span class="fl">948078</span>, <span class="fl">19039926</span><span class="op">)</span>
+<span class="va">ppis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">911735</span>, <span class="fl">929887</span>, <span class="fl">923645</span>, <span class="fl">904453</span>, <span class="fl">948078</span>, <span class="fl">19039926</span><span class="op">)</span>
 
 <span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,
                           cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
@@ -556,22 +725,22 @@
                           outcomeIds <span class="op">=</span> <span class="fl">1</span>,
                           exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
                           exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,
-                          exposureIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">diclofenac</span>, <span class="va">ppis</span><span class="op">)</span>,
+                          exposureIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">diclofenac</span>, <span class="va">ppis</span><span class="op">)</span>,
                           cdmVersion <span class="op">=</span> <span class="va">cdmVersion</span><span class="op">)</span>
 <span class="va">sccsData</span></code></pre></div>
-<pre><code>## # SccsData object
-## 
-## Exposure cohort ID(s): 1124300,911735,929887,923645,904453,948078,19039926
-## Outcome cohort ID(s): 1
-## 
-## Inherits from Andromeda:
-## # Andromeda object
-## # Physical location:  C:\Users\mschuemi.EU\AppData\Local\Temp\RtmpqGWYIv\file4bc0672a4051.sqlite
-## 
-## Tables:
-## $cases (observationPeriodId, caseId, personId, observationDays, startYear, startMonth, startDay, ageInDays, censoredDays, noninformativeEndCensor)
-## $eraRef (eraType, eraId, eraName)
-## $eras (eraType, caseId, eraId, value, startDay, endDay)</code></pre>
+<pre><code><span class="co">## <span style="color: #949494;"># SccsData object</span></span>
+<span class="co">## </span>
+<span class="co">## Exposure cohort ID(s): 1124300,911735,929887,923645,904453,948078,19039926</span>
+<span class="co">## Outcome cohort ID(s): 1</span>
+<span class="co">## </span>
+<span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span>
+<span class="co">## <span style="color: #949494;"># Andromeda object</span></span>
+<span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\mschuemi.EU\AppData\Local\Temp\RtmpI7A2d4\filec394208b29e2.sqlite</span></span>
+<span class="co">## </span>
+<span class="co">## Tables:</span>
+<span class="co">## $cases (observationPeriodId, caseId, personId, observationDays, startYear, startMonth, startDay, ageInDays, censoredDays, noninformativeEndCensor)</span>
+<span class="co">## $eraRef (eraType, eraId, eraName)</span>
+<span class="co">## $eras (eraType, caseId, eraId, value, startDay, endDay)</span></code></pre>
 <p>Once retrieved, we can use the data to build and fit our model:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span>sccsData <span class="op">=</span> <span class="va">sccsData</span>,
@@ -588,7 +757,7 @@
 
 <span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,
                                            sccsData <span class="op">=</span> <span class="va">sccsData</span>,
-                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
+                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
                                                                        <span class="va">covarPreDiclofenacSplit</span>,
                                                                        <span class="va">covarPpis</span><span class="op">)</span>,
                                            ageCovariateSettings <span class="op">=</span> <span class="va">ageCovariateSettings</span>,
@@ -597,41 +766,54 @@
                                            eventDependentObservation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
 <span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></code></pre></div>
-<p>Here, we added a new covariate based on the list of concept IDs for the various PPIs. In this example we set <code>stratifyById</code> to FALSE, meaning that we will estimate a single incidence rate ratio for all PPIs, so one estimate for the entire class of drugs. Note that duplicates will be removed: if a person is exposed to two PPIs on the same day, this will be counted only once when fitting the model. Furthermore, we have set the <code>start</code> day to 1 instead of 0. The reason for this is that PPIs will also be used to treat GI bleeds, and are likely to be prescribed on the same day as the event. If we would include day 0, the risk of the outcome would be attributed to the PPI used for treatment, not the other factors that caused the GI bleed such as any exposure to our drug of interest. Again, we can inspect the model:</p>
+<p>Here, we added a new covariate based on the list of concept IDs for
+the various PPIs. In this example we set <code>stratifyById</code> to
+FALSE, meaning that we will estimate a single incidence rate ratio for
+all PPIs, so one estimate for the entire class of drugs. Note that
+duplicates will be removed: if a person is exposed to two PPIs on the
+same day, this will be counted only once when fitting the model.
+Furthermore, we have set the <code>start</code> day to 1 instead of 0.
+The reason for this is that PPIs will also be used to treat GI bleeds,
+and are likely to be prescribed on the same day as the event. If we
+would include day 0, the risk of the outcome would be attributed to the
+PPI used for treatment, not the other factors that caused the GI bleed
+such as any exposure to our drug of interest. Again, we can inspect the
+model:</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">model</span></code></pre></div>
-<pre><code>## SccsModel object
-## 
-## Outcome ID: 1
-## 
-## Outcome count:
-##   outcomeSubjects outcomeEvents outcomeObsPeriods
-## 1          397221       2873478            399607
-## 
-## Estimates:
-## # A tibble: 14 x 7
-##    Name                               ID Estimate LB95CI UB95CI   LogRr  SeLogRr
-##    &lt;chr&gt;                           &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
-##  1 Seasonality spline component 1    200   0.950  NA     NA     -0.0513 NA      
-##  2 Seasonality spline component 2    201   1.25   NA     NA      0.221  NA      
-##  3 Seasonality spline component 3    202   0.943  NA     NA     -0.0588 NA      
-##  4 Calendar time spline component~   300   0.527  NA     NA     -0.641  NA      
-##  5 Calendar time spline component~   301   0.201  NA     NA     -1.60   NA      
-##  6 Calendar time spline component~   302   0.123  NA     NA     -2.09   NA      
-##  7 Calendar time spline component~   303   0.0653 NA     NA     -2.73   NA      
-##  8 Calendar time spline component~   304   0.0157 NA     NA     -4.16   NA      
-##  9 Exposure of interest: diclofen~  1000   0.984   0.944  1.03  -0.0163  0.0212 
-## 10 Exposure of interest: diclofen~  1001   1.51    1.45   1.57   0.412   0.0192 
-## 11 Exposure of interest: diclofen~  1002   1.48    1.45   1.50   0.389   0.00791
-## 12 Pre-exposure: diclofenac, day ~  1003   0.920   0.900  0.941 -0.0830  0.0115 
-## 13 Pre-exposure: diclofenac, day ~  1004   0.717   0.698  0.735 -0.333   0.0132 
-## 14 PPIs                             1005   0.665   0.663  0.668 -0.408   0.00191</code></pre>
+<pre><code><span class="co">## SccsModel object</span>
+<span class="co">## </span>
+<span class="co">## Outcome ID: 1</span>
+<span class="co">## </span>
+<span class="co">## Outcome count:</span>
+<span class="co">##   outcomeSubjects outcomeEvents outcomeObsPeriods</span>
+<span class="co">## 1          397221       2873478            399607</span>
+<span class="co">## </span>
+<span class="co">## Estimates:</span>
+<span class="co">## <span style="color: #949494;"># A tibble: 14 x 7</span></span>
+<span class="co">##    Name                               ID Estimate LB95CI UB95CI   LogRr  SeLogRr</span>
+<span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;"> 1</span> Seasonality spline component 1    200   0.950  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">0.051</span><span style="color: #BB0000; text-decoration: underline;">3</span> <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 2</span> Seasonality spline component 2    201   1.25   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>      0.221  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 3</span> Seasonality spline component 3    202   0.943  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">0.058</span><span style="color: #BB0000; text-decoration: underline;">8</span> <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 4</span> Calendar time spline component~   300   0.527  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">0.641</span>  <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 5</span> Calendar time spline component~   301   0.201  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">1.60</span>   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 6</span> Calendar time spline component~   302   0.123  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">2.09</span>   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 7</span> Calendar time spline component~   303   0.065<span style="text-decoration: underline;">3</span> <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">2.73</span>   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 8</span> Calendar time spline component~   304   0.015<span style="text-decoration: underline;">7</span> <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     -<span style="color: #BB0000;">4.16</span>   <span style="color: #BB0000;">NA</span>      </span>
+<span class="co">## <span style="color: #BCBCBC;"> 9</span> Exposure of interest: diclofen~  <span style="text-decoration: underline;">1</span>000   0.984   0.944  1.03  -<span style="color: #BB0000;">0.016</span><span style="color: #BB0000; text-decoration: underline;">3</span>  0.021<span style="text-decoration: underline;">2</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">10</span> Exposure of interest: diclofen~  <span style="text-decoration: underline;">1</span>001   1.51    1.45   1.57   0.412   0.019<span style="text-decoration: underline;">2</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">11</span> Exposure of interest: diclofen~  <span style="text-decoration: underline;">1</span>002   1.48    1.45   1.50   0.389   0.007<span style="text-decoration: underline;">91</span></span>
+<span class="co">## <span style="color: #BCBCBC;">12</span> Pre-exposure: diclofenac, day ~  <span style="text-decoration: underline;">1</span>003   0.920   0.900  0.941 -<span style="color: #BB0000;">0.083</span><span style="color: #BB0000; text-decoration: underline;">0</span>  0.011<span style="text-decoration: underline;">5</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">13</span> Pre-exposure: diclofenac, day ~  <span style="text-decoration: underline;">1</span>004   0.717   0.698  0.735 -<span style="color: #BB0000;">0.333</span>   0.013<span style="text-decoration: underline;">2</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">14</span> PPIs                             <span style="text-decoration: underline;">1</span>005   0.665   0.663  0.668 -<span style="color: #BB0000;">0.408</span>   0.001<span style="text-decoration: underline;">91</span></span></code></pre>
 <p>We do see a decrease in risk when people are exposed to PPIs.</p>
 </div>
-<div id="adding-all-drugs" class="section level2">
-<h2 class="hasAnchor">
-<a href="#adding-all-drugs" class="anchor"></a>Adding all drugs</h2>
-<p>Another approach could be to add all drugs into the model. Again, the first step is to get all the relevant data from the database:</p>
+<div class="section level3">
+<h3 id="adding-all-drugs">Adding all drugs<a class="anchor" aria-label="anchor" href="#adding-all-drugs"></a>
+</h3>
+<p>Another approach could be to add all drugs into the model. Again, the
+first step is to get all the relevant data from the database:</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,
                           cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
@@ -640,9 +822,11 @@
                           outcomeIds <span class="op">=</span> <span class="fl">1</span>,
                           exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
                           exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,
-                          exposureIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span>,
+                          exposureIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,
                           cdmVersion <span class="op">=</span> <span class="va">cdmVersion</span><span class="op">)</span></code></pre></div>
-<p>Note that the <code>exposureIds</code> argument is left empty. This will cause data for all concepts in the exposure table to be retrieved. Next, we simply create a new set of covariates, and fit the model:</p>
+<p>Note that the <code>exposureIds</code> argument is left empty. This
+will cause data for all concepts in the exposure table to be retrieved.
+Next, we simply create a new set of covariates, and fit the model:</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span>sccsData <span class="op">=</span> <span class="va">sccsData</span>,
                                   outcomeId <span class="op">=</span> <span class="fl">1</span>,
@@ -659,7 +843,7 @@
 
 <span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,
                                            sccsData <span class="op">=</span> <span class="va">sccsData</span>,
-                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
+                                           eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarDiclofenacSplit</span>,
                                                                        <span class="va">covarPreDiclofenacSplit</span>,
                                                                        <span class="va">covarAllDrugs</span><span class="op">)</span>,
                                            ageCovariateSettings <span class="op">=</span> <span class="va">ageCovariateSettings</span>,
@@ -668,147 +852,203 @@
                                            eventDependentObservation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
 <span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></code></pre></div>
-<p>The first thing to note is that we have defined the new covariates to be all drugs except diclofenac by not specifying the <code>includeEraIds</code> and setting the <code>excludeEraIds</code> to the concept ID of diclofenac. Furthermore, we have specified that <code>stratifyById</code> is TRUE, meaning an estimate will be produced for each drug.</p>
-<p>We have set <code>allowRegularization</code> to TRUE, meaning we will use regularization for all estimates in this new covariate set. Regularization means we will impose a prior distribution on the effect size, effectually penalizing large estimates. This helps fit the model, for example when some drugs are rare, and when drugs are almost often prescribed together and their individual effects are difficult to untangle.</p>
-<p>Because there are now so many estimates, we will export all estimates to a data frame using <code><a href="../reference/getModel.html">getModel()</a></code>:</p>
+<p>The first thing to note is that we have defined the new covariates to
+be all drugs except diclofenac by not specifying the
+<code>includeEraIds</code> and setting the <code>excludeEraIds</code> to
+the concept ID of diclofenac. Furthermore, we have specified that
+<code>stratifyById</code> is TRUE, meaning an estimate will be produced
+for each drug.</p>
+<p>We have set <code>allowRegularization</code> to TRUE, meaning we will
+use regularization for all estimates in this new covariate set.
+Regularization means we will impose a prior distribution on the effect
+size, effectually penalizing large estimates. This helps fit the model,
+for example when some drugs are rare, and when drugs are almost often
+prescribed together and their individual effects are difficult to
+untangle.</p>
+<p>Because there are now so many estimates, we will export all estimates
+to a data frame using <code><a href="../reference/getModel.html">getModel()</a></code>:</p>
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R">  <span class="va">estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getModel.html">getModel</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>
   <span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op">==</span> <span class="va">diclofenac</span>, <span class="op">]</span></code></pre></div>
-<pre><code>## # A tibble: 5 x 10
-##   name                   id estimate lb95Ci ub95Ci   logRr seLogRr originalEraId
-##   &lt;chr&gt;               &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;         &lt;dbl&gt;
-## 1 Exposure of intere~  1000    0.971  0.923  1.02  -0.0295  0.0250       1124300
-## 2 Exposure of intere~  1001    1.50   1.43   1.56   0.403   0.0218       1124300
-## 3 Exposure of intere~  1002    1.50   1.47   1.54   0.408   0.0107       1124300
-## 4 Pre-exposure: dicl~  1003    0.925  0.900  0.951 -0.0779  0.0142       1124300
-## 5 Pre-exposure: dicl~  1004    0.720  0.699  0.741 -0.329   0.0151       1124300
-## # ... with 2 more variables: originalEraType &lt;chr&gt;, originalEraName &lt;chr&gt;</code></pre>
-<p>Here we see that despite the extensive adjustments that are made in the model, the effect estimates for diclofenac have remained nearly the same.</p>
-<p>In case we’re interested, we can also look at the effect sizes for the PPIs:</p>
+<pre><code><span class="co">## <span style="color: #949494;"># A tibble: 5 x 10</span></span>
+<span class="co">##   name                   id estimate lb95Ci ub95Ci   logRr seLogRr originalEraId</span>
+<span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of intere~  <span style="text-decoration: underline;">1</span>000    0.971  0.923  1.02  -<span style="color: #BB0000;">0.029</span><span style="color: #BB0000; text-decoration: underline;">5</span>  0.025<span style="text-decoration: underline;">0</span>       1<span style="text-decoration: underline;">124</span>300</span>
+<span class="co">## <span style="color: #BCBCBC;">2</span> Exposure of intere~  <span style="text-decoration: underline;">1</span>001    1.50   1.43   1.56   0.403   0.021<span style="text-decoration: underline;">8</span>       1<span style="text-decoration: underline;">124</span>300</span>
+<span class="co">## <span style="color: #BCBCBC;">3</span> Exposure of intere~  <span style="text-decoration: underline;">1</span>002    1.50   1.47   1.54   0.408   0.010<span style="text-decoration: underline;">7</span>       1<span style="text-decoration: underline;">124</span>300</span>
+<span class="co">## <span style="color: #BCBCBC;">4</span> Pre-exposure: dicl~  <span style="text-decoration: underline;">1</span>003    0.925  0.900  0.951 -<span style="color: #BB0000;">0.077</span><span style="color: #BB0000; text-decoration: underline;">9</span>  0.014<span style="text-decoration: underline;">2</span>       1<span style="text-decoration: underline;">124</span>300</span>
+<span class="co">## <span style="color: #BCBCBC;">5</span> Pre-exposure: dicl~  <span style="text-decoration: underline;">1</span>004    0.720  0.699  0.741 -<span style="color: #BB0000;">0.329</span>   0.015<span style="text-decoration: underline;">1</span>       1<span style="text-decoration: underline;">124</span>300</span>
+<span class="co">## <span style="color: #949494;"># ... with 2 more variables: originalEraType &lt;chr&gt;, originalEraName &lt;chr&gt;</span></span></code></pre>
+<p>Here we see that despite the extensive adjustments that are made in
+the model, the effect estimates for diclofenac have remained nearly the
+same.</p>
+<p>In case we’re interested, we can also look at the effect sizes for
+the PPIs:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">ppis</span>, <span class="op">]</span></code></pre></div>
-<pre><code>## # A tibble: 6 x 10
-##   name                    id estimate lb95Ci ub95Ci  logRr seLogRr originalEraId
-##   &lt;chr&gt;                &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;         &lt;dbl&gt;
-## 1 Other exposures: la~  1266    0.693     NA     NA -0.367      NA        929887
-## 2 Other exposures: es~  1776    0.688     NA     NA -0.374      NA        904453
-## 3 Other exposures: ra~  1893    0.823     NA     NA -0.194      NA        911735
-## 4 Other exposures: pa~  2280    0.624     NA     NA -0.472      NA        948078
-## 5 Other exposures: de~  2533    0.734     NA     NA -0.309      NA      19039926
-## 6 Other exposures: om~  2734    0.670     NA     NA -0.401      NA        923645
-## # ... with 2 more variables: originalEraType &lt;chr&gt;, originalEraName &lt;chr&gt;</code></pre>
-<p>Note that because we used regularization, we are not able to compute the confidence intervals for these estimates. We do again see that PPIs all have relative risks lower than 1 as we would expect.</p>
+<code class="sourceCode R"><span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ppis</span>, <span class="op">]</span></code></pre></div>
+<pre><code><span class="co">## <span style="color: #949494;"># A tibble: 6 x 10</span></span>
+<span class="co">##   name                    id estimate lb95Ci ub95Ci  logRr seLogRr originalEraId</span>
+<span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="co">## <span style="color: #BCBCBC;">1</span> Other exposures: la~  <span style="text-decoration: underline;">1</span>266    0.693     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.367</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">929</span>887</span>
+<span class="co">## <span style="color: #BCBCBC;">2</span> Other exposures: es~  <span style="text-decoration: underline;">1</span>776    0.688     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.374</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">904</span>453</span>
+<span class="co">## <span style="color: #BCBCBC;">3</span> Other exposures: ra~  <span style="text-decoration: underline;">1</span>893    0.823     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.194</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">911</span>735</span>
+<span class="co">## <span style="color: #BCBCBC;">4</span> Other exposures: pa~  <span style="text-decoration: underline;">2</span>280    0.624     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.472</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">948</span>078</span>
+<span class="co">## <span style="color: #BCBCBC;">5</span> Other exposures: de~  <span style="text-decoration: underline;">2</span>533    0.734     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.309</span>      <span style="color: #BB0000;">NA</span>      19<span style="text-decoration: underline;">039</span>926</span>
+<span class="co">## <span style="color: #BCBCBC;">6</span> Other exposures: om~  <span style="text-decoration: underline;">2</span>734    0.670     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.401</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">923</span>645</span>
+<span class="co">## <span style="color: #949494;"># ... with 2 more variables: originalEraType &lt;chr&gt;, originalEraName &lt;chr&gt;</span></span></code></pre>
+<p>Note that because we used regularization, we are not able to compute
+the confidence intervals for these estimates. We do again see that PPIs
+all have relative risks lower than 1 as we would expect.</p>
 </div>
 </div>
-<div id="diagnostics" class="section level1">
-<h1 class="hasAnchor">
-<a href="#diagnostics" class="anchor"></a>Diagnostics</h1>
-<p>We can perform several diagnostics on the data to verify whether our assumptions underlying the SCCS are met.</p>
-<div id="time-from-exposure-start-to-event" class="section level2">
-<h2 class="hasAnchor">
-<a href="#time-from-exposure-start-to-event" class="anchor"></a>Time from exposure start to event</h2>
-<p>To gain a better understanding of when the event occurs relative to the start of exposure, we can plot their relationship. Note that we specify the naive period, so this can be applied to the data prior to showing the plot. This will make the plot better in line with the data we ended up fitting:</p>
+<div class="section level2">
+<h2 id="diagnostics">Diagnostics<a class="anchor" aria-label="anchor" href="#diagnostics"></a>
+</h2>
+<p>We can perform several diagnostics on the data to verify whether our
+assumptions underlying the SCCS are met.</p>
+<div class="section level3">
+<h3 id="time-from-exposure-start-to-event">Time from exposure start to event<a class="anchor" aria-label="anchor" href="#time-from-exposure-start-to-event"></a>
+</h3>
+<p>To gain a better understanding of when the event occurs relative to
+the start of exposure, we can plot their relationship. Note that we
+specify the naive period, so this can be applied to the data prior to
+showing the plot. This will make the plot better in line with the data
+we ended up fitting:</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plotExposureCentered.html">plotExposureCentered</a></span><span class="op">(</span><span class="va">studyPop</span>, <span class="va">sccsData</span>, exposureEraId <span class="op">=</span> <span class="va">diclofenac</span><span class="op">)</span></code></pre></div>
-<pre><code>## Warning: Removed 52 rows containing missing values (geom_rect).</code></pre>
+<pre><code><span class="co">## Warning: Removed 52 rows containing missing values (geom_rect).</span></code></pre>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-54-1.png" width="624"></p>
-<p>This plot suggests an increased rate of events in the first few weeks following the start of exposure, perhaps because of an acute effect.</p>
+<p>This plot suggests an increased rate of events in the first few weeks
+following the start of exposure, perhaps because of an acute effect.</p>
 </div>
-<div id="ages-covered-per-subject" class="section level2">
-<h2 class="hasAnchor">
-<a href="#ages-covered-per-subject" class="anchor"></a>Ages covered per subject</h2>
-<p>We can visualize which age ranges are covered by each subject’s observation time:</p>
+<div class="section level3">
+<h3 id="ages-covered-per-subject">Ages covered per subject<a class="anchor" aria-label="anchor" href="#ages-covered-per-subject"></a>
+</h3>
+<p>We can visualize which age ranges are covered by each subject’s
+observation time:</p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plotAgeSpans.html">plotAgeSpans</a></span><span class="op">(</span><span class="va">studyPop</span><span class="op">)</span></code></pre></div>
-<pre><code>## Warning in plotAgeSpans(studyPop): There are 399607 cases. Random sampling 10000
-## cases.</code></pre>
+<pre><code><span class="co">## Warning in plotAgeSpans(studyPop): There are 399607 cases. Random sampling 10000</span>
+<span class="co">## cases.</span></code></pre>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-56-1.png" width="700"></p>
-<p>Here we see that most observation periods span only a small age range, making it unlikely that any within-person age-related effect will be large.</p>
+<p>Here we see that most observation periods span only a small age
+range, making it unlikely that any within-person age-related effect will
+be large.</p>
 </div>
-<div id="dependency-between-events-and-observation-end" class="section level2">
-<h2 class="hasAnchor">
-<a href="#dependency-between-events-and-observation-end" class="anchor"></a>Dependency between events and observation end</h2>
-<p>To understand whether censoring is dependent on the event, which would violate one of the assumptions of the SCCS, we can plot the difference in distribution between censored and uncensored events. By ‘censored’ we mean periods that end before we would normally expect. Here, we define periods to be uncensored if they end at either the study end date (if specified), database end date (i.e. the date after which no data is captured in the database), or maximum age (if specified). All other periods are assumed to be censored.</p>
+<div class="section level3">
+<h3 id="dependency-between-events-and-observation-end">Dependency between events and observation end<a class="anchor" aria-label="anchor" href="#dependency-between-events-and-observation-end"></a>
+</h3>
+<p>To understand whether censoring is dependent on the event, which
+would violate one of the assumptions of the SCCS, we can plot the
+difference in distribution between censored and uncensored events. By
+‘censored’ we mean periods that end before we would normally expect.
+Here, we define periods to be uncensored if they end at either the study
+end date (if specified), database end date (i.e. the date after which no
+data is captured in the database), or maximum age (if specified). All
+other periods are assumed to be censored.</p>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plotEventObservationDependence.html">plotEventObservationDependence</a></span><span class="op">(</span><span class="va">studyPop</span><span class="op">)</span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-58-1.png" width="700"></p>
-<p>Here we see that overall the two distributions are somewhat similar, with little evidence that censoring tends to lead to shorter times to the end of observation.</p>
+<p>Here we see that overall the two distributions are somewhat similar,
+with little evidence that censoring tends to lead to shorter times to
+the end of observation.</p>
 </div>
-<div id="stability-of-the-outcome-over-calendar-time" class="section level2">
-<h2 class="hasAnchor">
-<a href="#stability-of-the-outcome-over-calendar-time" class="anchor"></a>Stability of the outcome over calendar time</h2>
-<p>If the rate of the outcome changes as a function of calendar time, this could introduce bias. For example, if the outcome is more prevalent during winter, and the exposure also tends to occur in winter, this will create an association between the two that likely doesn’t imply causation. We can check for patterns over time:</p>
+<div class="section level3">
+<h3 id="stability-of-the-outcome-over-calendar-time">Stability of the outcome over calendar time<a class="anchor" aria-label="anchor" href="#stability-of-the-outcome-over-calendar-time"></a>
+</h3>
+<p>If the rate of the outcome changes as a function of calendar time,
+this could introduce bias. For example, if the outcome is more prevalent
+during winter, and the exposure also tends to occur in winter, this will
+create an association between the two that likely doesn’t imply
+causation. We can check for patterns over time:</p>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plotEventToCalendarTime.html">plotEventToCalendarTime</a></span><span class="op">(</span><span class="va">studyPop</span><span class="op">)</span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-60-1.png" width="700"></p>
-<p>In the top of the plot, we see the rate of the outcome (within those persons that are observed) does change over time.</p>
-<p>Earlier, we’ve seen we can adjust for these types of patterns by including splines, for example for age, season, and calendar time. We can use the same plot to evaluate if these adjustments have been sufficient. For example, using the model we fitted earlier adjusting for age, season, and calendar time:</p>
+<p>In the top of the plot, we see the rate of the outcome (within those
+persons that are observed) does change over time.</p>
+<p>Earlier, we’ve seen we can adjust for these types of patterns by
+including splines, for example for age, season, and calendar time. We
+can use the same plot to evaluate if these adjustments have been
+sufficient. For example, using the model we fitted earlier adjusting for
+age, season, and calendar time:</p>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plotEventToCalendarTime.html">plotEventToCalendarTime</a></span><span class="op">(</span><span class="va">studyPop</span>, <span class="va">model</span><span class="op">)</span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-62-1.png" width="700"></p>
-<p>Here, the top plot shows the rate of the outcome, after adjusting for the age, season, and calendar time effect. We see that the adjustment wasn’t completely effective, and in fact may have over-adjusted. A more formal way to evaluate this is by using:</p>
+<p>Here, the top plot shows the rate of the outcome, after adjusting for
+the age, season, and calendar time effect. We see that the adjustment
+wasn’t completely effective, and in fact may have over-adjusted. A more
+formal way to evaluate this is by using:</p>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">diagnostic</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeTimeStability.html">computeTimeStability</a></span><span class="op">(</span><span class="va">studyPop</span>, <span class="va">model</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">diagnostic</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"monthStartDate"</span>, <span class="st">"monthEndDate"</span>, <span class="st">"p"</span>, <span class="st">"alpha"</span>, <span class="st">"stable"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<pre><code>## # A tibble: 6 x 5
-##   monthStartDate monthEndDate     p    alpha stable
-##   &lt;date&gt;         &lt;date&gt;       &lt;dbl&gt;    &lt;dbl&gt; &lt;lgl&gt; 
-## 1 2000-06-01     2000-06-30       0 0.000197 FALSE 
-## 2 2000-07-01     2000-07-31       0 0.000197 FALSE 
-## 3 2000-08-01     2000-08-31       0 0.000197 FALSE 
-## 4 2000-09-01     2000-09-30       0 0.000197 FALSE 
-## 5 2000-10-01     2000-10-31       0 0.000197 FALSE 
-## 6 2000-11-01     2000-11-30       0 0.000197 FALSE</code></pre>
-<p>This shows that, even after adjustment using the splines, there are months where the rate differs significantly from the mean rate, indicating temporal instability. We may want to change the knots in the splines, or possibly restrict our analysis to calendar time that is more stable.</p>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">diagnostic</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monthStartDate"</span>, <span class="st">"monthEndDate"</span>, <span class="st">"p"</span>, <span class="st">"alpha"</span>, <span class="st">"stable"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## <span style="color: #949494;"># A tibble: 6 x 5</span></span>
+<span class="co">##   monthStartDate monthEndDate     p    alpha stable</span>
+<span class="co">##   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> </span>
+<span class="co">## <span style="color: #BCBCBC;">1</span> 2000-06-01     2000-06-30       0 0.000<span style="text-decoration: underline;">197</span> FALSE </span>
+<span class="co">## <span style="color: #BCBCBC;">2</span> 2000-07-01     2000-07-31       0 0.000<span style="text-decoration: underline;">197</span> FALSE </span>
+<span class="co">## <span style="color: #BCBCBC;">3</span> 2000-08-01     2000-08-31       0 0.000<span style="text-decoration: underline;">197</span> FALSE </span>
+<span class="co">## <span style="color: #BCBCBC;">4</span> 2000-09-01     2000-09-30       0 0.000<span style="text-decoration: underline;">197</span> FALSE </span>
+<span class="co">## <span style="color: #BCBCBC;">5</span> 2000-10-01     2000-10-31       0 0.000<span style="text-decoration: underline;">197</span> FALSE </span>
+<span class="co">## <span style="color: #BCBCBC;">6</span> 2000-11-01     2000-11-30       0 0.000<span style="text-decoration: underline;">197</span> FALSE</span></code></pre>
+<p>This shows that, even after adjustment using the splines, there are
+months where the rate differs significantly from the mean rate,
+indicating temporal instability. We may want to change the knots in the
+splines, or possibly restrict our analysis to calendar time that is more
+stable.</p>
 </div>
 </div>
-<div id="acknowledgments" class="section level1">
-<h1 class="hasAnchor">
-<a href="#acknowledgments" class="anchor"></a>Acknowledgments</h1>
-<p>Considerable work has been dedicated to provide the <code>SelfControlledCaseSeries</code> package.</p>
+<div class="section level2">
+<h2 id="acknowledgments">Acknowledgments<a class="anchor" aria-label="anchor" href="#acknowledgments"></a>
+</h2>
+<p>Considerable work has been dedicated to provide the
+<code>SelfControlledCaseSeries</code> package.</p>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/citation.html">citation</a></span><span class="op">(</span><span class="st">"SelfControlledCaseSeries"</span><span class="op">)</span></code></pre></div>
-<pre><code>## 
-## To cite package 'SelfControlledCaseSeries' in publications use:
-## 
-##   Martijn Schuemie, Patrick Ryan, Trevor Shaddox and Marc Suchard
-##   (2022). SelfControlledCaseSeries: Self-Controlled Case Series. R
-##   package version 3.2.1.
-##   https://github.com/OHDSI/SelfControlledCaseSeries
-## 
-## A BibTeX entry for LaTeX users is
-## 
-##   @Manual{,
-##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},
-##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},
-##     year = {2022},
-##     note = {R package version 3.2.1},
-##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},
-##   }</code></pre>
-<p>Furthermore, <code>SelfControlledCaseSeries</code> makes extensive use of the <code>Cyclops</code> package.</p>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"SelfControlledCaseSeries"</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## </span>
+<span class="co">## To cite package 'SelfControlledCaseSeries' in publications use:</span>
+<span class="co">## </span>
+<span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2022).</span>
+<span class="co">##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package</span>
+<span class="co">##   version 3.3.0, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span>
+<span class="co">## </span>
+<span class="co">## A BibTeX entry for LaTeX users is</span>
+<span class="co">## </span>
+<span class="co">##   @Manual{,</span>
+<span class="co">##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},</span>
+<span class="co">##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},</span>
+<span class="co">##     year = {2022},</span>
+<span class="co">##     note = {R package version 3.3.0},</span>
+<span class="co">##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},</span>
+<span class="co">##   }</span></code></pre>
+<p>Furthermore, <code>SelfControlledCaseSeries</code> makes extensive
+use of the <code>Cyclops</code> package.</p>
 <div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/citation.html">citation</a></span><span class="op">(</span><span class="st">"Cyclops"</span><span class="op">)</span></code></pre></div>
-<pre><code>## 
-## To cite Cyclops in publications use:
-## 
-## Suchard MA, Simpson SE, Zorych I, Ryan P, Madigan D (2013). "Massive
-## parallelization of serial inference algorithms for complex generalized
-## linear models." _ACM Transactions on Modeling and Computer Simulation_,
-## *23*, 10. &lt;URL: https://dl.acm.org/doi/10.1145/2414416.2414791&gt;.
-## 
-## A BibTeX entry for LaTeX users is
-## 
-##   @Article{,
-##     author = {M. A. Suchard and S. E. Simpson and I. Zorych and P. Ryan and D. Madigan},
-##     title = {Massive parallelization of serial inference algorithms for complex generalized linear models},
-##     journal = {ACM Transactions on Modeling and Computer Simulation},
-##     volume = {23},
-##     pages = {10},
-##     year = {2013},
-##     url = {https://dl.acm.org/doi/10.1145/2414416.2414791},
-##   }</code></pre>
-<p>Part of the code (related to event-dependent observation periods) is based on the SCCS package by Yonas Ghebremichael-Weldeselassie, Heather Whitaker, and Paddy Farrington.</p>
-<p>This work is supported in part through the National Science Foundation grant IIS 1251151.</p>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"Cyclops"</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## </span>
+<span class="co">## To cite Cyclops in publications use:</span>
+<span class="co">## </span>
+<span class="co">##   Suchard MA, Simpson SE, Zorych I, Ryan P, Madigan D (2013). "Massive</span>
+<span class="co">##   parallelization of serial inference algorithms for complex</span>
+<span class="co">##   generalized linear models." _ACM Transactions on Modeling and</span>
+<span class="co">##   Computer Simulation_, *23*, 10.</span>
+<span class="co">##   &lt;https://dl.acm.org/doi/10.1145/2414416.2414791&gt;.</span>
+<span class="co">## </span>
+<span class="co">## A BibTeX entry for LaTeX users is</span>
+<span class="co">## </span>
+<span class="co">##   @Article{,</span>
+<span class="co">##     author = {M. A. Suchard and S. E. Simpson and I. Zorych and P. Ryan and D. Madigan},</span>
+<span class="co">##     title = {Massive parallelization of serial inference algorithms for complex generalized linear models},</span>
+<span class="co">##     journal = {ACM Transactions on Modeling and Computer Simulation},</span>
+<span class="co">##     volume = {23},</span>
+<span class="co">##     pages = {10},</span>
+<span class="co">##     year = {2013},</span>
+<span class="co">##     url = {https://dl.acm.org/doi/10.1145/2414416.2414791},</span>
+<span class="co">##   }</span></code></pre>
+<p>Part of the code (related to event-dependent observation periods) is
+based on the SCCS package by Yonas Ghebremichael-Weldeselassie, Heather
+Whitaker, and Paddy Farrington.</p>
+<p>This work is supported in part through the National Science
+Foundation grant IIS 1251151.</p>
 </div>
   </div>
 
@@ -823,11 +1063,13 @@
 
 
       <footer><div class="copyright">
-  <p>Developed by Martijn Schuemie, Patrick Ryan, Trevor Shaddox, Marc Suchard.</p>
+  <p></p>
+<p>Developed by Martijn Schuemie, Patrick Ryan, Trevor Shaddox, Marc Suchard.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
 </div>
 
       </footer>
@@ -835,6 +1077,8 @@
 
   
 
+
+  
 
   </body>
 </html>

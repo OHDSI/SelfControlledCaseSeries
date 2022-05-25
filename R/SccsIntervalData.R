@@ -48,12 +48,15 @@ setClass("SccsIntervalData", contains = "Andromeda")
 #'
 #' @export
 saveSccsIntervalData <- function(SccsIntervalData, file) {
-  if (missing(SccsIntervalData))
+  if (missing(SccsIntervalData)) {
     stop("Must specify SccsIntervalData")
-  if (missing(file))
+  }
+  if (missing(file)) {
     stop("Must specify file")
-  if (!inherits(SccsIntervalData, "SccsIntervalData"))
+  }
+  if (!inherits(SccsIntervalData, "SccsIntervalData")) {
     stop("Data not of class SccsIntervalData")
+  }
 
   Andromeda::saveAndromeda(SccsIntervalData, file)
 }
@@ -70,10 +73,12 @@ saveSccsIntervalData <- function(SccsIntervalData, file) {
 #'
 #' @export
 loadSccsIntervalData <- function(file) {
-  if (!file.exists(file))
+  if (!file.exists(file)) {
     stop("Cannot find file ", file)
-  if (file.info(file)$isdir)
-    stop(file , " is a folder, but should be a file")
+  }
+  if (file.info(file)$isdir) {
+    stop(file, " is a folder, but should be a file")
+  }
   SccsIntervalData <- Andromeda::loadAndromeda(file)
   class(SccsIntervalData) <- "SccsIntervalData"
   attr(class(SccsIntervalData), "package") <- "SelfControlledCaseSeries"
@@ -103,21 +108,34 @@ setMethod("show", "SccsIntervalData", function(object) {
 #' @export
 #' @rdname SccsIntervalData-class
 setMethod("summary", "SccsIntervalData", function(object) {
-  if (!Andromeda::isValidAndromeda(object))
+  if (!Andromeda::isValidAndromeda(object)) {
     stop("Object is not valid. Probably the Andromeda object was closed.")
+  }
 
-  caseCount <- object$outcomes %>% summarise(n = n_distinct(.data$stratumId)) %>% pull()
-  eraCount <- object$outcomes %>% count() %>% pull()
-  outcomeCount <- object$outcomes %>% summarise(n = sum(.data$y, na.rm = TRUE)) %>% pull()
-  covariateCount <- object$covariateRef %>% count() %>% pull()
-  covariateValueCount <- object$covariates %>% count() %>% pull()
+  caseCount <- object$outcomes %>%
+    summarise(n = n_distinct(.data$stratumId)) %>%
+    pull()
+  eraCount <- object$outcomes %>%
+    count() %>%
+    pull()
+  outcomeCount <- object$outcomes %>%
+    summarise(n = sum(.data$y, na.rm = TRUE)) %>%
+    pull()
+  covariateCount <- object$covariateRef %>%
+    count() %>%
+    pull()
+  covariateValueCount <- object$covariates %>%
+    count() %>%
+    pull()
 
-  result <- list(metaData = attr(object, "metaData"),
-                 caseCount = caseCount,
-                 eraCount = eraCount,
-                 outcomeCount = outcomeCount,
-                 covariateCount = covariateCount,
-                 covariateValueCount = covariateValueCount)
+  result <- list(
+    metaData = attr(object, "metaData"),
+    caseCount = caseCount,
+    eraCount = eraCount,
+    outcomeCount = outcomeCount,
+    covariateCount = covariateCount,
+    covariateValueCount = covariateValueCount
+  )
 
   class(result) <- "summary.SccsIntervalData"
   return(result)

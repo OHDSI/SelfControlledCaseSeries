@@ -46,8 +46,9 @@ createScriIntervalData <- function(studyPopulation,
                                    sccsData,
                                    eraCovariateSettings,
                                    controlIntervalSettings) {
-  if (class(controlIntervalSettings) != "ControlIntervalSettings")
+  if (class(controlIntervalSettings) != "ControlIntervalSettings") {
     stop("The controlIntervalSettings argument should be of type 'ControlIntervalSettings'")
+  }
 
   start <- Sys.time()
   if (nrow(studyPopulation$outcomes) == 0) {
@@ -70,7 +71,7 @@ createScriIntervalData <- function(studyPopulation,
   } else {
     covariateSettings <- list(eraCovariateSettings)
   }
-  covariateSettings[[length(covariateSettings) + 1]]  <- controlIntervalSettings
+  covariateSettings[[length(covariateSettings) + 1]] <- controlIntervalSettings
   settings <- addEraCovariateSettings(settings, covariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
   metaData <- append(studyPopulation$metaData, settings$metaData)
@@ -83,23 +84,25 @@ createScriIntervalData <- function(studyPopulation,
     arrange(.data$caseId)
 
   controlIntervalId <- settings$covariateSettingsList[sapply(settings$covariateSettingsList, function(x) x$isControlInterval)][[1]]$outputIds[1, 1]
-  data <- convertToSccs(cases = cases,
-                        outcomes = outcomes,
-                        eras = eras,
-                        includeAge = FALSE,
-                        ageOffset = 0,
-                        ageDesignMatrix = matrix(),
-                        includeSeason = FALSE,
-                        seasonDesignMatrix = matrix(),
-                        includeCalendarTime = FALSE,
-                        calendarTimeOffset = 0,
-                        calendarTimeDesignMatrix = matrix(),
-                        timeCovariateCases = numeric(0),
-                        covariateSettingsList = settings$covariateSettingsList,
-                        eventDependentObservation = FALSE,
-                        censorModel = list(model = 0, p = c(0)),
-                        scri = TRUE,
-                        controlIntervalId = controlIntervalId)
+  data <- convertToSccs(
+    cases = cases,
+    outcomes = outcomes,
+    eras = eras,
+    includeAge = FALSE,
+    ageOffset = 0,
+    ageDesignMatrix = matrix(),
+    includeSeason = FALSE,
+    seasonDesignMatrix = matrix(),
+    includeCalendarTime = FALSE,
+    calendarTimeOffset = 0,
+    calendarTimeDesignMatrix = matrix(),
+    timeCovariateCases = numeric(0),
+    covariateSettingsList = settings$covariateSettingsList,
+    eventDependentObservation = FALSE,
+    censorModel = list(model = 0, p = c(0)),
+    scri = TRUE,
+    controlIntervalId = controlIntervalId
+  )
 
   if (is.null(data$outcomes) || is.null(data$covariates)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
@@ -108,14 +111,12 @@ createScriIntervalData <- function(studyPopulation,
     if (nrow(settings$covariateRef) > 0) {
       data$covariateRef <- settings$covariateRef
     }
-
   } else {
     metaData$covariateStatistics <- collect(data$covariateStatistics)
     metaData$daysObserved <- pull(data$observedDays, .data$observedDays)
     data$covariateStatistics <- NULL
     data$observedDays <- NULL
     data$covariateRef <- settings$covariateRef
-
   }
   attr(data, "metaData") <- metaData
   class(data) <- "SccsIntervalData"
@@ -129,5 +130,8 @@ createScriIntervalData <- function(studyPopulation,
 cleanCovariateSettingsList <- function(covariateSettingsList) {
   # Remove control interval settings and field:
   noCi <- covariateSettingsList[!sapply(covariateSettingsList, function(x) x$isControlInterval)]
-  return(lapply(noCi, function(x) {x$isControlInterval <- NULL; return(x)}))
+  return(lapply(noCi, function(x) {
+    x$isControlInterval <- NULL
+    return(x)
+  }))
 }

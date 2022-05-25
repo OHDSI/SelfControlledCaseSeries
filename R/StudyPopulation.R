@@ -74,18 +74,24 @@ createStudyPopulation <- function(sccsData,
       filter(row_number(.data$startDay) == 1) %>%
       ungroup()
 
-    attrition <- bind_rows(attrition,
-                           countOutcomes(outcomes, cases, "First outcome only"))
+    attrition <- bind_rows(
+      attrition,
+      countOutcomes(outcomes, cases, "First outcome only")
+    )
   }
 
   cases <- cases %>%
-    mutate(startAgeInDays = .data$ageInDays,
-           endAgeInDays = .data$ageInDays + .data$observationDays - 1)
+    mutate(
+      startAgeInDays = .data$ageInDays,
+      endAgeInDays = .data$ageInDays + .data$observationDays - 1
+    )
 
   if (naivePeriod != 0) {
     cases <- cases %>%
-      mutate(startAgeInDays = case_when(naivePeriod > .data$censoredDays ~ .data$startAgeInDays + naivePeriod - .data$censoredDays,
-                                        TRUE ~ .data$startAgeInDays)) %>%
+      mutate(startAgeInDays = case_when(
+        naivePeriod > .data$censoredDays ~ .data$startAgeInDays + naivePeriod - .data$censoredDays,
+        TRUE ~ .data$startAgeInDays
+      )) %>%
       filter(.data$endAgeInDays > .data$startAgeInDays)
 
     outcomes <- outcomes %>%
@@ -96,8 +102,10 @@ createStudyPopulation <- function(sccsData,
     cases <- cases %>%
       filter(.data$caseId %in% unique(outcomes$caseId))
 
-    attrition <- bind_rows(attrition,
-                           countOutcomes(outcomes, cases, sprintf("%s days naive period", naivePeriod)))
+    attrition <- bind_rows(
+      attrition,
+      countOutcomes(outcomes, cases, sprintf("%s days naive period", naivePeriod))
+    )
   }
 
   if (!is.null(minAge) || !is.null(maxAge)) {
@@ -105,18 +113,26 @@ createStudyPopulation <- function(sccsData,
     if (!is.null(minAge)) {
       minAgeInDays <- minAge * 365.25
       cases <- cases %>%
-        mutate(startAgeInDays = case_when(.data$startAgeInDays < minAgeInDays ~ minAgeInDays,
-                                          TRUE ~ .data$startAgeInDays)) %>%
+        mutate(startAgeInDays = case_when(
+          .data$startAgeInDays < minAgeInDays ~ minAgeInDays,
+          TRUE ~ .data$startAgeInDays
+        )) %>%
         filter(.data$endAgeInDays > .data$startAgeInDays)
       labels <- c(labels, sprintf("Age >= %s", minAge))
     }
     if (!is.null(maxAge)) {
       maxAgeInDays <- round((maxAge + 1) * 365.25)
       cases <- cases %>%
-        mutate(noninformativeEndCensor = case_when(.data$endAgeInDays > maxAgeInDays ~ 1,
-                                                   TRUE ~ noninformativeEndCensor),
-               endAgeInDays = case_when(.data$endAgeInDays > maxAgeInDays ~ maxAgeInDays,
-                                        TRUE ~ .data$endAgeInDays)) %>%
+        mutate(
+          noninformativeEndCensor = case_when(
+            .data$endAgeInDays > maxAgeInDays ~ 1,
+            TRUE ~ noninformativeEndCensor
+          ),
+          endAgeInDays = case_when(
+            .data$endAgeInDays > maxAgeInDays ~ maxAgeInDays,
+            TRUE ~ .data$endAgeInDays
+          )
+        ) %>%
         filter(.data$endAgeInDays > .data$startAgeInDays)
       labels <- c(labels, sprintf("Age <= %s", maxAge))
     }
@@ -124,22 +140,28 @@ createStudyPopulation <- function(sccsData,
     outcomes <- outcomes %>%
       inner_join(select(cases, .data$observationPeriodId, .data$caseId, .data$startAgeInDays, .data$endAgeInDays, .data$ageInDays), by = "caseId") %>%
       filter(.data$startDay >= .data$startAgeInDays - .data$ageInDays &
-             .data$startDay <= .data$endAgeInDays - .data$ageInDays) %>%
+        .data$startDay <= .data$endAgeInDays - .data$ageInDays) %>%
       select(-.data$startAgeInDays, -.data$endAgeInDays, -.data$ageInDays)
 
-    attrition <- bind_rows(attrition,
-                           countOutcomes(outcomes, cases, paste(labels, collapse = " & ")))
+    attrition <- bind_rows(
+      attrition,
+      countOutcomes(outcomes, cases, paste(labels, collapse = " & "))
+    )
   }
 
-  metaData <- list(exposureIds = attr(sccsData, "metaData")$exposureIds,
-                   outcomeId = unique(outcomes$eraId),
-                   attrition = attrition)
+  metaData <- list(
+    exposureIds = attr(sccsData, "metaData")$exposureIds,
+    outcomeId = unique(outcomes$eraId),
+    attrition = attrition
+  )
 
-  cases$startDate <- as.Date(paste(cases$startYear, cases$startMonth, cases$startDay, sep = "-"), format="%Y-%m-%d")
+  cases$startDate <- as.Date(paste(cases$startYear, cases$startMonth, cases$startDay, sep = "-"), format = "%Y-%m-%d")
   cases <- cases %>%
-    mutate(offset = .data$startAgeInDays - .data$ageInDays,
-           startDate = .data$startDate + .data$startAgeInDays - .data$ageInDays,
-           endDay = .data$endAgeInDays - .data$startAgeInDays) %>%
+    mutate(
+      offset = .data$startAgeInDays - .data$ageInDays,
+      startDate = .data$startDate + .data$startAgeInDays - .data$ageInDays,
+      endDay = .data$endAgeInDays - .data$startAgeInDays
+    ) %>%
     mutate(ageInDays = .data$startAgeInDays) %>%
     select(.data$observationPeriodId, .data$caseId, .data$personId, .data$startDate, .data$endDay, .data$ageInDays, .data$offset, .data$noninformativeEndCensor)
 
@@ -159,10 +181,12 @@ countOutcomes <- function(outcomes, cases, description) {
   counts <- outcomes %>%
     inner_join(cases, by = "caseId") %>%
     group_by(.data$eraId) %>%
-    summarise(outcomeSubjects = n_distinct(.data$personId),
-              outcomeEvents = n(),
-              outcomeObsPeriods = n_distinct(.data$caseId),
-              .groups = "drop_last") %>%
+    summarise(
+      outcomeSubjects = n_distinct(.data$personId),
+      outcomeEvents = n(),
+      outcomeObsPeriods = n_distinct(.data$caseId),
+      .groups = "drop_last"
+    ) %>%
     rename(outcomeId = .data$eraId) %>%
     mutate(description = description)
   return(counts)

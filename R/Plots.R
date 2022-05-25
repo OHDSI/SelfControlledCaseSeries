@@ -40,9 +40,9 @@ plotAgeSpans <- function(studyPopulation,
     arrange(.data$startAge, .data$endAge) %>%
     mutate(rank = row_number())
 
-  ageLabels <- floor(min(cases$startAge)/365.25):ceiling(max(cases$endAge)/365.25)
+  ageLabels <- floor(min(cases$startAge) / 365.25):ceiling(max(cases$endAge) / 365.25)
   if (length(ageLabels) > 10) {
-    ageLabels <- 10 * (floor(min(cases$startAge)/3652.5):floor(max(cases$endAge)/3652.5))
+    ageLabels <- 10 * (floor(min(cases$startAge) / 3652.5):floor(max(cases$endAge) / 3652.5))
   }
   ageBreaks <- ageLabels * 365.25
   if (nrow(cases) > maxPersons) {
@@ -56,23 +56,26 @@ plotAgeSpans <- function(studyPopulation,
     ggplot2::geom_errorbarh(color = rgb(0, 0, 0.8), alpha = 0.8) +
     ggplot2::scale_x_continuous("Age (years)", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Case rank") +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major = ggplot2::element_blank(),
-                   axis.ticks = ggplot2::element_blank(),
-                   axis.text.y = themeRA,
-                   axis.text.x = theme,
-                   strip.text.x = theme,
-                   strip.background = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(hjust = 0.5),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "top")
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      strip.text.x = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
+    )
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }
   # fileName <- "S:/temp/plot.png"
-  if (!is.null(fileName))
+  if (!is.null(fileName)) {
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
+  }
   return(plot)
 }
 
@@ -104,17 +107,19 @@ plotAgeSpans <- function(studyPopulation,
 plotEventObservationDependence <- function(studyPopulation,
                                            title = NULL,
                                            fileName = NULL) {
-
-
   outcomes <- studyPopulation$outcomes %>%
     group_by(.data$caseId) %>%
     summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
     inner_join(studyPopulation$cases, by = "caseId") %>%
-    transmute(daysFromEvent = .data$endDay - .data$outcomeDay,
-              censoring = case_when(.data$noninformativeEndCensor == 1 ~ "Uncensored",
-                                    TRUE ~ "Censored"))
+    transmute(
+      daysFromEvent = .data$endDay - .data$outcomeDay,
+      censoring = case_when(
+        .data$noninformativeEndCensor == 1 ~ "Uncensored",
+        TRUE ~ "Censored"
+      )
+    )
 
-  ageLabels <- 0:ceiling(max(outcomes$daysFromEvent)/365.25)
+  ageLabels <- 0:ceiling(max(outcomes$daysFromEvent) / 365.25)
 
   ageBreaks <- ageLabels * 365.25
 
@@ -125,23 +130,26 @@ plotEventObservationDependence <- function(studyPopulation,
     ggplot2::geom_histogram(binwidth = 30.5, fill = rgb(0, 0, 0.8), alpha = 0.8) +
     ggplot2::scale_x_continuous("Years from event", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Frequency") +
-    ggplot2::facet_grid(censoring~., scales = "free_y") +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major = ggplot2::element_blank(),
-                   axis.ticks = ggplot2::element_blank(),
-                   axis.text.y = themeRA,
-                   axis.text.x = theme,
-                   strip.text.y = theme,
-                   strip.background = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(hjust = 0.5),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "top")
+    ggplot2::facet_grid(censoring ~ ., scales = "free_y") +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      strip.text.y = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
+    )
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }
-  if (!is.null(fileName))
+  if (!is.null(fileName)) {
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
+  }
   return(plot)
 }
 
@@ -172,7 +180,6 @@ plotExposureCentered <- function(studyPopulation,
                                  highlightExposedEvents = TRUE,
                                  title = NULL,
                                  fileName = NULL) {
-
   if (is.null(exposureEraId)) {
     exposureEraId <- attr(sccsData, "metaData")$exposureIds
     if (length(exposureEraId) != 1) {
@@ -187,8 +194,10 @@ plotExposureCentered <- function(studyPopulation,
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
     group_by(.data$caseId) %>%
     inner_join(cases, by = "caseId", copy = TRUE) %>%
-    mutate(startDay = .data$startDay - .data$offset,
-           endDay = .data$endDay - .data$offset) %>%
+    mutate(
+      startDay = .data$startDay - .data$offset,
+      endDay = .data$endDay - .data$offset
+    ) %>%
     filter(.data$startDay >= 0, .data$startDay < .data$caseEndDay) %>%
     collect()
 
@@ -198,9 +207,11 @@ plotExposureCentered <- function(studyPopulation,
   }
   firstExposures <- exposures %>%
     group_by(.data$caseId, .data$caseEndDay) %>%
-    summarise(startDay = min(.data$startDay, na.rm = TRUE),
-              endDay = min(.data$endDay, na.rm = TRUE),
-              .groups = "drop_last")
+    summarise(
+      startDay = min(.data$startDay, na.rm = TRUE),
+      endDay = min(.data$endDay, na.rm = TRUE),
+      .groups = "drop_last"
+    )
 
   outcomes <- studyPopulation$outcomes %>%
     inner_join(firstExposures, by = "caseId") %>%
@@ -209,8 +220,10 @@ plotExposureCentered <- function(studyPopulation,
 
   exposedoutcomes <- exposures %>%
     inner_join(outcomes, by = "caseId") %>%
-    filter(.data$outcomeDay >= .data$startDay,
-           .data$outcomeDay <= .data$endDay) %>%
+    filter(
+      .data$outcomeDay >= .data$startDay,
+      .data$outcomeDay <= .data$endDay
+    ) %>%
     select(.data$caseId, .data$delta) %>%
     mutate(exposed = 1)
 
@@ -219,50 +232,58 @@ plotExposureCentered <- function(studyPopulation,
     mutate(exposed = coalesce(.data$exposed, 0))
 
   weeks <- dplyr::tibble(number = -26:25) %>%
-    mutate(start = .data$number*7,
-           end = .data$number*7 + 7)
+    mutate(
+      start = .data$number * 7,
+      end = .data$number * 7 + 7
+    )
 
   events <- weeks %>%
     full_join(select(outcomes, .data$delta, .data$exposed), by = character()) %>%
     filter(.data$delta >= .data$start, .data$delta < .data$end) %>%
     group_by(.data$number, .data$start, .data$end) %>%
-    summarise(eventsExposed = sum(.data$exposed),
-              eventsUnexposed = n() - sum(.data$exposed),
-              .groups = "drop_last")
+    summarise(
+      eventsExposed = sum(.data$exposed),
+      eventsUnexposed = n() - sum(.data$exposed),
+      .groups = "drop_last"
+    )
 
   observed <- weeks %>%
     full_join(transmute(firstExposures, startDelta = -.data$startDay, endDelta = .data$caseEndDay - .data$startDay), by = character()) %>%
     filter(.data$endDelta >= .data$start, .data$startDelta < .data$end) %>%
     group_by(.data$number, .data$start, .data$end) %>%
-    summarise(observed = n(),
-              .groups = "drop_last")
+    summarise(
+      observed = n(),
+      .groups = "drop_last"
+    )
 
   if (highlightExposedEvents) {
     events <- events %>%
       transmute(.data$start,
-                .data$end,
-                type = "Events",
-                count1 = .data$eventsUnexposed,
-                count2 = .data$eventsExposed)
+        .data$end,
+        type = "Events",
+        count1 = .data$eventsUnexposed,
+        count2 = .data$eventsExposed
+      )
   } else {
     events <- events %>%
       transmute(.data$start,
-                .data$end,
-                type = "Events",
-                count1 = .data$eventsUnexposed + .data$eventsExposed,
-                count2 = NA)
-
+        .data$end,
+        type = "Events",
+        count1 = .data$eventsUnexposed + .data$eventsExposed,
+        count2 = NA
+      )
   }
   observed <- observed %>%
     transmute(.data$start,
-              .data$end,
-              type = "Subjects under observation",
-              count1 = .data$observed,
-              count2 = NA)
+      .data$end,
+      type = "Subjects under observation",
+      count1 = .data$observed,
+      count2 = NA
+    )
 
   data <- bind_rows(events, observed)
 
-  breaks <- seq(-150,150, 30)
+  breaks <- seq(-150, 150, 30)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$start, xmin = .data$start, xmax = .data$end, ymax = .data$count1, ymin = 0)) +
@@ -271,23 +292,26 @@ plotExposureCentered <- function(studyPopulation,
     ggplot2::geom_vline(xintercept = 0, colour = "#000000", lty = 1, size = 1) +
     ggplot2::scale_x_continuous("Days since first exposure start", breaks = breaks, labels = breaks) +
     ggplot2::scale_y_continuous("Count") +
-    ggplot2::facet_grid(type~., scales = "free_y") +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major = ggplot2::element_line(colour = "#AAAAAA"),
-                   axis.ticks = ggplot2::element_blank(),
-                   axis.text.y = themeRA,
-                   axis.text.x = theme,
-                   strip.text.y = theme,
-                   strip.background = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(hjust = 0.5),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "top")
+    ggplot2::facet_grid(type ~ ., scales = "free_y") +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major = ggplot2::element_line(colour = "#AAAAAA"),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      strip.text.y = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
+    )
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }
-  if (!is.null(fileName))
+  if (!is.null(fileName)) {
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
+  }
   return(plot)
 }
 
@@ -337,23 +361,26 @@ plotEventToCalendarTime <- function(studyPopulation,
     ggplot2::scale_x_date("Calendar time") +
     ggplot2::scale_y_continuous("Count", limits = c(0, NA)) +
     ggplot2::facet_grid(.data$type ~ ., scales = "free_y") +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major = ggplot2::element_line(colour = "#AAAAAA"),
-                   axis.ticks = ggplot2::element_blank(),
-                   axis.text.y = themeRA,
-                   axis.text.x = theme,
-                   strip.text.y = theme,
-                   strip.background = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(hjust = 0.5),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "top")
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major = ggplot2::element_line(colour = "#AAAAAA"),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      strip.text.y = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
+    )
   # plot
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }
-  if (!is.null(fileName))
+  if (!is.null(fileName)) {
     ggplot2::ggsave(fileName, plot, width = 7, height = 1 + (2 * length(levels)), dpi = 400)
+  }
   return(plot)
 }
 
@@ -377,8 +404,9 @@ plotAgeEffect <- function(sccsModel,
                           rrLim = c(0.1, 10),
                           title = NULL,
                           fileName = NULL) {
-  if (!hasAgeEffect(sccsModel))
+  if (!hasAgeEffect(sccsModel)) {
     stop("The model does not contain an age effect.")
+  }
 
   estimates <- sccsModel$estimates
   estimates <- estimates[estimates$covariateId >= 100 & estimates$covariateId < 200, ]
@@ -386,16 +414,17 @@ plotAgeEffect <- function(sccsModel,
   ageKnots <- sccsModel$metaData$age$ageKnots
   age <- seq(min(ageKnots), max(ageKnots), length.out = 100)
   ageDesignMatrix <- splines::bs(age,
-                                 knots = ageKnots[2:(length(ageKnots) - 1)],
-                                 Boundary.knots = ageKnots[c(1, length(ageKnots))])
+    knots = ageKnots[2:(length(ageKnots) - 1)],
+    Boundary.knots = ageKnots[c(1, length(ageKnots))]
+  )
   logRr <- apply(ageDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
   data <- data.frame(age = age, rr = rr)
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
-  ageLabels <- floor(min(ageKnots)/365.25):floor(max(ageKnots)/365.25)
+  ageLabels <- floor(min(ageKnots) / 365.25):floor(max(ageKnots) / 365.25)
   if (length(ageLabels) > 10) {
-    ageLabels <- 10 * (floor(min(ageKnots)/3652.5):floor(max(ageKnots)/3652.5))
+    ageLabels <- 10 * (floor(min(ageKnots) / 3652.5):floor(max(ageKnots) / 3652.5))
   }
   ageBreaks <- ageLabels * 365.25
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
@@ -405,26 +434,30 @@ plotAgeEffect <- function(sccsModel,
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
     ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Relative risk",
-                                limits = rrLim,
-                                trans = "log10",
-                                breaks = breaks,
-                                labels = breaks) +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major = ggplot2::element_blank(),
-                   axis.ticks = ggplot2::element_blank(),
-                   axis.text.y = themeRA,
-                   axis.text.x = theme,
-                   strip.text.x = theme,
-                   strip.background = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(hjust = 0.5),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "top")
+      limits = rrLim,
+      trans = "log10",
+      breaks = breaks,
+      labels = breaks
+    ) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      strip.text.x = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
+    )
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }
-  if (!is.null(fileName))
+  if (!is.null(fileName)) {
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
+  }
   return(plot)
 }
 
@@ -448,8 +481,9 @@ plotSeasonality <- function(sccsModel,
                             rrLim = c(0.1, 10),
                             title = NULL,
                             fileName = NULL) {
-  if (!hasSeasonality(sccsModel))
+  if (!hasSeasonality(sccsModel)) {
     stop("The model does not contain seasonality.")
+  }
 
   estimates <- sccsModel$estimates
   estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, ]
@@ -471,26 +505,30 @@ plotSeasonality <- function(sccsModel,
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
     ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
     ggplot2::scale_y_continuous("Relative risk",
-                                limits = rrLim,
-                                trans = "log10",
-                                breaks = breaks,
-                                labels = breaks) +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major = ggplot2::element_blank(),
-                   axis.ticks = ggplot2::element_blank(),
-                   axis.text.y = themeRA,
-                   axis.text.x = theme,
-                   strip.text.x = theme,
-                   strip.background = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(hjust = 0.5),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "top")
+      limits = rrLim,
+      trans = "log10",
+      breaks = breaks,
+      labels = breaks
+    ) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      strip.text.x = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
+    )
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }
-  if (!is.null(fileName))
+  if (!is.null(fileName)) {
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
+  }
   return(plot)
 }
 
@@ -530,24 +568,27 @@ plotCalendarTimeSpans <- function(studyPopulation,
     ggplot2::geom_errorbarh(color = rgb(0, 0, 0.8)) +
     ggplot2::scale_x_date("Calendar time") +
     ggplot2::scale_y_continuous("Case rank") +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major.x = ggplot2::element_line(colour = "#AAAAAA", size = 0.2),
-                   panel.grid.major.y = ggplot2::element_blank(),
-                   axis.ticks = ggplot2::element_blank(),
-                   axis.text.y = themeRA,
-                   axis.text.x = theme,
-                   strip.text.x = theme,
-                   strip.background = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(hjust = 0.5),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "top")
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major.x = ggplot2::element_line(colour = "#AAAAAA", size = 0.2),
+      panel.grid.major.y = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      strip.text.x = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
+    )
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }
   # fileName <- "S:/temp/plot.png"
-  if (!is.null(fileName))
+  if (!is.null(fileName)) {
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
+  }
   return(plot)
 }
 
@@ -571,8 +612,9 @@ plotCalendarTimeEffect <- function(sccsModel,
                                    rrLim = c(0.1, 10),
                                    title = NULL,
                                    fileName = NULL) {
-  if (!hasCalendarTimeEffect(sccsModel))
+  if (!hasCalendarTimeEffect(sccsModel)) {
     stop("The model does not contain a calendar time effect.")
+  }
 
   estimates <- sccsModel$estimates
   estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
@@ -580,8 +622,9 @@ plotCalendarTimeEffect <- function(sccsModel,
   calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
   calendarTime <- seq(min(calendarTimeKnots), max(calendarTimeKnots), length.out = 100)
   calendarTimeDesignMatrix <- splines::bs(calendarTime,
-                                          knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-                                          Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))])
+    knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+    Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+  )
   logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
@@ -594,25 +637,29 @@ plotCalendarTimeEffect <- function(sccsModel,
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
     ggplot2::scale_x_date("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",
-                                limits = rrLim,
-                                trans = "log10",
-                                breaks = breaks,
-                                labels = breaks) +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-                   panel.grid.major = ggplot2::element_line(colour = "#AAAAAA", size = 0.2),
-                   axis.ticks = ggplot2::element_blank(),
-                   axis.text.y = themeRA,
-                   axis.text.x = theme,
-                   strip.text.x = theme,
-                   strip.background = ggplot2::element_blank(),
-                   plot.title = ggplot2::element_text(hjust = 0.5),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "top")
+      limits = rrLim,
+      trans = "log10",
+      breaks = breaks,
+      labels = breaks
+    ) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major = ggplot2::element_line(colour = "#AAAAAA", size = 0.2),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      strip.text.x = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
+    )
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }
-  if (!is.null(fileName))
+  if (!is.null(fileName)) {
     ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
+  }
   return(plot)
 }

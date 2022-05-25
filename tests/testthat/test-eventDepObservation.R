@@ -24,19 +24,23 @@ data$eventDate <- observationDays + 1
 
 peopleUnexpEvent <- data$eventsUnexposed > 0
 # Date of event is random day when unexposed:
-data$eventDate[peopleUnexpEvent] <- round(runif(sum(peopleUnexpEvent),
-                                                1,
-                                                data$daysUnexposed[peopleUnexpEvent]))
+data$eventDate[peopleUnexpEvent] <- round(runif(
+  sum(peopleUnexpEvent),
+  1,
+  data$daysUnexposed[peopleUnexpEvent]
+))
 # If day greater than exposure start day, at exposure time so it falls in period post exposure:
 data$eventDate[peopleUnexpEvent & data$eventDate > data$exposureStartDate] <- data$eventDate[peopleUnexpEvent &
-                                                                                               data$eventDate > data$exposureStartDate] + data$daysExposed[peopleUnexpEvent & data$eventDate > data$exposureStartDate]
+  data$eventDate > data$exposureStartDate] + data$daysExposed[peopleUnexpEvent & data$eventDate > data$exposureStartDate]
 
 # For people with event during exposure, and no event in the period prior exposure, randomly pick an
 # event date during exposure:
 peopleExpEvent <- data$eventsExposed > 0 & data$eventDate > data$exposureStartDate
-data$eventDate[peopleExpEvent] <- round(runif(sum(peopleExpEvent),
-                                              data$exposureStartDate[peopleExpEvent],
-                                              data$exposureEndDate[peopleExpEvent]))
+data$eventDate[peopleExpEvent] <- round(runif(
+  sum(peopleExpEvent),
+  data$exposureStartDate[peopleExpEvent],
+  data$exposureEndDate[peopleExpEvent]
+))
 
 # Remove non-cases:
 data <- data[data$eventDate <= observationDays, ]
@@ -59,7 +63,7 @@ data <- data[data$eventDate <= data$censorDate, ]
 
 # Truncate exposure end date at censor date:
 data$exposureEndDate[data$exposureEndDate > data$censorDate] <- data$censorDate[data$exposureEndDate >
-                                                                                  data$censorDate]
+  data$censorDate]
 
 data$censorDate[data$censorDate > observationDays] <- observationDays
 nrow(data)
@@ -87,29 +91,35 @@ x$summary$coefficients <- c(0.762933)
 x$modelfit <- matrix(c(-3122.776, -3122.776, -3122.776, -3122.776), nrow = 2)
 
 test_that("Produces same results as SCCS package when using event-dependent observation periods", {
-  cases <- tibble(observationPeriodId = as.numeric(data$personId),
-                  caseId = as.numeric(data$personId),
-                  personId = data$personId,
-                  observationDays = data$censorDate - data$observationStartDate + 1,
-                  ageInDays = data$ageInDays,
-                  startYear = 2000,
-                  startMonth = 5,
-                  startDay = 1,
-                  censoredDays = 0)
+  cases <- tibble(
+    observationPeriodId = as.numeric(data$personId),
+    caseId = as.numeric(data$personId),
+    personId = data$personId,
+    observationDays = data$censorDate - data$observationStartDate + 1,
+    ageInDays = data$ageInDays,
+    startYear = 2000,
+    startMonth = 5,
+    startDay = 1,
+    censoredDays = 0
+  )
 
   cases$noninformativeEndCensor <- cases$observationDays == max(cases$observationDays)
-  heiEras <- tibble(eraType = "rx",
-                    caseId = as.numeric(data$personId),
-                    eraId = 1,
-                    value = 1,
-                    startDay = data$exposureStartDate - data$observationStartDate,
-                    endDay = data$exposureEndDate - data$observationStartDate)
-  hoiEras <- tibble(eraType = "hoi",
-                    caseId = as.numeric(data$personId),
-                    eraId = 2,
-                    value = 1,
-                    startDay = data$eventDate - data$observationStartDate,
-                    endDay = data$eventDate - data$observationStartDate)
+  heiEras <- tibble(
+    eraType = "rx",
+    caseId = as.numeric(data$personId),
+    eraId = 1,
+    value = 1,
+    startDay = data$exposureStartDate - data$observationStartDate,
+    endDay = data$exposureEndDate - data$observationStartDate
+  )
+  hoiEras <- tibble(
+    eraType = "hoi",
+    caseId = as.numeric(data$personId),
+    eraId = 2,
+    value = 1,
+    startDay = data$eventDate - data$observationStartDate,
+    endDay = data$eventDate - data$observationStartDate
+  )
   eras <- rbind(heiEras, hoiEras)
   eras <- eras[order(eras$caseId), ]
 
@@ -118,23 +128,31 @@ test_that("Produces same results as SCCS package when using event-dependent obse
     distinct(.data$eraId, .data$eraType) %>%
     mutate(eraName = "")
 
-  sccsData <- Andromeda::andromeda(cases = cases,
-                                   eras = eras,
-                                   eraRef = eraRef)
-  attr(sccsData, "metaData") <- list(outcomeIds = 2,
-                                     attrition = tibble(outcomeId = 2))
+  sccsData <- Andromeda::andromeda(
+    cases = cases,
+    eras = eras,
+    eraRef = eraRef
+  )
+  attr(sccsData, "metaData") <- list(
+    outcomeIds = 2,
+    attrition = tibble(outcomeId = 2)
+  )
   class(sccsData) <- "SccsData"
   attr(class(sccsData), "package") <- "SelfControlledCaseSeries"
 
   studyPop <- createStudyPopulation(sccsData = sccsData)
 
-  sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                   sccsData = sccsData,
-                                   eraCovariateSettings = createEraCovariateSettings(includeEraIds = 1,
-                                                                                     start = 0,
-                                                                                     end = 0,
-                                                                                     endAnchor = "era end"),
-                                   eventDependentObservation = TRUE)
+  sccsIntervalData <- createSccsIntervalData(
+    studyPopulation = studyPop,
+    sccsData = sccsData,
+    eraCovariateSettings = createEraCovariateSettings(
+      includeEraIds = 1,
+      start = 0,
+      end = 0,
+      endAnchor = "era end"
+    ),
+    eventDependentObservation = TRUE
+  )
 
   expect_equal(attr(sccsIntervalData, "metaData")$censorModel$aic, min(x$modelfit[2, ]), tolerance = 1e-04)
 

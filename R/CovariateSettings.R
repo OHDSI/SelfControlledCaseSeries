@@ -87,8 +87,9 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
   checkmate::assertLogical(allowRegularization, len = 1, add = errorMessages)
   checkmate::assertLogical(profileLikelihood, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (allowRegularization && profileLikelihood)
+  if (allowRegularization && profileLikelihood) {
     stop("Cannot profile the likelihood of regularized covariates")
+  }
   if (!grepl("start$|end$", startAnchor, ignore.case = TRUE)) {
     stop("startAnchor should have value 'era start' or 'era end'")
   }
@@ -98,8 +99,9 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
   isEnd <- function(anchor) {
     return(grepl("end$", anchor, ignore.case = TRUE))
   }
-  if (end < start && !isEnd(endAnchor))
+  if (end < start && !isEnd(endAnchor)) {
     stop("End day always precedes start day. Either pick a later end day, or set endAnchor to 'era end'.")
+  }
 
   # Make sure string is exact:
   if (isEnd(startAnchor)) {
@@ -315,8 +317,9 @@ createControlIntervalSettings <- function(includeEraIds = NULL,
   isEnd <- function(anchor) {
     return(grepl("end$", anchor, ignore.case = TRUE))
   }
-  if (end < start && !isEnd(endAnchor))
+  if (end < start && !isEnd(endAnchor)) {
     stop("End day always precedes start day. Either pick a later end day, or set endAnchor to 'era end'.")
+  }
 
   # Make sure string is exact:
   if (isEnd(startAnchor)) {
@@ -329,17 +332,19 @@ createControlIntervalSettings <- function(includeEraIds = NULL,
   } else {
     endAnchor <- "era start"
   }
-  analysis <- createEraCovariateSettings(includeEraIds = includeEraIds,
-                                         excludeEraIds = excludeEraIds,
-                                         label = "Control interval",
-                                         stratifyById = FALSE,
-                                         start = start,
-                                         startAnchor = startAnchor,
-                                         end = end,
-                                         endAnchor = endAnchor,
-                                         firstOccurrenceOnly = firstOccurrenceOnly,
-                                         splitPoints = c(),
-                                         allowRegularization = FALSE)
+  analysis <- createEraCovariateSettings(
+    includeEraIds = includeEraIds,
+    excludeEraIds = excludeEraIds,
+    label = "Control interval",
+    stratifyById = FALSE,
+    start = start,
+    startAnchor = startAnchor,
+    end = end,
+    endAnchor = endAnchor,
+    firstOccurrenceOnly = firstOccurrenceOnly,
+    splitPoints = c(),
+    allowRegularization = FALSE
+  )
   analysis$isControlInterval <- TRUE
   class(analysis) <- "ControlIntervalSettings"
   return(analysis)

@@ -50,22 +50,27 @@
 #' @export
 fitSccsModel <- function(sccsIntervalData,
                          prior = createPrior("laplace", useCrossValidation = TRUE),
-                         control = createControl(cvType = "auto",
-                                                 selectorType = "byPid",
-                                                 startingVariance = 0.1,
-                                                 seed = 1,
-                                                 resetCoefficients = TRUE,
-                                                 noiseLevel = "quiet"),
+                         control = createControl(
+                           cvType = "auto",
+                           selectorType = "byPid",
+                           startingVariance = 0.1,
+                           seed = 1,
+                           resetCoefficients = TRUE,
+                           noiseLevel = "quiet"
+                         ),
                          profileGrid = NULL,
                          profileBounds = c(log(0.1), log(10))) {
-  if (!is.null(profileGrid) && !is.null(profileBounds))
+  if (!is.null(profileGrid) && !is.null(profileBounds)) {
     stop("Specify either profileGrid or profileBounds")
+  }
 
   ParallelLogger::logTrace("Fitting SCCS model")
   metaData <- attr(sccsIntervalData, "metaData")
   if (!is.null(metaData$error)) {
-    result <- list(status = metaData$error,
-                   metaData = metaData)
+    result <- list(
+      status = metaData$error,
+      metaData = metaData
+    )
     class(result) <- "sccsModel"
     return(result)
   }
@@ -126,16 +131,20 @@ fitSccsModel <- function(sccsIntervalData,
       prior$exclude <- intersect(nonRegularized, covariateIds)
     }
     cyclopsData <- Cyclops::convertToCyclopsData(sccsIntervalData$outcomes,
-                                                 sccsIntervalData$covariates,
-                                                 modelType = "cpr",
-                                                 addIntercept = FALSE,
-                                                 checkRowIds = FALSE,
-                                                 quiet = TRUE)
-    fit <- tryCatch({
-      Cyclops::fitCyclopsModel(cyclopsData, prior = prior, control = control)
-    }, error = function(e) {
-      e$message
-    })
+      sccsIntervalData$covariates,
+      modelType = "cpr",
+      addIntercept = FALSE,
+      checkRowIds = FALSE,
+      quiet = TRUE
+    )
+    fit <- tryCatch(
+      {
+        Cyclops::fitCyclopsModel(cyclopsData, prior = prior, control = control)
+      },
+      error = function(e) {
+        e$message
+      }
+    )
     if (is.character(fit)) {
       coefficients <- c(0)
       estimates <- NULL
@@ -145,12 +154,14 @@ fitSccsModel <- function(sccsIntervalData,
       if (!is.null(profileGrid) || !is.null(profileBounds)) {
         covariateIds <- intersect(needProfile, as.numeric(Cyclops::getCovariateIds(cyclopsData)))
         getLikelihoodProfile <- function(covariateId) {
-          logLikelihoodProfile <- Cyclops::getCyclopsProfileLogLikelihood(object = fit,
-                                                                          parm = covariateId,
-                                                                          x = profileGrid,
-                                                                          bounds = profileBounds,
-                                                                          tolerance = 0.1,
-                                                                          includePenalty = TRUE)
+          logLikelihoodProfile <- Cyclops::getCyclopsProfileLogLikelihood(
+            object = fit,
+            parm = covariateId,
+            x = profileGrid,
+            bounds = profileBounds,
+            tolerance = 0.1,
+            includePenalty = TRUE
+          )
           return(logLikelihoodProfile)
         }
         logLikelihoodProfiles <- lapply(covariateIds, getLikelihoodProfile)
@@ -176,26 +187,31 @@ fitSccsModel <- function(sccsIntervalData,
           estimates$logUb95 <- NA
           estimates$seLogRr <- NA
         } else {
-          ci <- tryCatch({
-            result <- confint(fit, parm = intersect(needCi, estimates$covariateId), includePenalty = TRUE)
-            attr(result, "dimnames")[[1]] <- 1:length(attr(result, "dimnames")[[1]])
-            result <- as.data.frame(result)
-            rownames(result) <- NULL
-            result
-          }, error = function(e) {
-            missing(e)  # suppresses R CMD check note
-            data.frame(covariate = 0, logLb95 = 0, logUb95 = 0)
-          })
+          ci <- tryCatch(
+            {
+              result <- confint(fit, parm = intersect(needCi, estimates$covariateId), includePenalty = TRUE)
+              attr(result, "dimnames")[[1]] <- 1:length(attr(result, "dimnames")[[1]])
+              result <- as.data.frame(result)
+              rownames(result) <- NULL
+              result
+            },
+            error = function(e) {
+              missing(e) # suppresses R CMD check note
+              data.frame(covariate = 0, logLb95 = 0, logUb95 = 0)
+            }
+          )
           names(ci)[names(ci) == "2.5 %"] <- "logLb95"
           names(ci)[names(ci) == "97.5 %"] <- "logUb95"
           ci$evaluations <- NULL
           estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
-          estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95)/(2*qnorm(0.975))
+          estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95) / (2 * qnorm(0.975))
           for (param in intersect(needCi, estimates$covariateId)) {
-            llNull <- Cyclops::getCyclopsProfileLogLikelihood(object = fit,
-                                                              parm = param,
-                                                              x = 0,
-                                                              includePenalty = FALSE)$value
+            llNull <- Cyclops::getCyclopsProfileLogLikelihood(
+              object = fit,
+              parm = param,
+              x = 0,
+              includePenalty = FALSE
+            )$value
             estimates$llr[estimates$covariateId == param] <- fit$log_likelihood - llNull
           }
         }
@@ -206,12 +222,14 @@ fitSccsModel <- function(sccsIntervalData,
       }
     }
   }
-  result <- list(estimates = estimates,
-                 priorVariance = priorVariance,
-                 logLikelihood = logLikelihood,
-                 logLikelihoodProfiles = logLikelihoodProfiles,
-                 status = status,
-                 metaData = metaData)
+  result <- list(
+    estimates = estimates,
+    priorVariance = priorVariance,
+    logLikelihood = logLikelihood,
+    logLikelihoodProfiles = logLikelihoodProfiles,
+    status = status,
+    metaData = metaData
+  )
   class(result) <- "SccsModel"
   delta <- Sys.time() - start
   ParallelLogger::logInfo(paste("Fitting the model took", signif(delta, 3), attr(delta, "units")))
@@ -249,13 +267,15 @@ print.SccsModel <- function(x, ...) {
   } else {
     writeLines("Estimates:")
     d <- x$estimates
-    output <- tibble(d$covariateName,
-                     d$covariateId,
-                     exp(d$logRr),
-                     exp(d$logLb95),
-                     exp(d$logUb95),
-                     d$logRr,
-                     d$seLogRr)
+    output <- tibble(
+      d$covariateName,
+      d$covariateId,
+      exp(d$logRr),
+      exp(d$logLb95),
+      exp(d$logUb95),
+      d$logRr,
+      d$seLogRr
+    )
 
     colnames(output) <- c("Name", "ID", "Estimate", "LB95CI", "UB95CI", "LogRr", "SeLogRr")
     print(output, n = 25)
@@ -273,31 +293,36 @@ print.SccsModel <- function(x, ...) {
 #'
 #' @export
 getModel <- function(sccsModel) {
-  if (class(sccsModel) !=  "SccsModel")
+  if (class(sccsModel) != "SccsModel") {
     stop("the sccsModel argument must be of type 'sccsModel'.")
+  }
 
   d <- sccsModel$estimates
   # d$seLogRr <- (d$logUb95 - d$logRr)/qnorm(0.975)
-  output <- tibble(d$covariateName,
-                   d$covariateId,
-                   exp(d$logRr),
-                   exp(d$logLb95),
-                   exp(d$logUb95),
-                   d$logRr,
-                   d$seLogRr,
-                   d$originalEraId,
-                   d$originalEraType,
-                   d$originalEraName)
-  colnames(output) <- c("name",
-                        "id",
-                        "estimate",
-                        "lb95Ci",
-                        "ub95Ci",
-                        "logRr",
-                        "seLogRr",
-                        "originalEraId",
-                        "originalEraType",
-                        "originalEraName")
+  output <- tibble(
+    d$covariateName,
+    d$covariateId,
+    exp(d$logRr),
+    exp(d$logLb95),
+    exp(d$logUb95),
+    d$logRr,
+    d$seLogRr,
+    d$originalEraId,
+    d$originalEraType,
+    d$originalEraName
+  )
+  colnames(output) <- c(
+    "name",
+    "id",
+    "estimate",
+    "lb95Ci",
+    "ub95Ci",
+    "logRr",
+    "seLogRr",
+    "originalEraId",
+    "originalEraType",
+    "originalEraName"
+  )
   return(output)
 }
 
@@ -311,8 +336,9 @@ getModel <- function(sccsModel) {
 #'
 #' @export
 hasAgeEffect <- function(sccsModel) {
-  if (class(sccsModel) !=  "SccsModel")
+  if (class(sccsModel) != "SccsModel") {
     stop("the sccsModel argument must be of type 'sccsModel'.")
+  }
   estimates <- sccsModel$estimates
   return(any(estimates$covariateId >= 100 & estimates$covariateId < 200))
 }
@@ -327,8 +353,9 @@ hasAgeEffect <- function(sccsModel) {
 #'
 #' @export
 hasSeasonality <- function(sccsModel) {
-  if (class(sccsModel) !=  "SccsModel")
+  if (class(sccsModel) != "SccsModel") {
     stop("the sccsModel argument must be of type 'sccsModel'.")
+  }
   estimates <- sccsModel$estimates
   return(any(estimates$covariateId >= 200 & estimates$covariateId < 300))
 }
@@ -343,8 +370,9 @@ hasSeasonality <- function(sccsModel) {
 #'
 #' @export
 hasCalendarTimeEffect <- function(sccsModel) {
-  if (class(sccsModel) !=  "SccsModel")
+  if (class(sccsModel) != "SccsModel") {
     stop("the sccsModel argument must be of type 'sccsModel'.")
+  }
   estimates <- sccsModel$estimates
   return(any(estimates$covariateId >= 300 & estimates$covariateId < 400))
 }

@@ -51,8 +51,9 @@ createSimulationRiskWindow <- function(start = 0,
   # Second: overwrite defaults with actual values:
   values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
   for (name in names(values)) {
-    if (name %in% names(analysis))
+    if (name %in% names(analysis)) {
       analysis[[name]] <- values[[name]]
+    }
   }
   class(analysis) <- "simulationRiskWindow"
   return(analysis)
@@ -105,8 +106,10 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          usageRate = c(0.01, 0.01),
                                          meanPrescriptionDurations = c(14, 30),
                                          sdPrescriptionDurations = c(7, 14),
-                                         simulationRiskWindows = list(createSimulationRiskWindow(relativeRisks = 1),
-                                                                      createSimulationRiskWindow(relativeRisks = 1.5)),
+                                         simulationRiskWindows = list(
+                                           createSimulationRiskWindow(relativeRisks = 1),
+                                           createSimulationRiskWindow(relativeRisks = 1.5)
+                                         ),
                                          includeAgeEffect = TRUE,
                                          ageKnots = 5,
                                          includeSeasonality = TRUE,
@@ -122,8 +125,9 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
   # Second: overwrite defaults with actual values:
   values <- lapply(as.list(match.call())[-1], function(x) eval(x, envir = sys.frame(-3)))
   for (name in names(values)) {
-    if (name %in% names(analysis))
+    if (name %in% names(analysis)) {
       analysis[[name]] <- values[[name]]
+    }
   }
   class(analysis) <- "sccsSimulationSettings"
   return(analysis)
@@ -140,50 +144,59 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
   maxCalendarDays <- as.numeric(settings$maxCalendarTime) - as.numeric(settings$minCalendarTime)
   observationDays[observationDays > maxCalendarDays] <- maxCalendarDays
   ageInDays <- round(runif(n, settings$minAge, settings$maxAge - observationDays))
-  startDate <- round(runif(n,
-                     rep(as.numeric(settings$minCalendarTime), n),
-                     as.numeric(settings$maxCalendarTime) - observationDays))
+  startDate <- round(runif(
+    n,
+    rep(as.numeric(settings$minCalendarTime), n),
+    as.numeric(settings$maxCalendarTime) - observationDays
+  ))
   startDate <- as.Date(startDate, origin = "1970-01-01")
   startYear <- as.numeric(format(startDate, format = "%Y"))
   startMonth <- as.numeric(format(startDate, format = "%m"))
   startDay <- as.numeric(format(startDate, format = "%d"))
-  cases <- tibble(observationPeriodId = 1:n,
-                  caseId = 1:n,
-                  personId = 1:n,
-                  observationDays = observationDays,
-                  ageInDays = ageInDays,
-                  startYear = startYear,
-                  startMonth = startMonth,
-                  startDay = startDay,
-                  startDate = as.numeric(startDate),
-                  censoredDays = 0,
-                  noninformativeEndCensor = 0)
+  cases <- tibble(
+    observationPeriodId = 1:n,
+    caseId = 1:n,
+    personId = 1:n,
+    observationDays = observationDays,
+    ageInDays = ageInDays,
+    startYear = startYear,
+    startMonth = startMonth,
+    startDay = startDay,
+    startDate = as.numeric(startDate),
+    censoredDays = 0,
+    noninformativeEndCensor = 0
+  )
 
   ### Generate eras ###
   eras <- tibble()
   for (i in 1:length(settings$eraIds)) {
     # i <- 1
     patientsOnDrug <- sample.int(nrow(cases),
-                                 settings$patientUsages[i] * nrow(cases),
-                                 replace = FALSE)
+      settings$patientUsages[i] * nrow(cases),
+      replace = FALSE
+    )
     patientsOnDrug <- patientsOnDrug[order(patientsOnDrug)]
     count <- rpois(length(patientsOnDrug), observationDays[patientsOnDrug] * settings$usageRate[i])
     observationPeriodId <- rep(patientsOnDrug, count)
     patientsOnDrug <- patientsOnDrug[count != 0]
     startDay <- round(runif(sum(count), 0, cases$observationDays[observationPeriodId]))
-    duration <- round(rnorm(sum(count),
-                            settings$meanPrescriptionDurations[i],
-                            settings$sdPrescriptionDurations[i]))
+    duration <- round(rnorm(
+      sum(count),
+      settings$meanPrescriptionDurations[i],
+      settings$sdPrescriptionDurations[i]
+    ))
     duration[duration < 1] <- 1
     endDay <- startDay + duration
     endDay[endDay > cases$observationDays[observationPeriodId]] <- cases$observationDays[observationPeriodId][endDay >
-                                                                                                                cases$observationDays[observationPeriodId]]
-    newEras <- tibble(eraType = "rx",
-                      caseId = observationPeriodId,
-                      eraId = settings$eraIds[i],
-                      value = 1,
-                      startDay = startDay,
-                      endDay = endDay)
+      cases$observationDays[observationPeriodId]]
+    newEras <- tibble(
+      eraType = "rx",
+      caseId = observationPeriodId,
+      eraId = settings$eraIds[i],
+      value = 1,
+      startDay = startDay,
+      endDay = endDay
+    )
     eras <- rbind(eras, newEras)
   }
   eras <- eras[order(eras$caseId, eras$eraId), ]
@@ -227,12 +240,14 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
       truncatedEnds <- riskEnds
       truncatedEnds[truncatedEnds > end] <- end
       filteredIndex <- truncatedEnds >= start
-      riskEras <- tibble(eraType = "rx",
-                         caseId = sourceEras$caseId[filteredIndex],
-                         eraId = eraId,
-                         value = 1,
-                         startDay = sourceEras$startDay[filteredIndex] + start,
-                         endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex])
+      riskEras <- tibble(
+        eraType = "rx",
+        caseId = sourceEras$caseId[filteredIndex],
+        eraId = eraId,
+        value = 1,
+        startDay = sourceEras$startDay[filteredIndex] + start,
+        endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex]
+      )
       newEras <- rbind(newEras, riskEras)
       eraIds <- c(eraIds, eraId)
       rrs <- c(rrs, simulationRiskWindow$relativeRisks[j])
@@ -242,24 +257,28 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
   }
   newEras <- newEras[order(newEras$caseId, newEras$eraId), ]
   eraRrs <- tibble(eraId = eraIds, rr = rrs)
-  outcomes <- simulateSccsOutcomes(cases,
-                                   newEras,
-                                   baselineRates,
-                                   eraRrs,
-                                   settings$includeAgeEffect,
-                                   settings$minAge,
-                                   ageRrs,
-                                   settings$includeSeasonality,
-                                   seasonRrs,
-                                   settings$includeCalendarTimeEffect,
-                                   as.numeric(settings$minCalendarTime),
-                                   calendarTimeRrs)
-  outcomes <- tibble(eraType = "hoi",
-                     caseId = outcomes$caseId,
-                     eraId = settings$outcomeId,
-                     value = 1,
-                     startDay = outcomes$startDay,
-                     endDay = outcomes$startDay)
+  outcomes <- simulateSccsOutcomes(
+    cases,
+    newEras,
+    baselineRates,
+    eraRrs,
+    settings$includeAgeEffect,
+    settings$minAge,
+    ageRrs,
+    settings$includeSeasonality,
+    seasonRrs,
+    settings$includeCalendarTimeEffect,
+    as.numeric(settings$minCalendarTime),
+    calendarTimeRrs
+  )
+  outcomes <- tibble(
+    eraType = "hoi",
+    caseId = outcomes$caseId,
+    eraId = settings$outcomeId,
+    value = 1,
+    startDay = outcomes$startDay,
+    endDay = outcomes$startDay
+  )
 
   # ** Remove non-cases ***
   caseIds <- unique(outcomes$caseId)
@@ -325,29 +344,39 @@ simulateSccsData <- function(nCases, settings) {
       lastCaseId <- max(batch$cases$caseId)
     } else {
       cases <- rbind(cases, batch$cases[1:need, ])
-      eras <- rbind(eras,
-                    batch$eras[batch$eras$caseId %in% batch$cases$caseId[1:need],])
+      eras <- rbind(
+        eras,
+        batch$eras[batch$eras$caseId %in% batch$cases$caseId[1:need], ]
+      )
     }
   }
   cases$observationPeriodId <- as.character(cases$observationPeriodId)
   cases$personId <- as.character(cases$personId)
-  data <- Andromeda::andromeda(cases = cases,
-                               eras = eras,
-                               eraRef = tibble(eraId = settings$eraIds,
-                                               eraType = "",
-                                               eraName = ""))
+  data <- Andromeda::andromeda(
+    cases = cases,
+    eras = eras,
+    eraRef = tibble(
+      eraId = settings$eraIds,
+      eraType = "",
+      eraName = ""
+    )
+  )
 
-  attr(data, "metaData") <- list(sccsSimulationSettings = settings,
-                                 ageFun = ageFun,
-                                 seasonFun = seasonFun,
-                                 calendarTimeFun = calendarTimeFun,
-                                 exposureIds = settings$eraIds,
-                                 outcomeIds = settings$outcomeId,
-                                 attrition = tibble(outcomeId = settings$outcomeId,
-                                                    description = "Outcomes",
-                                                    outcomeSubjects  = 0,
-                                                    outcomeEvents  = 0,
-                                                    outcomeObsPeriods = 0))
+  attr(data, "metaData") <- list(
+    sccsSimulationSettings = settings,
+    ageFun = ageFun,
+    seasonFun = seasonFun,
+    calendarTimeFun = calendarTimeFun,
+    exposureIds = settings$eraIds,
+    outcomeIds = settings$outcomeId,
+    attrition = tibble(
+      outcomeId = settings$outcomeId,
+      description = "Outcomes",
+      outcomeSubjects = 0,
+      outcomeEvents = 0,
+      outcomeObsPeriods = 0
+    )
+  )
 
   class(data) <- "SccsData"
   attr(class(data), "package") <- "SelfControlledCaseSeries"

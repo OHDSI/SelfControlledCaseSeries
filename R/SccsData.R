@@ -47,12 +47,15 @@ setClass("SccsData", contains = "Andromeda")
 #'
 #' @export
 saveSccsData <- function(SccsData, file) {
-  if (missing(SccsData))
+  if (missing(SccsData)) {
     stop("Must specify SccsData")
-  if (missing(file))
+  }
+  if (missing(file)) {
     stop("Must specify file")
-  if (!inherits(SccsData, "SccsData"))
+  }
+  if (!inherits(SccsData, "SccsData")) {
     stop("Data not of class SccsData")
+  }
 
   Andromeda::saveAndromeda(SccsData, file)
 }
@@ -69,10 +72,12 @@ saveSccsData <- function(SccsData, file) {
 #'
 #' @export
 loadSccsData <- function(file) {
-  if (!file.exists(file))
+  if (!file.exists(file)) {
     stop("Cannot find file ", file)
-  if (file.info(file)$isdir)
-    stop(file , " is a folder, but should be a file")
+  }
+  if (file.info(file)$isdir) {
+    stop(file, " is a folder, but should be a file")
+  }
   SccsData <- Andromeda::loadAndromeda(file)
   class(SccsData) <- "SccsData"
   attr(class(SccsData), "package") <- "SelfControlledCaseSeries"
@@ -91,11 +96,15 @@ setMethod("show", "SccsData", function(object) {
   if (length(metaData$exposureIds) == 0) {
     cli::cat_line("All exposures")
   } else {
-    cli::cat_line(paste("Exposure cohort ID(s):",
-                        paste(metaData$exposureIds, collapse = ",")))
+    cli::cat_line(paste(
+      "Exposure cohort ID(s):",
+      paste(metaData$exposureIds, collapse = ",")
+    ))
   }
-  cli::cat_line(paste("Outcome cohort ID(s):",
-                      paste(metaData$outcomeIds, collapse = ",")))
+  cli::cat_line(paste(
+    "Outcome cohort ID(s):",
+    paste(metaData$outcomeIds, collapse = ",")
+  ))
   cli::cat_line("")
   cli::cat_line(pillar::style_subtle("Inherits from Andromeda:"))
   class(object) <- "Andromeda"
@@ -109,8 +118,9 @@ setMethod("show", "SccsData", function(object) {
 #' @export
 #' @rdname SccsData-class
 setMethod("summary", "SccsData", function(object) {
-  if (!Andromeda::isValidAndromeda(object))
+  if (!Andromeda::isValidAndromeda(object)) {
     stop("Object is not valid. Probably the Andromeda object was closed.")
+  }
   caseCount <- object$cases %>%
     count() %>%
     pull()
@@ -120,17 +130,21 @@ setMethod("summary", "SccsData", function(object) {
     filter(.data$eraType == "hoi") %>%
     inner_join(object$cases, by = "caseId") %>%
     group_by(.data$eraId) %>%
-    summarise(outcomeSubjects = n_distinct(.data$personId),
-              outcomeEvents = count(),
-              outcomeObsPeriods = n_distinct(.data$caseId)) %>%
+    summarise(
+      outcomeSubjects = n_distinct(.data$personId),
+      outcomeEvents = count(),
+      outcomeObsPeriods = n_distinct(.data$caseId)
+    ) %>%
     rename(outcomeId = .data$eraId) %>%
     collect()
 
-  result <- list(metaData = attr(object, "metaData"),
-                 caseCount = caseCount,
-                 outcomeCounts = outcomeCounts,
-                 eraTypeCount = object$eraRef %>% count() %>% pull(),
-                 eraCount = object$eras %>% count() %>% pull())
+  result <- list(
+    metaData = attr(object, "metaData"),
+    caseCount = caseCount,
+    outcomeCounts = outcomeCounts,
+    eraTypeCount = object$eraRef %>% count() %>% pull(),
+    eraCount = object$eras %>% count() %>% pull()
+  )
   class(result) <- "summary.SccsData"
   return(result)
 })
@@ -143,11 +157,15 @@ print.summary.SccsData <- function(x, ...) {
   if (length(metaData$exposureIds) == 0) {
     writeLines("All exposures")
   } else {
-    writeLines(paste("Exposure cohort ID(s):",
-                        paste(x$metaData$exposureIds, collapse = ",")))
+    writeLines(paste(
+      "Exposure cohort ID(s):",
+      paste(x$metaData$exposureIds, collapse = ",")
+    ))
   }
-  writeLines(paste("Outcome cohort ID(s):",
-                      paste(metaData$outcomeIds, collapse = ",")))
+  writeLines(paste(
+    "Outcome cohort ID(s):",
+    paste(metaData$outcomeIds, collapse = ",")
+  ))
   writeLines("")
   writeLines("Outcome counts:")
   outcomeCounts <- as.data.frame(x$outcomeCounts)

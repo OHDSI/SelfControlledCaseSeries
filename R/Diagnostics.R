@@ -17,15 +17,17 @@
 computeOutcomeRatePerMonth <- function(studyPopulation) {
   observationPeriodCounts <- computeObservedPerMonth(studyPopulation)
   outcomeCounts <- studyPopulation$outcomes %>%
-    inner_join(studyPopulation$cases , by = "caseId") %>%
+    inner_join(studyPopulation$cases, by = "caseId") %>%
     transmute(month = convertDateToMonth(.data$startDate + .data$outcomeDay)) %>%
     group_by(.data$month) %>%
     summarise(outcomeCount = n())
   data <- observationPeriodCounts %>%
     inner_join(outcomeCounts, by = "month") %>%
     mutate(rate = .data$outcomeCount / .data$observationPeriodCount) %>%
-    mutate(monthStartDate = convertMonthToStartDate(.data$month),
-           monthEndDate = convertMonthToEndDate(.data$month))
+    mutate(
+      monthStartDate = convertMonthToStartDate(.data$month),
+      monthEndDate = convertMonthToEndDate(.data$month)
+    )
   return(data)
 }
 
@@ -41,14 +43,14 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
     calendarTime[calendarTime < calendarTimeKnots[1]] <- calendarTimeKnots[1]
     calendarTime[calendarTime > calendarTimeKnots[length(calendarTimeKnots)]] <- calendarTimeKnots[length(calendarTimeKnots)]
     calendarTimeDesignMatrix <- splines::bs(calendarTime,
-                                            knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-                                            Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))])
+      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+    )
     logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
     logRr <- logRr - mean(logRr)
     data$calendarTimeRr <- exp(logRr)
     data <- data %>%
       mutate(adjustedRate = .data$adjustedRate / .data$calendarTimeRr)
-
   }
 
   if (hasSeasonality(sccsModel)) {
@@ -63,9 +65,12 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
 
     data <- data %>%
       mutate(monthOfYear = .data$month %% 12 + 1) %>%
-      inner_join(tibble(monthOfYear = season,
-                        seasonRr = exp(logRr)),
-                 by = "monthOfYear")
+      inner_join(tibble(
+        monthOfYear = season,
+        seasonRr = exp(logRr)
+      ),
+      by = "monthOfYear"
+      )
 
     data <- data %>%
       mutate(adjustedRate = .data$adjustedRate / .data$seasonRr)
@@ -105,17 +110,19 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
     data <- adjustOutcomeRatePerMonth(data, sccsModel)
   }
   computeTwoSidedP <- function(observed, expected) {
-    pUpperBound = 1 - ppois(observed, expected * maxRatio, lower.tail = TRUE)
-    pLowerBound = 1 - ppois(observed, expected / maxRatio, lower.tail = FALSE)
+    pUpperBound <- 1 - ppois(observed, expected * maxRatio, lower.tail = TRUE)
+    pLowerBound <- 1 - ppois(observed, expected / maxRatio, lower.tail = FALSE)
     return(min(1, 2 * pmin(pUpperBound, pLowerBound)))
   }
 
   # Season and calendar time splines lack intercept, so need to compute expected count in indirect way:
-  meanAdjustedRate <- sum(data$adjustedRate * data$observationPeriodCount ) / sum(data$observationPeriodCount)
+  meanAdjustedRate <- sum(data$adjustedRate * data$observationPeriodCount) / sum(data$observationPeriodCount)
   data <- data %>%
     mutate(expected = .data$outcomeCount * meanAdjustedRate / .data$adjustedRate) %>%
-    mutate(p = computeTwoSidedP(.data$outcomeCount, .data$expected),
-           alpha = !!alpha / n()) %>%
+    mutate(
+      p = computeTwoSidedP(.data$outcomeCount, .data$expected),
+      alpha = !!alpha / n()
+    ) %>%
     mutate(stable = .data$p >= .data$alpha)
   # print(data[50:100, ], n = 35)
   # sum(!data$stable)

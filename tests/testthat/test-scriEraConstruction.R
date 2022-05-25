@@ -12,17 +12,21 @@ convertToScriDataWrapper <- function(cases,
                                      minAge = NULL,
                                      maxAge = NULL) {
   if (is.null(covariateSettings)) {
-    covariateSettings <- createEraCovariateSettings(includeEraIds = exposureId,
-                                                    start = 0,
-                                                    end = 0,
-                                                    endAnchor = "era end")
+    covariateSettings <- createEraCovariateSettings(
+      includeEraIds = exposureId,
+      start = 0,
+      end = 0,
+      endAnchor = "era end"
+    )
   }
 
   if (is.null(controlIntervalSettings)) {
-    controlIntervalSettings <- createControlIntervalSettings(includeEraIds = exposureId,
-                                                             start = -14,
-                                                             end = -7,
-                                                             endAnchor = "era start")
+    controlIntervalSettings <- createControlIntervalSettings(
+      includeEraIds = exposureId,
+      start = -14,
+      end = -7,
+      endAnchor = "era start"
+    )
   }
 
   covariateIds <- c()
@@ -37,43 +41,55 @@ convertToScriDataWrapper <- function(cases,
     distinct(.data$eraId, .data$eraType) %>%
     mutate(eraName = "")
 
-  data <- Andromeda::andromeda(cases = cases,
-                               eras = eras,
-                               eraRef = eraRef)
-  attr(data, "metaData") <- list(outcomeIds = 10,
-                                 attrition = tibble(outcomeId = 10))
+  data <- Andromeda::andromeda(
+    cases = cases,
+    eras = eras,
+    eraRef = eraRef
+  )
+  attr(data, "metaData") <- list(
+    outcomeIds = 10,
+    attrition = tibble(outcomeId = 10)
+  )
 
-  studyPop <- createStudyPopulation(sccsData = data,
-                                    outcomeId = 10,
-                                    firstOutcomeOnly = firstOutcomeOnly,
-                                    naivePeriod = naivePeriod,
-                                    minAge = minAge,
-                                    maxAge = maxAge)
+  studyPop <- createStudyPopulation(
+    sccsData = data,
+    outcomeId = 10,
+    firstOutcomeOnly = firstOutcomeOnly,
+    naivePeriod = naivePeriod,
+    minAge = minAge,
+    maxAge = maxAge
+  )
 
-  result <- createScriIntervalData(studyPopulation = studyPop,
-                                   sccsData = data,
-                                   eraCovariateSettings = covariateSettings,
-                                   controlIntervalSettings = controlIntervalSettings)
+  result <- createScriIntervalData(
+    studyPopulation = studyPop,
+    sccsData = data,
+    eraCovariateSettings = covariateSettings,
+    controlIntervalSettings = controlIntervalSettings
+  )
   return(list(outcomes = collect(result$outcomes), covariates = collect(result$covariates)))
 }
 
 test_that("Simple SCRI era construction", {
-  cases <- tibble(observationPeriodId = "1000",
-                  caseId = 1,
-                  personId = "1",
-                  observationDays = 100,
-                  ageInDays = 0,
-                  startYear = 2000,
-                  startMonth = 5,
-                  startDay = 1,
-                  censoredDays = 0,
-                  noninformativeEndCensor = 0)
-  eras <- tibble(eraType = c("hoi", "rx"),
-                 caseId = c(1, 1),
-                 eraId = c(10, 11),
-                 value = c(1, 1),
-                 startDay = c(50, 25),
-                 endDay = c(50, 75))
+  cases <- tibble(
+    observationPeriodId = "1000",
+    caseId = 1,
+    personId = "1",
+    observationDays = 100,
+    ageInDays = 0,
+    startYear = 2000,
+    startMonth = 5,
+    startDay = 1,
+    censoredDays = 0,
+    noninformativeEndCensor = 0
+  )
+  eras <- tibble(
+    eraType = c("hoi", "rx"),
+    caseId = c(1, 1),
+    eraId = c(10, 11),
+    value = c(1, 1),
+    startDay = c(50, 25),
+    endDay = c(50, 75)
+  )
   result <- convertToScriDataWrapper(cases, eras, exposureId = 11)
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -86,22 +102,26 @@ test_that("Simple SCRI era construction", {
 
 
 test_that("Outcome on boundary or control interval", {
-  cases <- tibble(observationPeriodId = "1000",
-                  caseId = 1,
-                  personId = "1",
-                  observationDays = 100,
-                  ageInDays = 0,
-                  startYear = 2000,
-                  startMonth = 5,
-                  startDay = 1,
-                  censoredDays = 0,
-                  noninformativeEndCensor = 0)
-  eras <- tibble(eraType = c("hoi", "rx"),
-                 caseId = c(1, 1),
-                 eraId = c(10, 11),
-                 value = c(1, 1),
-                 startDay = c(25-7, 25),
-                 endDay = c(25-7, 75))
+  cases <- tibble(
+    observationPeriodId = "1000",
+    caseId = 1,
+    personId = "1",
+    observationDays = 100,
+    ageInDays = 0,
+    startYear = 2000,
+    startMonth = 5,
+    startDay = 1,
+    censoredDays = 0,
+    noninformativeEndCensor = 0
+  )
+  eras <- tibble(
+    eraType = c("hoi", "rx"),
+    caseId = c(1, 1),
+    eraId = c(10, 11),
+    value = c(1, 1),
+    startDay = c(25 - 7, 25),
+    endDay = c(25 - 7, 75)
+  )
   result <- convertToScriDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -113,22 +133,26 @@ test_that("Outcome on boundary or control interval", {
 })
 
 test_that("Merging overlapping control intervals", {
-  cases <- tibble(observationPeriodId = "1000",
-                  caseId = 1,
-                  personId = "1",
-                  observationDays = 100,
-                  ageInDays = 0,
-                  startYear = 2000,
-                  startMonth = 5,
-                  startDay = 1,
-                  censoredDays = 0,
-                  noninformativeEndCensor = 0)
-  eras <- tibble(eraType = c("hoi", "rx", "rx"),
-                 caseId = c(1, 1, 1),
-                 eraId = c(10, 11, 11),
-                 value = c(1, 1, 1),
-                 startDay = c(25-7, 25, 28),
-                 endDay = c(25-7, 26, 29))
+  cases <- tibble(
+    observationPeriodId = "1000",
+    caseId = 1,
+    personId = "1",
+    observationDays = 100,
+    ageInDays = 0,
+    startYear = 2000,
+    startMonth = 5,
+    startDay = 1,
+    censoredDays = 0,
+    noninformativeEndCensor = 0
+  )
+  eras <- tibble(
+    eraType = c("hoi", "rx", "rx"),
+    caseId = c(1, 1, 1),
+    eraId = c(10, 11, 11),
+    value = c(1, 1, 1),
+    startDay = c(25 - 7, 25, 28),
+    endDay = c(25 - 7, 26, 29)
+  )
   result <- convertToScriDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -140,22 +164,26 @@ test_that("Merging overlapping control intervals", {
 })
 
 test_that("Control intervals overlapping with a risk window", {
-  cases <- tibble(observationPeriodId = "1000",
-                  caseId = 1,
-                  personId = "1",
-                  observationDays = 100,
-                  ageInDays = 0,
-                  startYear = 2000,
-                  startMonth = 5,
-                  startDay = 1,
-                  censoredDays = 0,
-                  noninformativeEndCensor = 0)
-  eras <- tibble(eraType = c("hoi", "rx", "rx"),
-                 caseId = c(1, 1, 1),
-                 eraId = c(10, 11, 11),
-                 value = c(1, 1, 1),
-                 startDay = c(32, 30, 50),
-                 endDay = c(32, 40, 60))
+  cases <- tibble(
+    observationPeriodId = "1000",
+    caseId = 1,
+    personId = "1",
+    observationDays = 100,
+    ageInDays = 0,
+    startYear = 2000,
+    startMonth = 5,
+    startDay = 1,
+    censoredDays = 0,
+    noninformativeEndCensor = 0
+  )
+  eras <- tibble(
+    eraType = c("hoi", "rx", "rx"),
+    caseId = c(1, 1, 1),
+    eraId = c(10, 11, 11),
+    value = c(1, 1, 1),
+    startDay = c(32, 30, 50),
+    endDay = c(32, 40, 60)
+  )
   result <- convertToScriDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -165,4 +193,3 @@ test_that("Control intervals overlapping with a risk window", {
   expect_equal(result$covariates$stratumId, c(1))
   expect_equal(result$covariates$covariateId, c(1000))
 })
-
