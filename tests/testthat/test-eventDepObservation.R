@@ -123,6 +123,8 @@ test_that("Produces same results as SCCS package when using event-dependent obse
                                    eraRef = eraRef)
   attr(sccsData, "metaData") <- list(outcomeIds = 2,
                                      attrition = tibble(outcomeId = 2))
+  class(sccsData) <- "SccsData"
+  attr(class(sccsData), "package") <- "SelfControlledCaseSeries"
 
   studyPop <- createStudyPopulation(sccsData = sccsData)
 

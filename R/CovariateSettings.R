@@ -66,8 +66,16 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
                                        allowRegularization = FALSE,
                                        profileLikelihood = FALSE) {
   errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertIntegerish(includeEraIds, null.ok = TRUE, add = errorMessages)
-  checkmate::assertIntegerish(excludeEraIds, null.ok = TRUE, add = errorMessages)
+  if (is.character(includeEraIds)) {
+    checkmate::assertCharacter(includeEraIds, len = 1, add = errorMessages)
+  } else {
+    checkmate::assertIntegerish(includeEraIds, null.ok = TRUE, add = errorMessages)
+  }
+  if (is.character(excludeEraIds)) {
+    checkmate::assertCharacter(excludeEraIds, len = 1, add = errorMessages)
+  } else {
+    checkmate::assertIntegerish(excludeEraIds, null.ok = TRUE, add = errorMessages)
+  }
   checkmate::assertCharacter(label, len = 1, add = errorMessages)
   checkmate::assertLogical(stratifyById, len = 1, add = errorMessages)
   checkmate::assertInt(start, add = errorMessages)
@@ -282,8 +290,16 @@ createControlIntervalSettings <- function(includeEraIds = NULL,
                                           endAnchor = "era end",
                                           firstOccurrenceOnly = FALSE) {
   errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertIntegerish(includeEraIds, null.ok = TRUE, add = errorMessages)
-  checkmate::assertIntegerish(excludeEraIds, null.ok = TRUE, add = errorMessages)
+  if (is.character(includeEraIds)) {
+    checkmate::assertCharacter(includeEraIds, len = 1, add = errorMessages)
+  } else {
+    checkmate::assertIntegerish(includeEraIds, null.ok = TRUE, add = errorMessages)
+  }
+  if (is.character(excludeEraIds)) {
+    checkmate::assertCharacter(excludeEraIds, len = 1, add = errorMessages)
+  } else {
+    checkmate::assertIntegerish(excludeEraIds, null.ok = TRUE, add = errorMessages)
+  }
   checkmate::assertInt(start, add = errorMessages)
   checkmate::assertCharacter(startAnchor, len = 1, add = errorMessages)
   checkmate::assertInt(end, add = errorMessages)

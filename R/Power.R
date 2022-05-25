@@ -50,6 +50,21 @@ computeMdrr <- function(sccsIntervalData,
   if (!method %in% c("proportion", "binomial", "SRL1", "SRL2", "ageEffects"))
     stop("Method must be either 'proportion', 'binomial', 'SRL1', 'SRL2', or 'ageEffects'.")
 
+  # Check if there is anyone with the exposure at all;
+  nExposed <- sccsIntervalData$covariates %>%
+    filter(.data$covariateId == exposureCovariateId) %>%
+    count() %>%
+    pull()
+  if (nExposed == 0) {
+    result <- tibble(timeExposed = 0,
+                     timeTotal = 0,
+                     propTimeExposed = 0,
+                     propPopulationExposed = 0,
+                     events = 0,
+                     mdrr = Inf)
+    return(result)
+  }
+
   # For power calculations we only use subjects who are both exposed and have the outcome
   # The sccsIntervalData may contain unexposed subjects used to fit age and season effects,
   # or effect of other exposures, so we should remove those first.
@@ -174,7 +189,7 @@ computeMdrr <- function(sccsIntervalData,
   result <- tibble(timeExposed = timeExposed,
                    timeTotal = timeTotal,
                    propTimeExposed = round(r, 4),
-                   propPopExposued = round(pr, 4),
+                   propPopulationExposed = round(pr, 4),
                    events = n,
                    mdrr = round(mdrr, 4))
   return(result)

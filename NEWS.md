@@ -14,6 +14,10 @@ Bug fixes
 
 2. Now limiting the number of unexposed cases when including only a calendar time spline (as set by `minCasesForTimeCovariates`).
 
+3. Fix error when calling `computeMdrr()` on an `sccsIntervalData` object that does not contain the exposure of interest.
+
+4. Fixed typo in `computeMdrr()`, renaming `propPopExposued ` to `propPopulationExposed`.
+
 
 SelfControlledCaseSeries 3.2.1
 ==============================

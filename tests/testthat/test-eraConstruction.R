@@ -36,6 +36,8 @@ convertToSccsDataWrapper <- function(cases,
                                eraRef = eraRef)
   attr(data, "metaData") <- list(outcomeIds = 10,
                                  attrition = tibble(outcomeId = 10))
+  class(data) <- "SccsData"
+  attr(class(data), "package") <- "SelfControlledCaseSeries"
 
   studyPop <- createStudyPopulation(sccsData = data,
                                     outcomeId = 10,
