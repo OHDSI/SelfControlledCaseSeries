@@ -19,7 +19,7 @@
 createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
                                     useNestingCohort = FALSE,
                                     nestingCohortId = NULL,
-                                    deleteCovariatesSmallCount = 100,
+                                    deleteCovariatesSmallCount = 0,
                                     studyStartDate = "",
                                     studyEndDate = "",
                                     maxCasesPerOutcome = 0,

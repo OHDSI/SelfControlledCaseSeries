@@ -23,7 +23,7 @@ getDbSccsData(
   nestingCohortDatabaseSchema = cdmDatabaseSchema,
   nestingCohortTable = "cohort",
   nestingCohortId = NULL,
-  deleteCovariatesSmallCount = 100,
+  deleteCovariatesSmallCount = 0,
   studyStartDate = "",
   studyEndDate = "",
   cdmVersion = "5",
