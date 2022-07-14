@@ -43,8 +43,8 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
     calendarTime[calendarTime < calendarTimeKnots[1]] <- calendarTimeKnots[1]
     calendarTime[calendarTime > calendarTimeKnots[length(calendarTimeKnots)]] <- calendarTimeKnots[length(calendarTimeKnots)]
     calendarTimeDesignMatrix <- splines::bs(calendarTime,
-      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+                                            knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+                                            Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
     )
     logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
     logRr <- logRr - mean(logRr)
@@ -129,3 +129,135 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
 
   return(data)
 }
+
+
+
+#' Compute P for pre-exposure risk gain
+#'
+#' @details
+#' Compares the rate of the outcome in the 30 days prior to exposure to the rate
+#' of the outcome in the 30 days following exposure. If the rate before exposure
+#' is higher, this indicates there might reverse causality, that the outcome, or
+#' some precursor of the outcome, increases the probability of having the exposure.
+#'
+#' The resulting p-value is computed using a Poisson model conditioned on the person.
+#'
+#' @param exposureEraId       The exposure to create the era data for. If not specified it is
+#'                            assumed to be the one exposure for which the data was loaded from
+#'                            the database.
+#' @template StudyPopulation
+#' @template SccsData
+#'
+#' @return
+#' A one-sided p-value for whether the rate before expore is higher than after, against
+#' the null of no change.
+#'
+#' @export
+computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = NULL) {
+
+  if (is.null(exposureEraId)) {
+    exposureEraId <- attr(sccsData, "metaData")$exposureIds
+    if (length(exposureEraId) != 1) {
+      stop("No exposure ID specified, but multiple exposures found")
+    }
+  }
+
+  cases <- studyPopulation$cases %>%
+    select(.data$caseId, caseEndDay = .data$endDay, .data$offset)
+
+  exposures <- sccsData$eras %>%
+    filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
+    group_by(.data$caseId) %>%
+    inner_join(cases, by = "caseId", copy = TRUE) %>%
+    mutate(
+      startDay = .data$startDay - .data$offset,
+      endDay = .data$endDay - .data$offset
+    ) %>%
+    filter(.data$startDay >= 0, .data$startDay < .data$caseEndDay) %>%
+    collect()
+
+  if (nrow(exposures) == 0) {
+    warning("No exposures found with era ID ", exposureEraId)
+    return(NA)
+  }
+  firstExposures <- exposures %>%
+    group_by(.data$caseId, .data$caseEndDay) %>%
+    summarise(
+      startDay = min(.data$startDay, na.rm = TRUE),
+      endDay = min(.data$endDay, na.rm = TRUE),
+      .groups = "drop_last"
+    )
+
+  outcomes <- studyPopulation$outcomes %>%
+    inner_join(firstExposures, by = "caseId") %>%
+    mutate(delta = .data$outcomeDay - .data$startDay) %>%
+    select(.data$caseId, .data$outcomeDay, .data$delta)
+
+  # Restrict to 30 days before and after exposure start:
+  outcomes <- outcomes %>%
+    filter(.data$delta >= -30 & .data$delta <= 30) %>%
+    mutate(
+      beforeExposure = .data$delta < 0,
+      y = 1
+    ) %>%
+    select(
+      .data$caseId,
+      .data$beforeExposure,
+      .data$y
+    )
+
+  observed <- bind_rows(
+    firstExposures %>%
+      mutate(
+        daysObserved = if_else(.data$startDay > 30, 30, .data$startDay),
+        beforeExposure = TRUE
+      ) %>%
+      select(
+        .data$caseId,
+        .data$daysObserved,
+        .data$beforeExposure
+      ),
+    firstExposures %>%
+      mutate(daysAfterExposure = .data$caseEndDay - .data$startDay) %>%
+      mutate(
+        daysObserved = if_else(.data$daysAfterExposure > 30, 30, .data$daysAfterExposure),
+        beforeExposure = FALSE
+      ) %>%
+      select(
+        .data$caseId,
+        .data$daysObserved,
+        .data$beforeExposure
+      )
+  ) %>%
+    filter(.data$daysObserved > 0)
+
+  poissonData <- observed %>%
+    left_join(outcomes, by = c("caseId", "beforeExposure")) %>%
+    mutate(
+      y = if_else(is.na(.data$y), 0, .data$y),
+      logDays = log(.data$daysObserved)
+    )
+  # library(survival)
+  cyclopsData <- Cyclops::createCyclopsData(
+    y ~ beforeExposure + strata(caseId) + offset(logDays),
+    modelType = "cpr",
+    data = poissonData
+  )
+  fit <- Cyclops::fitCyclopsModel(cyclopsData)
+  if (fit$return_flag != "SUCCESS") {
+    return(NA)
+  }
+  # compute one-sided p-value:
+  llNull <- Cyclops::getCyclopsProfileLogLikelihood(
+    object = fit,
+    parm = "beforeExposureTRUE",
+    x = 0
+  )$value
+  llr <- fit$log_likelihood - llNull
+  p <- EmpiricalCalibration:::computePFromLlr(llr, coef(fit))
+  names(p) <- NULL
+  return(p)
+}
+
+
+

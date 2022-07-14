@@ -1,9 +1,11 @@
-SelfControlledCaseSeries 3.3.1
+SelfControlledCaseSeries 3.4.0
 ==============================
 
 Changes
 
 1. Setting the `deleteCovariatesSmallCount` argument to 0 in the `getDbSccsData()` and `createGetDbSccsDataArgs()` functions. This was originally set to 100 for SCCS analyses with many covariates, but makes no sense when considering only one or a few exposures.
+
+2. Adding the `computePreExposureGainP()` function.
 
 Bug fixes
 

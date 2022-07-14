@@ -1,7 +1,7 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 3.3.1
+Version: 3.4.0
 Date: 2022-06-10
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
@@ -25,7 +25,8 @@ Depends:
 	R (>= 3.2.2),
 	Cyclops (>= 3.1.1),
 	DatabaseConnector (>= 5.0.0),
-	Andromeda
+	Andromeda,
+	survival
 Imports:
 	SqlRender (>= 1.8.3),
 	dplyr (>= 1.0.0),
