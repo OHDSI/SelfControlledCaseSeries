@@ -129,10 +129,13 @@ loadSccsAnalysisList <- function(file) {
 #'                     be used can be specified using the `exposureType` parameter in the
 #'                     [createSccsAnalysis] function.
 #' @param outcomeId    A concept ID identifying the outcome in the outcome table.
+#' @param trueEffectSize                   For negative and positive controls: the known true effect size. To be used
+#'                                         for empirical calibration. Negative controls have `trueEffectSize = 1`. If
+#'                                         the true effect size is unknown, use `trueEffectSize = NA`
 #' @param ...          Custom variables, to be used in the analyses.
 #'
 #' @export
-createExposureOutcome <- function(exposureId, outcomeId, ...) {
+createExposureOutcome <- function(exposureId, outcomeId, trueEffectSize = NA, ...) {
   errorMessages <- checkmate::makeAssertCollection()
   if (!is.list(exposureId)) {
     checkmate::assertInt(exposureId, add = errorMessages)
@@ -140,6 +143,7 @@ createExposureOutcome <- function(exposureId, outcomeId, ...) {
   if (!is.list(outcomeId)) {
     checkmate::assertInt(outcomeId, add = errorMessages)
   }
+  checkmate::assertNumeric(trueEffectSize, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   exposureOutcome <- list(...)

@@ -48,6 +48,8 @@
 #'                              avoid making normal approximations on the likelihood and can be used in
 #'                              methods specifically designed to make use of the profile, but may take a
 #'                              while to compute.
+#' @param exposureOfInterest    If TRUE, the fitted coefficient for this variable will be reported when
+#'                              using `runSccsAnalyses()`.
 #'
 #' @return
 #' An object of type `EraCovariateSettings`.
@@ -64,7 +66,8 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
                                        firstOccurrenceOnly = FALSE,
                                        splitPoints = c(),
                                        allowRegularization = FALSE,
-                                       profileLikelihood = FALSE) {
+                                       profileLikelihood = FALSE,
+                                       exposureOfInterest = FALSE) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is.character(includeEraIds)) {
     checkmate::assertCharacter(includeEraIds, len = 1, add = errorMessages)
@@ -86,6 +89,7 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
   checkmate::assertIntegerish(splitPoints, null.ok = TRUE, add = errorMessages)
   checkmate::assertLogical(allowRegularization, len = 1, add = errorMessages)
   checkmate::assertLogical(profileLikelihood, len = 1, add = errorMessages)
+  checkmate::assertLogical(exposureOfInterest, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   if (allowRegularization && profileLikelihood) {
     stop("Cannot profile the likelihood of regularized covariates")

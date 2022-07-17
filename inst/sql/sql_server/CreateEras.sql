@@ -83,12 +83,12 @@ INSERT INTO #era_ref (era_type, era_id, era_name)
 SELECT 'rx',
 	concept_id,
 	concept_name
-FROM @cdm_database_schema.concept
-RIGHT JOIN (
+FROM (
 	SELECT DISTINCT era_id
 	FROM #eras
 	WHERE era_type = 'rx'
 	) eras
+LEFT JOIN @cdm_database_schema.concept
 ON eras.era_id = concept.concept_id;
 
 } : { /* exposure table has same structure as cohort table */
@@ -200,12 +200,12 @@ INSERT INTO #era_ref (era_type, era_id, era_name)
 SELECT 'dx',
 	concept_id,
 	concept_name
-FROM @cdm_database_schema.concept
-RIGHT JOIN (
+FROM (
 	SELECT DISTINCT era_id
 	FROM #eras
 	WHERE era_type = 'dx'
 	) eras
+LEFT JOIN @cdm_database_schema.concept
 ON eras.era_id = concept.concept_id;
 
 } : {

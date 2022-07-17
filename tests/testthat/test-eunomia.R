@@ -107,5 +107,17 @@ test_that("Running multiple analyses against Eunomia", {
   unlink(outputFolder, recursive = TRUE)
 })
 
+test_that("Fetching data from drug_era and condition_era tables from Eunomia", {
+  # 192671 = Gastrointestinal haemorrhage
+  # 1118084 = Celecoxib
+  sccsData <- SelfControlledCaseSeries::getDbSccsData(connectionDetails = connectionDetails,
+                                                      cdmDatabaseSchema = "main",
+                                                      exposureTable = "drug_era",
+                                                      outcomeTable = "condition_era",
+                                                      outcomeIds = 192671,
+                                                      exposureIds = 1118084)
+  expect_s4_class(sccsData, "SccsData")
+})
+
 # Remove the Eunomia database:
 unlink(connectionDetails$server())
