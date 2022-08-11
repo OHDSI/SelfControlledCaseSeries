@@ -112,7 +112,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   computeTwoSidedP <- function(observed, expected) {
     pUpperBound <- 1 - ppois(observed, expected * maxRatio, lower.tail = TRUE)
     pLowerBound <- 1 - ppois(observed, expected / maxRatio, lower.tail = FALSE)
-    return(min(1, 2 * pmin(pUpperBound, pLowerBound)))
+    return(pmin(1, 2 * pmin(pUpperBound, pLowerBound)))
   }
 
   # Season and calendar time splines lack intercept, so need to compute expected count in indirect way:
