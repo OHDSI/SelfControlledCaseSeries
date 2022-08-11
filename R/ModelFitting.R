@@ -167,16 +167,11 @@ fitSccsModel <- function(sccsIntervalData,
         logLikelihoodProfiles <- lapply(covariateIds, getLikelihoodProfile)
         names(logLikelihoodProfiles) <- covariateIds
       }
-      if (fit$return_flag == "ILLCONDITIONED") {
+      if (fit$return_flag != "SUCCESS") {
         coefficients <- c(0)
         estimates <- NULL
         priorVariance <- 0
-        status <- "ILL CONDITIONED, CANNOT FIT"
-      } else if (fit$return_flag == "MAX_ITERATIONS") {
-        coefficients <- c(0)
-        estimates <- NULL
-        priorVariance <- 0
-        status <- "REACHED MAXIMUM NUMBER OF ITERATIONS, CANNOT FIT"
+        status <- fit$return_flag
       } else {
         status <- "OK"
         estimates <- coef(fit)

@@ -16,6 +16,8 @@ Bug fixes
 
 2. Fixing `computeTimeStability()` per-month p-value (was showing the minimum p-value for all months).
 
+3. Fixing uncaught errors when fitting models caused by Cyclops's new return flags.
+
 
 SelfControlledCaseSeries 3.3.0
 ==============================
