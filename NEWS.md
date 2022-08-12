@@ -7,7 +7,7 @@ Changes
 
 2. Adding the `computePreExposureGainP()` function.
 
-3. Setting deffault `maxRatio` in `computeTimeStability()` to 1.25 (instead of 1.1) to avoid false positives.
+3. Setting default `maxRatio` in `computeTimeStability()` to 1.25 (instead of 1.1) to avoid false positives.
 
 
 Bug fixes
