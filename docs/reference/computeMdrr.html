@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -69,14 +69,14 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">computeMdrr</span><span class="op">(</span>
-  <span class="va">sccsIntervalData</span>,
-  <span class="va">exposureCovariateId</span>,
-  alpha <span class="op">=</span> <span class="fl">0.05</span>,
-  power <span class="op">=</span> <span class="fl">0.8</span>,
-  twoSided <span class="op">=</span> <span class="cn">TRUE</span>,
-  method <span class="op">=</span> <span class="st">"SRL1"</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">computeMdrr</span><span class="op">(</span></span>
+<span>  <span class="va">sccsIntervalData</span>,</span>
+<span>  <span class="va">exposureCovariateId</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  power <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>  twoSided <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"SRL1"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -84,22 +84,35 @@
     <dl><dt>sccsIntervalData</dt>
 <dd><p>An object of type <a href="SccsIntervalData-class.html">SccsIntervalData</a> as created using the
 <a href="createSccsIntervalData.html">createSccsIntervalData</a> function.</p></dd>
+
+
 <dt>exposureCovariateId</dt>
 <dd><p>Covariate Id for the health exposure of interest.</p></dd>
+
+
 <dt>alpha</dt>
 <dd><p>Type I error.</p></dd>
+
+
 <dt>power</dt>
 <dd><p>1 - beta, where beta is the type II error.</p></dd>
+
+
 <dt>twoSided</dt>
 <dd><p>Consider a two-sided test?</p></dd>
+
+
 <dt>method</dt>
 <dd><p>The type of sample size formula that will be used. Allowable values are
 "proportion", "binomial", "SRL1", "SRL2", or "ageEffects". Currently "ageEffects"
 is not supported.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A data frame with the MDRR, number of events, time at risk, and total time.</p>
+    
+
+<p>A data frame with the MDRR, number of events, time at risk, and total time.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -126,7 +139,7 @@ Statistics in Medicine, 15;25(15):2618-31</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -69,12 +69,12 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">plotCalendarTimeEffect</span><span class="op">(</span>
-  <span class="va">sccsModel</span>,
-  rrLim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">10</span><span class="op">)</span>,
-  title <span class="op">=</span> <span class="cn">NULL</span>,
-  fileName <span class="op">=</span> <span class="cn">NULL</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plotCalendarTimeEffect</span><span class="op">(</span></span>
+<span>  <span class="va">sccsModel</span>,</span>
+<span>  rrLim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">10</span><span class="op">)</span>,</span>
+<span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  fileName <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -82,17 +82,26 @@
     <dl><dt>sccsModel</dt>
 <dd><p>An object of type <code>sccsModel</code> as created using the
 <code><a href="fitSccsModel.html">fitSccsModel</a></code> function.</p></dd>
+
+
 <dt>rrLim</dt>
 <dd><p>The limits on the incidence rate ratio scale in the plot.</p></dd>
+
+
 <dt>title</dt>
 <dd><p>Optional: the main title for the plot</p></dd>
+
+
 <dt>fileName</dt>
 <dd><p>Name of the file where the plot should be saved, for example 'plot.png'. See the
 function <code>ggsave</code> in the ggplot2 package for supported file formats.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A Ggplot object. Use the ggsave function to save to file.</p>
+    
+
+<p>A Ggplot object. Use the ggsave function to save to file.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -111,7 +120,7 @@ function <code>ggsave</code> in the ggplot2 package for supported file formats.<
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -69,14 +69,14 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">fitSccsModel</span><span class="op">(</span>
-  <span class="va">sccsIntervalData</span>,
-  prior <span class="op">=</span> <span class="fu">createPrior</span><span class="op">(</span><span class="st">"laplace"</span>, useCrossValidation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
-  control <span class="op">=</span> <span class="fu">createControl</span><span class="op">(</span>cvType <span class="op">=</span> <span class="st">"auto"</span>, selectorType <span class="op">=</span> <span class="st">"byPid"</span>, startingVariance <span class="op">=</span>
-    <span class="fl">0.1</span>, seed <span class="op">=</span> <span class="fl">1</span>, resetCoefficients <span class="op">=</span> <span class="cn">TRUE</span>, noiseLevel <span class="op">=</span> <span class="st">"quiet"</span><span class="op">)</span>,
-  profileGrid <span class="op">=</span> <span class="cn">NULL</span>,
-  profileBounds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fitSccsModel</span><span class="op">(</span></span>
+<span>  <span class="va">sccsIntervalData</span>,</span>
+<span>  prior <span class="op">=</span> <span class="fu">createPrior</span><span class="op">(</span><span class="st">"laplace"</span>, useCrossValidation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  control <span class="op">=</span> <span class="fu">createControl</span><span class="op">(</span>cvType <span class="op">=</span> <span class="st">"auto"</span>, selectorType <span class="op">=</span> <span class="st">"byPid"</span>, startingVariance <span class="op">=</span></span>
+<span>    <span class="fl">0.1</span>, seed <span class="op">=</span> <span class="fl">1</span>, resetCoefficients <span class="op">=</span> <span class="cn">TRUE</span>, noiseLevel <span class="op">=</span> <span class="st">"quiet"</span><span class="op">)</span>,</span>
+<span>  profileGrid <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  profileBounds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -84,23 +84,34 @@
     <dl><dt>sccsIntervalData</dt>
 <dd><p>An object of type <a href="SccsIntervalData-class.html">SccsIntervalData</a> as created using the
 <a href="createSccsIntervalData.html">createSccsIntervalData</a> function.</p></dd>
+
+
 <dt>prior</dt>
 <dd><p>The prior used to fit the model. See <a href="https://rdrr.io/pkg/Cyclops/man/createPrior.html" class="external-link">Cyclops::createPrior</a> for
 details.</p></dd>
+
+
 <dt>control</dt>
 <dd><p>The control object used to control the cross-validation used to determine the
 hyperparameters of the prior (if applicable). See
 <a href="https://rdrr.io/pkg/Cyclops/man/createControl.html" class="external-link">Cyclops::createControl</a> for details.</p></dd>
+
+
 <dt>profileGrid</dt>
 <dd><p>A one-dimensional grid of points on the log(relative risk) scale where
 the likelihood for coefficient of variables is sampled. See details.</p></dd>
+
+
 <dt>profileBounds</dt>
 <dd><p>The bounds (on the log relative risk scale) for the adaptive sampling
 of the likelihood function.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>An object of type <code>SccsModel</code>. Generic functions <code>print</code>, <code>coef</code>, and
+    
+
+<p>An object of type <code>SccsModel</code>. Generic functions <code>print</code>, <code>coef</code>, and
 <code>confint</code> are available.</p>
     </div>
     <div id="details">
@@ -131,7 +142,7 @@ and Computer Simulation 23, 10</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

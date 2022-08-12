@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -69,32 +69,41 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">computeTimeStability</span><span class="op">(</span>
-  <span class="va">studyPopulation</span>,
-  sccsModel <span class="op">=</span> <span class="cn">NULL</span>,
-  maxRatio <span class="op">=</span> <span class="fl">1.1</span>,
-  alpha <span class="op">=</span> <span class="fl">0.05</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">computeTimeStability</span><span class="op">(</span></span>
+<span>  <span class="va">studyPopulation</span>,</span>
+<span>  sccsModel <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  maxRatio <span class="op">=</span> <span class="fl">1.25</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="fl">0.05</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>studyPopulation</dt>
 <dd><p>An object created using the <code><a href="createStudyPopulation.html">createStudyPopulation()</a></code> function.</p></dd>
+
+
 <dt>sccsModel</dt>
 <dd><p>Optional: A fitted SCCS model as created using <code><a href="fitSccsModel.html">fitSccsModel()</a></code>. If the
 model contains splines for seasonality and or calendar time these will be adjusted
 for before computing stability.</p></dd>
+
+
 <dt>maxRatio</dt>
 <dd><p>The maximum ratio between the (adjusted) rate in a month, and the mean (adjusted) rate that
 we would consider to be irrelevant.</p></dd>
+
+
 <dt>alpha</dt>
 <dd><p>The alpha (type 1 error) used to test for stability. A Bonferroni correction will
 be applied for the number of months tested.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A tibble with information on the temporal stability per month. The column <code>stable</code> indicates whether the rate
+    
+
+<p>A tibble with information on the temporal stability per month. The column <code>stable</code> indicates whether the rate
 of the outcome is within the expected range for that month, assuming the rate is constant over time.</p>
     </div>
     <div id="details">
@@ -118,7 +127,7 @@ multiple testing across months.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

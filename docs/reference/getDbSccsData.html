@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -69,31 +69,31 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">getDbSccsData</span><span class="op">(</span>
-  <span class="va">connectionDetails</span>,
-  <span class="va">cdmDatabaseSchema</span>,
-  oracleTempSchema <span class="op">=</span> <span class="cn">NULL</span>,
-  tempEmulationSchema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"sqlRenderTempEmulationSchema"</span><span class="op">)</span>,
-  outcomeDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  outcomeTable <span class="op">=</span> <span class="st">"condition_era"</span>,
-  <span class="va">outcomeIds</span>,
-  exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,
-  exposureIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,
-  useCustomCovariates <span class="op">=</span> <span class="cn">FALSE</span>,
-  customCovariateDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  customCovariateTable <span class="op">=</span> <span class="st">"cohort"</span>,
-  customCovariateIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,
-  useNestingCohort <span class="op">=</span> <span class="cn">FALSE</span>,
-  nestingCohortDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  nestingCohortTable <span class="op">=</span> <span class="st">"cohort"</span>,
-  nestingCohortId <span class="op">=</span> <span class="cn">NULL</span>,
-  deleteCovariatesSmallCount <span class="op">=</span> <span class="fl">100</span>,
-  studyStartDate <span class="op">=</span> <span class="st">""</span>,
-  studyEndDate <span class="op">=</span> <span class="st">""</span>,
-  cdmVersion <span class="op">=</span> <span class="st">"5"</span>,
-  maxCasesPerOutcome <span class="op">=</span> <span class="fl">0</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">getDbSccsData</span><span class="op">(</span></span>
+<span>  <span class="va">connectionDetails</span>,</span>
+<span>  <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  oracleTempSchema <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tempEmulationSchema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"sqlRenderTempEmulationSchema"</span><span class="op">)</span>,</span>
+<span>  outcomeDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  outcomeTable <span class="op">=</span> <span class="st">"condition_era"</span>,</span>
+<span>  <span class="va">outcomeIds</span>,</span>
+<span>  exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,</span>
+<span>  exposureIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  useCustomCovariates <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  customCovariateDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  customCovariateTable <span class="op">=</span> <span class="st">"cohort"</span>,</span>
+<span>  customCovariateIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  useNestingCohort <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  nestingCohortDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  nestingCohortTable <span class="op">=</span> <span class="st">"cohort"</span>,</span>
+<span>  nestingCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  deleteCovariatesSmallCount <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  studyStartDate <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  studyEndDate <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  cdmVersion <span class="op">=</span> <span class="st">"5"</span>,</span>
+<span>  maxCasesPerOutcome <span class="op">=</span> <span class="fl">0</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -101,28 +101,40 @@
     <dl><dt>connectionDetails</dt>
 <dd><p>An R object of type <code>ConnectionDetails</code> created using
 the function <code><a href="https://ohdsi.github.io/DatabaseConnector/reference/createConnectionDetails.html" class="external-link">DatabaseConnector::createConnectionDetails()</a></code> function.</p></dd>
+
+
 <dt>cdmDatabaseSchema</dt>
 <dd><p>The name of the database schema that contains the OMOP CDM
 instance.  Requires read permissions to this database. On SQL
 Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.</p></dd>
+
+
 <dt>oracleTempSchema</dt>
 <dd><p>DEPRECATED: use <code>tempEmulationSchema</code> instead.</p></dd>
+
+
 <dt>tempEmulationSchema</dt>
 <dd><p>Some database platforms like Oracle and Impala do not truly support temp tables. To
 emulate temp tables, provide a schema with write privileges where temp tables
 can be created.</p></dd>
+
+
 <dt>outcomeDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location where
 the data used to define the outcome cohorts is available. If
 outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
 used.  Requires read permissions to this database.</p></dd>
+
+
 <dt>outcomeTable</dt>
 <dd><p>The tablename that contains the outcome cohorts.  If
 outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
 then expectation is outcomeTable has format of COHORT table:
 COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
 COHORT_END_DATE.</p></dd>
+
+
 <dt>outcomeIds</dt>
 <dd><p>A list of ids used to define outcomes.  If outcomeTable =
 CONDITION_OCCURRENCE, the list is a set of ancestor
@@ -130,17 +142,23 @@ CONCEPT_IDs, and all occurrences of all descendant concepts
 will be selected.  If outcomeTable &lt;&gt; CONDITION_OCCURRENCE,
 the list contains records found in COHORT_DEFINITION_ID
 field.</p></dd>
+
+
 <dt>exposureDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location where
 the exposure data used to define the exposure cohorts is
 available. If exposureTable = DRUG_ERA,
 exposureDatabaseSchema is not used but assumed to be
 cdmSchema.  Requires read permissions to this database.</p></dd>
+
+
 <dt>exposureTable</dt>
 <dd><p>The tablename that contains the exposure cohorts.  If
 exposureTable &lt;&gt; DRUG_ERA, then expectation is exposureTable
 has format of COHORT table: cohort_concept_id, SUBJECT_ID,
 COHORT_START_DATE, COHORT_END_DATE.</p></dd>
+
+
 <dt>exposureIds</dt>
 <dd><p>A list of identifiers to define the exposures of interest. If
 exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
@@ -148,51 +166,80 @@ If exposureTable &lt;&gt; DRUG_ERA, exposureIds is used to select
 the cohort_concept_id in the cohort-like table. If no
 exposureIds are provided, all drugs or cohorts in the
 exposureTable are included as exposures.</p></dd>
+
+
 <dt>useCustomCovariates</dt>
 <dd><p>Create covariates from a custom table?</p></dd>
+
+
 <dt>customCovariateDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location where
 the custom covariate data is available.</p></dd>
+
+
 <dt>customCovariateTable</dt>
 <dd><p>Name of the table holding the custom covariates. This table
 should have the same structure as the cohort table.</p></dd>
+
+
 <dt>customCovariateIds</dt>
 <dd><p>A list of cohort definition IDS identifying the records in
 the customCovariateTable to use for building custom
 covariates.</p></dd>
+
+
 <dt>useNestingCohort</dt>
 <dd><p>Should the study be nested in a cohort (e.g. people with
 a specific indication)? If not, the study will be nested
 in the general population.</p></dd>
+
+
 <dt>nestingCohortDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location
 where the nesting cohort is defined.</p></dd>
+
+
 <dt>nestingCohortTable</dt>
 <dd><p>Name of the table holding the nesting cohort. This table
 should have the same structure as the cohort table.</p></dd>
+
+
 <dt>nestingCohortId</dt>
 <dd><p>A cohort definition ID identifying the records in the
 nestingCohortTable to use as nesting cohort.</p></dd>
+
+
 <dt>deleteCovariatesSmallCount</dt>
 <dd><p>The minimum count for a covariate to appear in the data to be
 kept.</p></dd>
+
+
 <dt>studyStartDate</dt>
 <dd><p>A calendar date specifying the minimum date where data is
 used. Date format is 'yyyymmdd'.</p></dd>
+
+
 <dt>studyEndDate</dt>
 <dd><p>A calendar date specifying the maximum date where data is
 used. Date format is 'yyyymmdd'.</p></dd>
+
+
 <dt>cdmVersion</dt>
 <dd><p>Define the OMOP CDM version used: currently support "4" and
 "5".</p></dd>
+
+
 <dt>maxCasesPerOutcome</dt>
 <dd><p>If there are more than this number of cases for a single
 outcome cases will be sampled to this size. <code>maxCasesPerOutcome = 0</code>
 indicates no maximum size.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>An <a href="SccsData-class.html">SccsData</a> object.</p>
+    
+
+<p>An <a href="SccsData-class.html">SccsData</a> object.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -223,7 +270,7 @@ for example a cohort of diabetics patients.</p></li>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>
