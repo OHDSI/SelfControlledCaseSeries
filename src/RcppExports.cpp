@@ -11,10 +11,9 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // convertToSccs
-SEXP convertToSccs(const DataFrame& cases, const DataFrame& outcomes, const List& eras, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const bool includeCalendarTime, const int calendarTimeOffset, const NumericMatrix& calendarTimeDesignMatrix, const NumericMatrix& seasonDesignMatrix, const NumericVector& timeCovariateCases, const List& covariateSettingsList, const bool eventDependentObservation, const List& censorModel, const bool scri, const int64_t controlIntervalId);
-RcppExport SEXP _SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP outcomesSEXP, SEXP erasSEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP, SEXP includeSeasonSEXP, SEXP includeCalendarTimeSEXP, SEXP calendarTimeOffsetSEXP, SEXP calendarTimeDesignMatrixSEXP, SEXP seasonDesignMatrixSEXP, SEXP timeCovariateCasesSEXP, SEXP covariateSettingsListSEXP, SEXP eventDependentObservationSEXP, SEXP censorModelSEXP, SEXP scriSEXP, SEXP controlIntervalIdSEXP) {
+void convertToSccs(const DataFrame& cases, const DataFrame& outcomes, const List& eras, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const bool includeCalendarTime, const int calendarTimeOffset, const NumericMatrix& calendarTimeDesignMatrix, const NumericMatrix& seasonDesignMatrix, const NumericVector& timeCovariateCases, const List& covariateSettingsList, const bool eventDependentObservation, const List& censorModel, const bool scri, const int64_t controlIntervalId, const S4 resultAndromeda);
+RcppExport SEXP _SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP outcomesSEXP, SEXP erasSEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP, SEXP includeSeasonSEXP, SEXP includeCalendarTimeSEXP, SEXP calendarTimeOffsetSEXP, SEXP calendarTimeDesignMatrixSEXP, SEXP seasonDesignMatrixSEXP, SEXP timeCovariateCasesSEXP, SEXP covariateSettingsListSEXP, SEXP eventDependentObservationSEXP, SEXP censorModelSEXP, SEXP scriSEXP, SEXP controlIntervalIdSEXP, SEXP resultAndromedaSEXP) {
 BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const DataFrame& >::type cases(casesSEXP);
     Rcpp::traits::input_parameter< const DataFrame& >::type outcomes(outcomesSEXP);
@@ -33,8 +32,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const List& >::type censorModel(censorModelSEXP);
     Rcpp::traits::input_parameter< const bool >::type scri(scriSEXP);
     Rcpp::traits::input_parameter< const int64_t >::type controlIntervalId(controlIntervalIdSEXP);
-    rcpp_result_gen = Rcpp::wrap(convertToSccs(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason, includeCalendarTime, calendarTimeOffset, calendarTimeDesignMatrix, seasonDesignMatrix, timeCovariateCases, covariateSettingsList, eventDependentObservation, censorModel, scri, controlIntervalId));
-    return rcpp_result_gen;
+    Rcpp::traits::input_parameter< const S4 >::type resultAndromeda(resultAndromedaSEXP);
+    convertToSccs(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason, includeCalendarTime, calendarTimeOffset, calendarTimeDesignMatrix, seasonDesignMatrix, timeCovariateCases, covariateSettingsList, eventDependentObservation, censorModel, scri, controlIntervalId, resultAndromeda);
+    return R_NilValue;
 END_RCPP
 }
 // simulateSccsOutcomes
@@ -125,7 +125,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SelfControlledCaseSeries_convertToSccs", (DL_FUNC) &_SelfControlledCaseSeries_convertToSccs, 17},
+    {"_SelfControlledCaseSeries_convertToSccs", (DL_FUNC) &_SelfControlledCaseSeries_convertToSccs, 18},
     {"_SelfControlledCaseSeries_simulateSccsOutcomes", (DL_FUNC) &_SelfControlledCaseSeries_simulateSccsOutcomes, 12},
     {"_SelfControlledCaseSeries_testEwad", (DL_FUNC) &_SelfControlledCaseSeries_testEwad, 6},
     {"_SelfControlledCaseSeries_testEwid", (DL_FUNC) &_SelfControlledCaseSeries_testEwid, 6},

@@ -114,8 +114,8 @@ struct ConcomitantEraCovariateComparator {
 
 struct ResultStruct {
 
-  ResultStruct() :
-  rowId(0), observedDays(), covariateIdToCovariateStatistics() {
+  ResultStruct(S4 _resultAndromeda) :
+  andromedaBuilder(_resultAndromeda), rowId(0), observedDays(), covariateIdToCovariateStatistics() {
     outcomeRowId = new std::vector<int64_t>;
     outcomeStratumId = new std::vector<int64_t>;
     outcomeY = new std::vector<int64_t>;
@@ -285,8 +285,9 @@ public:
                 const bool _eventDependentObservation,
                 const List& _censorModel,
                 const bool _scri,
-                const int64_t _controlIntervalId);
-  S4 convertToSccs();
+                const int64_t _controlIntervalId,
+                const S4 _resultAndromeda);
+  void convertToSccs();
   static const int ageIdOffset = 100;
   static const int seasonIdOffset = 200;
   static const int calendarTimeIdOffset = 300;

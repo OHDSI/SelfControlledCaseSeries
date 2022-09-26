@@ -29,11 +29,7 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace sccs {
 
-AndromedaBuilder::AndromedaBuilder() {
-  Environment andromedaPackage = Environment::namespace_env("Andromeda");
-  Function andromedaConstructor = andromedaPackage["andromeda"];
-  andromeda = andromedaConstructor();
-}
+AndromedaBuilder::AndromedaBuilder(S4 _andromeda) : andromeda(_andromeda) {}
 
 void AndromedaBuilder::appendToTable(const String& tableName, const DataFrame& data) {
   Environment andromedaPackage = Environment::namespace_env("Andromeda");

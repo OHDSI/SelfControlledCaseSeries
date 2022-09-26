@@ -18,6 +18,8 @@ Bug fixes
 
 3. Fixing uncaught errors when fitting models caused by Cyclops's new return flags.
 
+4. Fix error about Andromeda object already being closed when generating SCCS era data.
+
 
 SelfControlledCaseSeries 3.3.0
 ==============================
