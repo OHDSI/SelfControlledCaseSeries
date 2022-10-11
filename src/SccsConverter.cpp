@@ -48,8 +48,10 @@ SccsConverter::SccsConverter(const DataFrame& _cases,
                              const bool _eventDependentObservation,
                              const List& _censorModel,
                              const bool _scri,
-                             const int64_t _controlIntervalId) :
+                             const int64_t _controlIntervalId,
+                             const S4 _resultAndromeda) :
                              personDataIterator(_cases, _outcomes, _eras),
+                             resultStruct(_resultAndromeda),
                              includeAge(_includeAge),
                              ageOffset(_ageOffset),
                              includeSeason(_includeSeason),
@@ -57,7 +59,7 @@ SccsConverter::SccsConverter(const DataFrame& _cases,
                              calendarTimeOffset(_calendarTimeOffset),
                              eventDependentObservation(_eventDependentObservation),
                              scri(_scri),
-                             controlIntervalId(_controlIntervalId) {
+                             controlIntervalId(_controlIntervalId){
 
                                ageDesignMatrix = _ageDesignMatrix;
                                seasonDesignMatrix = _seasonDesignMatrix;
@@ -506,7 +508,7 @@ void SccsConverter::processPerson(PersonData& personData) {
   addToResult(concomitantEras, *outcomes, personData.caseId);
 }
 
-S4 SccsConverter::convertToSccs() {
+void SccsConverter::convertToSccs() {
   // Environment base = Environment::namespace_env("base");
   // Function writeLines = base["writeLines"];
   // writeLines("Check 1\n");
@@ -514,7 +516,7 @@ S4 SccsConverter::convertToSccs() {
     PersonData personData = personDataIterator.next();
     processPerson(personData);
   }
-  return resultStruct.convertToAndromeda();
+  resultStruct.convertToAndromeda();
 }
 
 }

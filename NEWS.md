@@ -7,9 +7,18 @@ Changes
 
 2. Adding the `computePreExposureGainP()` function.
 
+3. Setting default `maxRatio` in `computeTimeStability()` to 1.25 (instead of 1.1) to avoid false positives.
+
+
 Bug fixes
 
 1. Fixing "RIGHT and FULL OUTER JOINs are not currently supported" error on SQLite when using `drug_era` or `condition_era` table.
+
+2. Fixing `computeTimeStability()` per-month p-value (was showing the minimum p-value for all months).
+
+3. Fixing uncaught errors when fitting models caused by Cyclops's new return flags.
+
+4. Fix error about Andromeda object already being closed when generating SCCS era data.
 
 
 SelfControlledCaseSeries 3.3.0

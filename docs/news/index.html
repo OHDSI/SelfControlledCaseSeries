@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -63,6 +63,17 @@
       <small>Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="3.4.0" id="selfcontrolledcaseseries-340">SelfControlledCaseSeries 3.4.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-340"></a></h2>
+<p>Changes</p>
+<ol style="list-style-type: decimal"><li><p>Setting the <code>deleteCovariatesSmallCount</code> argument to 0 in the <code><a href="../reference/getDbSccsData.html">getDbSccsData()</a></code> and <code><a href="../reference/createGetDbSccsDataArgs.html">createGetDbSccsDataArgs()</a></code> functions. This was originally set to 100 for SCCS analyses with many covariates, but makes no sense when considering only one or a few exposures.</p></li>
+<li><p>Adding the <code><a href="../reference/computePreExposureGainP.html">computePreExposureGainP()</a></code> function.</p></li>
+<li><p>Setting default <code>maxRatio</code> in <code><a href="../reference/computeTimeStability.html">computeTimeStability()</a></code> to 1.25 (instead of 1.1) to avoid false positives.</p></li>
+</ol><p>Bug fixes</p>
+<ol style="list-style-type: decimal"><li><p>Fixing “RIGHT and FULL OUTER JOINs are not currently supported” error on SQLite when using <code>drug_era</code> or <code>condition_era</code> table.</p></li>
+<li><p>Fixing <code><a href="../reference/computeTimeStability.html">computeTimeStability()</a></code> per-month p-value (was showing the minimum p-value for all months).</p></li>
+<li><p>Fixing uncaught errors when fitting models caused by Cyclops’s new return flags.</p></li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="3.3.0" id="selfcontrolledcaseseries-330">SelfControlledCaseSeries 3.3.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-330"></a></h2>
 <p>Changes</p>
@@ -153,7 +164,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

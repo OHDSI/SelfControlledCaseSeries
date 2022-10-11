@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -69,20 +69,20 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">createEraCovariateSettings</span><span class="op">(</span>
-  includeEraIds <span class="op">=</span> <span class="cn">NULL</span>,
-  excludeEraIds <span class="op">=</span> <span class="cn">NULL</span>,
-  label <span class="op">=</span> <span class="st">"Covariates"</span>,
-  stratifyById <span class="op">=</span> <span class="cn">TRUE</span>,
-  start <span class="op">=</span> <span class="fl">0</span>,
-  startAnchor <span class="op">=</span> <span class="st">"era start"</span>,
-  end <span class="op">=</span> <span class="fl">0</span>,
-  endAnchor <span class="op">=</span> <span class="st">"era end"</span>,
-  firstOccurrenceOnly <span class="op">=</span> <span class="cn">FALSE</span>,
-  splitPoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,
-  allowRegularization <span class="op">=</span> <span class="cn">FALSE</span>,
-  profileLikelihood <span class="op">=</span> <span class="cn">FALSE</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">createEraCovariateSettings</span><span class="op">(</span></span>
+<span>  includeEraIds <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  excludeEraIds <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  label <span class="op">=</span> <span class="st">"Covariates"</span>,</span>
+<span>  stratifyById <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  start <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  startAnchor <span class="op">=</span> <span class="st">"era start"</span>,</span>
+<span>  end <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  endAnchor <span class="op">=</span> <span class="st">"era end"</span>,</span>
+<span>  firstOccurrenceOnly <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  splitPoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  allowRegularization <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  profileLikelihood <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -91,47 +91,72 @@
 <dd><p>One or more IDs of variables in the <a href="SccsData-class.html">SccsData</a> object that should be
 used to construct this covariate. If no IDs are specified, all
 variables will be used.</p></dd>
+
+
 <dt>excludeEraIds</dt>
 <dd><p>One or more IDs of variables in the [SccsData] object that should not
 be used to construct this covariate.</p></dd>
+
+
 <dt>label</dt>
 <dd><p>A label used to identify the covariates created using these settings.</p></dd>
+
+
 <dt>stratifyById</dt>
 <dd><p>Should a single covariate be created for every ID in the <a href="SccsData-class.html">SccsData</a>
 object, or should a single covariate be constructed? For example, if
 the IDs identify exposures to different drugs, should a covariate be
 constructed for every drug, or a single covariate for exposure to any
 of these drugs. Note that overlap will be considered a single exposure.</p></dd>
+
+
 <dt>start</dt>
 <dd><p>The start of the risk window (in days) relative to the <code>startAnchor</code>.</p></dd>
+
+
 <dt>startAnchor</dt>
 <dd><p>The anchor point for the start of the risk window. Can be <code>"era start"</code>
 or <code>"era end"</code>.</p></dd>
+
+
 <dt>end</dt>
 <dd><p>The end of the risk window (in days) relative to the <code>endAnchor</code>.</p></dd>
+
+
 <dt>endAnchor</dt>
 <dd><p>The anchor point for the end of the risk window. Can be <code>"era start"</code>
 or <code>"era end"</code>.</p></dd>
+
+
 <dt>firstOccurrenceOnly</dt>
 <dd><p>Should only the first occurrence of the exposure be used?</p></dd>
+
+
 <dt>splitPoints</dt>
 <dd><p>To split the risk window into several smaller windows, specify the end
 of each sub- window relative to the start of the main risk window. If
 add ExposedDaysToStart is TRUE, the split points will be considered to
 be relative to the end of the main risk window instead.</p></dd>
+
+
 <dt>allowRegularization</dt>
 <dd><p>When fitting the model, should the covariates defined here be allowed
 to be regularized?</p></dd>
+
+
 <dt>profileLikelihood</dt>
 <dd><p>When fitting the model, should the likelihood profile be computed for
 the covariate defined here? The likelihood profile can be used to
 avoid making normal approximations on the likelihood and can be used in
 methods specifically designed to make use of the profile, but may take a
 while to compute.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>An object of type <code>EraCovariateSettings</code>.</p>
+    
+
+<p>An object of type <code>EraCovariateSettings</code>.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -150,7 +175,7 @@ while to compute.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

@@ -29,7 +29,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-SEXP convertToSccs(const DataFrame& cases,
+void convertToSccs(const DataFrame& cases,
                    const DataFrame& outcomes,
                    const List& eras,
                    const bool includeAge,
@@ -45,7 +45,8 @@ SEXP convertToSccs(const DataFrame& cases,
                    const bool eventDependentObservation,
                    const List& censorModel,
                    const bool scri,
-                   const int64_t controlIntervalId) {
+                   const int64_t controlIntervalId,
+                   const S4 resultAndromeda) {
 
   using namespace ohdsi::sccs;
 
@@ -53,14 +54,14 @@ SEXP convertToSccs(const DataFrame& cases,
     SccsConverter sccsConverter(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason,
                                 seasonDesignMatrix, includeCalendarTime, calendarTimeOffset, calendarTimeDesignMatrix,
                                 timeCovariateCases, covariateSettingsList, eventDependentObservation,
-                                censorModel, scri, controlIntervalId);
-    return (sccsConverter.convertToSccs());
+                                censorModel, scri, controlIntervalId, resultAndromeda);
+    sccsConverter.convertToSccs();
   } catch (std::exception &e) {
     forward_exception_to_r(e);
   } catch (...) {
     ::Rf_error("c++ exception (unknown reason)");
   }
-  return R_NilValue;
+  // return R_NilValue;
 }
 
 // [[Rcpp::export]]

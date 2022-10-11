@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -69,83 +69,126 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">createSccsSimulationSettings</span><span class="op">(</span>
-  meanPatientTime <span class="op">=</span> <span class="fl">4</span> <span class="op">*</span> <span class="fl">365</span>,
-  sdPatientTime <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="fl">365</span>,
-  minAge <span class="op">=</span> <span class="fl">18</span> <span class="op">*</span> <span class="fl">365</span>,
-  maxAge <span class="op">=</span> <span class="fl">65</span> <span class="op">*</span> <span class="fl">365</span>,
-  minBaselineRate <span class="op">=</span> <span class="fl">0.001</span>,
-  maxBaselineRate <span class="op">=</span> <span class="fl">0.01</span>,
-  minCalendarTime <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>,
-  maxCalendarTime <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span>,
-  eraIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,
-  patientUsages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.1</span><span class="op">)</span>,
-  usageRate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.01</span><span class="op">)</span>,
-  meanPrescriptionDurations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">14</span>, <span class="fl">30</span><span class="op">)</span>,
-  sdPrescriptionDurations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">14</span><span class="op">)</span>,
-  simulationRiskWindows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="createSimulationRiskWindow.html">createSimulationRiskWindow</a></span><span class="op">(</span>relativeRisks <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,
-    <span class="fu"><a href="createSimulationRiskWindow.html">createSimulationRiskWindow</a></span><span class="op">(</span>relativeRisks <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span><span class="op">)</span>,
-  includeAgeEffect <span class="op">=</span> <span class="cn">TRUE</span>,
-  ageKnots <span class="op">=</span> <span class="fl">5</span>,
-  includeSeasonality <span class="op">=</span> <span class="cn">TRUE</span>,
-  seasonKnots <span class="op">=</span> <span class="fl">5</span>,
-  includeCalendarTimeEffect <span class="op">=</span> <span class="cn">TRUE</span>,
-  calendarTimeKnots <span class="op">=</span> <span class="fl">5</span>,
-  outcomeId <span class="op">=</span> <span class="fl">10</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">createSccsSimulationSettings</span><span class="op">(</span></span>
+<span>  meanPatientTime <span class="op">=</span> <span class="fl">4</span> <span class="op">*</span> <span class="fl">365</span>,</span>
+<span>  sdPatientTime <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="fl">365</span>,</span>
+<span>  minAge <span class="op">=</span> <span class="fl">18</span> <span class="op">*</span> <span class="fl">365</span>,</span>
+<span>  maxAge <span class="op">=</span> <span class="fl">65</span> <span class="op">*</span> <span class="fl">365</span>,</span>
+<span>  minBaselineRate <span class="op">=</span> <span class="fl">0.001</span>,</span>
+<span>  maxBaselineRate <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  minCalendarTime <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>,</span>
+<span>  maxCalendarTime <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span>,</span>
+<span>  eraIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  patientUsages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>  usageRate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.01</span><span class="op">)</span>,</span>
+<span>  meanPrescriptionDurations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">14</span>, <span class="fl">30</span><span class="op">)</span>,</span>
+<span>  sdPrescriptionDurations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">14</span><span class="op">)</span>,</span>
+<span>  simulationRiskWindows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="createSimulationRiskWindow.html">createSimulationRiskWindow</a></span><span class="op">(</span>relativeRisks <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="createSimulationRiskWindow.html">createSimulationRiskWindow</a></span><span class="op">(</span>relativeRisks <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  includeAgeEffect <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  ageKnots <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  includeSeasonality <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  seasonKnots <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  includeCalendarTimeEffect <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  calendarTimeKnots <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  outcomeId <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>meanPatientTime</dt>
 <dd><p>Mean number of observation days per patient.</p></dd>
+
+
 <dt>sdPatientTime</dt>
 <dd><p>Standard deviation of the observation days per patient.</p></dd>
+
+
 <dt>minAge</dt>
 <dd><p>The minimum age in days.</p></dd>
+
+
 <dt>maxAge</dt>
 <dd><p>The maximum age in days.</p></dd>
+
+
 <dt>minBaselineRate</dt>
 <dd><p>The minimum baseline rate (per day).</p></dd>
+
+
 <dt>maxBaselineRate</dt>
 <dd><p>The maximum baseline rate (per day).</p></dd>
+
+
 <dt>minCalendarTime</dt>
 <dd><p>The minimum date patients are to be observed.</p></dd>
+
+
 <dt>maxCalendarTime</dt>
 <dd><p>The maximum date patients are to be observed.</p></dd>
+
+
 <dt>eraIds</dt>
 <dd><p>The IDs for the covariates to be generated.</p></dd>
+
+
 <dt>patientUsages</dt>
 <dd><p>The fraction of patients that use the drugs.</p></dd>
+
+
 <dt>usageRate</dt>
 <dd><p>The rate of prescriptions per person that uses the drug.</p></dd>
+
+
 <dt>meanPrescriptionDurations</dt>
 <dd><p>The mean duration of a prescription, per drug.</p></dd>
+
+
 <dt>sdPrescriptionDurations</dt>
 <dd><p>The standard deviation of the duration of a prescription, per
 drug.</p></dd>
+
+
 <dt>simulationRiskWindows</dt>
 <dd><p>One or a list of objects of type <code>simulationRiskWindow</code> as
 created using the <code><a href="createSimulationRiskWindow.html">createSimulationRiskWindow</a></code>
 function.</p></dd>
+
+
 <dt>includeAgeEffect</dt>
 <dd><p>Include an age effect for the outcome?</p></dd>
+
+
 <dt>ageKnots</dt>
 <dd><p>Number of knots in the age spline.</p></dd>
+
+
 <dt>includeSeasonality</dt>
 <dd><p>Include seasonality for the outcome?</p></dd>
+
+
 <dt>seasonKnots</dt>
 <dd><p>Number of knots in the seasonality spline.</p></dd>
+
+
 <dt>includeCalendarTimeEffect</dt>
 <dd><p>Include a calendar time effect for the outcome?</p></dd>
+
+
 <dt>calendarTimeKnots</dt>
 <dd><p>Number of knots in the calendar time spline.</p></dd>
+
+
 <dt>outcomeId</dt>
 <dd><p>The ID to be used for the outcome.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>An object of type <code>sccsSimulationSettings</code>.</p>
+    
+
+<p>An object of type <code>sccsSimulationSettings</code>.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -164,7 +207,7 @@ function.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

@@ -84,7 +84,8 @@ createScriIntervalData <- function(studyPopulation,
     arrange(.data$caseId)
 
   controlIntervalId <- settings$covariateSettingsList[sapply(settings$covariateSettingsList, function(x) x$isControlInterval)][[1]]$outputIds[1, 1]
-  data <- convertToSccs(
+  data <- Andromeda::andromeda()
+  convertToSccs(
     cases = cases,
     outcomes = outcomes,
     eras = eras,
@@ -101,7 +102,8 @@ createScriIntervalData <- function(studyPopulation,
     eventDependentObservation = FALSE,
     censorModel = list(model = 0, p = c(0)),
     scri = TRUE,
-    controlIntervalId = controlIntervalId
+    controlIntervalId = controlIntervalId,
+    resultAndromeda = data
   )
 
   if (is.null(data$outcomes) || is.null(data$covariates)) {

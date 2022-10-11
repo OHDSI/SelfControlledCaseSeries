@@ -31,7 +31,7 @@ namespace sccs {
 
 class AndromedaBuilder {
 public:
-  AndromedaBuilder();
+  AndromedaBuilder(S4 _andromeda);
   void appendToTable(const String& tableName, const DataFrame& data);
   S4 getAndromeda();
 private:

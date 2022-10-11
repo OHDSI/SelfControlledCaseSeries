@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -120,40 +120,40 @@
 <h1 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h1>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,
-                          cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-                          outcomeIds <span class="op">=</span> <span class="fl">192671</span>,
-                          exposureIds <span class="op">=</span> <span class="fl">1124300</span><span class="op">)</span>
-
-<span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span>sccsData <span class="op">=</span> <span class="va">sccsData</span>,
-                                  outcomeId <span class="op">=</span> <span class="fl">192671</span>,
-                                  firstOutcomeOnly <span class="op">=</span> <span class="cn">FALSE</span>,
-                                  naivePeriod <span class="op">=</span> <span class="fl">180</span><span class="op">)</span>
-
-<span class="va">covarDiclofenac</span> <span class="op">=</span> <span class="fu"><a href="reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"Exposure of interest"</span>,
-                                             includeEraIds <span class="op">=</span> <span class="fl">1124300</span>,
-                                             start <span class="op">=</span> <span class="fl">0</span>,
-                                             end <span class="op">=</span> <span class="fl">0</span>,
-                                             endAnchor <span class="op">=</span> <span class="st">"era end"</span><span class="op">)</span>
-
-<span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span><span class="va">studyPop</span>,
-                                           <span class="va">sccsData</span>,
-                                           eraCovariateSettings <span class="op">=</span> <span class="va">covarDiclofenac</span><span class="op">)</span>
-<span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span>
-<span class="va">model</span>
-<span class="co"># SccsModel object</span>
-<span class="co"># </span>
-<span class="co"># Outcome ID: 192671</span>
-<span class="co"># </span>
-<span class="co"># Outcome count:</span>
-<span class="co">#        outcomeSubjects outcomeEvents outcomeObsPeriods</span>
-<span class="co"># 192671          272243        387158            274449</span>
-<span class="co"># </span>
-<span class="co"># Estimates:</span>
-<span class="co"># # A tibble: 1 x 7</span>
-<span class="co">#   Name                                ID Estimate LB95CI UB95CI logRr seLogRr</span>
-<span class="co">#   &lt;chr&gt;                            &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;</span>
-<span class="co"># 1 Exposure of interest: Diclofenac  1000     1.18   1.13   1.24 0.167  0.0230</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,</span>
+<span>                          cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>                          outcomeIds <span class="op">=</span> <span class="fl">192671</span>,</span>
+<span>                          exposureIds <span class="op">=</span> <span class="fl">1124300</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span>sccsData <span class="op">=</span> <span class="va">sccsData</span>,</span>
+<span>                                  outcomeId <span class="op">=</span> <span class="fl">192671</span>,</span>
+<span>                                  firstOutcomeOnly <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                                  naivePeriod <span class="op">=</span> <span class="fl">180</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">covarDiclofenac</span> <span class="op">=</span> <span class="fu"><a href="reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"Exposure of interest"</span>,</span>
+<span>                                             includeEraIds <span class="op">=</span> <span class="fl">1124300</span>,</span>
+<span>                                             start <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>                                             end <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>                                             endAnchor <span class="op">=</span> <span class="st">"era end"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span><span class="va">studyPop</span>,</span>
+<span>                                           <span class="va">sccsData</span>,</span>
+<span>                                           eraCovariateSettings <span class="op">=</span> <span class="va">covarDiclofenac</span><span class="op">)</span></span>
+<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></span>
+<span><span class="va">model</span></span>
+<span><span class="co"># SccsModel object</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Outcome ID: 192671</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Outcome count:</span></span>
+<span><span class="co">#        outcomeSubjects outcomeEvents outcomeObsPeriods</span></span>
+<span><span class="co"># 192671          272243        387158            274449</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Estimates:</span></span>
+<span><span class="co"># # A tibble: 1 x 7</span></span>
+<span><span class="co">#   Name                                ID Estimate LB95CI UB95CI logRr seLogRr</span></span>
+<span><span class="co">#   &lt;chr&gt;                            &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;</span></span>
+<span><span class="co"># 1 Exposure of interest: Diclofenac  1000     1.18   1.13   1.24 0.167  0.0230</span></span></code></pre></div>
 </div>
 <div class="section level1">
 <h1 id="technology">Technology<a class="anchor" aria-label="anchor" href="#technology"></a>
@@ -173,8 +173,8 @@
 <li><p>In R, use the following commands to download and install MethodEvaluation:</p></li>
 </ol>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span>
-<span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"ohdsi/SelfControlledCaseSeries"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"ohdsi/SelfControlledCaseSeries"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level1">
 <h1 id="user-documentation">User Documentation<a class="anchor" aria-label="anchor" href="#user-documentation"></a>
@@ -276,7 +276,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer>

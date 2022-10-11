@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -69,31 +69,31 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">runSccsAnalyses</span><span class="op">(</span>
-  <span class="va">connectionDetails</span>,
-  <span class="va">cdmDatabaseSchema</span>,
-  oracleTempSchema <span class="op">=</span> <span class="cn">NULL</span>,
-  tempEmulationSchema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"sqlRenderTempEmulationSchema"</span><span class="op">)</span>,
-  exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,
-  outcomeDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  outcomeTable <span class="op">=</span> <span class="st">"condition_era"</span>,
-  customCovariateDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  customCovariateTable <span class="op">=</span> <span class="st">"cohort"</span>,
-  nestingCohortDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  nestingCohortTable <span class="op">=</span> <span class="st">"cohort"</span>,
-  cdmVersion <span class="op">=</span> <span class="fl">5</span>,
-  outputFolder <span class="op">=</span> <span class="st">"./SccsOutput"</span>,
-  <span class="va">sccsAnalysisList</span>,
-  <span class="va">exposureOutcomeList</span>,
-  combineDataFetchAcrossOutcomes <span class="op">=</span> <span class="cn">TRUE</span>,
-  getDbSccsDataThreads <span class="op">=</span> <span class="fl">1</span>,
-  createStudyPopulationThreads <span class="op">=</span> <span class="fl">1</span>,
-  createSccsIntervalDataThreads <span class="op">=</span> <span class="fl">1</span>,
-  fitSccsModelThreads <span class="op">=</span> <span class="fl">1</span>,
-  cvThreads <span class="op">=</span> <span class="fl">1</span>,
-  analysesToExclude <span class="op">=</span> <span class="cn">NULL</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">runSccsAnalyses</span><span class="op">(</span></span>
+<span>  <span class="va">connectionDetails</span>,</span>
+<span>  <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  oracleTempSchema <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tempEmulationSchema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"sqlRenderTempEmulationSchema"</span><span class="op">)</span>,</span>
+<span>  exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,</span>
+<span>  outcomeDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  outcomeTable <span class="op">=</span> <span class="st">"condition_era"</span>,</span>
+<span>  customCovariateDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  customCovariateTable <span class="op">=</span> <span class="st">"cohort"</span>,</span>
+<span>  nestingCohortDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  nestingCohortTable <span class="op">=</span> <span class="st">"cohort"</span>,</span>
+<span>  cdmVersion <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  outputFolder <span class="op">=</span> <span class="st">"./SccsOutput"</span>,</span>
+<span>  <span class="va">sccsAnalysisList</span>,</span>
+<span>  <span class="va">exposureOutcomeList</span>,</span>
+<span>  combineDataFetchAcrossOutcomes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  getDbSccsDataThreads <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  createStudyPopulationThreads <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  createSccsIntervalDataThreads <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  fitSccsModelThreads <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  cvThreads <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  analysesToExclude <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -101,91 +101,138 @@
     <dl><dt>connectionDetails</dt>
 <dd><p>An R object of type <code>ConnectionDetails</code> created using
 the function <code><a href="https://ohdsi.github.io/DatabaseConnector/reference/createConnectionDetails.html" class="external-link">DatabaseConnector::createConnectionDetails()</a></code>.</p></dd>
+
+
 <dt>cdmDatabaseSchema</dt>
 <dd><p>The name of the database schema that contains the OMOP CDM
 instance.  Requires read permissions to this database. On
 SQL Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.</p></dd>
+
+
 <dt>oracleTempSchema</dt>
 <dd><p>DEPRECATED: use <code>tempEmulationSchema</code> instead.</p></dd>
+
+
 <dt>tempEmulationSchema</dt>
 <dd><p>Some database platforms like Oracle and Impala do not truly support temp tables. To
 emulate temp tables, provide a schema with write privileges where temp tables
 can be created.</p></dd>
+
+
 <dt>exposureDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location where
 the exposure data used to define the exposure cohorts is
 available. If <code>exposureTable = "DRUG_ERA"</code>,
 <code>exposureDatabaseSchema</code> is not used but assumed to be
 <code>cdmDatabaseSchema</code>.  Requires read permissions to this database.</p></dd>
+
+
 <dt>exposureTable</dt>
 <dd><p>The table name that contains the exposure cohorts.  If
 <code>exposureTable &lt;&gt; "DRUG_ERA"</code>, then expectation is <code>exposureTable</code>
 has format of COHORT table: cohort_concept_id, SUBJECT_ID,
 COHORT_START_DATE, COHORT_END_DATE.</p></dd>
+
+
 <dt>outcomeDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location where
 the data used to define the outcome cohorts is available. If
 <code>outcomeTable = "CONDITION_ERA"</code>, <code>outcomeDatabaseSchema</code> is not
 used.  Requires read permissions to this database.</p></dd>
+
+
 <dt>outcomeTable</dt>
 <dd><p>The table name that contains the outcome cohorts.  If
 outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
 then expectation is outcomeTable has format of COHORT table:
 COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
 COHORT_END_DATE.</p></dd>
+
+
 <dt>customCovariateDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location where
 the custom covariate data is available.</p></dd>
+
+
 <dt>customCovariateTable</dt>
 <dd><p>Name of the table holding the custom covariates. This table
 should have the same structure as the cohort table.</p></dd>
+
+
 <dt>nestingCohortDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location
 where the nesting cohort is defined.</p></dd>
+
+
 <dt>nestingCohortTable</dt>
 <dd><p>Name of the table holding the nesting cohort. This table
 should have the same structure as the cohort table.</p></dd>
+
+
 <dt>cdmVersion</dt>
 <dd><p>Define the OMOP CDM version used: currently support "4" and
 "5".</p></dd>
+
+
 <dt>outputFolder</dt>
 <dd><p>Name of the folder where all the outputs will written to.</p></dd>
+
+
 <dt>sccsAnalysisList</dt>
 <dd><p>A list of objects of <code>sccsAnalysis</code> as created
 using the <code><a href="createSccsAnalysis.html">createSccsAnalysis()</a></code> function.</p></dd>
+
+
 <dt>exposureOutcomeList</dt>
 <dd><p>A list of objects of type <code>exposureOutcome</code> as created
 using the <code><a href="createExposureOutcome.html">createExposureOutcome()</a></code> function.</p></dd>
+
+
 <dt>combineDataFetchAcrossOutcomes</dt>
 <dd><p>Should fetching data from the database be done one outcome
 at a time, or for all outcomes in one fetch? Combining
 fetches will be more efficient if there is large overlap in
 the subjects that have the different outcomes.</p></dd>
+
+
 <dt>getDbSccsDataThreads</dt>
 <dd><p>The number of parallel threads to use for building the
 <code>SccsData</code> objects.</p></dd>
+
+
 <dt>createStudyPopulationThreads</dt>
 <dd><p>The number of parallel threads to use for building the
 <code>studyPopulation</code> objects.</p></dd>
+
+
 <dt>createSccsIntervalDataThreads</dt>
 <dd><p>The number of parallel threads to use for building the
 <code>SccsIntervalData</code> objects.</p></dd>
+
+
 <dt>fitSccsModelThreads</dt>
 <dd><p>The number of parallel threads to use for fitting the
 models.</p></dd>
+
+
 <dt>cvThreads</dt>
 <dd><p>The number of parallel threads to use for the cross-
 validation when estimating the hyperparameter for the
 outcome model. Note that the total number of CV threads at
 one time could be <code>fitSccsModelThreads * cvThreads</code>.</p></dd>
+
+
 <dt>analysesToExclude</dt>
 <dd><p>Analyses to exclude. See the Analyses to Exclude section for
 details.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
+    
+
+<p>A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
 outcome model files can be found, relative to the <code>outputFolder</code>.</p>
     </div>
     <div id="details">
@@ -226,7 +273,7 @@ that exposure and that analysis ID will be skipped.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

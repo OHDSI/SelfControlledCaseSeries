@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -69,11 +69,11 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">createCalendarTimeCovariateSettings</span><span class="op">(</span>
-  calendarTimeKnots <span class="op">=</span> <span class="fl">5</span>,
-  allowRegularization <span class="op">=</span> <span class="cn">FALSE</span>,
-  computeConfidenceIntervals <span class="op">=</span> <span class="cn">FALSE</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">createCalendarTimeCovariateSettings</span><span class="op">(</span></span>
+<span>  calendarTimeKnots <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  allowRegularization <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  computeConfidenceIntervals <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -84,18 +84,25 @@ number of knots to use for the spline, and the knots are
 automatically spaced according to equal percentiles of the data.
 If a series of dates is provided these are assumed to be the exact location of
 the knots.</p></dd>
+
+
 <dt>allowRegularization</dt>
 <dd><p>When fitting the model, should the covariates defined here be
 allowed to be regularized?</p></dd>
+
+
 <dt>computeConfidenceIntervals</dt>
 <dd><p>Should confidence intervals be computed for the covariates
 defined here? Setting this to FALSE might save computing time
 when fitting the model. Will be turned to FALSE automatically
 when <code>allowRegularization = TRUE</code>.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>An object of type <code>seasonalitySettings</code>.</p>
+    
+
+<p>An object of type <code>seasonalitySettings</code>.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -119,7 +126,7 @@ can model trends over years.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

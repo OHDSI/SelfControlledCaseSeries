@@ -127,8 +127,9 @@ createSccsIntervalData <- function(studyPopulation,
   outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$caseId), ]
   eras <- sccsData$eras %>%
     arrange(.data$caseId)
+  data <- Andromeda::andromeda()
 
-  data <- convertToSccs(
+  convertToSccs(
     cases = cases,
     outcomes = outcomes,
     eras = eras,
@@ -145,7 +146,8 @@ createSccsIntervalData <- function(studyPopulation,
     eventDependentObservation = eventDependentObservation,
     censorModel = settings$censorModel,
     scri = FALSE,
-    controlIntervalId = 0
+    controlIntervalId = 0,
+    resultAndromeda = data
   )
 
   if (is.null(data$outcomes) || is.null(data$covariates)) {

@@ -70,12 +70,12 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
                                        exposureOfInterest = FALSE) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is.character(includeEraIds)) {
-    checkmate::assertCharacter(includeEraIds, len = 1, add = errorMessages)
+    checkmate::assertCharacter(includeEraIds, add = errorMessages)
   } else {
     checkmate::assertIntegerish(includeEraIds, null.ok = TRUE, add = errorMessages)
   }
   if (is.character(excludeEraIds)) {
-    checkmate::assertCharacter(excludeEraIds, len = 1, add = errorMessages)
+    checkmate::assertCharacter(excludeEraIds, add = errorMessages)
   } else {
     checkmate::assertIntegerish(excludeEraIds, null.ok = TRUE, add = errorMessages)
   }
@@ -297,12 +297,12 @@ createControlIntervalSettings <- function(includeEraIds = NULL,
                                           firstOccurrenceOnly = FALSE) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is.character(includeEraIds)) {
-    checkmate::assertCharacter(includeEraIds, len = 1, add = errorMessages)
+    checkmate::assertCharacter(includeEraIds, add = errorMessages)
   } else {
     checkmate::assertIntegerish(includeEraIds, null.ok = TRUE, add = errorMessages)
   }
   if (is.character(excludeEraIds)) {
-    checkmate::assertCharacter(excludeEraIds, len = 1, add = errorMessages)
+    checkmate::assertCharacter(excludeEraIds, add = errorMessages)
   } else {
     checkmate::assertIntegerish(excludeEraIds, null.ok = TRUE, add = errorMessages)
   }

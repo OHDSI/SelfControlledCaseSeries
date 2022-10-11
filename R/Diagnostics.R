@@ -101,7 +101,7 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
 #' of the outcome is within the expected range for that month, assuming the rate is constant over time.
 #'
 #' @export
-computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.1, alpha = 0.05) {
+computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.25, alpha = 0.05) {
   data <- computeOutcomeRatePerMonth(studyPopulation)
   if (is.null(sccsModel)) {
     data <- data %>%
@@ -112,7 +112,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   computeTwoSidedP <- function(observed, expected) {
     pUpperBound <- 1 - ppois(observed, expected * maxRatio, lower.tail = TRUE)
     pLowerBound <- 1 - ppois(observed, expected / maxRatio, lower.tail = FALSE)
-    return(min(1, 2 * pmin(pUpperBound, pLowerBound)))
+    return(pmin(1, 2 * pmin(pUpperBound, pLowerBound)))
   }
 
   # Season and calendar time splines lack intercept, so need to compute expected count in indirect way:

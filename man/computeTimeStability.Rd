@@ -7,7 +7,7 @@
 computeTimeStability(
   studyPopulation,
   sccsModel = NULL,
-  maxRatio = 1.1,
+  maxRatio = 1.25,
   alpha = 0.05
 )
 }

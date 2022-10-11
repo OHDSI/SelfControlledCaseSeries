@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
       </span>
     </div>
 
@@ -89,7 +89,7 @@ SelfControlledCaseSeries package</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie</h4>
             
-            <h4 data-toc-skip class="date">2022-05-25</h4>
+            <h4 data-toc-skip class="date">2022-08-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/MultipleAnalyses.Rmd" class="external-link"><code>vignettes/MultipleAnalyses.Rmd</code></a></small>
       <div class="hidden name"><code>MultipleAnalyses.Rmd</code></div>
@@ -170,17 +170,17 @@ schema holding the CDM data.</li>
 for the various database management systems (DBMS). For example, one
 might connect to a PostgreSQL database using this code:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">connectionDetails</span> <span class="op">&lt;-</span> <span class="fu">createConnectionDetails</span><span class="op">(</span>dbms <span class="op">=</span> <span class="st">"postgresql"</span>, 
-                                             server <span class="op">=</span> <span class="st">"localhost/ohdsi"</span>, 
-                                             user <span class="op">=</span> <span class="st">"joe"</span>, 
-                                             password <span class="op">=</span> <span class="st">"supersecret"</span><span class="op">)</span>
-
-<span class="va">outputFolder</span> <span class="op">&lt;-</span> <span class="st">"s:/temp/sccsVignette2"</span>
-
-<span class="va">cdmDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_cdm_data"</span>
-<span class="va">cohortDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_cohorts"</span>
-<span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>sqlRenderTempEmulationSchema <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>
-<span class="va">cdmVersion</span> <span class="op">&lt;-</span> <span class="st">"5"</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">connectionDetails</span> <span class="op">&lt;-</span> <span class="fu">createConnectionDetails</span><span class="op">(</span>dbms <span class="op">=</span> <span class="st">"postgresql"</span>, </span>
+<span>                                             server <span class="op">=</span> <span class="st">"localhost/ohdsi"</span>, </span>
+<span>                                             user <span class="op">=</span> <span class="st">"joe"</span>, </span>
+<span>                                             password <span class="op">=</span> <span class="st">"supersecret"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">outputFolder</span> <span class="op">&lt;-</span> <span class="st">"s:/temp/sccsVignette2"</span></span>
+<span></span>
+<span><span class="va">cdmDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_cdm_data"</span></span>
+<span><span class="va">cohortDatabaseSchema</span> <span class="op">&lt;-</span> <span class="st">"my_cohorts"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>sqlRenderTempEmulationSchema <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="va">cdmVersion</span> <span class="op">&lt;-</span> <span class="st">"5"</span></span></code></pre></div>
 <p>The last three lines define the <code>cdmDatabaseSchema</code> and
 <code>cohortDatabaseSchema</code> variables, as well as the CDM version.
 We’ll use these later to tell R where the data in CDM format live, where
@@ -227,15 +227,15 @@ making use of translation functionality in <code>SqlRender</code>, we
 can make sure the SQL code can be run in many different
 environments.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/SqlRender/" class="external-link">SqlRender</a></span><span class="op">)</span>
-<span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/readSql.html" class="external-link">readSql</a></span><span class="op">(</span><span class="st">"vignette.sql"</span><span class="op">)</span>
-<span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/render.html" class="external-link">render</a></span><span class="op">(</span><span class="va">sql</span>,
-              cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>, 
-              cohortDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span><span class="op">)</span>
-<span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/translate.html" class="external-link">translate</a></span><span class="op">(</span><span class="va">sql</span>, targetDialect <span class="op">=</span> <span class="va">connectionDetails</span><span class="op">$</span><span class="va">dbms</span><span class="op">)</span>
-
-<span class="va">connection</span> <span class="op">&lt;-</span> <span class="fu">connect</span><span class="op">(</span><span class="va">connectionDetails</span><span class="op">)</span>
-<span class="fu">executeSql</span><span class="op">(</span><span class="va">connection</span>, <span class="va">sql</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/SqlRender/" class="external-link">SqlRender</a></span><span class="op">)</span></span>
+<span><span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/readSql.html" class="external-link">readSql</a></span><span class="op">(</span><span class="st">"vignette.sql"</span><span class="op">)</span></span>
+<span><span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/render.html" class="external-link">render</a></span><span class="op">(</span><span class="va">sql</span>,</span>
+<span>              cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>, </span>
+<span>              cohortDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span><span class="op">)</span></span>
+<span><span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/translate.html" class="external-link">translate</a></span><span class="op">(</span><span class="va">sql</span>, targetDialect <span class="op">=</span> <span class="va">connectionDetails</span><span class="op">$</span><span class="va">dbms</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">connection</span> <span class="op">&lt;-</span> <span class="fu">connect</span><span class="op">(</span><span class="va">connectionDetails</span><span class="op">)</span></span>
+<span><span class="fu">executeSql</span><span class="op">(</span><span class="va">connection</span>, <span class="va">sql</span><span class="op">)</span></span></code></pre></div>
 <p>In this code, we first read the SQL from the file into memory. In the
 next line, we replace the two parameter names with the actual values. We
 then translate the SQL into the dialect appropriate for the DBMS we
@@ -248,20 +248,20 @@ connect to the server, and submit the rendered and translated SQL.</p>
 <p>The first group of arguments define the exposure and outcome. Here we
 demonstrate how to create a list of exposure-outcome pairs:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">negativeControls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">705178</span>, <span class="fl">705944</span>, <span class="fl">710650</span>, <span class="fl">714785</span>, <span class="fl">719174</span>, <span class="fl">719311</span>, <span class="fl">735340</span>, <span class="fl">742185</span>, 
-                      <span class="fl">780369</span>, <span class="fl">781182</span>, <span class="fl">924724</span>, <span class="fl">990760</span>, <span class="fl">1110942</span>, <span class="fl">1111706</span>, <span class="fl">1136601</span>, 
-                      <span class="fl">1317967</span>, <span class="fl">1501309</span>, <span class="fl">1505346</span>, <span class="fl">1551673</span>, <span class="fl">1560278</span>, <span class="fl">1584910</span>, <span class="fl">19010309</span>, 
-                      <span class="fl">40163731</span><span class="op">)</span>
-<span class="va">diclofenac</span> <span class="op">&lt;-</span> <span class="fl">1124300</span>
-<span class="va">ppis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">911735</span>, <span class="fl">929887</span>, <span class="fl">923645</span>, <span class="fl">904453</span>, <span class="fl">948078</span>, <span class="fl">19039926</span><span class="op">)</span>
-
-<span class="va">exposureOutcomeList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>
-<span class="kw">for</span> <span class="op">(</span><span class="va">exposureId</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">diclofenac</span>, <span class="va">negativeControls</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
-  <span class="va">exposureOutcome</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createExposureOutcome.html">createExposureOutcome</a></span><span class="op">(</span>exposureId <span class="op">=</span> <span class="va">exposureId</span>,
-                                           outcomeId <span class="op">=</span> <span class="fl">1</span>,
-                                           prophylactics <span class="op">=</span> <span class="va">ppis</span><span class="op">)</span>
-  <span class="va">exposureOutcomeList</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">exposureOutcomeList</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">exposureOutcome</span>
-<span class="op">}</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">negativeControls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">705178</span>, <span class="fl">705944</span>, <span class="fl">710650</span>, <span class="fl">714785</span>, <span class="fl">719174</span>, <span class="fl">719311</span>, <span class="fl">735340</span>, <span class="fl">742185</span>, </span>
+<span>                      <span class="fl">780369</span>, <span class="fl">781182</span>, <span class="fl">924724</span>, <span class="fl">990760</span>, <span class="fl">1110942</span>, <span class="fl">1111706</span>, <span class="fl">1136601</span>, </span>
+<span>                      <span class="fl">1317967</span>, <span class="fl">1501309</span>, <span class="fl">1505346</span>, <span class="fl">1551673</span>, <span class="fl">1560278</span>, <span class="fl">1584910</span>, <span class="fl">19010309</span>, </span>
+<span>                      <span class="fl">40163731</span><span class="op">)</span></span>
+<span><span class="va">diclofenac</span> <span class="op">&lt;-</span> <span class="fl">1124300</span></span>
+<span><span class="va">ppis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">911735</span>, <span class="fl">929887</span>, <span class="fl">923645</span>, <span class="fl">904453</span>, <span class="fl">948078</span>, <span class="fl">19039926</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">exposureOutcomeList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">exposureId</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">diclofenac</span>, <span class="va">negativeControls</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">exposureOutcome</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createExposureOutcome.html">createExposureOutcome</a></span><span class="op">(</span>exposureId <span class="op">=</span> <span class="va">exposureId</span>,</span>
+<span>                                           outcomeId <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                                           prophylactics <span class="op">=</span> <span class="va">ppis</span><span class="op">)</span></span>
+<span>  <span class="va">exposureOutcomeList</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">exposureOutcomeList</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">exposureOutcome</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 <p>We defined the outcome of interest to be the custom cohort with ID 1
 we defined in the SQL above. The exposures include diclofenac (concept
 ID 1124300) and a large number of negative control exposures. We
@@ -285,29 +285,29 @@ for the <code><a href="../reference/fitSccsModel.html">fitSccsModel()</a></code>
 functions can be used to create the arguments to be used during
 execution:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">getDbSccsDataArgs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createGetDbSccsDataArgs.html">createGetDbSccsDataArgs</a></span><span class="op">(</span>
-  useCustomCovariates <span class="op">=</span> <span class="cn">FALSE</span>,
-  deleteCovariatesSmallCount <span class="op">=</span> <span class="fl">100</span>,
-  studyStartDate <span class="op">=</span> <span class="st">""</span>,
-  studyEndDate <span class="op">=</span> <span class="st">""</span>,
-  exposureIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,
-  maxCasesPerOutcome <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span>
-
-<span class="va">createStudyPopulationArgs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateStudyPopulationArgs.html">createCreateStudyPopulationArgs</a></span><span class="op">(</span>
-  naivePeriod <span class="op">=</span> <span class="fl">180</span>,
-  firstOutcomeOnly <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
-
-<span class="va">covarExposureOfInt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>
-  label <span class="op">=</span> <span class="st">"Exposure of interest"</span>,
-  includeEraIds <span class="op">=</span> <span class="st">"exposureId"</span>,
-  start <span class="op">=</span> <span class="fl">1</span>,
-  end <span class="op">=</span> <span class="fl">0</span>,
-  endAnchor <span class="op">=</span> <span class="st">"era end"</span><span class="op">)</span>
-
-<span class="va">createSccsIntervalDataArgs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span><span class="op">(</span>
-  eraCovariateSettings <span class="op">=</span> <span class="va">covarExposureOfInt</span><span class="op">)</span>
-
-<span class="va">fitSccsModelArgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createFitSccsModelArgs.html">createFitSccsModelArgs</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">getDbSccsDataArgs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createGetDbSccsDataArgs.html">createGetDbSccsDataArgs</a></span><span class="op">(</span></span>
+<span>  useCustomCovariates <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  deleteCovariatesSmallCount <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  studyStartDate <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  studyEndDate <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  exposureIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  maxCasesPerOutcome <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">createStudyPopulationArgs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateStudyPopulationArgs.html">createCreateStudyPopulationArgs</a></span><span class="op">(</span></span>
+<span>  naivePeriod <span class="op">=</span> <span class="fl">180</span>,</span>
+<span>  firstOutcomeOnly <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">covarExposureOfInt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span></span>
+<span>  label <span class="op">=</span> <span class="st">"Exposure of interest"</span>,</span>
+<span>  includeEraIds <span class="op">=</span> <span class="st">"exposureId"</span>,</span>
+<span>  start <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  end <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  endAnchor <span class="op">=</span> <span class="st">"era end"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">createSccsIntervalDataArgs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span><span class="op">(</span></span>
+<span>  eraCovariateSettings <span class="op">=</span> <span class="va">covarExposureOfInt</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fitSccsModelArgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createFitSccsModelArgs.html">createFitSccsModelArgs</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Any argument that is not explicitly specified by the user will assume
 the default value specified in the function. Note that for several
 arguments for concept or cohort definition IDs we can use the name of a
@@ -317,12 +317,12 @@ defined the argument <code>includeEraIds</code> to get the value of the
 <p>We can now combine the arguments for the various functions into a
 single analysis:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sccsAnalysis1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span>analysisId <span class="op">=</span> <span class="fl">1</span>,
-                                    description <span class="op">=</span> <span class="st">"Simplest model"</span>,
-                                    getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,
-                                    createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,
-                                    createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs1</span>,
-                                    fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sccsAnalysis1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span>analysisId <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                                    description <span class="op">=</span> <span class="st">"Simplest model"</span>,</span>
+<span>                                    getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,</span>
+<span>                                    createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,</span>
+<span>                                    createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs1</span>,</span>
+<span>                                    fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span></span></code></pre></div>
 <p>Note that we have assigned an analysis ID (1) to this set of
 arguments. We can use this later to link the results back to this
 specific set of choices. We also include a short description of the
@@ -331,79 +331,79 @@ analysis.</p>
 adjustments for age and seasonality, or for including other drugs in the
 model:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">covarProphylactics</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>
-  label <span class="op">=</span> <span class="st">"Prophylactics"</span>,
-  includeEraIds <span class="op">=</span> <span class="st">"prophylactics"</span>,
-  start <span class="op">=</span> <span class="fl">1</span>,
-  end <span class="op">=</span> <span class="fl">0</span>,
-  endAnchor <span class="op">=</span> <span class="st">"era end"</span><span class="op">)</span>
-
-<span class="va">createSccsIntervalDataArgs2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span><span class="op">(</span>
-  eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarExposureOfInt</span>,
-                             <span class="va">covarProphylactics</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">sccsAnalysis2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span>
-  analysisId <span class="op">=</span> <span class="fl">2</span>,
-  description <span class="op">=</span> <span class="st">"Including prophylactics"</span>,
-  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,
-  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,
-  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs2</span>,
-  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span>
-
-<span class="va">ageSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createAgeCovariateSettings.html">createAgeCovariateSettings</a></span><span class="op">(</span>ageKnots <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>
-
-<span class="va">seasonalitySettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSeasonalityCovariateSettings.html">createSeasonalityCovariateSettings</a></span><span class="op">(</span>seasonKnots <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>
-
-<span class="va">covarPreExp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>
-  label <span class="op">=</span> <span class="st">"Pre-exposure"</span>,
-  includeEraIds <span class="op">=</span> <span class="st">"exposureId"</span>,
-  start <span class="op">=</span> <span class="op">-</span><span class="fl">30</span>,
-  end <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>,
-  endAnchor <span class="op">=</span> <span class="st">"era start"</span><span class="op">)</span>
-
-<span class="va">createSccsIntervalDataArgs3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span><span class="op">(</span>
-  eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarExposureOfInt</span>,
-                              <span class="va">covarPreExp</span>,
-                              <span class="va">covarProphylactics</span><span class="op">)</span>,
-  ageCovariateSettings <span class="op">=</span> <span class="va">ageSettings</span>,
-  seasonalityCovariateSettings <span class="op">=</span> <span class="va">seasonalitySettings</span>,
-  eventDependentObservation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-
-<span class="va">sccsAnalysis3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span>
-  analysisId <span class="op">=</span> <span class="fl">3</span>,
-  description <span class="op">=</span> <span class="st">"Including prophylactics, age, season, pre-exposure, and censoring"</span>,
-  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,
-  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,
-  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs3</span>,
-  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span>
-
-<span class="va">covarAllDrugs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>
-  label <span class="op">=</span> <span class="st">"Other exposures"</span>,
-  excludeEraIds <span class="op">=</span> <span class="st">"exposureId"</span>,
-  stratifyById <span class="op">=</span> <span class="cn">TRUE</span>,
-  start <span class="op">=</span> <span class="fl">1</span>,
-  end <span class="op">=</span> <span class="fl">0</span>,
-  endAnchor <span class="op">=</span> <span class="st">"era end"</span>,
-  allowRegularization <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-
-<span class="va">createSccsIntervalDataArgs4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span><span class="op">(</span>
-  eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarExposureOfInt</span>,
-                              <span class="va">covarPreExp</span>,
-                              <span class="va">covarAllDrugs</span><span class="op">)</span>,
-  ageCovariateSettings <span class="op">=</span> <span class="va">ageSettings</span>,
-  seasonalityCovariateSettings <span class="op">=</span> <span class="va">seasonalitySettings</span>,
-  eventDependentObservation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-
-<span class="va">sccsAnalysis4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span>
-  analysisId <span class="op">=</span> <span class="fl">4</span>,
-  description <span class="op">=</span> <span class="st">"Including all other drugs"</span>,
-  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,
-  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,
-  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs4</span>,
-  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">covarProphylactics</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span></span>
+<span>  label <span class="op">=</span> <span class="st">"Prophylactics"</span>,</span>
+<span>  includeEraIds <span class="op">=</span> <span class="st">"prophylactics"</span>,</span>
+<span>  start <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  end <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  endAnchor <span class="op">=</span> <span class="st">"era end"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">createSccsIntervalDataArgs2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span><span class="op">(</span></span>
+<span>  eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarExposureOfInt</span>,</span>
+<span>                             <span class="va">covarProphylactics</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sccsAnalysis2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span></span>
+<span>  analysisId <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  description <span class="op">=</span> <span class="st">"Including prophylactics"</span>,</span>
+<span>  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,</span>
+<span>  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,</span>
+<span>  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs2</span>,</span>
+<span>  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">ageSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createAgeCovariateSettings.html">createAgeCovariateSettings</a></span><span class="op">(</span>ageKnots <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">seasonalitySettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSeasonalityCovariateSettings.html">createSeasonalityCovariateSettings</a></span><span class="op">(</span>seasonKnots <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">covarPreExp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span></span>
+<span>  label <span class="op">=</span> <span class="st">"Pre-exposure"</span>,</span>
+<span>  includeEraIds <span class="op">=</span> <span class="st">"exposureId"</span>,</span>
+<span>  start <span class="op">=</span> <span class="op">-</span><span class="fl">30</span>,</span>
+<span>  end <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>,</span>
+<span>  endAnchor <span class="op">=</span> <span class="st">"era start"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">createSccsIntervalDataArgs3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span><span class="op">(</span></span>
+<span>  eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarExposureOfInt</span>,</span>
+<span>                              <span class="va">covarPreExp</span>,</span>
+<span>                              <span class="va">covarProphylactics</span><span class="op">)</span>,</span>
+<span>  ageCovariateSettings <span class="op">=</span> <span class="va">ageSettings</span>,</span>
+<span>  seasonalityCovariateSettings <span class="op">=</span> <span class="va">seasonalitySettings</span>,</span>
+<span>  eventDependentObservation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sccsAnalysis3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span></span>
+<span>  analysisId <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  description <span class="op">=</span> <span class="st">"Including prophylactics, age, season, pre-exposure, and censoring"</span>,</span>
+<span>  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,</span>
+<span>  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,</span>
+<span>  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs3</span>,</span>
+<span>  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">covarAllDrugs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span></span>
+<span>  label <span class="op">=</span> <span class="st">"Other exposures"</span>,</span>
+<span>  excludeEraIds <span class="op">=</span> <span class="st">"exposureId"</span>,</span>
+<span>  stratifyById <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  start <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  end <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  endAnchor <span class="op">=</span> <span class="st">"era end"</span>,</span>
+<span>  allowRegularization <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">createSccsIntervalDataArgs4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs</a></span><span class="op">(</span></span>
+<span>  eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarExposureOfInt</span>,</span>
+<span>                              <span class="va">covarPreExp</span>,</span>
+<span>                              <span class="va">covarAllDrugs</span><span class="op">)</span>,</span>
+<span>  ageCovariateSettings <span class="op">=</span> <span class="va">ageSettings</span>,</span>
+<span>  seasonalityCovariateSettings <span class="op">=</span> <span class="va">seasonalitySettings</span>,</span>
+<span>  eventDependentObservation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sccsAnalysis4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span></span>
+<span>  analysisId <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  description <span class="op">=</span> <span class="st">"Including all other drugs"</span>,</span>
+<span>  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,</span>
+<span>  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,</span>
+<span>  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs4</span>,</span>
+<span>  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span></span></code></pre></div>
 <p>These analyses can be combined in a list:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sccsAnalysisList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">sccsAnalysis1</span>, <span class="va">sccsAnalysis2</span>, <span class="va">sccsAnalysis3</span>, <span class="va">sccsAnalysis4</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sccsAnalysisList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">sccsAnalysis1</span>, <span class="va">sccsAnalysis2</span>, <span class="va">sccsAnalysis3</span>, <span class="va">sccsAnalysis4</span><span class="op">)</span></span></code></pre></div>
 <p>A convenient way to save <code>sccsAnalysisList</code> to file is by
 using the <code>saveSccsAnalysisList</code> function, and we can load it
 again using the <code>loadSccsAnalysisList</code> function.</p>
@@ -420,34 +420,34 @@ the strategy of selecting the outcome becomes part of the analysis.</p>
 <p>In such a case, we can define the multiple strategies using a
 list:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">outcomeIds</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>narrowDefinition <span class="op">=</span> <span class="fl">1</span>,
-                  broadDefinition <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
-
-<span class="va">exposureOutcome</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createExposureOutcome.html">createExposureOutcome</a></span><span class="op">(</span>
-  exposureId <span class="op">=</span> <span class="fl">1124300</span>,
-  outcomeId <span class="op">=</span> <span class="va">outcomeIds</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">outcomeIds</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>narrowDefinition <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                  broadDefinition <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">exposureOutcome</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createExposureOutcome.html">createExposureOutcome</a></span><span class="op">(</span></span>
+<span>  exposureId <span class="op">=</span> <span class="fl">1124300</span>,</span>
+<span>  outcomeId <span class="op">=</span> <span class="va">outcomeIds</span><span class="op">)</span></span></code></pre></div>
 <p>When we specify an analysis, we can then refer to one definition or
 the other:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sccsAnalysisA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span>
-  analysisId <span class="op">=</span> <span class="fl">1</span>,
-  description <span class="op">=</span> <span class="st">"Simplest model, using narrow def."</span>,
-  outcomeType <span class="op">=</span> <span class="st">"narrowDefinition"</span>,
-  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,
-  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,
-  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs1</span>,
-  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span>
-
-<span class="va">sccsAnalysisB</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span>
-  analysisId <span class="op">=</span> <span class="fl">2</span>,
-  description <span class="op">=</span> <span class="st">"Simplest model, using broad def."</span>,
-  outcomeType <span class="op">=</span> <span class="st">"broadDefinition"</span>,
-  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,
-  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,
-  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs1</span>,
-  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span>
-
-<span class="va">sccsAnalysisList2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">sccsAnalysisA</span>, <span class="va">sccsAnalysisB</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sccsAnalysisA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span></span>
+<span>  analysisId <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  description <span class="op">=</span> <span class="st">"Simplest model, using narrow def."</span>,</span>
+<span>  outcomeType <span class="op">=</span> <span class="st">"narrowDefinition"</span>,</span>
+<span>  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,</span>
+<span>  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,</span>
+<span>  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs1</span>,</span>
+<span>  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sccsAnalysisB</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsAnalysis.html">createSccsAnalysis</a></span><span class="op">(</span></span>
+<span>  analysisId <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  description <span class="op">=</span> <span class="st">"Simplest model, using broad def."</span>,</span>
+<span>  outcomeType <span class="op">=</span> <span class="st">"broadDefinition"</span>,</span>
+<span>  getDbSccsDataArgs <span class="op">=</span> <span class="va">getDbSccsDataArgs1</span>,</span>
+<span>  createStudyPopulationArgs <span class="op">=</span> <span class="va">createStudyPopulationArgs1</span>,</span>
+<span>  createSccsIntervalDataArgs <span class="op">=</span> <span class="va">createSccsIntervalDataArgs1</span>,</span>
+<span>  fitSccsModelArgs <span class="op">=</span> <span class="va">fitSccsModelArgs</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sccsAnalysisList2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">sccsAnalysisA</span>, <span class="va">sccsAnalysisB</span><span class="op">)</span></span></code></pre></div>
 <p>In this example, the first analysis (analysisID = 1) will use cohort
 definition 1 as outcome, whilst the second analysis analysis (analysisID
 = 2) will use cohort definition 2 as outcome.</p>
@@ -464,23 +464,23 @@ specified analyses against all hypotheses of interest, meaning that the
 total number of outcome models is
 <code>length(sccsAnalysisList) * length(exposureOutcomeList)</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/runSccsAnalyses.html">runSccsAnalyses</a></span><span class="op">(</span>
-  connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,
-  cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,
-  exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,
-  outcomeDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>,
-  outcomeTable <span class="op">=</span> <span class="va">outcomeTable</span>,
-  cdmVersion <span class="op">=</span> <span class="va">cdmVersion</span>,
-  outputFolder <span class="op">=</span> <span class="va">outputFolder</span>,
-  combineDataFetchAcrossOutcomes <span class="op">=</span> <span class="cn">TRUE</span>,
-  exposureOutcomeList <span class="op">=</span> <span class="va">exposureOutcomeList</span>,
-  sccsAnalysisList <span class="op">=</span> <span class="va">sccsAnalysisList</span>,
-  getDbSccsDataThreads <span class="op">=</span> <span class="fl">1</span>,
-  createStudyPopulationThreads <span class="op">=</span> <span class="fl">3</span>,
-  createSccsIntervalDataThreads <span class="op">=</span> <span class="fl">3</span>,
-  fitSccsModelThreads <span class="op">=</span> <span class="fl">4</span>,
-  cvThreads <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/runSccsAnalyses.html">runSccsAnalyses</a></span><span class="op">(</span></span>
+<span>  connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,</span>
+<span>  cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
+<span>  exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,</span>
+<span>  outcomeDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>,</span>
+<span>  outcomeTable <span class="op">=</span> <span class="va">outcomeTable</span>,</span>
+<span>  cdmVersion <span class="op">=</span> <span class="va">cdmVersion</span>,</span>
+<span>  outputFolder <span class="op">=</span> <span class="va">outputFolder</span>,</span>
+<span>  combineDataFetchAcrossOutcomes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  exposureOutcomeList <span class="op">=</span> <span class="va">exposureOutcomeList</span>,</span>
+<span>  sccsAnalysisList <span class="op">=</span> <span class="va">sccsAnalysisList</span>,</span>
+<span>  getDbSccsDataThreads <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  createStudyPopulationThreads <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  createSccsIntervalDataThreads <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  fitSccsModelThreads <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  cvThreads <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p>In the code above, we provide the arguments for connecting to the
 database, which schemas and tables to use, as well as the analyses and
 hypotheses of interest. The <code>outputFolder</code> specifies where
@@ -508,47 +508,48 @@ names of the intermediate and end-result files that were constructed.
 For example, we can retrieve the fitted model for the combination of our
 drug of interest, outcome, and first analysis:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sccsModelFile</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">sccsModelFile</span><span class="op">[</span><span class="va">result</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span> <span class="op">&amp;</span> 
-                                      <span class="va">result</span><span class="op">$</span><span class="va">outcomeId</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span>
-                                      <span class="va">result</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span>
-<span class="va">sccsModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">outputFolder</span>, <span class="va">sccsModelFile</span><span class="op">)</span><span class="op">)</span>
-<span class="va">sccsModel</span></code></pre></div>
-<pre><code><span class="co">## SccsModel object</span>
-<span class="co">## </span>
-<span class="co">## Outcome ID: 1</span>
-<span class="co">## </span>
-<span class="co">## Outcome count:</span>
-<span class="co">##   outcomeSubjects outcomeEvents outcomeObsPeriods</span>
-<span class="co">## 1           77351        253169             77530</span>
-<span class="co">## </span>
-<span class="co">## Estimates:</span>
-<span class="co">## <span style="color: #949494;"># A tibble: 1 x 7</span></span>
-<span class="co">##   Name                                ID Estimate LB95CI UB95CI LogRr SeLogRr</span>
-<span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest: diclofenac  <span style="text-decoration: underline;">1</span>000     1.23   1.16   1.29 0.203  0.028<span style="text-decoration: underline;">0</span></span></code></pre>
+<code class="sourceCode R"><span><span class="va">sccsModelFile</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">sccsModelFile</span><span class="op">[</span><span class="va">result</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span> <span class="op">&amp;</span> </span>
+<span>                                      <span class="va">result</span><span class="op">$</span><span class="va">outcomeId</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span></span>
+<span>                                      <span class="va">result</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span></span>
+<span><span class="va">sccsModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">outputFolder</span>, <span class="va">sccsModelFile</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">sccsModel</span></span></code></pre></div>
+<pre><code><span><span class="co">## SccsModel object</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## Outcome ID: 1</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## Outcome count:</span></span>
+<span><span class="co">##   outcomeSubjects outcomeEvents outcomeObsPeriods</span></span>
+<span><span class="co">## 1           77351        253169             77530</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## Estimates:</span></span>
+<span><span class="co">## <span style="color: #949494;"># A tibble: 1 x 7</span></span></span>
+<span><span class="co">##   Name                                ID Estimate LB95CI UB95CI LogRr SeLogRr</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest: diclofenac  <span style="text-decoration: underline;">1</span>000     1.23   1.16   1.29 0.203  0.028<span style="text-decoration: underline;">0</span></span></span></code></pre>
 <p>Note that some of the file names will appear several times in the
 table. For example, all analysis share the same sccsData object.</p>
 <p>We can create a summary of the results using
 <code><a href="../reference/summarizeSccsAnalyses.html">summarizeSccsAnalyses()</a></code>:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">analysisSum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarizeSccsAnalyses.html">summarizeSccsAnalyses</a></span><span class="op">(</span><span class="va">result</span>, <span class="va">outputFolder</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">analysisSum</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## <span style="color: #949494;"># A tibble: 6 x 21</span></span>
-<span class="co">##   analysisId exposureId outcomeId outcomeSubjects outcomeEvents outcomeObsPerio~</span>
-<span class="co">##        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="co">## <span style="color: #BCBCBC;">1</span>          1    1<span style="text-decoration: underline;">124</span>300         1           <span style="text-decoration: underline;">77</span>351        <span style="text-decoration: underline;">253</span>169            <span style="text-decoration: underline;">77</span>530</span>
-<span class="co">## <span style="color: #BCBCBC;">2</span>          1     <span style="text-decoration: underline;">705</span>178         1           <span style="text-decoration: underline;">77</span>351        <span style="text-decoration: underline;">253</span>169            <span style="text-decoration: underline;">77</span>530</span>
-<span class="co">## <span style="color: #BCBCBC;">3</span>          1     <span style="text-decoration: underline;">705</span>944         1           <span style="text-decoration: underline;">77</span>351        <span style="text-decoration: underline;">253</span>169            <span style="text-decoration: underline;">77</span>530</span>
-<span class="co">## <span style="color: #BCBCBC;">4</span>          1     <span style="text-decoration: underline;">710</span>650         1           <span style="text-decoration: underline;">77</span>351        <span style="text-decoration: underline;">253</span>169            <span style="text-decoration: underline;">77</span>530</span>
-<span class="co">## <span style="color: #BCBCBC;">5</span>          1     <span style="text-decoration: underline;">714</span>785         1           <span style="text-decoration: underline;">77</span>351        <span style="text-decoration: underline;">253</span>169            <span style="text-decoration: underline;">77</span>530</span>
-<span class="co">## <span style="color: #BCBCBC;">6</span>          1     <span style="text-decoration: underline;">719</span>174         1           <span style="text-decoration: underline;">77</span>351        <span style="text-decoration: underline;">253</span>169            <span style="text-decoration: underline;">77</span>530</span>
-<span class="co">## <span style="color: #949494;"># ... with 15 more variables: `rr(Exposure of interest)` &lt;dbl&gt;,</span></span>
-<span class="co">## <span style="color: #949494;">#   `ci95lb(Exposure of interest)` &lt;dbl&gt;, `ci95ub(Exposure of interest)` &lt;dbl&gt;,</span></span>
-<span class="co">## <span style="color: #949494;">#   `logRr(Exposure of interest)` &lt;dbl&gt;, `seLogRr(Exposure of interest)` &lt;dbl&gt;,</span></span>
-<span class="co">## <span style="color: #949494;">#   `llr(Exposure of interest)` &lt;dbl&gt;, `llr1(Exposure of interest)` &lt;dbl&gt;,</span></span>
-<span class="co">## <span style="color: #949494;">#   `llr2(Exposure of interest)` &lt;dbl&gt;, `rr(Pre-exposure)` &lt;dbl&gt;,</span></span>
-<span class="co">## <span style="color: #949494;">#   `ci95lb(Pre-exposure)` &lt;dbl&gt;, `ci95ub(Pre-exposure)` &lt;dbl&gt;,</span></span>
-<span class="co">## <span style="color: #949494;">#   `logRr(Pre-exposure)` &lt;dbl&gt;, `seLogRr(Pre-exposure)` &lt;dbl&gt;, ...</span></span></code></pre>
+<code class="sourceCode R"><span><span class="va">analysisSum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarizeSccsAnalyses.html">summarizeSccsAnalyses</a></span><span class="op">(</span><span class="va">result</span>, <span class="va">outputFolder</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">analysisSum</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 x 21</span></span></span>
+<span><span class="co">##   analysisId exposureId outcom~1 outco~2 outco~3 outco~4 rr(Ex~5 ci95l~6 ci95u~7</span></span>
+<span><span class="co">##        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>          1    1<span style="text-decoration: underline;">124</span>300        1   <span style="text-decoration: underline;">77</span>351  <span style="text-decoration: underline;">253</span>169   <span style="text-decoration: underline;">77</span>530   1.23    1.16    1.29 </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span>          1     <span style="text-decoration: underline;">705</span>178        1   <span style="text-decoration: underline;">77</span>351  <span style="text-decoration: underline;">253</span>169   <span style="text-decoration: underline;">77</span>530   0.987   0.773   1.25 </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span>          1     <span style="text-decoration: underline;">705</span>944        1   <span style="text-decoration: underline;">77</span>351  <span style="text-decoration: underline;">253</span>169   <span style="text-decoration: underline;">77</span>530   1.00    0.902   1.11 </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span>          1     <span style="text-decoration: underline;">710</span>650        1   <span style="text-decoration: underline;">77</span>351  <span style="text-decoration: underline;">253</span>169   <span style="text-decoration: underline;">77</span>530   0.187   0.132   0.259</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span>          1     <span style="text-decoration: underline;">714</span>785        1   <span style="text-decoration: underline;">77</span>351  <span style="text-decoration: underline;">253</span>169   <span style="text-decoration: underline;">77</span>530   0.864   0.794   0.940</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span>          1     <span style="text-decoration: underline;">719</span>174        1   <span style="text-decoration: underline;">77</span>351  <span style="text-decoration: underline;">253</span>169   <span style="text-decoration: underline;">77</span>530   0.824   0.757   0.897</span></span>
+<span><span class="co">## <span style="color: #949494;"># ... with 12 more variables: `logRr(Exposure of interest)` &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   `seLogRr(Exposure of interest)` &lt;dbl&gt;, `llr(Exposure of interest)` &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   `llr1(Exposure of interest)` &lt;dbl&gt;, `llr2(Exposure of interest)` &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   `rr(Pre-exposure)` &lt;dbl&gt;, `ci95lb(Pre-exposure)` &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   `ci95ub(Pre-exposure)` &lt;dbl&gt;, `logRr(Pre-exposure)` &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   `seLogRr(Pre-exposure)` &lt;dbl&gt;, `llr1(Pre-exposure)` &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   `llr2(Pre-exposure)` &lt;dbl&gt;, and abbreviated variable names ...</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># i Use `colnames()` to see all variable names</span></span></span></code></pre>
 <p>This tells us, per exposure-outcome-analysis combination, the
 estimated relative risk and 95% confidence interval, as well as the
 number of subjects (cases) and the number of events observed for those
@@ -565,72 +566,84 @@ represents our exposure of interest: diclofenac. An unbiased,
 well-calibrated analysis should have 95% of the negative controls
 between the dashed lines (ie. 95% should have p &gt; .05).</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"EmpiricalCalibration"</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/EmpiricalCalibration/" class="external-link">EmpiricalCalibration</a></span><span class="op">)</span>
-
-<span class="co"># Analysis 1: Simplest model</span>
-<span class="va">negCons</span> <span class="op">&lt;-</span> <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">!=</span> <span class="fl">1124300</span>, <span class="op">]</span>
-<span class="va">ei</span> <span class="op">&lt;-</span>  <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span>, <span class="op">]</span>
-<span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/fitNull.html" class="external-link">fitNull</a></span><span class="op">(</span><span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span><span class="op">)</span>
-<span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/plotCalibrationEffect.html" class="external-link">plotCalibrationEffect</a></span><span class="op">(</span>logRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                      seLogRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, 
-                      logRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                      seLogRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, 
-                      <span class="va">null</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Warning in fitNull(negCons$`logRr(Exposure of interest)`,</span>
-<span class="co">## negCons$`seLogRr(Exposure of interest)`): Estimate(s) with NA standard error</span>
-<span class="co">## detected. Removing before fitting null distribution</span></code></pre>
-<pre><code><span class="co">## Warning: Removed 3 rows containing missing values (geom_point).</span></code></pre>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"EmpiricalCalibration"</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/EmpiricalCalibration/" class="external-link">EmpiricalCalibration</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Analysis 1: Simplest model</span></span>
+<span><span class="va">negCons</span> <span class="op">&lt;-</span> <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">!=</span> <span class="fl">1124300</span>, <span class="op">]</span></span>
+<span><span class="va">ei</span> <span class="op">&lt;-</span>  <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span>, <span class="op">]</span></span>
+<span><span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/fitNull.html" class="external-link">fitNull</a></span><span class="op">(</span><span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/plotCalibrationEffect.html" class="external-link">plotCalibrationEffect</a></span><span class="op">(</span>logRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                      seLogRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, </span>
+<span>                      logRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                      seLogRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, </span>
+<span>                      <span class="va">null</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in fitNull(negCons$`logRr(Exposure of interest)`,</span></span>
+<span><span class="co">## negCons$`seLogRr(Exposure of interest)`): Estimate(s) with NA standard error</span></span>
+<span><span class="co">## detected. Removing before fitting null distribution</span></span></code></pre>
+<pre><code><span><span class="co">## Warning in checkWithinLimits(log(xLimits), c(logRrNegatives, logRrPositives), :</span></span>
+<span><span class="co">## Values are outside plotted range. Consider adjusting xLimits parameter</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: Removed 1 rows containing missing values (geom_vline).</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: Removed 3 rows containing missing values (geom_point).</span></span></code></pre>
 <p><img src="MultipleAnalyses_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Analysis 2: Including prophylactics</span>
-<span class="va">negCons</span> <span class="op">&lt;-</span> <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">!=</span> <span class="fl">1124300</span>, <span class="op">]</span>
-<span class="va">ei</span> <span class="op">&lt;-</span>  <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span>, <span class="op">]</span>
-<span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/fitNull.html" class="external-link">fitNull</a></span><span class="op">(</span><span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span><span class="op">)</span>
-<span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/plotCalibrationEffect.html" class="external-link">plotCalibrationEffect</a></span><span class="op">(</span>logRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                      seLogRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, 
-                      logRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                      seLogRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, 
-                      <span class="va">null</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Warning in fitNull(negCons$`logRr(Exposure of interest)`,</span>
-<span class="co">## negCons$`seLogRr(Exposure of interest)`): Estimate(s) with NA standard error</span>
-<span class="co">## detected. Removing before fitting null distribution</span></code></pre>
-<pre><code><span class="co">## Warning: Removed 3 rows containing missing values (geom_point).</span></code></pre>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Analysis 2: Including prophylactics</span></span>
+<span><span class="va">negCons</span> <span class="op">&lt;-</span> <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">!=</span> <span class="fl">1124300</span>, <span class="op">]</span></span>
+<span><span class="va">ei</span> <span class="op">&lt;-</span>  <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span>, <span class="op">]</span></span>
+<span><span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/fitNull.html" class="external-link">fitNull</a></span><span class="op">(</span><span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/plotCalibrationEffect.html" class="external-link">plotCalibrationEffect</a></span><span class="op">(</span>logRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                      seLogRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, </span>
+<span>                      logRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                      seLogRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, </span>
+<span>                      <span class="va">null</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in fitNull(negCons$`logRr(Exposure of interest)`,</span></span>
+<span><span class="co">## negCons$`seLogRr(Exposure of interest)`): Estimate(s) with NA standard error</span></span>
+<span><span class="co">## detected. Removing before fitting null distribution</span></span></code></pre>
+<pre><code><span><span class="co">## Warning in checkWithinLimits(log(xLimits), c(logRrNegatives, logRrPositives), :</span></span>
+<span><span class="co">## Values are outside plotted range. Consider adjusting xLimits parameter</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: Removed 1 rows containing missing values (geom_vline).</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: Removed 3 rows containing missing values (geom_point).</span></span></code></pre>
 <p><img src="MultipleAnalyses_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Analysis 3: Including prophylactics, age, season, pre-exposure, and censoring</span>
-<span class="va">negCons</span> <span class="op">&lt;-</span> <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">!=</span> <span class="fl">1124300</span>, <span class="op">]</span>
-<span class="va">ei</span> <span class="op">&lt;-</span>  <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span>, <span class="op">]</span>
-<span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/fitNull.html" class="external-link">fitNull</a></span><span class="op">(</span><span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span><span class="op">)</span>
-<span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/plotCalibrationEffect.html" class="external-link">plotCalibrationEffect</a></span><span class="op">(</span>logRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                      seLogRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, 
-                      logRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                      seLogRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, 
-                      <span class="va">null</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Warning in fitNull(negCons$`logRr(Exposure of interest)`,</span>
-<span class="co">## negCons$`seLogRr(Exposure of interest)`): Estimate(s) with NA standard error</span>
-<span class="co">## detected. Removing before fitting null distribution</span></code></pre>
-<pre><code><span class="co">## Warning: Removed 3 rows containing missing values (geom_point).</span></code></pre>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Analysis 3: Including prophylactics, age, season, pre-exposure, and censoring</span></span>
+<span><span class="va">negCons</span> <span class="op">&lt;-</span> <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">!=</span> <span class="fl">1124300</span>, <span class="op">]</span></span>
+<span><span class="va">ei</span> <span class="op">&lt;-</span>  <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span>, <span class="op">]</span></span>
+<span><span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/fitNull.html" class="external-link">fitNull</a></span><span class="op">(</span><span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/plotCalibrationEffect.html" class="external-link">plotCalibrationEffect</a></span><span class="op">(</span>logRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                      seLogRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, </span>
+<span>                      logRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                      seLogRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, </span>
+<span>                      <span class="va">null</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in fitNull(negCons$`logRr(Exposure of interest)`,</span></span>
+<span><span class="co">## negCons$`seLogRr(Exposure of interest)`): Estimate(s) with NA standard error</span></span>
+<span><span class="co">## detected. Removing before fitting null distribution</span></span></code></pre>
+<pre><code><span><span class="co">## Warning in checkWithinLimits(log(xLimits), c(logRrNegatives, logRrPositives), :</span></span>
+<span><span class="co">## Values are outside plotted range. Consider adjusting xLimits parameter</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: Removed 1 rows containing missing values (geom_vline).</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: Removed 3 rows containing missing values (geom_point).</span></span></code></pre>
 <p><img src="MultipleAnalyses_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Analysis 4: Including all other drugs (as well as prophylactics, age, season, pre-</span>
-<span class="co"># exposure, and censoring)</span>
-<span class="va">negCons</span> <span class="op">&lt;-</span> <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">4</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">!=</span> <span class="fl">1124300</span>, <span class="op">]</span>
-<span class="va">ei</span> <span class="op">&lt;-</span>  <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">4</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span>, <span class="op">]</span>
-<span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/fitNull.html" class="external-link">fitNull</a></span><span class="op">(</span><span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span><span class="op">)</span>
-<span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/plotCalibrationEffect.html" class="external-link">plotCalibrationEffect</a></span><span class="op">(</span>logRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                      seLogRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, 
-                      logRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, 
-                      seLogRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, 
-                      <span class="va">null</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Warning in fitNull(negCons$`logRr(Exposure of interest)`,</span>
-<span class="co">## negCons$`seLogRr(Exposure of interest)`): Estimate(s) with NA standard error</span>
-<span class="co">## detected. Removing before fitting null distribution</span></code></pre>
-<pre><code><span class="co">## Warning: Removed 3 rows containing missing values (geom_point).</span></code></pre>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Analysis 4: Including all other drugs (as well as prophylactics, age, season, pre-</span></span>
+<span><span class="co"># exposure, and censoring)</span></span>
+<span><span class="va">negCons</span> <span class="op">&lt;-</span> <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">4</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">!=</span> <span class="fl">1124300</span>, <span class="op">]</span></span>
+<span><span class="va">ei</span> <span class="op">&lt;-</span>  <span class="va">analysisSum</span><span class="op">[</span><span class="va">analysisSum</span><span class="op">$</span><span class="va">analysisId</span> <span class="op">==</span> <span class="fl">4</span> <span class="op">&amp;</span> <span class="va">analysisSum</span><span class="op">$</span><span class="va">exposureId</span> <span class="op">==</span> <span class="fl">1124300</span>, <span class="op">]</span></span>
+<span><span class="va">null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/fitNull.html" class="external-link">fitNull</a></span><span class="op">(</span><span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ohdsi.github.io/EmpiricalCalibration/reference/plotCalibrationEffect.html" class="external-link">plotCalibrationEffect</a></span><span class="op">(</span>logRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                      seLogRrNegatives <span class="op">=</span> <span class="va">negCons</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, </span>
+<span>                      logRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`logRr(Exposure of interest)`</span>, </span>
+<span>                      seLogRrPositives <span class="op">=</span> <span class="va">ei</span><span class="op">$</span><span class="va">`seLogRr(Exposure of interest)`</span>, </span>
+<span>                      <span class="va">null</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in fitNull(negCons$`logRr(Exposure of interest)`,</span></span>
+<span><span class="co">## negCons$`seLogRr(Exposure of interest)`): Estimate(s) with NA standard error</span></span>
+<span><span class="co">## detected. Removing before fitting null distribution</span></span></code></pre>
+<pre><code><span><span class="co">## Warning in checkWithinLimits(log(xLimits), c(logRrNegatives, logRrPositives), :</span></span>
+<span><span class="co">## Values are outside plotted range. Consider adjusting xLimits parameter</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: Removed 1 rows containing missing values (geom_vline).</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: Removed 3 rows containing missing values (geom_point).</span></span></code></pre>
 <p><img src="MultipleAnalyses_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
 </div>
 </div>
@@ -639,48 +652,48 @@ between the dashed lines (ie. 95% should have p &gt; .05).</p>
 </h2>
 <p>Considerable work has been dedicated to provide the
 <code>SelfControlledCaseSeries</code> package.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"SelfControlledCaseSeries"</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## </span>
-<span class="co">## To cite package 'SelfControlledCaseSeries' in publications use:</span>
-<span class="co">## </span>
-<span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2022).</span>
-<span class="co">##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package</span>
-<span class="co">##   version 3.3.0, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span>
-<span class="co">## </span>
-<span class="co">## A BibTeX entry for LaTeX users is</span>
-<span class="co">## </span>
-<span class="co">##   @Manual{,</span>
-<span class="co">##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},</span>
-<span class="co">##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},</span>
-<span class="co">##     year = {2022},</span>
-<span class="co">##     note = {R package version 3.3.0},</span>
-<span class="co">##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},</span>
-<span class="co">##   }</span></code></pre>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"SelfControlledCaseSeries"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## </span></span>
+<span><span class="co">## To cite package 'SelfControlledCaseSeries' in publications use:</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2022).</span></span>
+<span><span class="co">##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package</span></span>
+<span><span class="co">##   version 3.3.1, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## A BibTeX entry for LaTeX users is</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##   @Manual{,</span></span>
+<span><span class="co">##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},</span></span>
+<span><span class="co">##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},</span></span>
+<span><span class="co">##     year = {2022},</span></span>
+<span><span class="co">##     note = {R package version 3.3.1},</span></span>
+<span><span class="co">##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},</span></span>
+<span><span class="co">##   }</span></span></code></pre>
 <p>Further, <code>SelfControlledCaseSeries</code> makes extensive use of
 the <code>Cyclops</code> package.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"Cyclops"</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## </span>
-<span class="co">## To cite Cyclops in publications use:</span>
-<span class="co">## </span>
-<span class="co">##   Suchard MA, Simpson SE, Zorych I, Ryan P, Madigan D (2013). "Massive</span>
-<span class="co">##   parallelization of serial inference algorithms for complex</span>
-<span class="co">##   generalized linear models." _ACM Transactions on Modeling and</span>
-<span class="co">##   Computer Simulation_, *23*, 10.</span>
-<span class="co">##   &lt;https://dl.acm.org/doi/10.1145/2414416.2414791&gt;.</span>
-<span class="co">## </span>
-<span class="co">## A BibTeX entry for LaTeX users is</span>
-<span class="co">## </span>
-<span class="co">##   @Article{,</span>
-<span class="co">##     author = {M. A. Suchard and S. E. Simpson and I. Zorych and P. Ryan and D. Madigan},</span>
-<span class="co">##     title = {Massive parallelization of serial inference algorithms for complex generalized linear models},</span>
-<span class="co">##     journal = {ACM Transactions on Modeling and Computer Simulation},</span>
-<span class="co">##     volume = {23},</span>
-<span class="co">##     pages = {10},</span>
-<span class="co">##     year = {2013},</span>
-<span class="co">##     url = {https://dl.acm.org/doi/10.1145/2414416.2414791},</span>
-<span class="co">##   }</span></code></pre>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"Cyclops"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## </span></span>
+<span><span class="co">## To cite Cyclops in publications use:</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##   Suchard MA, Simpson SE, Zorych I, Ryan P, Madigan D (2013). "Massive</span></span>
+<span><span class="co">##   parallelization of serial inference algorithms for complex</span></span>
+<span><span class="co">##   generalized linear models." _ACM Transactions on Modeling and</span></span>
+<span><span class="co">##   Computer Simulation_, *23*, 10.</span></span>
+<span><span class="co">##   &lt;https://dl.acm.org/doi/10.1145/2414416.2414791&gt;.</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## A BibTeX entry for LaTeX users is</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##   @Article{,</span></span>
+<span><span class="co">##     author = {M. A. Suchard and S. E. Simpson and I. Zorych and P. Ryan and D. Madigan},</span></span>
+<span><span class="co">##     title = {Massive parallelization of serial inference algorithms for complex generalized linear models},</span></span>
+<span><span class="co">##     journal = {ACM Transactions on Modeling and Computer Simulation},</span></span>
+<span><span class="co">##     volume = {23},</span></span>
+<span><span class="co">##     pages = {10},</span></span>
+<span><span class="co">##     year = {2013},</span></span>
+<span><span class="co">##     url = {https://dl.acm.org/doi/10.1145/2414416.2414791},</span></span>
+<span><span class="co">##   }</span></span></code></pre>
 <p>This work is supported in part through the National Science
 Foundation grant IIS 1251151.</p>
 </div>
@@ -703,7 +716,7 @@ Foundation grant IIS 1251151.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer>
