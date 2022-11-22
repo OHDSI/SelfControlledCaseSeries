@@ -9,25 +9,26 @@ createCohorts(connectionDetails)
 
 test_that("Running multiple analyses against Eunomia", {
   # Adding empty exposure and outcome cohorts:
-  exposureOutcomeList <- list(
-    createExposureOutcome(
-      exposureId = 1,
+  exposuresOutcomeList <- list(
+    createExposuresOutcome(
+      exposures = list(createExposure(exposureId = 1)),
       outcomeId = 3
     ),
-    createExposureOutcome(
-      exposureId = 2,
+    createExposuresOutcome(
+      exposures = list(createExposure(exposureId = 1),
+                       createExposure(exposureId = 2, exposureIdRef = "exposureId2")),
       outcomeId = 3
     ),
-    createExposureOutcome(
-      exposureId = 1,
+    createExposuresOutcome(
+      exposures = list(createExposure(exposureId = 1)),
       outcomeId = 4
     ),
-    createExposureOutcome(
-      exposureId = 999,
+    createExposuresOutcome(
+      exposures = list(createExposure(exposureId = 999)),
       outcomeId = 4
     ),
-    createExposureOutcome(
-      exposureId = 1,
+    createExposuresOutcome(
+      exposures = list(createExposure(exposureId = 1)),
       outcomeId = 999
     )
   )
@@ -41,7 +42,7 @@ test_that("Running multiple analyses against Eunomia", {
 
   covarExposureOfInt <- createEraCovariateSettings(
     label = "Exposure of interest",
-    includeEraIds = "exposureId",
+    includeEraIds = "exposure",
     start = 0,
     end = 7,
     endAnchor = "era start"
@@ -54,7 +55,7 @@ test_that("Running multiple analyses against Eunomia", {
 
   covarPreExp <- createEraCovariateSettings(
     label = "Pre-exposure",
-    includeEraIds = "exposureId",
+    includeEraIds = "exposure",
     start = -30,
     end = -1,
     endAnchor = "era start"
@@ -72,7 +73,7 @@ test_that("Running multiple analyses against Eunomia", {
     description = "Including pre-exposure",
     getDbSccsDataArgs = getDbSccsDataArgs1,
     createStudyPopulationArgs = createStudyPopulationArgs1,
-    createSccsIntervalDataArgs = createSccsIntervalDataArgs1,
+    createIntervalDataArgs = createSccsIntervalDataArgs1,
     fitSccsModelArgs = fitSccsModelArgs
   )
 

@@ -16,7 +16,8 @@ createEraCovariateSettings(
   firstOccurrenceOnly = FALSE,
   splitPoints = c(),
   allowRegularization = FALSE,
-  profileLikelihood = FALSE
+  profileLikelihood = FALSE,
+  exposureOfInterest = FALSE
 )
 }
 \arguments{
@@ -60,6 +61,9 @@ the covariate defined here? The likelihood profile can be used to
 avoid making normal approximations on the likelihood and can be used in
 methods specifically designed to make use of the profile, but may take a
 while to compute.}
+
+\item{exposureOfInterest}{If TRUE, the fitted coefficient for this variable will be reported when
+using \code{runSccsAnalyses()}.}
 }
 \value{
 An object of type \code{EraCovariateSettings}.

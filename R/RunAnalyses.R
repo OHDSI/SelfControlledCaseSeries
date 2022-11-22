@@ -1,5 +1,3 @@
-# @file RunAnalyses.R
-#
 # Copyright 2022 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
@@ -16,21 +14,95 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#' Create SelfControlledCaseSeries multi-threading settings
+#'
+#' @param getDbSccsDataThreads             The number of parallel threads to use for building the
+#'                                         `SccsData` objects.
+#' @param createStudyPopulationThreads     The number of parallel threads to use for building the
+#'                                         `studyPopulation` objects.
+#' @param createIntervalDataThreads        The number of parallel threads to use for building the
+#'                                         `SccsIntervalData` objects.
+#' @param fitSccsModelThreads              The number of parallel threads to use for fitting the
+#'                                         models.
+#' @param cvThreads                        The number of parallel threads to use for the cross-
+#'                                         validation when estimating the hyperparameter for the
+#'                                         outcome model. Note that the total number of CV threads at
+#'                                         one time could be `fitSccsModelThreads * cvThreads`.
+#' @param calibrationThreads               The number of parallel threads to use for empirical calibration.
+#'
+#' @return
+#' An object of type `SccsMultiThreadingSettings`.
+#'
+#' @seealso [createDefaultSccsMultiThreadingSettings()]
+#'
+#' @export
+createSccsMultiThreadingSettings <- function(getDbSccsDataThreads = 1,
+                                             createStudyPopulationThreads = 1,
+                                             createIntervalDataThreads = 1,
+                                             fitSccsModelThreads = 1,
+                                             cvThreads = 1,
+                                             calibrationThreads = 1) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertInt(getDbSccsDataThreads, lower = 1, add = errorMessages)
+  checkmate::assertInt(createStudyPopulationThreads, lower = 1, add = errorMessages)
+  checkmate::assertInt(createIntervalDataThreads, lower = 1, add = errorMessages)
+  checkmate::assertInt(fitSccsModelThreads, lower = 1, add = errorMessages)
+  checkmate::assertInt(cvThreads, lower = 1, add = errorMessages)
+  checkmate::assertInt(calibrationThreads, lower = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+  settings <- list()
+  for (name in names(formals(createSccsMultiThreadingSettings))) {
+    settings[[name]] <- get(name)
+  }
+  class(settings) <- "SccsMultiThreadingSettings"
+  return(settings)
+}
+
+#' Create default SelfControlledCaseSeries multi-threading settings
+#'
+#' @description
+#' Create SelfControlledCaseSeries multi-threading settings based on the maximum
+#' number of cores to be used.
+#'
+#' @param maxCores  Maximum number of CPU cores to use.
+#'
+#' @return
+#' An object of type `SccsMultiThreadingSettings`.
+#'
+#' @seealso [createSccsMultiThreadingSettings()]
+#'
+#' @examples
+#' settings <- createDefaultSccsMultiThreadingSettings(10)
+#'
+#' @export
+createDefaultSccsMultiThreadingSettings <- function(maxCores) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertInt(maxCores, lower = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+  settings <- createSccsMultiThreadingSettings(
+    getDbSccsDataThreads = min(3, maxCores),
+    createStudyPopulationThreads = min(3, maxCores),
+    createIntervalDataThreads = min(3, maxCores),
+    fitSccsModelThreads = max(1, floor(maxCores / 5)),
+    cvThreads = min(5, maxCores),
+    calibrationThreads = min(4, maxCores)
+  )
+  class(settings) <- "sccsMultiThreadingSettings"
+  return(settings)
+}
+
 #' Run a list of analyses
 #'
 #' @details
-#' Run a list of analyses for the drug-comparator-outcomes of interest. This function will run all
+#' Run a list of analyses for the exposures-outcomes of interest. This function will run all
 #' specified analyses against all hypotheses of interest, meaning that the total number of outcome
-#' models is `length(cmAnalysisList) * length(drugComparatorOutcomesList)` (if all analyses specify an
-#' outcome model should be fitted). When you provide several analyses it will determine whether any of
-#' the analyses have anything in common, and will take advantage of this fact. For example, if we
-#' specify several analyses that only differ in the way the outcome model is fitted, then this
-#' function will extract the data and fit the propensity model only once, and re-use this in all the
-#' analysis.
+#' models is `length(sccsAnalysisList) * length(exposuresOutcomeList)` When you provide several analyses
+#' it will determine whether any of the analyses have anything in common, and will take advantage of
+#' this fact.
 #'
 #' ## Analyses to Exclude
 #'
-#' Normally, `runSccsAnalyses` will run all combinations of exposure-outcome-analyses settings.
+#' Normally, `runSccsAnalyses` will run all combinations of exposures-outcome-analyses settings.
 #' However, sometimes we may not need all those combinations. Using the `analysesToExclude` argument,
 #' we can remove certain items from the full matrix. This argument should be a data frame with at least
 #' one of the following columns:
@@ -49,19 +121,13 @@
 #'                                         instance.  Requires read permissions to this database. On
 #'                                         SQL Server, this should specify both the database and the
 #'                                         schema, so for example 'cdm_instance.dbo'.
-#' @param oracleTempSchema    DEPRECATED: use `tempEmulationSchema` instead.
-#' @param tempEmulationSchema Some database platforms like Oracle and Impala do not truly support temp tables. To
-#'                            emulate temp tables, provide a schema with write privileges where temp tables
-#'                            can be created.
+#' @param tempEmulationSchema              Some database platforms like Oracle and Impala do not truly support
+#'                                         temp tables. To emulate temp tables, provide a schema with write
+#'                                         privileges where temp tables can be created.
 #' @param outcomeDatabaseSchema            The name of the database schema that is the location where
-#'                                         the data used to define the outcome cohorts is available. If
-#'                                         `outcomeTable = "CONDITION_ERA"`, `outcomeDatabaseSchema` is not
-#'                                         used.  Requires read permissions to this database.
-#' @param outcomeTable                     The table name that contains the outcome cohorts.  If
-#'                                         outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
-#'                                         then expectation is outcomeTable has format of COHORT table:
-#'                                         COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
-#'                                         COHORT_END_DATE.
+#'                                         the data used to define the outcome cohorts is available. Requires
+#'                                         read permissions to this database.
+#' @param outcomeTable                     The table name that contains the outcome cohorts.
 #' @param exposureDatabaseSchema           The name of the database schema that is the location where
 #'                                         the exposure data used to define the exposure cohorts is
 #'                                         available. If `exposureTable = "DRUG_ERA"`,
@@ -78,32 +144,22 @@
 #' @param nestingCohortDatabaseSchema      The name of the database schema that is the location
 #'                                         where the nesting cohort is defined.
 #' @param nestingCohortTable               Name of the table holding the nesting cohort. This table
-#'                                          should have the same structure as the cohort table.
-#' @param cdmVersion                       Define the OMOP CDM version used: currently support "4" and
-#'                                         "5".
+#'                                         should have the same structure as the cohort table.
+#' @param cdmVersion                       Define the OMOP CDM version used: currently supports "5".
 #' @param sccsAnalysisList                 A list of objects of `sccsAnalysis` as created
 #'                                         using the [createSccsAnalysis()] function.
-#' @param exposureOutcomeList              A list of objects of type `exposureOutcome` as created
-#'                                         using the [createExposureOutcome()] function.
+#' @param exposuresOutcomeList             A list of objects of type `exposuresOutcome` as created
+#'                                         using the [createExposuresOutcome()] function.
 #' @param outputFolder                     Name of the folder where all the outputs will written to.
 #' @param combineDataFetchAcrossOutcomes   Should fetching data from the database be done one outcome
 #'                                         at a time, or for all outcomes in one fetch? Combining
 #'                                         fetches will be more efficient if there is large overlap in
 #'                                         the subjects that have the different outcomes.
-#' @param getDbSccsDataThreads             The number of parallel threads to use for building the
-#'                                         `SccsData` objects.
-#' @param createStudyPopulationThreads     The number of parallel threads to use for building the
-#'                                         `studyPopulation` objects.
-#' @param createSccsIntervalDataThreads    The number of parallel threads to use for building the
-#'                                         `SccsIntervalData` objects.
-#' @param fitSccsModelThreads              The number of parallel threads to use for fitting the
-#'                                         models.
-#' @param cvThreads                        The number of parallel threads to use for the cross-
-#'                                         validation when estimating the hyperparameter for the
-#'                                         outcome model. Note that the total number of CV threads at
-#'                                         one time could be `fitSccsModelThreads * cvThreads`.
 #' @param analysesToExclude                Analyses to exclude. See the Analyses to Exclude section for
 #'                                         details.
+#' @param sccsMultiThreadingSettings       An object of type `SccsMultiThreadingSettings` as created using
+#'                                         the [createSccsMultiThreadingSettings()] or
+#'                                         [createDefaultSccsMultiThreadingSettings()] functions.
 #'
 #' @return
 #' A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
@@ -112,42 +168,51 @@
 #' @export
 runSccsAnalyses <- function(connectionDetails,
                             cdmDatabaseSchema,
-                            oracleTempSchema = NULL,
                             tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
                             exposureDatabaseSchema = cdmDatabaseSchema,
                             exposureTable = "drug_era",
                             outcomeDatabaseSchema = cdmDatabaseSchema,
-                            outcomeTable = "condition_era",
+                            outcomeTable = "cohort",
                             customCovariateDatabaseSchema = cdmDatabaseSchema,
                             customCovariateTable = "cohort",
                             nestingCohortDatabaseSchema = cdmDatabaseSchema,
                             nestingCohortTable = "cohort",
-                            cdmVersion = 5,
+                            cdmVersion = "5",
                             outputFolder = "./SccsOutput",
                             sccsAnalysisList,
-                            exposureOutcomeList,
-                            combineDataFetchAcrossOutcomes = TRUE,
-                            getDbSccsDataThreads = 1,
-                            createStudyPopulationThreads = 1,
-                            createSccsIntervalDataThreads = 1,
-                            fitSccsModelThreads = 1,
-                            cvThreads = 1,
-                            analysesToExclude = NULL) {
-  for (exposureOutcome in exposureOutcomeList) {
-    stopifnot(class(exposureOutcome) == "exposureOutcome")
+                            exposuresOutcomeList,
+                            analysesToExclude = NULL,
+                            combineDataFetchAcrossOutcomes = FALSE,
+                            sccsMultiThreadingSettings = createSccsMultiThreadingSettings()) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
+  checkmate::assertCharacter(cdmDatabaseSchema, len = 1, add = errorMessages)
+  checkmate::assertCharacter(tempEmulationSchema, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(exposureDatabaseSchema, len = 1, add = errorMessages)
+  checkmate::assertCharacter(exposureTable, len = 1, add = errorMessages)
+  checkmate::assertCharacter(outcomeDatabaseSchema, len = 1, add = errorMessages)
+  checkmate::assertCharacter(outcomeTable, len = 1, add = errorMessages)
+  checkmate::assertCharacter(customCovariateDatabaseSchema, len = 1, add = errorMessages)
+  checkmate::assertCharacter(customCovariateTable, len = 1, add = errorMessages)
+  checkmate::assertCharacter(nestingCohortDatabaseSchema, len = 1, add = errorMessages)
+  checkmate::assertCharacter(nestingCohortTable, len = 1, add = errorMessages)
+  checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
+  checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
+  checkmate::assertList(sccsAnalysisList, min.len = 1, add = errorMessages)
+  for (i in 1:length(sccsAnalysisList)) {
+    checkmate::assertClass(sccsAnalysisList[[i]], "sccsAnalysis", add = errorMessages)
   }
-  for (sccsAnalysis in sccsAnalysisList) {
-    stopifnot(class(sccsAnalysis) == "sccsAnalysis")
+  checkmate::assertList(exposuresOutcomeList, min.len = 1, add = errorMessages)
+  for (i in 1:length(exposuresOutcomeList)) {
+    checkmate::assertClass(exposuresOutcomeList[[i]], "exposuresOutcome", add = errorMessages)
   }
-  if (!is.null(oracleTempSchema) && oracleTempSchema != "") {
-    warning("The 'oracleTempSchema' argument is deprecated. Use 'tempEmulationSchema' instead.")
-    tempEmulationSchema <- oracleTempSchema
-  }
-  uniqueExposureOutcomeList <- unique(ParallelLogger::selectFromList(
-    exposureOutcomeList,
-    c("exposureId", "outcomeId")
-  ))
-  if (length(uniqueExposureOutcomeList) != length(exposureOutcomeList)) {
+  checkmate::assertDataFrame(analysesToExclude, null.ok = TRUE, add = errorMessages)
+  checkmate::assertLogical(combineDataFetchAcrossOutcomes, len = 1, add = errorMessages)
+  checkmate::assertClass(sccsMultiThreadingSettings, "SccsMultiThreadingSettings", add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
+  uniqueExposuresOutcomeList <- unique(lapply(lapply(lapply(exposuresOutcomeList, unlist), as.character), paste, collapse = " "))
+  if (length(uniqueExposuresOutcomeList) != length(exposuresOutcomeList)) {
     stop("Duplicate exposure-outcomes pairs are not allowed")
   }
   uniqueAnalysisIds <- unlist(unique(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId")))
@@ -161,7 +226,7 @@ runSccsAnalyses <- function(connectionDetails,
 
   referenceTable <- createReferenceTable(
     sccsAnalysisList,
-    exposureOutcomeList,
+    exposuresOutcomeList,
     outputFolder,
     combineDataFetchAcrossOutcomes,
     analysesToExclude
@@ -369,57 +434,67 @@ runSccsAnalyses <- function(connectionDetails,
 }
 
 createReferenceTable <- function(sccsAnalysisList,
-                                 exposureOutcomeList,
+                                 exposuresOutcomeList,
                                  outputFolder,
                                  combineDataFetchAcrossOutcomes,
                                  analysesToExclude) {
-  referenceTable <- tibble()
-  sccsAnalysisPerRow <- list()
-  instantiatedExposureOutcomePerRow <- list()
-  rowId <- 1
-  for (sccsAnalysis in sccsAnalysisList) {
-    for (exposureOutcome in exposureOutcomeList) {
-      instantiatedExposureOutcome <- exposureOutcome
-      instantiatedExposureOutcome$exposureId <- .selectByType(sccsAnalysis$exposureType, exposureOutcome$exposureId, "exposure")
-      instantiatedExposureOutcome$outcomeId <- .selectByType(sccsAnalysis$outcomeType, exposureOutcome$outcomeId, "outcome")
-      row <- tibble(
-        rowId = rowId,
-        exposureId = instantiatedExposureOutcome$exposureId,
-        outcomeId = instantiatedExposureOutcome$outcomeId,
-        analysisId = sccsAnalysis$analysisId
-      )
-      referenceTable <- rbind(referenceTable, row)
-      sccsAnalysisPerRow[[rowId]] <- sccsAnalysis
-      instantiatedExposureOutcomePerRow[[rowId]] <- instantiatedExposureOutcome
-      rowId <- rowId + 1
-    }
+  convertAnalysisToTable <- function(analysis) {
+    tibble(
+      analysisId = analysis$analysisId,
+      analysisFolder = sprintf("Analysis_%d", analysis$analysisId)
+    )
   }
-  attr(referenceTable, "sccsAnalysisPerRow") <- sccsAnalysisPerRow
-  attr(referenceTable, "instantiatedExposureOutcomePerRow") <- instantiatedExposureOutcomePerRow
+  analyses <- bind_rows(lapply(sccsAnalysisList, convertAnalysisToTable))
+  foldersToCreate <- file.path(outputFolder, analyses$analysisFolder)
+  foldersToCreate <- foldersToCreate[!dir.exists(foldersToCreate)]
+  sapply(foldersToCreate, dir.create)
+
+  extractExposureIdRefs <- function(exposuresOutcome) {
+    return(unlist(ParallelLogger::selectFromList(exposuresOutcome$exposures, "exposureIdRef")))
+  }
+  uniqueExposureIdRefs <- unique(unlist(sapply(exposuresOutcomeList, extractExposureIdRefs)))
+
+  convertExposuresOutcomeToTable <- function(exposuresOutcome) {
+    names <- c("outcomeId", uniqueExposureIdRefs, sprintf("%sTrueEffectSize", uniqueExposureIdRefs))
+    values <- c(exposuresOutcome$outcomeId, rep(-1, length(uniqueExposureIdRefs)), rep(NA, length(uniqueExposureIdRefs)))
+    for (exposure in exposuresOutcome$exposures) {
+      idx <- which(uniqueExposureIdRefs == exposure$exposureIdRef)
+      values[idx + 1] <- exposure$exposureId
+      if (!is.null(exposure$trueEffectSize)) {
+        values[idx + 1 + length(uniqueExposureIdRefs)] <- exposure$trueEffectSize
+      }
+    }
+    names(values) <- names
+    as_tibble(t(values)) %>%
+      return()
+  }
+  eos <- bind_rows(lapply(exposuresOutcomeList, convertExposuresOutcomeToTable))
+
+  referenceTable <- eos %>%
+    inner_join(analyses, by = character())
 
   # Determine if loading calls can be combined for efficiency ----------------------------
 
-  # Determine concepts to be fetched per analysis - exposure - outcome combination
-  conceptsPerLoad <- list()
-  rowId <- 1
+  # Instantiate loading settings per row in the reference table
+  instantiatedArgsPerRow <- vector(mode = "list", length = nrow(referenceTable))
   for (sccsAnalysis in sccsAnalysisList) {
-    for (exposureOutcome in exposureOutcomeList) {
+    idx <- which(referenceTable$analysisId == sccsAnalysis$analysisId)
+    for (i in idx) {
       exposureIds <- c()
       if (is.null(sccsAnalysis$getDbSccsDataArgs$exposureIds)) {
         exposureIds <- "all"
       } else {
         for (exposureId in sccsAnalysis$getDbSccsDataArgs$exposureIds) {
           if (suppressWarnings(is.na(as.numeric(exposureId)))) {
-            if (is.null(exposureOutcome[[exposureId]])) {
-              stop(paste("Variable", exposureId, " not found in exposure-outcome pair"))
+            if (!exposureId %in% uniqueExposureIdRefs) {
+              stop(paste("Variable", exposureId, " not found in exposures-outcome sets"))
             }
-            exposureIds <- c(exposureIds, exposureOutcome[[exposureId]])
+            exposureIds <- c(exposureIds, referenceTable[i, exposureId])
           } else {
             exposureIds <- c(exposureIds, as.numeric(exposureId))
           }
         }
       }
-      outcomeId <- .selectByType(sccsAnalysis$outcomeType, exposureOutcome$outcomeId, "outcome")
       customCovariateIds <- c()
       if (sccsAnalysis$getDbSccsDataArgs$useCustomCovariates) {
         if (is.null(sccsAnalysis$getDbSccsDataArgs$customCovariateIds)) {
@@ -427,10 +502,10 @@ createReferenceTable <- function(sccsAnalysisList,
         } else {
           for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
             if (is.character(customCovariateId)) {
-              if (is.null(exposureOutcome[[customCovariateId]])) {
-                stop(paste("Variable", customCovariateId, " not found in exposure-outcome pair"))
+              if (!customCovariateId %in% uniqueExposureIdRefs) {
+                stop(paste("Variable", customCovariateId, " not found in exposures-outcome sets"))
               }
-              customCovariateIds <- c(customCovariateIds, exposureOutcome[[customCovariateId]])
+              customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
             } else {
               customCovariateIds <- c(customCovariateIds, customCovariateId)
             }
@@ -441,26 +516,19 @@ createReferenceTable <- function(sccsAnalysisList,
       if (sccsAnalysis$getDbSccsDataArgs$useNestingCohort) {
         nestingCohortId <- sccsAnalysis$getDbSccsDataArgs$nestingCohortId
       }
-      row <- list(
-        outcomeId = outcomeId,
-        exposureIds = exposureIds,
-        customCovariateIds = customCovariateIds,
-        nestingCohortId = nestingCohortId,
-        deleteCovariatesSmallCount = sccsAnalysis$getDbSccsDataArgs$deleteCovariatesSmallCount,
-        studyStartDate = sccsAnalysis$getDbSccsDataArgs$studyStartDate,
-        studyEndDate = sccsAnalysis$getDbSccsDataArgs$studyEndDate,
-        maxCasesPerOutcome = sccsAnalysis$getDbSccsDataArgs$maxCasesPerOutcome,
-        rowId = rowId
-      )
-      conceptsPerLoad[[length(conceptsPerLoad) + 1]] <- row
-      rowId <- rowId + 1
+      instantiatedArgs <- sccsAnalysis$getDbSccsDataArgs
+      instantiatedArgs$outcomeId <- referenceTable$outcomeId[i]
+      instantiatedArgs$exposureIds <- exposureIds
+      instantiatedArgs$customCovariateIds <- customCovariateIds
+      instantiatedArgs$nestingCohortId <- nestingCohortId
+      instantiatedArgsPerRow[[i]] <- instantiatedArgs
     }
   }
 
   # Group loads where possible
   if (combineDataFetchAcrossOutcomes) {
     uniqueLoads <- unique(ParallelLogger::selectFromList(
-      conceptsPerLoad,
+      instantiatedArgsPerRow,
       c(
         "nestingCohortId",
         "deleteCovariatesSmallCount",
@@ -471,7 +539,7 @@ createReferenceTable <- function(sccsAnalysisList,
     ))
   } else {
     uniqueLoads <- unique(ParallelLogger::selectFromList(
-      conceptsPerLoad,
+      instantiatedArgsPerRow,
       c(
         "nestingCohortId",
         "deleteCovariatesSmallCount",
@@ -695,9 +763,9 @@ createSccsModelObject <- function(params) {
   if (is.null(type)) {
     if (is.list(value)) {
       stop(paste("Multiple ",
-        label,
-        "s specified, but none selected in analyses (comparatorType).",
-        sep = ""
+                 label,
+                 "s specified, but none selected in analyses (comparatorType).",
+                 sep = ""
       ))
     }
     return(value)

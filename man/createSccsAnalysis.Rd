@@ -7,13 +7,9 @@
 createSccsAnalysis(
   analysisId = 1,
   description = "",
-  exposureType = NULL,
-  outcomeType = NULL,
   getDbSccsDataArgs,
   createStudyPopulationArgs,
-  design = "SCCS",
-  createSccsIntervalDataArgs = NULL,
-  createScriIntervalDataArgs = NULL,
+  createIntervalDataArgs = NULL,
   fitSccsModelArgs
 )
 }
@@ -23,35 +19,21 @@ of analysis choices.}
 
 \item{description}{A short description of the analysis.}
 
-\item{exposureType}{If more than one exposure is provided for each
-\code{exposureOutcome}, this field should be used to select the
-specific exposure to use in this analysis.}
-
-\item{outcomeType}{If more than one outcome is provided for each \code{exposureOutcom}e,
-this field should be used to select the specific outcome to use
-in this analysis.}
-
 \item{getDbSccsDataArgs}{An object representing the arguments to be used when calling the
 \link{getDbSccsData} function.}
 
 \item{createStudyPopulationArgs}{An object representing the arguments to be used when calling the
 \link{getDbSccsData} function.}
 
-\item{design}{Either "SCCS" for the general self-controlled case series design,
-or "SCRI" for the self-controlled risk interval design.}
-
-\item{createSccsIntervalDataArgs}{An object representing the arguments to be used when calling the
-\link{createSccsIntervalData} function. Ignored when \code{design = "SCRI"}.}
-
-\item{createScriIntervalDataArgs}{An object representing the arguments to be used when calling the
-\link{createScriIntervalData} function. Ignored when \code{design = "SCCS"}.}
+\item{createIntervalDataArgs}{An object representing the arguments to be used when calling the
+\link{createSccsIntervalData} or \link{createScriIntervalData} function.}
 
 \item{fitSccsModelArgs}{An object representing the arguments to be used when calling the
 \link{fitSccsModel} function.}
 }
+\value{
+An object of type \code{sccsAnalysis}, to be used with the \link{runSccsAnalyses} function.
+}
 \description{
 Create a SelfControlledCaseSeries analysis specification
-}
-\details{
-Create a set of analysis choices, to be used with the \link{runSccsAnalyses} function.
 }

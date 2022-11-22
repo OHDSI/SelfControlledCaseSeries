@@ -1,5 +1,3 @@
-# @file Analyses.R
-#
 # Copyright 2022 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
@@ -18,59 +16,36 @@
 
 #' Create a SelfControlledCaseSeries analysis specification
 #'
-#' @details
-#' Create a set of analysis choices, to be used with the [runSccsAnalyses] function.
-#'
 #' @param analysisId                   An integer that will be used later to refer to this specific set
 #'                                     of analysis choices.
 #' @param description                  A short description of the analysis.
-#' @param exposureType                 If more than one exposure is provided for each
-#'                                     `exposureOutcome`, this field should be used to select the
-#'                                     specific exposure to use in this analysis.
-#' @param outcomeType                  If more than one outcome is provided for each `exposureOutcom`e,
-#'                                     this field should be used to select the specific outcome to use
-#'                                     in this analysis.
 #' @param getDbSccsDataArgs            An object representing the arguments to be used when calling the
 #'                                     [getDbSccsData] function.
 #' @param createStudyPopulationArgs    An object representing the arguments to be used when calling the
 #'                                     [getDbSccsData] function.
-#' @param design                       Either "SCCS" for the general self-controlled case series design,
-#'                                     or "SCRI" for the self-controlled risk interval design.
-#' @param createSccsIntervalDataArgs   An object representing the arguments to be used when calling the
-#'                                     [createSccsIntervalData] function. Ignored when `design = "SCRI"`.
-#' @param createScriIntervalDataArgs   An object representing the arguments to be used when calling the
-#'                                     [createScriIntervalData] function. Ignored when `design = "SCCS"`.
+#' @param createIntervalDataArgs       An object representing the arguments to be used when calling the
+#'                                     [createSccsIntervalData] or [createScriIntervalData] function.
 #' @param fitSccsModelArgs             An object representing the arguments to be used when calling the
 #'                                     [fitSccsModel] function.
+#'
+#' @return
+#' An object of type `sccsAnalysis`, to be used with the [runSccsAnalyses] function.
+#'
 #' @export
 createSccsAnalysis <- function(analysisId = 1,
                                description = "",
-                               exposureType = NULL,
-                               outcomeType = NULL,
                                getDbSccsDataArgs,
                                createStudyPopulationArgs,
-                               design = "SCCS",
-                               createSccsIntervalDataArgs = NULL,
-                               createScriIntervalDataArgs = NULL,
+                               createIntervalDataArgs = NULL,
                                fitSccsModelArgs) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertInt(analysisId, add = errorMessages)
   checkmate::assertCharacter(description, len = 1, add = errorMessages)
-  checkmate::assertCharacter(exposureType, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertCharacter(outcomeType, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertClass(getDbSccsDataArgs, "args", add = errorMessages)
   checkmate::assertClass(createStudyPopulationArgs, "args", add = errorMessages)
-  checkmate::assertChoice(toupper(design), .var.name = "design", c("SCCS", "SCRI"), add = errorMessages)
-  checkmate::assertClass(createSccsIntervalDataArgs, "args", null.ok = TRUE, add = errorMessages)
-  checkmate::assertClass(createScriIntervalDataArgs, "args", null.ok = TRUE, add = errorMessages)
+  checkmate::assertClass(createIntervalDataArgs, "args", null.ok = TRUE, add = errorMessages)
   checkmate::assertClass(fitSccsModelArgs, "args", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (toupper(design) == "SCCS" && is.null(createSccsIntervalDataArgs)) {
-    stop("Must provide createSccsIntervalDataArgs argument when design = 'SCCS'")
-  }
-  if (toupper(design) == "SCRI" && is.null(createScriIntervalDataArgs)) {
-    stop("Must provide createScriIntervalDataArgs argument when design = 'SCRI'")
-  }
   analysis <- list()
   for (name in names(formals(createSccsAnalysis))) {
     analysis[[name]] <- get(name)
@@ -118,73 +93,103 @@ loadSccsAnalysisList <- function(file) {
   return(ParallelLogger::loadSettingsFromJson(file))
 }
 
-#' Create a exposure-outcome combination.
+#' Create exposure definition
+#'
+#' @details
+#' Create an exposur definition, to be used with the [createExposuresOutcome] function.
+#'
+#' @param exposureId     An integer used to identify the exposure in the exposure cohort table.
+#' @param exposureIdRef  A string used to refer to the exposure when defining covariates using the
+#'                       `createEraCovariateSettings()` function.
+#' @param trueEffectSize For negative and positive controls: the known true effect size. To be
+#'                       used for empirical calibration. Negative controls have
+#'                       `trueEffectSize = 1`. If the true effect size is unknown, use
+#'                       `trueEffectSize = NA`.
+#'
+#' @return
+#' An object of type `exposure`.
+#'
+#' @export
+createExposure <- function(exposureId, exposureIdRef = "exposureId", trueEffectSize = NA) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertInt(exposureId, add = errorMessages)
+  checkmate::assertCharacter(exposureIdRef, len = 1, add = errorMessages)
+  checkmate::assertNumeric(trueEffectSize, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
+  exposure <- list()
+  for (name in names(formals(createExposure))) {
+    exposure[[name]] <- get(name)
+  }
+  class(exposure) <- "exposure"
+  return(exposure)
+}
+
+#' Create a exposures-outcome combination.
 #'
 #' @details
 #' Create a set of hypotheses of interest, to be used with the [runSccsAnalyses] function.
 #'
-#' @param exposureId   A concept ID identifying the target drug in the exposure table. If multiple
-#'                     strategies for picking the exposure will be tested in the analysis, a named list
-#'                     of numbers can be provided instead. In the analysis, the name of the number to
-#'                     be used can be specified using the `exposureType` parameter in the
-#'                     [createSccsAnalysis] function.
-#' @param outcomeId    A concept ID identifying the outcome in the outcome table.
-#' @param trueEffectSize                   For negative and positive controls: the known true effect size. To be used
-#'                                         for empirical calibration. Negative controls have `trueEffectSize = 1`. If
-#'                                         the true effect size is unknown, use `trueEffectSize = NA`
-#' @param ...          Custom variables, to be used in the analyses.
+#' @param outcomeId    An integer used to identify the outcome in the outcome cohort table.
+#' @param exposures    A list of object of type `exposure` as created by [createExposure()].
+#'
+#' @return
+#' An object of type `exposuresOutcome`.
 #'
 #' @export
-createExposureOutcome <- function(exposureId, outcomeId, trueEffectSize = NA, ...) {
+createExposuresOutcome <- function(outcomeId, exposures) {
   errorMessages <- checkmate::makeAssertCollection()
-  if (!is.list(exposureId)) {
-    checkmate::assertInt(exposureId, add = errorMessages)
+  checkmate::assertInt(outcomeId, add = errorMessages)
+  checkmate::assertList(exposures, min.len = 1, add = errorMessages)
+  for (i in seq_along(exposures)) {
+    checkmate::assertClass(exposures[[i]], "exposure", add = errorMessages)
   }
-  if (!is.list(outcomeId)) {
-    checkmate::assertInt(outcomeId, add = errorMessages)
-  }
-  checkmate::assertNumeric(trueEffectSize, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
+  uniqueExposureIdRefs <- unlist(unique(ParallelLogger::selectFromList(exposures, "exposureIdRef")))
+  if (length(uniqueExposureIdRefs) != length(exposures)) {
+    stop("Duplicate exposureIdRefs are not allowed. Please give each exposure a unique exposureIdRef.")
+  }
 
-  exposureOutcome <- list(...)
-  exposureOutcome$exposureId <- exposureId
-  exposureOutcome$outcomeId <- outcomeId
-  class(exposureOutcome) <- "exposureOutcome"
-  return(exposureOutcome)
+  exposuresOutcome <- list()
+  for (name in names(formals(createExposuresOutcome))) {
+    exposuresOutcome[[name]] <- get(name)
+  }
+  class(exposuresOutcome) <- "exposuresOutcome"
+  return(exposuresOutcome)
 }
 
-#' Save a list of `exposureOutcome` to file
+#' Save a list of `exposuresOutcome` to file
 #'
 #' @description
-#' Write a list of objects of type `exposureOutcome` to file. The file is in JSON format.
+#' Write a list of objects of type `exposuresOutcome` to file. The file is in JSON format.
 #'
-#' @param exposureOutcomeList   The `exposureOutcome` list to be written to file
+#' @param exposuresOutcomeList  The `exposuresOutcome` list to be written to file
 #' @param file                  The name of the file where the results will be written
 #'
 #' @export
-saveExposureOutcomeList <- function(exposureOutcomeList, file) {
+saveExposuresOutcomeList <- function(exposuresOutcomeList, file) {
   errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertList(exposureOutcomeList, min.len = 1, add = errorMessages)
-  for (i in 1:length(exposureOutcomeList)) {
-    checkmate::assertClass(exposureOutcomeList[[i]], "exposureOutcome", add = errorMessages)
+  checkmate::assertList(exposuresOutcomeList, min.len = 1, add = errorMessages)
+  for (i in 1:length(exposuresOutcomeList)) {
+    checkmate::assertClass(exposuresOutcomeList[[i]], "exposuresOutcome", add = errorMessages)
   }
   checkmate::assertCharacter(file, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  ParallelLogger::saveSettingsToJson(exposureOutcomeList, file)
+  ParallelLogger::saveSettingsToJson(exposuresOutcomeList, file)
 }
 
-#' Load a list of exposureOutcome from file
+#' Load a list of `exposuresOutcome` from file
 #'
 #' @description
-#' Load a list of objects of type `exposureOutcome` from file. The file is in JSON format.
+#' Load a list of objects of type `exposuresOutcome` from file. The file is in JSON format.
 #'
 #' @param file   The name of the file
 #'
 #' @return
-#' A list of objects of type `exposureOutcome`.
+#' A list of objects of type `exposuresOutcome`.
 #'
 #' @export
-loadExposureOutcomeList <- function(file) {
+loadExposuresOutcomeList <- function(file) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertCharacter(file, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)

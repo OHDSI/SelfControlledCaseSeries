@@ -2,15 +2,15 @@
 % Please edit documentation in R/Analyses.R
 \name{saveExposureOutcomeList}
 \alias{saveExposureOutcomeList}
-\title{Save a list of \code{exposureOutcome} to file}
+\title{Save a list of \code{exposuresOutcome} to file}
 \usage{
-saveExposureOutcomeList(exposureOutcomeList, file)
+saveExposureOutcomeList(exposuresOutcomeList, file)
 }
 \arguments{
-\item{exposureOutcomeList}{The \code{exposureOutcome} list to be written to file}
+\item{exposuresOutcomeList}{The \code{exposuresOutcome} list to be written to file}
 
 \item{file}{The name of the file where the results will be written}
 }
 \description{
-Write a list of objects of type \code{exposureOutcome} to file. The file is in JSON format.
+Write a list of objects of type \code{exposuresOutcome} to file. The file is in JSON format.
 }
