@@ -232,8 +232,6 @@ runSccsAnalyses <- function(connectionDetails,
     analysesToExclude
   )
 
-  sccsAnalysisPerRow <- attr(referenceTable, "sccsAnalysisPerRow")
-  instantiatedExposureOutcomePerRow <- attr(referenceTable, "instantiatedExposureOutcomePerRow")
   loadConceptsPerLoad <- attr(referenceTable, "loadConceptsPerLoad")
 
   # Create arguments for sccsData objects ----------------------------
@@ -252,9 +250,6 @@ runSccsAnalyses <- function(connectionDetails,
       if (length(loadConcepts$customCovariateIds) == 1 && loadConcepts$customCovariateIds[1] == "all") {
         loadConcepts$customCovariateIds <- c()
       }
-      outcomeIds <- unique(loadConcepts$outcomeIds)
-      exposureIds <- unique(loadConcepts$exposureIds)
-      customCovariateIds <- unique(loadConcepts$customCovariateIds)
       args <- list(
         connectionDetails = connectionDetails,
         cdmDatabaseSchema = cdmDatabaseSchema,
@@ -268,10 +263,10 @@ runSccsAnalyses <- function(connectionDetails,
         nestingCohortDatabaseSchema = nestingCohortDatabaseSchema,
         nestingCohortTable = nestingCohortTable,
         cdmVersion = cdmVersion,
-        exposureIds = exposureIds,
-        outcomeIds = outcomeIds,
+        exposureIds = loadConcepts$exposureIds,
+        outcomeIds = loadConcepts$outcomeIds,
         useCustomCovariates = useCustomCovariates,
-        customCovariateIds = customCovariateIds,
+        customCovariateIds = loadConcepts$customCovariateIds,
         useNestingCohort = loadConcepts$nestingCohortId != -1,
         nestingCohortId = loadConcepts$nestingCohortId,
         deleteCovariatesSmallCount = loadConcepts$deleteCovariatesSmallCount,
@@ -292,7 +287,10 @@ runSccsAnalyses <- function(connectionDetails,
   studyPopFilesToCreate <- list()
   for (studyPopFile in uniqueStudyPopFiles) {
     refRow <- referenceTable[referenceTable$studyPopFile == studyPopFile, ][1, ]
-    analysisRow <- sccsAnalysisPerRow[[refRow$rowId]]
+    analysisRow <- ParallelLogger::matchInList(
+      sccsAnalysisList,
+      list(analysisId = refRow$analysisId)
+    )[[1]]
     args <- analysisRow$createStudyPopulationArgs
     args$outcomeId <- refRow$outcomeId
     studyPopFilesToCreate[[length(studyPopFilesToCreate) + 1]] <- list(
@@ -308,15 +306,12 @@ runSccsAnalyses <- function(connectionDetails,
   sccsIntervalDataObjectsToCreate <- list()
   for (sccsIntervalDataFile in sccsIntervalDataFiles) {
     refRow <- referenceTable[referenceTable$sccsIntervalDataFile == sccsIntervalDataFile, ][1, ]
-    analysisRow <- sccsAnalysisPerRow[[refRow$rowId]]
-    exposureOutcome <- instantiatedExposureOutcomePerRow[[refRow$rowId]]
-    design <- analysisRow$design
-    sccs <- toupper(design) == "SCCS"
-    if (sccs) {
-      args <- analysisRow$createSccsIntervalDataArgs
-    } else {
-      args <- analysisRow$createScriIntervalDataArgs
-    }
+    analysisRow <- ParallelLogger::matchInList(
+      sccsAnalysisList,
+      list(analysisId = refRow$analysisId)
+    )[[1]]
+    sccs <- (!"controlIntervalSettings" %in% names(analysisRow$createIntervalDataArgs))
+    args <- analysisRow$createIntervalDataArgs
     covariateSettings <- args$eraCovariateSettings
     if (is(covariateSettings, "EraCovariateSettings")) {
       covariateSettings <- list(covariateSettings)
@@ -330,10 +325,10 @@ runSccsAnalyses <- function(connectionDetails,
       if (length(settings$includeEraIds) != 0) {
         for (includeEraId in settings$includeEraIds) {
           if (is.character(includeEraId)) {
-            if (is.null(exposureOutcome[[includeEraId]])) {
-              stop(paste("Variable", includeEraId, " not found in exposure-outcome pair"))
+            if (is.null(refRow[[includeEraId]])) {
+              stop(paste("Variable", includeEraId, " not found in exposures-outcome set"))
             }
-            includeEraIds <- c(includeEraIds, exposureOutcome[[includeEraId]])
+            includeEraIds <- c(includeEraIds, refRow[[includeEraId]])
           } else {
             includeEraIds <- c(includeEraIds, includeEraId)
           }
@@ -343,10 +338,10 @@ runSccsAnalyses <- function(connectionDetails,
       if (length(settings$excludeEraIds) != 0) {
         for (excludeEraId in settings$excludeEraIds) {
           if (is.character(excludeEraId)) {
-            if (is.null(exposureOutcome[[excludeEraId]])) {
-              stop(paste("Variable", excludeEraId, " not found in exposure-outcome pair"))
+            if (is.null(refRow[[excludeEraId]])) {
+              stop(paste("Variable", excludeEraId, " not found in exposure-outcome set"))
             }
-            excludeEraIds <- c(excludeEraIds, exposureOutcome[[excludeEraId]])
+            excludeEraIds <- c(excludeEraIds, refRow[[excludeEraId]])
           } else {
             excludeEraIds <- c(excludeEraIds, excludeEraId)
           }
@@ -379,9 +374,12 @@ runSccsAnalyses <- function(connectionDetails,
   sccsModelObjectsToCreate <- list()
   for (sccsModelFile in sccsModelFiles) {
     refRow <- referenceTable[referenceTable$sccsModelFile == sccsModelFile, ][1, ]
-    analysisRow <- sccsAnalysisPerRow[[refRow$rowId]]
+    analysisRow <- ParallelLogger::matchInList(
+      sccsAnalysisList,
+      list(analysisId = refRow$analysisId)
+    )[[1]]
     args <- analysisRow$fitSccsModelArgs
-    args$control$threads <- cvThreads
+    args$control$threads <- sccsMultiThreadingSettings$cvThreads
     sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(
       args = args,
       sccsIntervalDataFileName = file.path(outputFolder, refRow$sccsIntervalDataFile),
@@ -391,40 +389,38 @@ runSccsAnalyses <- function(connectionDetails,
 
   referenceTable$loadId <- NULL
   referenceTable$studyPopId <- NULL
-  referenceTable$rowId <- NULL
   attr(referenceTable, "loadConcepts") <- NULL
-  attr(referenceTable, "sccsAnalysisPerRow") <- NULL
-  attr(referenceTable, "instantiatedExposureOutcomePerRow") <- NULL
   saveRDS(referenceTable, file.path(outputFolder, "outcomeModelReference.rds"))
 
   # Construction of objects -------------------------------------------------------------------------
-  ParallelLogger::logInfo("*** Creating sccsData objects ***")
   if (length(sccsDataObjectsToCreate) != 0) {
-    cluster <- ParallelLogger::makeCluster(getDbSccsDataThreads)
+    ParallelLogger::logInfo("*** Creating sccsData objects ***")
+    cluster <- ParallelLogger::makeCluster(min(length(sccsDataObjectsToCreate), sccsMultiThreadingSettings$getDbSccsDataThreads))
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
     dummy <- ParallelLogger::clusterApply(cluster, sccsDataObjectsToCreate, createSccsDataObject)
     ParallelLogger::stopCluster(cluster)
   }
 
-  ParallelLogger::logInfo("*** Creating studyPopulation objects ***")
+
   if (length(studyPopFilesToCreate) != 0) {
-    cluster <- ParallelLogger::makeCluster(createStudyPopulationThreads)
+    ParallelLogger::logInfo("*** Creating studyPopulation objects ***")
+    cluster <- ParallelLogger::makeCluster(min(length(studyPopFilesToCreate), sccsMultiThreadingSettings$createStudyPopulationThreads))
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
     dummy <- ParallelLogger::clusterApply(cluster, studyPopFilesToCreate, createStudyPopObject)
     ParallelLogger::stopCluster(cluster)
   }
 
-  ParallelLogger::logInfo("*** Creating sccsIntervalData objects ***")
   if (length(sccsIntervalDataObjectsToCreate) != 0) {
-    cluster <- ParallelLogger::makeCluster(createSccsIntervalDataThreads)
+    ParallelLogger::logInfo("*** Creating sccsIntervalData objects ***")
+    cluster <- ParallelLogger::makeCluster(min(length(sccsIntervalDataObjectsToCreate), sccsMultiThreadingSettings$createSccsIntervalDataThreads))
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
     dummy <- ParallelLogger::clusterApply(cluster, sccsIntervalDataObjectsToCreate, createSccsIntervalDataObject)
     ParallelLogger::stopCluster(cluster)
   }
 
-  ParallelLogger::logInfo("*** Fitting models ***")
   if (length(sccsModelObjectsToCreate) != 0) {
-    cluster <- ParallelLogger::makeCluster(fitSccsModelThreads)
+    ParallelLogger::logInfo("*** Fitting models ***")
+    cluster <- ParallelLogger::makeCluster(min(length(sccsModelObjectsToCreate), sccsMultiThreadingSettings$fitSccsModelThreads))
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
     dummy <- ParallelLogger::clusterApply(cluster, sccsModelObjectsToCreate, createSccsModelObject)
     ParallelLogger::stopCluster(cluster)
@@ -485,11 +481,11 @@ createReferenceTable <- function(sccsAnalysisList,
         exposureIds <- "all"
       } else {
         for (exposureId in sccsAnalysis$getDbSccsDataArgs$exposureIds) {
-          if (suppressWarnings(is.na(as.numeric(exposureId)))) {
+          if (is.character(exposureId)) {
             if (!exposureId %in% uniqueExposureIdRefs) {
               stop(paste("Variable", exposureId, " not found in exposures-outcome sets"))
             }
-            exposureIds <- c(exposureIds, referenceTable[i, exposureId])
+            exposureIds <- c(exposureIds, referenceTable[i, ]$exposureId)
           } else {
             exposureIds <- c(exposureIds, as.numeric(exposureId))
           }
@@ -521,6 +517,7 @@ createReferenceTable <- function(sccsAnalysisList,
       instantiatedArgs$exposureIds <- exposureIds
       instantiatedArgs$customCovariateIds <- customCovariateIds
       instantiatedArgs$nestingCohortId <- nestingCohortId
+      instantiatedArgs$rowId <- i
       instantiatedArgsPerRow[[i]] <- instantiatedArgs
     }
   }
@@ -557,7 +554,7 @@ createReferenceTable <- function(sccsAnalysisList,
   loadConceptsPerLoad <- list()
   for (loadId in 1:length(uniqueLoads)) {
     uniqueLoad <- uniqueLoads[[loadId]]
-    groupables <- ParallelLogger::matchInList(conceptsPerLoad, uniqueLoad)
+    groupables <- ParallelLogger::matchInList(instantiatedArgsPerRow, uniqueLoad)
     outcomeIds <- c()
     exposureIds <- c()
     customCovariateIds <- c()
@@ -581,9 +578,9 @@ createReferenceTable <- function(sccsAnalysisList,
       rowIds <- c(rowIds, groupable$rowId)
     }
     loadConceptsPerLoad[[loadId]] <- list(
-      exposureIds = exposureIds,
-      outcomeIds = outcomeIds,
-      customCovariateIds = customCovariateIds,
+      exposureIds = unique(exposureIds),
+      outcomeIds = unique(outcomeIds),
+      customCovariateIds = unique(customCovariateIds),
       nestingCohortId = groupables[[1]]$nestingCohortId,
       deleteCovariatesSmallCount = groupables[[1]]$deleteCovariatesSmallCount,
       studyStartDate = groupables[[1]]$studyStartDate,

@@ -8,6 +8,9 @@ createCohorts(connectionDetails)
 # connection <- connect(connectionDetails)
 
 test_that("Running multiple analyses against Eunomia", {
+  outputFolder <- tempfile(pattern = "sccsOutput")
+  on.exit(unlink(outputFolder, recursive = TRUE))
+
   # Adding empty exposure and outcome cohorts:
   exposuresOutcomeList <- list(
     createExposuresOutcome(
@@ -33,16 +36,16 @@ test_that("Running multiple analyses against Eunomia", {
     )
   )
 
-  getDbSccsDataArgs1 <- createGetDbSccsDataArgs(deleteCovariatesSmallCount = 1)
+  getDbSccsDataArgs <- createGetDbSccsDataArgs(deleteCovariatesSmallCount = 1)
 
-  createStudyPopulationArgs1 <- createCreateStudyPopulationArgs(
+  createStudyPopulationArgs <- createCreateStudyPopulationArgs(
     naivePeriod = 180,
     firstOutcomeOnly = FALSE
   )
 
   covarExposureOfInt <- createEraCovariateSettings(
     label = "Exposure of interest",
-    includeEraIds = "exposure",
+    includeEraIds = "exposureId",
     start = 0,
     end = 7,
     endAnchor = "era start"
@@ -55,49 +58,71 @@ test_that("Running multiple analyses against Eunomia", {
 
   covarPreExp <- createEraCovariateSettings(
     label = "Pre-exposure",
-    includeEraIds = "exposure",
+    includeEraIds = "exposureId",
     start = -30,
     end = -1,
     endAnchor = "era start"
   )
 
-  createSccsIntervalDataArgs1 <- createCreateSccsIntervalDataArgs(eraCovariateSettings = list(
-    covarExposureOfInt,
-    covarPreExp
-  ))
+  createSccsIntervalDataArgs <- createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(
+      covarExposureOfInt,
+      covarPreExp
+    )
+  )
 
   fitSccsModelArgs <- createFitSccsModelArgs()
 
   sccsAnalysis1 <- createSccsAnalysis(
     analysisId = 1,
-    description = "Including pre-exposure",
-    getDbSccsDataArgs = getDbSccsDataArgs1,
-    createStudyPopulationArgs = createStudyPopulationArgs1,
-    createIntervalDataArgs = createSccsIntervalDataArgs1,
+    description = "SCCS",
+    getDbSccsDataArgs = getDbSccsDataArgs,
+    createStudyPopulationArgs = createStudyPopulationArgs,
+    createIntervalDataArgs = createSccsIntervalDataArgs,
     fitSccsModelArgs = fitSccsModelArgs
   )
 
-  sccsAnalysisList <- list(sccsAnalysis1)
+  controlIntervalSettings <- createControlIntervalSettings(
+    start = -180,
+    end = -1,
+    endAnchor = "era start"
+  )
 
-  outputFolder <- tempfile(pattern = "sccsOutput")
+  createScriIntervalDataArgs <- createCreateScriIntervalDataArgs(
+    eraCovariateSettings = covarExposureOfInt,
+    controlIntervalSettings = controlIntervalSettings
+  )
+
+  sccsAnalysis2 <- createSccsAnalysis(
+    analysisId = 2,
+    description = "SCRI",
+    getDbSccsDataArgs = getDbSccsDataArgs,
+    createStudyPopulationArgs = createStudyPopulationArgs,
+    createIntervalDataArgs = createScriIntervalDataArgs,
+    fitSccsModelArgs = fitSccsModelArgs
+  )
+
+  sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2)
 
   analysesToExclude <- data.frame(
     exposureId = c(1),
     outcomeId = c(3)
   )
-  suppressWarnings(
-    result <- runSccsAnalyses(
-      connectionDetails = connectionDetails,
-      cdmDatabaseSchema = "main",
-      exposureDatabaseSchema = "main",
-      exposureTable = "cohort",
-      outcomeDatabaseSchema = "main",
-      outcomeTable = "cohort",
-      outputFolder = outputFolder,
-      exposureOutcomeList = exposureOutcomeList,
-      sccsAnalysisList = sccsAnalysisList,
-      analysesToExclude = analysesToExclude
-    )
+  expect_warning(
+    {
+      result <- runSccsAnalyses(
+        connectionDetails = connectionDetails,
+        cdmDatabaseSchema = "main",
+        exposureDatabaseSchema = "main",
+        exposureTable = "cohort",
+        outcomeDatabaseSchema = "main",
+        outcomeTable = "cohort",
+        outputFolder = outputFolder,
+        exposuresOutcomeList = exposuresOutcomeList,
+        sccsAnalysisList = sccsAnalysisList,
+        analysesToExclude = analysesToExclude
+      )
+    }, "No cases left in study population"
   )
   expect_equal(sum(result$exposureId == 1 & result$outcomeId == 3), 0)
 
@@ -105,7 +130,7 @@ test_that("Running multiple analyses against Eunomia", {
 
   expect_equal(nrow(analysisSum), 4)
 
-  unlink(outputFolder, recursive = TRUE)
+  # unlink(outputFolder, recursive = TRUE)
 })
 
 test_that("Fetching data from drug_era and condition_era tables from Eunomia", {

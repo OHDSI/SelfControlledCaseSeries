@@ -7,27 +7,22 @@
 runSccsAnalyses(
   connectionDetails,
   cdmDatabaseSchema,
-  oracleTempSchema = NULL,
   tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
   exposureDatabaseSchema = cdmDatabaseSchema,
   exposureTable = "drug_era",
   outcomeDatabaseSchema = cdmDatabaseSchema,
-  outcomeTable = "condition_era",
+  outcomeTable = "cohort",
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort",
   nestingCohortDatabaseSchema = cdmDatabaseSchema,
   nestingCohortTable = "cohort",
-  cdmVersion = 5,
+  cdmVersion = "5",
   outputFolder = "./SccsOutput",
   sccsAnalysisList,
-  exposureOutcomeList,
-  combineDataFetchAcrossOutcomes = TRUE,
-  getDbSccsDataThreads = 1,
-  createStudyPopulationThreads = 1,
-  createSccsIntervalDataThreads = 1,
-  fitSccsModelThreads = 1,
-  cvThreads = 1,
-  analysesToExclude = NULL
+  exposuresOutcomeList,
+  analysesToExclude = NULL,
+  combineDataFetchAcrossOutcomes = FALSE,
+  sccsMultiThreadingSettings = createSccsMultiThreadingSettings()
 )
 }
 \arguments{
@@ -39,11 +34,9 @@ instance.  Requires read permissions to this database. On
 SQL Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.}
 
-\item{oracleTempSchema}{DEPRECATED: use \code{tempEmulationSchema} instead.}
-
-\item{tempEmulationSchema}{Some database platforms like Oracle and Impala do not truly support temp tables. To
-emulate temp tables, provide a schema with write privileges where temp tables
-can be created.}
+\item{tempEmulationSchema}{Some database platforms like Oracle and Impala do not truly support
+temp tables. To emulate temp tables, provide a schema with write
+privileges where temp tables can be created.}
 
 \item{exposureDatabaseSchema}{The name of the database schema that is the location where
 the exposure data used to define the exposure cohorts is
@@ -57,15 +50,10 @@ has format of COHORT table: cohort_concept_id, SUBJECT_ID,
 COHORT_START_DATE, COHORT_END_DATE.}
 
 \item{outcomeDatabaseSchema}{The name of the database schema that is the location where
-the data used to define the outcome cohorts is available. If
-\code{outcomeTable = "CONDITION_ERA"}, \code{outcomeDatabaseSchema} is not
-used.  Requires read permissions to this database.}
+the data used to define the outcome cohorts is available. Requires
+read permissions to this database.}
 
-\item{outcomeTable}{The table name that contains the outcome cohorts.  If
-outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
-then expectation is outcomeTable has format of COHORT table:
-COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
-COHORT_END_DATE.}
+\item{outcomeTable}{The table name that contains the outcome cohorts.}
 
 \item{customCovariateDatabaseSchema}{The name of the database schema that is the location where
 the custom covariate data is available.}
@@ -79,41 +67,27 @@ where the nesting cohort is defined.}
 \item{nestingCohortTable}{Name of the table holding the nesting cohort. This table
 should have the same structure as the cohort table.}
 
-\item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and
-"5".}
+\item{cdmVersion}{Define the OMOP CDM version used: currently supports "5".}
 
 \item{outputFolder}{Name of the folder where all the outputs will written to.}
 
 \item{sccsAnalysisList}{A list of objects of \code{sccsAnalysis} as created
 using the \code{\link[=createSccsAnalysis]{createSccsAnalysis()}} function.}
 
-\item{exposureOutcomeList}{A list of objects of type \code{exposureOutcome} as created
-using the \code{\link[=createExposureOutcome]{createExposureOutcome()}} function.}
+\item{exposuresOutcomeList}{A list of objects of type \code{exposuresOutcome} as created
+using the \code{\link[=createExposuresOutcome]{createExposuresOutcome()}} function.}
+
+\item{analysesToExclude}{Analyses to exclude. See the Analyses to Exclude section for
+details.}
 
 \item{combineDataFetchAcrossOutcomes}{Should fetching data from the database be done one outcome
 at a time, or for all outcomes in one fetch? Combining
 fetches will be more efficient if there is large overlap in
 the subjects that have the different outcomes.}
 
-\item{getDbSccsDataThreads}{The number of parallel threads to use for building the
-\code{SccsData} objects.}
-
-\item{createStudyPopulationThreads}{The number of parallel threads to use for building the
-\code{studyPopulation} objects.}
-
-\item{createSccsIntervalDataThreads}{The number of parallel threads to use for building the
-\code{SccsIntervalData} objects.}
-
-\item{fitSccsModelThreads}{The number of parallel threads to use for fitting the
-models.}
-
-\item{cvThreads}{The number of parallel threads to use for the cross-
-validation when estimating the hyperparameter for the
-outcome model. Note that the total number of CV threads at
-one time could be \code{fitSccsModelThreads * cvThreads}.}
-
-\item{analysesToExclude}{Analyses to exclude. See the Analyses to Exclude section for
-details.}
+\item{sccsMultiThreadingSettings}{An object of type \code{SccsMultiThreadingSettings} as created using
+the \code{\link[=createSccsMultiThreadingSettings]{createSccsMultiThreadingSettings()}} or
+\code{\link[=createDefaultSccsMultiThreadingSettings]{createDefaultSccsMultiThreadingSettings()}} functions.}
 }
 \value{
 A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
@@ -123,17 +97,14 @@ outcome model files can be found, relative to the \code{outputFolder}.
 Run a list of analyses
 }
 \details{
-Run a list of analyses for the drug-comparator-outcomes of interest. This function will run all
+Run a list of analyses for the exposures-outcomes of interest. This function will run all
 specified analyses against all hypotheses of interest, meaning that the total number of outcome
-models is \code{length(cmAnalysisList) * length(drugComparatorOutcomesList)} (if all analyses specify an
-outcome model should be fitted). When you provide several analyses it will determine whether any of
-the analyses have anything in common, and will take advantage of this fact. For example, if we
-specify several analyses that only differ in the way the outcome model is fitted, then this
-function will extract the data and fit the propensity model only once, and re-use this in all the
-analysis.
+models is \code{length(sccsAnalysisList) * length(exposuresOutcomeList)} When you provide several analyses
+it will determine whether any of the analyses have anything in common, and will take advantage of
+this fact.
 \subsection{Analyses to Exclude}{
 
-Normally, \code{runSccsAnalyses} will run all combinations of exposure-outcome-analyses settings.
+Normally, \code{runSccsAnalyses} will run all combinations of exposures-outcome-analyses settings.
 However, sometimes we may not need all those combinations. Using the \code{analysesToExclude} argument,
 we can remove certain items from the full matrix. This argument should be a data frame with at least
 one of the following columns:

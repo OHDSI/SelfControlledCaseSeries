@@ -88,9 +88,10 @@ createStudyPopulation <- function(sccsData,
 
   if (naivePeriod != 0) {
     cases <- cases %>%
-      mutate(startAgeInDays = case_when(
-        naivePeriod > .data$censoredDays ~ .data$startAgeInDays + naivePeriod - .data$censoredDays,
-        TRUE ~ .data$startAgeInDays
+      mutate(startAgeInDays = ifelse(
+        naivePeriod > .data$censoredDays,
+        .data$startAgeInDays + naivePeriod - .data$censoredDays,
+        .data$startAgeInDays
       )) %>%
       filter(.data$endAgeInDays > .data$startAgeInDays)
 
