@@ -11,12 +11,7 @@ test_that("Running multiple analyses against Eunomia", {
   outputFolder <- tempfile(pattern = "sccsOutput")
   on.exit(unlink(outputFolder, recursive = TRUE))
 
-  # Adding empty exposure and outcome cohorts:
   exposuresOutcomeList <- list(
-    createExposuresOutcome(
-      exposures = list(createExposure(exposureId = 1)),
-      outcomeId = 3
-    ),
     createExposuresOutcome(
       exposures = list(createExposure(exposureId = 1),
                        createExposure(exposureId = 2, exposureIdRef = "exposureId2")),
@@ -51,6 +46,14 @@ test_that("Running multiple analyses against Eunomia", {
     endAnchor = "era start"
   )
 
+  covarExposureOfInt2 <- createEraCovariateSettings(
+    label = "Exposure of interest 2",
+    includeEraIds = "exposureId2",
+    start = 0,
+    end = 7,
+    endAnchor = "era start"
+  )
+
   # All outcomes occur at almost the same age, causing issues. Disable for now:
   # ageSettings <- createAgeCovariateSettings(ageKnots = 5)
   #
@@ -58,15 +61,17 @@ test_that("Running multiple analyses against Eunomia", {
 
   covarPreExp <- createEraCovariateSettings(
     label = "Pre-exposure",
-    includeEraIds = "exposureId",
+    includeEraIds = c("exposureId", "exposureId2"),
     start = -30,
     end = -1,
-    endAnchor = "era start"
+    endAnchor = "era start",
+    exposureOfInterest = FALSE
   )
 
   createSccsIntervalDataArgs <- createCreateSccsIntervalDataArgs(
     eraCovariateSettings = list(
       covarExposureOfInt,
+      covarExposureOfInt2,
       covarPreExp
     )
   )
@@ -106,8 +111,10 @@ test_that("Running multiple analyses against Eunomia", {
 
   analysesToExclude <- data.frame(
     exposureId = c(1),
-    outcomeId = c(3)
+    outcomeId = c(4)
   )
+
+  # Expect warning because outcome 999 does not exist in data:
   expect_warning(
     {
       result <- runSccsAnalyses(
@@ -124,11 +131,22 @@ test_that("Running multiple analyses against Eunomia", {
       )
     }, "No cases left in study population"
   )
-  expect_equal(sum(result$exposureId == 1 & result$outcomeId == 3), 0)
+  ref <- getFileReference(outputFolder)
+  expect_equal(nrow(ref), 6)
 
-  analysisSum <- summarizeSccsAnalyses(result, outputFolder)
+  # analysesToExclude was enforced:
+  expect_false(any(ref$exposureId == 1 & ref$outcomeId == 4))
 
-  expect_equal(nrow(analysisSum), 4)
+  analysisSum <- getResultsSummary(outputFolder)
+
+  expect_equal(nrow(analysisSum), 9)
+
+  # Assert appropriate designs:
+  sccsIntervalData <- loadSccsIntervalData(file.path(outputFolder, pull(filter(ref, analysisId == 1), sccsIntervalDataFile)[1]))
+  expect_equal(attr(sccsIntervalData, "metaData")$design, "SCCS")
+
+  sccsIntervalData <- loadSccsIntervalData(file.path(outputFolder, pull(filter(ref, analysisId == 2), sccsIntervalDataFile)[1]))
+  expect_equal(attr(sccsIntervalData, "metaData")$design, "SCRI")
 
   # unlink(outputFolder, recursive = TRUE)
 })

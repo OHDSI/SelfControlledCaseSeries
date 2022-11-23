@@ -38,8 +38,7 @@ setClass("SccsIntervalData", contains = "Andromeda")
 #' @description
 #' Saves an object of type [SccsIntervalData] to a file.
 #'
-#' @param SccsIntervalData   An object of type [SccsIntervalData] as generated using
-#'                           [createSccsIntervalData()].
+#' @template SccsIntervalData
 #' @param file               The name of the file where the data will be written. If the file already
 #'                           exists it will be overwritten.
 #'
@@ -47,18 +46,13 @@ setClass("SccsIntervalData", contains = "Andromeda")
 #' Returns no output.
 #'
 #' @export
-saveSccsIntervalData <- function(SccsIntervalData, file) {
-  if (missing(SccsIntervalData)) {
-    stop("Must specify SccsIntervalData")
-  }
-  if (missing(file)) {
-    stop("Must specify file")
-  }
-  if (!inherits(SccsIntervalData, "SccsIntervalData")) {
-    stop("Data not of class SccsIntervalData")
-  }
+saveSccsIntervalData <- function(sccsIntervalData, file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsIntervalData, "SccsIntervalData", add = errorMessages)
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
 
-  Andromeda::saveAndromeda(SccsIntervalData, file)
+  Andromeda::saveAndromeda(sccsIntervalData, file)
 }
 
 #' Load the cohort method data from a file
@@ -73,6 +67,10 @@ saveSccsIntervalData <- function(SccsIntervalData, file) {
 #'
 #' @export
 loadSccsIntervalData <- function(file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   if (!file.exists(file)) {
     stop("Cannot find file ", file)
   }

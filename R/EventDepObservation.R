@@ -191,7 +191,7 @@ fitModelsAndPickBest <- function(data) {
     )
     return(result)
   }
-  ParallelLogger::logInfo("Fitting censoring models")
+  message("Fitting censoring models")
   cluster <- ParallelLogger::makeCluster(4)
   results <- ParallelLogger::clusterApply(cluster, 1:4, fitCensorModel, data)
   ParallelLogger::stopCluster(cluster)
@@ -213,13 +213,13 @@ fitModelsAndPickBest <- function(data) {
   minAic <- min(aics)
   best <- results[[which(aics == minAic)[1]]]
   if (best$model == 1) {
-    ParallelLogger::logInfo("Best fit using exponential - Weibull (Age) mixture Model")
+    message("Best fit using exponential - Weibull (Age) mixture Model")
   } else if (best$model == 2) {
-    ParallelLogger::logInfo("Best fit using exponential - Weibull (Interval) mixture Model")
+    message("Best fit using exponential - Weibull (Interval) mixture Model")
   } else if (best$model == 3) {
-    ParallelLogger::logInfo("Best fit using exponential - Gamma (Age) mixture Model")
+    message("Best fit using exponential - Gamma (Age) mixture Model")
   } else {
-    ParallelLogger::logInfo("Best fit using exponential - Gamma (Interval) mixture Model")
+    message("Best fit using exponential - Gamma (Interval) mixture Model")
   }
   return(list(p = best$p, model = best$model, aic = minAic))
 }

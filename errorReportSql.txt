@@ -1,0 +1,44 @@
+DBMS:
+sqlite
+
+Error:
+no such table: main.drug_era
+
+SQL:
+INSERT INTO main.cohort (
+	cohort_definition_id, 
+	subject_id, 
+	cohort_start_date, 
+	cohort_end_date
+	)
+SELECT CAST(1 AS INT) AS cohort_definition_id,
+	person_id,
+	drug_era_start_date,
+	drug_era_end_date
+FROM main.drug_era
+WHERE drug_concept_id = 1118084
+
+R version:
+R version 4.2.2 (2022-10-31 ucrt)
+
+Platform:
+x86_64-w64-mingw32
+
+Attached base packages:
+- stats
+- graphics
+- grDevices
+- utils
+- datasets
+- methods
+- base
+
+Other attached packages:
+- Eunomia (1.0.2)
+- testthat (3.1.5)
+- SelfControlledCaseSeries (4.0.0)
+- survival (3.4-0)
+- Andromeda (0.6.1)
+- dplyr (1.0.10)
+- DatabaseConnector (5.2.0)
+- Cyclops (3.2.1)

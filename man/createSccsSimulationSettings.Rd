@@ -57,8 +57,8 @@ createSccsSimulationSettings(
 \item{sdPrescriptionDurations}{The standard deviation of the duration of a prescription, per
 drug.}
 
-\item{simulationRiskWindows}{One or a list of objects of type \code{simulationRiskWindow} as
-created using the \code{\link{createSimulationRiskWindow}}
+\item{simulationRiskWindows}{One or a list of objects of type \code{SimulationRiskWindow} as
+created using the \code{\link[=createSimulationRiskWindow]{createSimulationRiskWindow()}} function.
 function.}
 
 \item{includeAgeEffect}{Include an age effect for the outcome?}
@@ -76,7 +76,7 @@ function.}
 \item{outcomeId}{The ID to be used for the outcome.}
 }
 \value{
-An object of type \code{sccsSimulationSettings}.
+An object of type \code{SccsSimulationSettings}.
 }
 \description{
 Create SCCS simulation settings

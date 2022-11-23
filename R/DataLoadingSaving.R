@@ -50,7 +50,6 @@
 #'                                        instance.  Requires read permissions to this database. On SQL
 #'                                        Server, this should specify both the database and the
 #'                                        schema, so for example 'cdm_instance.dbo'.
-#' @param oracleTempSchema    DEPRECATED: use `tempEmulationSchema` instead.
 #' @param tempEmulationSchema Some database platforms like Oracle and Impala do not truly support temp tables. To
 #'                            emulate temp tables, provide a schema with write privileges where temp tables
 #'                            can be created.
@@ -116,7 +115,6 @@
 #' @export
 getDbSccsData <- function(connectionDetails,
                           cdmDatabaseSchema,
-                          oracleTempSchema = NULL,
                           tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
                           outcomeDatabaseSchema = cdmDatabaseSchema,
                           outcomeTable = "condition_era",
@@ -137,6 +135,30 @@ getDbSccsData <- function(connectionDetails,
                           studyEndDate = "",
                           cdmVersion = "5",
                           maxCasesPerOutcome = 0) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
+  checkmate::assertCharacter(cdmDatabaseSchema, len = 1, add = errorMessages)
+  checkmate::assertCharacter(tempEmulationSchema, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(outcomeDatabaseSchema, len = 1, add = errorMessages)
+  checkmate::assertCharacter(outcomeTable, len = 1, add = errorMessages)
+  checkmate::assertIntegerish(outcomeIds, add = errorMessages)
+  checkmate::assertCharacter(exposureDatabaseSchema, len = 1, add = errorMessages)
+  checkmate::assertCharacter(exposureTable, len = 1, add = errorMessages)
+  checkmate::assertIntegerish(exposureIds, add = errorMessages)
+  checkmate::assertLogical(useCustomCovariates, len = 1, add = errorMessages)
+  checkmate::assertCharacter(customCovariateDatabaseSchema, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(customCovariateTable, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertIntegerish(customCovariateIds, null.ok = TRUE, add = errorMessages)
+  checkmate::assertLogical(useNestingCohort, len = 1, add = errorMessages)
+  checkmate::assertCharacter(nestingCohortDatabaseSchema, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(nestingCohortTable, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertIntegerish(nestingCohortId, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertInt(deleteCovariatesSmallCount, lower = 0, add = errorMessages)
+  checkmate::assertCharacter(studyStartDate, len = 1, add = errorMessages)
+  checkmate::assertCharacter(studyEndDate, len = 1, add = errorMessages)
+  checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
+  checkmate::assertInt(maxCasesPerOutcome, lower = 0, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (studyStartDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
     stop("Study start date must have format YYYYMMDD")
   }
@@ -146,16 +168,7 @@ getDbSccsData <- function(connectionDetails,
   if (cdmVersion == "4") {
     stop("CDM version 4 is no longer supported")
   }
-  if (!is.null(exposureIds) && length(exposureIds) > 0 && !is.numeric(exposureIds)) {
-    stop("exposureIds must be a (vector of) numeric")
-  }
-  if (useCustomCovariates && !is.null(customCovariateIds) && length(customCovariateIds) > 0 && !is.numeric(customCovariateIds)) {
-    stop("customCovariateIds must be a (vector of) numeric")
-  }
-  if (!is.null(oracleTempSchema) && oracleTempSchema != "") {
-    warning("The 'oracleTempSchema' argument is deprecated. Use 'tempEmulationSchema' instead.")
-    tempEmulationSchema <- oracleTempSchema
-  }
+
   start <- Sys.time()
   conn <- DatabaseConnector::connect(connectionDetails)
   on.exit(DatabaseConnector::disconnect(conn))
@@ -188,7 +201,7 @@ getDbSccsData <- function(connectionDetails,
     )
   }
 
-  ParallelLogger::logInfo("Selecting outcomes")
+  message("Selecting outcomes")
   sql <- SqlRender::loadRenderTranslateSql("SelectOutcomes.sql",
     packageName = "SelfControlledCaseSeries",
     dbms = connectionDetails$dbms,
@@ -206,7 +219,7 @@ getDbSccsData <- function(connectionDetails,
   )
   DatabaseConnector::executeSql(conn, sql)
 
-  ParallelLogger::logInfo("Creating cases")
+  message("Creating cases")
   sql <- SqlRender::loadRenderTranslateSql("CreateCases.sql",
     packageName = "SelfControlledCaseSeries",
     dbms = connectionDetails$dbms,
@@ -230,7 +243,7 @@ getDbSccsData <- function(connectionDetails,
     tempEmulationSchema = tempEmulationSchema
   )
 
-  ParallelLogger::logInfo("Counting outcomes")
+  message("Counting outcomes")
   sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
     packageName = "SelfControlledCaseSeries",
     dbms = connectionDetails$dbms,
@@ -245,13 +258,12 @@ getDbSccsData <- function(connectionDetails,
   sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, tempEmulationSchema = tempEmulationSchema)
   outcomeCounts <- as_tibble(DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE))
 
-
   sampledCases <- FALSE
   if (maxCasesPerOutcome != 0) {
     for (outcomeId in unique(outcomeCounts$outcomeId)) {
       count <- min(outcomeCounts$outcomeObsPeriods[outcomeCounts$outcomeId == outcomeId])
       if (count > maxCasesPerOutcome) {
-        ParallelLogger::logInfo(paste0("Downsampling cases for outcome ID ", outcomeId, " from ", count, " to ", maxCasesPerOutcome))
+        message(paste0("Downsampling cases for outcome ID ", outcomeId, " from ", count, " to ", maxCasesPerOutcome))
         sampledCases <- TRUE
       }
     }
@@ -266,7 +278,7 @@ getDbSccsData <- function(connectionDetails,
     }
   }
 
-  ParallelLogger::logInfo("Creating eras")
+  message("Creating eras")
   sql <- SqlRender::loadRenderTranslateSql("CreateEras.sql",
     packageName = "SelfControlledCaseSeries",
     dbms = connectionDetails$dbms,
@@ -290,7 +302,7 @@ getDbSccsData <- function(connectionDetails,
   )
   DatabaseConnector::executeSql(conn, sql)
 
-  ParallelLogger::logInfo("Fetching data from server")
+  message("Fetching data from server")
   sccsData <- Andromeda::andromeda()
   sql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
     packageName = "SelfControlledCaseSeries",
@@ -388,7 +400,6 @@ getDbSccsData <- function(connectionDetails,
   attr(class(sccsData), "package") <- "SelfControlledCaseSeries"
 
   delta <- Sys.time() - start
-  ParallelLogger::logInfo("Getting SCCS data from server took ", signif(delta, 3), " ", attr(delta, "units"))
-
+  message("Getting SCCS data from server took ", signif(delta, 3), " ", attr(delta, "units"))
   return(sccsData)
 }

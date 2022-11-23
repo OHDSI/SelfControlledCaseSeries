@@ -37,8 +37,7 @@ setClass("SccsData", contains = "Andromeda")
 #' @description
 #' Saves an object of type [SccsData] to a file.
 #'
-#' @param SccsData   An object of type [SccsData] as generated using
-#'                           [getDbSccsData()].
+#' @template SccsData
 #' @param file               The name of the file where the data will be written. If the file already
 #'                           exists it will be overwritten.
 #'
@@ -46,18 +45,13 @@ setClass("SccsData", contains = "Andromeda")
 #' Returns no output.
 #'
 #' @export
-saveSccsData <- function(SccsData, file) {
-  if (missing(SccsData)) {
-    stop("Must specify SccsData")
-  }
-  if (missing(file)) {
-    stop("Must specify file")
-  }
-  if (!inherits(SccsData, "SccsData")) {
-    stop("Data not of class SccsData")
-  }
+saveSccsData <- function(sccsData, file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
 
-  Andromeda::saveAndromeda(SccsData, file)
+  Andromeda::saveAndromeda(sccsData, file)
 }
 
 #' Load the cohort method data from a file
@@ -72,6 +66,9 @@ saveSccsData <- function(SccsData, file) {
 #'
 #' @export
 loadSccsData <- function(file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (!file.exists(file)) {
     stop("Cannot find file ", file)
   }

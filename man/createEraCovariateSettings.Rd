@@ -17,7 +17,7 @@ createEraCovariateSettings(
   splitPoints = c(),
   allowRegularization = FALSE,
   profileLikelihood = FALSE,
-  exposureOfInterest = FALSE
+  exposureOfInterest = TRUE
 )
 }
 \arguments{

@@ -43,8 +43,8 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
     calendarTime[calendarTime < calendarTimeKnots[1]] <- calendarTimeKnots[1]
     calendarTime[calendarTime > calendarTimeKnots[length(calendarTimeKnots)]] <- calendarTimeKnots[length(calendarTimeKnots)]
     calendarTimeDesignMatrix <- splines::bs(calendarTime,
-                                            knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-                                            Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
     )
     logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
     logRr <- logRr - mean(logRr)
@@ -65,11 +65,12 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
 
     data <- data %>%
       mutate(monthOfYear = .data$month %% 12 + 1) %>%
-      inner_join(tibble(
-        monthOfYear = season,
-        seasonRr = exp(logRr)
-      ),
-      by = "monthOfYear"
+      inner_join(
+        tibble(
+          monthOfYear = season,
+          seasonRr = exp(logRr)
+        ),
+        by = "monthOfYear"
       )
 
     data <- data %>%
@@ -102,6 +103,13 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
 #'
 #' @export
 computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.25, alpha = 0.05) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
+  checkmate::assertNumeric(maxRatio, lower = 1, len = 1, add = errorMessages)
+  checkmate::assertNumeric(alpha, lower = 0, upper = 1, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   data <- computeOutcomeRatePerMonth(studyPopulation)
   if (is.null(sccsModel)) {
     data <- data %>%
@@ -154,6 +162,11 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
 #'
 #' @export
 computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertInt(exposureEraId, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
 
   if (is.null(exposureEraId)) {
     exposureEraId <- attr(sccsData, "metaData")$exposureIds
@@ -258,6 +271,3 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   names(p) <- NULL
   return(p)
 }
-
-
-

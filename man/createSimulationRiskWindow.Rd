@@ -27,7 +27,7 @@ window, or when splitPoints have been defined a vector of relative
 risks, one for each sub-window.}
 }
 \value{
-An object of type \code{simulationRiskWindow}.
+An object of type \code{SimulationRiskWindow}.
 }
 \description{
 Create a risk window definition for simulation

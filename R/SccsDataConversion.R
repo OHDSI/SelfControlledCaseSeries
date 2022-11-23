@@ -81,15 +81,6 @@ createSccsIntervalData <- function(studyPopulation,
   }
 
   start <- Sys.time()
-  if (nrow(studyPopulation$outcomes) == 0) {
-    sccsIntervalData <- createEmptySccsIntervalData()
-    metaData <- studyPopulation$metaData
-    metaData$error <- "Error: No cases left"
-    attr(sccsIntervalData, "metaData") <- metaData
-    class(sccsIntervalData) <- "SccsIntervalData"
-    attr(class(sccsIntervalData), "package") <- "SelfControlledCaseSeries"
-    return(sccsIntervalData)
-  }
 
   timeCovariateCases <- numeric(0)
   if (!is.null(ageCovariateSettings) ||
@@ -120,8 +111,18 @@ createSccsIntervalData <- function(studyPopulation,
   settings <- addEraCovariateSettings(settings, eraCovariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
   metaData <- append(studyPopulation$metaData, settings$metaData)
+  metaData$design <- "SCCS"
 
-  ParallelLogger::logInfo("Converting person data to SCCS intervals. This might take a while.")
+  if (nrow(studyPopulation$outcomes) == 0) {
+    sccsIntervalData <- createEmptySccsIntervalData()
+    metaData$error <- "Error: No cases left"
+    attr(sccsIntervalData, "metaData") <- metaData
+    class(sccsIntervalData) <- "SccsIntervalData"
+    attr(class(sccsIntervalData), "package") <- "SelfControlledCaseSeries"
+    return(sccsIntervalData)
+  }
+
+  message("Converting person data to SCCS intervals. This might take a while.")
   # Ensure all sorted bv caseId:
   cases <- studyPopulation$cases[order(studyPopulation$cases$caseId), ]
   outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$caseId), ]
@@ -169,7 +170,7 @@ createSccsIntervalData <- function(studyPopulation,
   attr(class(data), "package") <- "SelfControlledCaseSeries"
 
   delta <- Sys.time() - start
-  ParallelLogger::logInfo(paste("Generating SCCS interval data took", signif(delta, 3), attr(delta, "units")))
+  message(paste("Generating SCCS interval data took", signif(delta, 3), attr(delta, "units")))
   return(data)
 }
 
@@ -598,7 +599,7 @@ cyclicSplineDesign <- function(x, knots, ord = 4) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertNumeric(x, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(knots, min.len = 1, add = errorMessages)
-  checkmate::assertInt(ord, add = errorMessages)
+  checkmate::assertInt(ord, lower = 2, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   nk <- length(knots)
   if (ord < 2) {

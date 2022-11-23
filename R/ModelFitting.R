@@ -1,5 +1,3 @@
-# @file ModelFitting.R
-#
 # Copyright 2022 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
@@ -60,6 +58,13 @@ fitSccsModel <- function(sccsIntervalData,
                          ),
                          profileGrid = NULL,
                          profileBounds = c(log(0.1), log(10))) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsIntervalData, "SccsIntervalData", null.ok = TRUE, add = errorMessages)
+  checkmate::assertClass(prior, "cyclopsPrior", add = errorMessages)
+  checkmate::assertClass(control, "cyclopsControl", add = errorMessages)
+  checkmate::assertNumeric(profileGrid, null.ok = TRUE, add = errorMessages)
+  checkmate::assertNumeric(profileBounds, null.ok = TRUE, len = 2, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (!is.null(profileGrid) && !is.null(profileBounds)) {
     stop("Specify either profileGrid or profileBounds")
   }
@@ -227,7 +232,7 @@ fitSccsModel <- function(sccsIntervalData,
   )
   class(result) <- "SccsModel"
   delta <- Sys.time() - start
-  ParallelLogger::logInfo(paste("Fitting the model took", signif(delta, 3), attr(delta, "units")))
+  message(paste("Fitting the model took", signif(delta, 3), attr(delta, "units")))
   ParallelLogger::logDebug("Model fitting status is: ", status)
   return(result)
 }
@@ -279,21 +284,19 @@ print.SccsModel <- function(x, ...) {
 
 #' Output the full model
 #'
-#' @param sccsModel   An object of type \code{sccsModel} as created using the
-#'                    \code{\link{fitSccsModel}} function.
+#' @template SccsModel
 #'
 #' @return
-#' A data frame with the coefficients and confidence intervals (when not-regularized) for all
+#' A `tibble` with the coefficients and confidence intervals (when not-regularized) for all
 #' covariates in the model.
 #'
 #' @export
 getModel <- function(sccsModel) {
-  if (class(sccsModel) != "SccsModel") {
-    stop("the sccsModel argument must be of type 'sccsModel'.")
-  }
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsModel, "SccsModel", add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
 
   d <- sccsModel$estimates
-  # d$seLogRr <- (d$logUb95 - d$logRr)/qnorm(0.975)
   output <- tibble(
     d$covariateName,
     d$covariateId,
@@ -323,51 +326,51 @@ getModel <- function(sccsModel) {
 
 #' Does the model contain an age effect?
 #'
-#' @param sccsModel   An object of type \code{sccsModel} as created using the
-#'                    \code{\link{fitSccsModel}} function.
+#' @template SccsModel
 #'
 #' @return
 #' TRUE if the model contains an age effect, otherwise FALSE.
 #'
 #' @export
 hasAgeEffect <- function(sccsModel) {
-  if (class(sccsModel) != "SccsModel") {
-    stop("the sccsModel argument must be of type 'sccsModel'.")
-  }
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsModel, "SccsModel", add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   estimates <- sccsModel$estimates
   return(any(estimates$covariateId >= 100 & estimates$covariateId < 200))
 }
 
 #' Does the model contain an age effect?
 #'
-#' @param sccsModel   An object of type \code{sccsModel} as created using the
-#'                    \code{\link{fitSccsModel}} function.
+#' @template SccsModel
 #'
 #' @return
 #' TRUE if the model contains an age effect, otherwise FALSE.
 #'
 #' @export
 hasSeasonality <- function(sccsModel) {
-  if (class(sccsModel) != "SccsModel") {
-    stop("the sccsModel argument must be of type 'sccsModel'.")
-  }
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsModel, "SccsModel", add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   estimates <- sccsModel$estimates
   return(any(estimates$covariateId >= 200 & estimates$covariateId < 300))
 }
 
 #' Does the model contain an age effect?
 #'
-#' @param sccsModel   An object of type \code{sccsModel} as created using the
-#'                    \code{\link{fitSccsModel}} function.
+#' @template SccsModel
 #'
 #' @return
 #' TRUE if the model contains an age effect, otherwise FALSE.
 #'
 #' @export
 hasCalendarTimeEffect <- function(sccsModel) {
-  if (class(sccsModel) != "SccsModel") {
-    stop("the sccsModel argument must be of type 'sccsModel'.")
-  }
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsModel, "SccsModel", add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   estimates <- sccsModel$estimates
   return(any(estimates$covariateId >= 300 & estimates$covariateId < 400))
 }

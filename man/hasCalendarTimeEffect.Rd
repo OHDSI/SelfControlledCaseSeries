@@ -7,8 +7,8 @@
 hasCalendarTimeEffect(sccsModel)
 }
 \arguments{
-\item{sccsModel}{An object of type \code{sccsModel} as created using the
-\code{\link{fitSccsModel}} function.}
+\item{sccsModel}{An object of type \code{SccsModel} as created using the
+\code{\link[=fitSccsModel]{fitSccsModel()}} function.}
 }
 \value{
 TRUE if the model contains an age effect, otherwise FALSE.

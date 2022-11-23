@@ -35,6 +35,13 @@ plotAgeSpans <- function(studyPopulation,
                          maxPersons = 10000,
                          title = NULL,
                          fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertInt(maxPersons, lower = 1, add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   cases <- studyPopulation$cases %>%
     transmute(startAge = .data$ageInDays, endAge = .data$ageInDays + .data$endDay) %>%
     arrange(.data$startAge, .data$endAge) %>%
@@ -107,6 +114,12 @@ plotAgeSpans <- function(studyPopulation,
 plotEventObservationDependence <- function(studyPopulation,
                                            title = NULL,
                                            fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   outcomes <- studyPopulation$outcomes %>%
     group_by(.data$caseId) %>%
     summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
@@ -180,6 +193,15 @@ plotExposureCentered <- function(studyPopulation,
                                  highlightExposedEvents = TRUE,
                                  title = NULL,
                                  fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
+  checkmate::assertInt(exposureEraId, null.ok = TRUE, add = errorMessages)
+  checkmate::assertLogical(highlightExposedEvents, len = 1, add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   if (is.null(exposureEraId)) {
     exposureEraId <- attr(sccsData, "metaData")$exposureIds
     if (length(exposureEraId) != 1) {
@@ -334,6 +356,13 @@ plotEventToCalendarTime <- function(studyPopulation,
                                     sccsModel = NULL,
                                     title = NULL,
                                     fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertClass(sccsModel, "SccsModel", add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   data <- computeOutcomeRatePerMonth(studyPopulation)
   plotData <- bind_rows(
     select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$rate) %>%
@@ -404,6 +433,12 @@ plotAgeEffect <- function(sccsModel,
                           rrLim = c(0.1, 10),
                           title = NULL,
                           fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsModel, "SccsModel", add = errorMessages)
+  checkmate::assertNumeric(rrLim, len = 2, add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   if (!hasAgeEffect(sccsModel)) {
     stop("The model does not contain an age effect.")
   }
@@ -481,6 +516,13 @@ plotSeasonality <- function(sccsModel,
                             rrLim = c(0.1, 10),
                             title = NULL,
                             fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsModel, "SccsModel", add = errorMessages)
+  checkmate::assertNumeric(rrLim, len = 2, add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   if (!hasSeasonality(sccsModel)) {
     stop("The model does not contain seasonality.")
   }
@@ -553,6 +595,13 @@ plotCalendarTimeSpans <- function(studyPopulation,
                                   maxPersons = 10000,
                                   title = NULL,
                                   fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, add = errorMessages)
+  checkmate::assertInt(maxPersons, lower = 1, add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   cases <- studyPopulation$cases %>%
     mutate(endDate = .data$startDate + .data$endDay) %>%
     select(.data$startDate, .data$endDate) %>%
@@ -612,6 +661,13 @@ plotCalendarTimeEffect <- function(sccsModel,
                                    rrLim = c(0.1, 10),
                                    title = NULL,
                                    fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsModel, "SccsModel", add = errorMessages)
+  checkmate::assertNumeric(rrLim, len = 2, add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   if (!hasCalendarTimeEffect(sccsModel)) {
     stop("The model does not contain a calendar time effect.")
   }

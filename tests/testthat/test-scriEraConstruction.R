@@ -50,6 +50,8 @@ convertToScriDataWrapper <- function(cases,
     outcomeIds = 10,
     attrition = tibble(outcomeId = 10)
   )
+  class(data) <- "SccsData"
+  attr(class(data), "package") <- "SelfControlledCaseSeries"
 
   studyPop <- createStudyPopulation(
     sccsData = data,
@@ -193,3 +195,4 @@ test_that("Control intervals overlapping with a risk window", {
   expect_equal(result$covariates$stratumId, c(1))
   expect_equal(result$covariates$covariateId, c(1000))
 })
+

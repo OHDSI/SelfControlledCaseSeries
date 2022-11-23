@@ -1,3 +1,27 @@
+SelfControlledCaseSeries 4.0.0
+==============================
+
+Changes
+
+1. Removing deprecated `oracleTempSchema` argument from `getDbSccsData()` and `runSccsAnalyses()` functions.
+
+2. Adding checking of user input to all functions.
+
+3. Major overhaul of the multiple-analyses framework:
+
+    - Added the `createExposure()` function for creating objects of type `exposure. This argument allows specifying the true effect size of the exposure, if known (e.g. for negative controls).
+    
+    - The `createExposureOutcome()` function has been replaced with the `createExposuresOutcome()` function, which accepts multiple objects of type `exposure`.
+    
+    - The `createEraCovariateSettings()` function has a new argument `exposureOfInterest` which determines if its estimate will be reported in the result summary.
+    
+    - The results summary table has been pivoted so it now only has one estimate per row.
+    
+    - Dropping `exposureType` and `outcomeType` options from the `createSccsAnalysis ()` function, since the notion of analysis-specific exposure and outcome selection strategies can also be implemented using the `analysesToExclude` argument of `runSccsAnalyses()`.
+        
+    - Settings related to multi-threading are combined in to a single settings object that be created using the new `createSccsMultiThreadingSettings()` function.    
+
+
 SelfControlledCaseSeries 3.4.0
 ==============================
 

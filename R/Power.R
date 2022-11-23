@@ -47,9 +47,14 @@ computeMdrr <- function(sccsIntervalData,
                         power = 0.8,
                         twoSided = TRUE,
                         method = "SRL1") {
-  if (!method %in% c("proportion", "binomial", "SRL1", "SRL2", "ageEffects")) {
-    stop("Method must be either 'proportion', 'binomial', 'SRL1', 'SRL2', or 'ageEffects'.")
-  }
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsIntervalData, "SccsIntervalData", add = errorMessages)
+  checkmate::assertInt(exposureCovariateId, add = errorMessages)
+  checkmate::assertNumeric(alpha, lower = 0, upper = 1, len = 1, add = errorMessages)
+  checkmate::assertNumeric(power, lower = 0, upper = 1, len = 1, add = errorMessages)
+  checkmate::assertLogical(twoSided, len = 1, add = errorMessages)
+  checkmate::assertChoice(method, c("proportion", "binomial", "SRL1", "SRL2", "ageEffects"), add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
 
   # Check if there is anyone with the exposure at all;
   nExposed <- sccsIntervalData$covariates %>%

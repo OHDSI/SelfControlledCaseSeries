@@ -1,5 +1,3 @@
-# @file Simulation.R
-#
 # Copyright 2022 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
@@ -28,7 +26,7 @@
 #'                              risks, one for each sub-window.
 #'
 #' @return
-#' An object of type \code{simulationRiskWindow}.
+#' An object of type `SimulationRiskWindow`.
 #'
 #' @export
 createSimulationRiskWindow <- function(start = 0,
@@ -36,9 +34,14 @@ createSimulationRiskWindow <- function(start = 0,
                                        endAnchor = "era end",
                                        splitPoints = c(),
                                        relativeRisks = c(0)) {
-  if (!grepl("start$|end$", endAnchor, ignore.case = TRUE)) {
-    stop("endAnchor should have value 'era start' or 'era end'")
-  }
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertInt(start, add = errorMessages)
+  checkmate::assertInt(end, add = errorMessages)
+  checkmate::assert_choice(endAnchor, c("era start", "era end"), add = errorMessages)
+  checkmate::assertIntegerish(splitPoints, null.ok = TRUE, add = errorMessages)
+  checkmate::assertNumeric(relativeRisks, lower = 0, min.len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   isEnd <- function(anchor) {
     return(grepl("end$", anchor, ignore.case = TRUE))
   }
@@ -55,7 +58,7 @@ createSimulationRiskWindow <- function(start = 0,
       analysis[[name]] <- values[[name]]
     }
   }
-  class(analysis) <- "simulationRiskWindow"
+  class(analysis) <- "SimulationRiskWindow"
   return(analysis)
 }
 
@@ -72,14 +75,14 @@ createSimulationRiskWindow <- function(start = 0,
 #' @param maxBaselineRate             The maximum baseline rate (per day).
 #' @param minCalendarTime             The minimum date patients are to be observed.
 #' @param maxCalendarTime             The maximum date patients are to be observed.
-#' @param eraIds                The IDs for the covariates to be generated.
+#' @param eraIds                      The IDs for the covariates to be generated.
 #' @param patientUsages               The fraction of patients that use the drugs.
 #' @param usageRate                   The rate of prescriptions per person that uses the drug.
 #' @param meanPrescriptionDurations   The mean duration of a prescription, per drug.
 #' @param sdPrescriptionDurations     The standard deviation of the duration of a prescription, per
 #'                                    drug.
-#' @param simulationRiskWindows       One or a list of objects of type \code{simulationRiskWindow} as
-#'                                    created using the \code{\link{createSimulationRiskWindow}}
+#' @param simulationRiskWindows       One or a list of objects of type `SimulationRiskWindow` as
+#'                                    created using the [createSimulationRiskWindow()] function.
 #'                                    function.
 #' @param includeAgeEffect            Include an age effect for the outcome?
 #' @param ageKnots                    Number of knots in the age spline.
@@ -90,7 +93,7 @@ createSimulationRiskWindow <- function(start = 0,
 #' @param outcomeId                   The ID to be used for the outcome.
 #'
 #' @return
-#' An object of type \code{sccsSimulationSettings}.
+#' An object of type `SccsSimulationSettings`.
 #'
 #' @export
 createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
@@ -117,6 +120,33 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          includeCalendarTimeEffect = TRUE,
                                          calendarTimeKnots = 5,
                                          outcomeId = 10) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertNumeric(meanPatientTime, lower = 0, len = 1, add = errorMessages)
+  checkmate::assertNumeric(sdPatientTime, lower = 0, len = 1, add = errorMessages)
+  checkmate::assertInt(minAge, add = errorMessages)
+  checkmate::assertInt(maxAge, add = errorMessages)
+  checkmate::assertNumeric(minBaselineRate, lower = 0, len = 1, add = errorMessages)
+  checkmate::assertNumeric(maxBaselineRate, lower = 0, len = 1, add = errorMessages)
+  checkmate::assertDate(minCalendarTime, len = 1, add = errorMessages)
+  checkmate::assertDate(maxCalendarTime, len = 1, add = errorMessages)
+  checkmate::assertIntegerish(eraIds, min.len = 1, add = errorMessages)
+  checkmate::assertNumeric(patientUsages, lower = 0, min.len = 1, add = errorMessages)
+  checkmate::assertNumeric(usageRate, lower = 0, min.len = 1, add = errorMessages)
+  checkmate::assertNumeric(meanPrescriptionDurations, lower = 0, min.len = 1, add = errorMessages)
+  checkmate::assertNumeric(sdPrescriptionDurations, lower = 0, min.len = 1, add = errorMessages)
+  checkmate::assertList(simulationRiskWindows, min.len = 1, add = errorMessages)
+  for (i in 1:length(simulationRiskWindows)) {
+    checkmate::assertClass(simulationRiskWindows[[i]], "SimulationRiskWindow", add = errorMessages)
+  }
+  checkmate::assertLogical(includeAgeEffect, len = 1, add = errorMessages)
+  checkmate::assertInt(ageKnots, lower = 2, add = errorMessages)
+  checkmate::assertLogical(includeSeasonality, len = 1, add = errorMessages)
+  checkmate::assertInt(seasonKnots, lower = 2, add = errorMessages)
+  checkmate::assertLogical(includeCalendarTimeEffect, len = 1, add = errorMessages)
+  checkmate::assertInt(calendarTimeKnots, lower = 2, add = errorMessages)
+  checkmate::assertInt(outcomeId, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   # First: get default values:
   analysis <- list()
   for (name in names(formals(createSccsSimulationSettings))) {
@@ -129,7 +159,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
       analysis[[name]] <- values[[name]]
     }
   }
-  class(analysis) <- "sccsSimulationSettings"
+  class(analysis) <- "SccsSimulationSettings"
   return(analysis)
 }
 
@@ -299,14 +329,19 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
 #' Simulate SCCS data
 #'
 #' @param nCases     The number of cases to simulate.
-#' @param settings   An object of type \code{sccsSimulationSettings} as created using the \code{
-#'                   \link{createSccsSimulationSettings}}.
+#' @param settings   An object of type `SccsSimulationSettings` as created using the
+#'                   [createSccsSimulationSettings()] function.
 #'
 #' @return
-#' An object of type \code{sccsData}.
+#' An object of type `SccsData`.
 #'
 #' @export
 simulateSccsData <- function(nCases, settings) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertInt(nCases, lower = 1, add = errorMessages)
+  checkmate::assertClass(settings, "SccsSimulationSettings", add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
   if (settings$includeAgeEffect) {
     age <- seq(settings$minAge, settings$maxAge, length.out = settings$ageKnots)
     ageRisk <- runif(settings$ageKnots, -2, 2)

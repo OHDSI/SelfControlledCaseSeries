@@ -394,7 +394,7 @@ runSccsAnalyses <- function(connectionDetails,
 
   # Construction of objects -------------------------------------------------------------------------
   if (length(sccsDataObjectsToCreate) != 0) {
-    ParallelLogger::logInfo("*** Creating sccsData objects ***")
+    message("*** Creating sccsData objects ***")
     cluster <- ParallelLogger::makeCluster(min(length(sccsDataObjectsToCreate), sccsMultiThreadingSettings$getDbSccsDataThreads))
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
     dummy <- ParallelLogger::clusterApply(cluster, sccsDataObjectsToCreate, createSccsDataObject)
@@ -403,7 +403,7 @@ runSccsAnalyses <- function(connectionDetails,
 
 
   if (length(studyPopFilesToCreate) != 0) {
-    ParallelLogger::logInfo("*** Creating studyPopulation objects ***")
+    message("*** Creating studyPopulation objects ***")
     cluster <- ParallelLogger::makeCluster(min(length(studyPopFilesToCreate), sccsMultiThreadingSettings$createStudyPopulationThreads))
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
     dummy <- ParallelLogger::clusterApply(cluster, studyPopFilesToCreate, createStudyPopObject)
@@ -411,7 +411,7 @@ runSccsAnalyses <- function(connectionDetails,
   }
 
   if (length(sccsIntervalDataObjectsToCreate) != 0) {
-    ParallelLogger::logInfo("*** Creating sccsIntervalData objects ***")
+    message("*** Creating sccsIntervalData objects ***")
     cluster <- ParallelLogger::makeCluster(min(length(sccsIntervalDataObjectsToCreate), sccsMultiThreadingSettings$createSccsIntervalDataThreads))
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
     dummy <- ParallelLogger::clusterApply(cluster, sccsIntervalDataObjectsToCreate, createSccsIntervalDataObject)
@@ -419,11 +419,23 @@ runSccsAnalyses <- function(connectionDetails,
   }
 
   if (length(sccsModelObjectsToCreate) != 0) {
-    ParallelLogger::logInfo("*** Fitting models ***")
+    message("*** Fitting models ***")
     cluster <- ParallelLogger::makeCluster(min(length(sccsModelObjectsToCreate), sccsMultiThreadingSettings$fitSccsModelThreads))
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
     dummy <- ParallelLogger::clusterApply(cluster, sccsModelObjectsToCreate, createSccsModelObject)
     ParallelLogger::stopCluster(cluster)
+  }
+
+  mainFileName <- file.path(outputFolder, "resultsSummary.rds")
+  if (!file.exists(mainFileName)) {
+    message("*** Summarizing results ***")
+    summarizeResults(
+      referenceTable = referenceTable,
+      exposuresOutcomeList = exposuresOutcomeList,
+      outputFolder = outputFolder,
+      mainFileName = mainFileName,
+      calibrationThreads = sccsMultiThreadingSettings$calibrationThreads
+    )
   }
 
   invisible(referenceTable)
@@ -450,21 +462,28 @@ createReferenceTable <- function(sccsAnalysisList,
   }
   uniqueExposureIdRefs <- unique(unlist(sapply(exposuresOutcomeList, extractExposureIdRefs)))
 
-  convertExposuresOutcomeToTable <- function(exposuresOutcome) {
-    names <- c("outcomeId", uniqueExposureIdRefs, sprintf("%sTrueEffectSize", uniqueExposureIdRefs))
-    values <- c(exposuresOutcome$outcomeId, rep(-1, length(uniqueExposureIdRefs)), rep(NA, length(uniqueExposureIdRefs)))
+  convertExposuresOutcomeToTable <- function(i) {
+    exposuresOutcome <- exposuresOutcomeList[[i]]
+    # names <- c("exposuresOutcomeSetId", "outcomeId", uniqueExposureIdRefs, sprintf("%sTrueEffectSize", uniqueExposureIdRefs))
+    # values <- c(i, exposuresOutcome$outcomeId, rep(-1, length(uniqueExposureIdRefs)), rep(NA, length(uniqueExposureIdRefs)))
+    # for (exposure in exposuresOutcome$exposures) {
+    #   idx <- which(uniqueExposureIdRefs == exposure$exposureIdRef)
+    #   values[idx + 1] <- exposure$exposureId
+    #   if (!is.null(exposure$trueEffectSize)) {
+    #     values[idx + 1 + length(uniqueExposureIdRefs)] <- exposure$trueEffectSize
+    #   }
+    # }
+    names <- c("exposuresOutcomeSetId", "outcomeId", uniqueExposureIdRefs)
+    values <- c(i, exposuresOutcome$outcomeId, rep(-1, length(uniqueExposureIdRefs)))
     for (exposure in exposuresOutcome$exposures) {
       idx <- which(uniqueExposureIdRefs == exposure$exposureIdRef)
-      values[idx + 1] <- exposure$exposureId
-      if (!is.null(exposure$trueEffectSize)) {
-        values[idx + 1 + length(uniqueExposureIdRefs)] <- exposure$trueEffectSize
-      }
+      values[idx + 2] <- exposure$exposureId
     }
     names(values) <- names
     as_tibble(t(values)) %>%
       return()
   }
-  eos <- bind_rows(lapply(exposuresOutcomeList, convertExposuresOutcomeToTable))
+  eos <- bind_rows(lapply(seq_along(exposuresOutcomeList), convertExposuresOutcomeToTable))
 
   referenceTable <- eos %>%
     inner_join(analyses, by = character())
@@ -654,7 +673,7 @@ createReferenceTable <- function(sccsAnalysisList,
     referenceTable <- referenceTable %>%
       anti_join(analysesToExclude, by = matchingColumns)
     countAfter <- nrow(referenceTable)
-    ParallelLogger::logInfo(sprintf(
+    message(sprintf(
       "Removed %d of the %d exposure-outcome-analysis combinations as specified by the user.",
       countBefore - countAfter,
       countBefore
@@ -774,66 +793,171 @@ createSccsModelObject <- function(params) {
   }
 }
 
-#' Create a summary report of the analyses
-#'
-#' @param referenceTable   A tibble as created by the [runSccsAnalyses] function.
-#' @param outputFolder       Name of the folder where all the outputs have been written to.
-#'
-#' @return
-#' A tibble containing summary statistics for each exposure-outcome-analysis combination.
-#'
-#' @export
-summarizeSccsAnalyses <- function(referenceTable, outputFolder) {
-  columns <- c("analysisId", "exposureId", "outcomeId")
-  result <- referenceTable[, columns]
-  result$outcomeSubjects <- 0
-  result$outcomeEvents <- 0
-  result$outcomeObsPeriods <- 0
-
-  for (i in 1:nrow(referenceTable)) {
-    sccsModel <- readRDS(file.path(outputFolder, as.character(referenceTable$sccsModelFile[i])))
+summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder, mainFileName, calibrationThreads = 1) {
+  rows <- list()
+  # i = 1
+  pb <- txtProgressBar(style = 3)
+  for (i in seq_len(nrow(referenceTable))) {
+    refRow <- referenceTable[i, ]
+    sccsModel <- readRDS(file.path(outputFolder, as.character(refRow$sccsModelFile)))
     attrition <- as.data.frame(sccsModel$metaData$attrition)
     attrition <- attrition[nrow(attrition), ]
-    result$outcomeSubjects[i] <- attrition$outcomeSubjects
-    result$outcomeEvents[i] <- attrition$outcomeEvents
-    result$outcomeObsPeriods[i] <- attrition$outcomeObsPeriods
-    estimates <- sccsModel$estimates[sccsModel$estimates$originalEraId == referenceTable$exposureId[i], ]
-    if (!is.null(estimates) && nrow(estimates) != 0) {
-      for (j in 1:nrow(estimates)) {
-        estimatesToInsert <- c(
-          rr = exp(estimates$logRr[j]),
-          ci95lb = exp(estimates$logLb95[j]),
-          ci95ub = exp(estimates$logUb95[j]),
-          logRr = estimates$logRr[j],
-          seLogRr = estimates$seLogRr[j],
-          llr = estimates$llr
-        )
-        if (grepl(".*, day -?[0-9]+--?[0-9]*$", estimates$covariateName[j])) {
-          name <- as.character(estimates$covariateName[j])
-          pos1 <- attr(regexpr("^[^:]*:", name), "match.length") - 1
-          pos2 <- regexpr(", day -?[0-9]+--?[0-9]*$", name) + 2
-          label <- paste(
-            substr(name, 1, pos1),
-            substr(name, pos2, nchar(name))
-          )
-        } else {
-          label <- sub(":.*$", "", estimates$covariateName[j])
-        }
-        names(estimatesToInsert) <- paste0(
-          names(estimatesToInsert),
-          "(",
-          label,
-          ")"
-        )
-        for (colName in names(estimatesToInsert)) {
-          if (!(colName %in% colnames(result))) {
-            result$newVar <- as.numeric(NA)
-            colnames(result)[colnames(result) == "newVar"] <- colName
+    # covariateSettings = sccsModel$metaData$covariateSettingsList[[1]]
+    for (covariateSettings in sccsModel$metaData$covariateSettingsList) {
+      if (covariateSettings$exposureOfInterest) {
+        # j = 1
+        for (j in seq_along(covariateSettings$outputIds)) {
+          if (is.null(sccsModel$metaData$covariateStatistics)) {
+            covariateStatistics <- tibble()
+          } else {
+            covariateStatistics <- sccsModel$metaData$covariateStatistics %>%
+              filter(.data$covariateId == covariateSettings$outputIds[j])
           }
-          result[i, colName] <- estimatesToInsert[colName]
+          if (is.null(sccsModel$estimates)) {
+            estimates <- tibble()
+          } else {
+            estimate <- sccsModel$estimates %>%
+              filter(.data$covariateId == covariateSettings$outputIds[j])
+          }
+          if (nrow(estimate) == 0) {
+            p <- NA
+          } else {
+            z <- estimate$logRr / estimate$seLogRr
+            p <- 2 * pmin(pnorm(z), 1 - pnorm(z))
+          }
+          if (covariateSettings$eraIds[j] == -1) {
+            exposure <- list(trueEffectSize = NA)
+          } else {
+            exposuresOutcome <- exposuresOutcomeList[[refRow$exposuresOutcomeSetId]]
+            exposure <- ParallelLogger::matchInList(exposuresOutcome$exposures, list(exposureId = covariateSettings$eraIds[j]))
+            if (length(exposure) != 1) {
+              stop(sprintf("Error finding exposure for covariate ID %d in analysis ID %d",  covariateSettings$outputIds[j], refRow$analysisId))
+            } else {
+              exposure <- exposure[[1]]
+            }
+          }
+          row <- tibble(
+            exposuresOutcomeSetId = refRow$exposuresOutcomeSetId,
+            outcomeId = refRow$outcomeId,
+            analysisId = refRow$analysisId,
+            covariateId = covariateSettings$outputIds[j],
+            covariateName = covariateSettings$label,
+            eraId = covariateSettings$eraIds[j],
+            trueEffectSize = exposure$trueEffectSize,
+            outcomeSubjects = attrition$outcomeSubjects,
+            outcomeEvents = attrition$outcomeEvents,
+            outcomeObservationPeriods = attrition$outcomeObsPeriods,
+            covariateSubjects = ifelse(nrow(covariateStatistics) == 0, 0, covariateStatistics$personCount),
+            covariateDays = ifelse(nrow(covariateStatistics) == 0, 0, covariateStatistics$dayCount),
+            covariateEras = ifelse(nrow(covariateStatistics) == 0, 0, covariateStatistics$eraCount),
+            covariateOutcomes = ifelse(nrow(covariateStatistics) == 0, 0, covariateStatistics$outcomeCount),
+            observedDays = sccsModel$metaData$daysObserved,
+            rr = ifelse(nrow(estimate) == 0, NA, exp(estimate$logRr)),
+            ci95Lb = ifelse(nrow(estimate) == 0, NA, exp(estimate$logLb95)),
+            ci95Ub = ifelse(nrow(estimate) == 0, NA, exp(estimate$logUb95)),
+            p = p,
+            logRr = ifelse(nrow(estimate) == 0, NA, estimate$logRr),
+            seLogRr = ifelse(nrow(estimate) == 0, NA, estimate$seLogRr),
+            llr = ifelse(nrow(estimate) == 0, NA, estimate$llr)
+          )
+          rows[[length(rows) + 1]] <- row
         }
       }
     }
+    setTxtProgressBar(pb, i / nrow(referenceTable))
   }
-  return(result)
+  close(pb)
+  mainResults <- bind_rows(rows)
+  mainResults <- calibrateEstimates(
+    results = mainResults,
+    calibrationThreads = calibrationThreads
+  )
+  saveRDS(mainResults, mainFileName)
+}
+
+calibrateEstimates <- function(results, calibrationThreads) {
+  if (nrow(results) == 0) {
+    return(results)
+  }
+  message("Calibrating estimates")
+  groups <- split(results, paste(results$covariateId, results$analysisId))
+
+  cluster <- ParallelLogger::makeCluster(min(length(groups), calibrationThreads))
+  results <- ParallelLogger::clusterApply(cluster, groups, calibrateGroup)
+  ParallelLogger::stopCluster(cluster)
+  results <- bind_rows(results)
+  return(results)
+}
+
+# group = groups[[1]]
+calibrateGroup <- function(group) {
+  ncs <- group[group$trueEffectSize == 1 & !is.na(group$seLogRr), ]
+  pcs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize != 1 & !is.na(group$seLogRr), ]
+  if (nrow(ncs) >= 5) {
+    null <- EmpiricalCalibration::fitMcmcNull(logRr = ncs$logRr, seLogRr = ncs$seLogRr)
+    ease <- EmpiricalCalibration::computeExpectedAbsoluteSystematicError(null)
+    calibratedP <- EmpiricalCalibration::calibrateP(null = null, logRr = group$logRr, seLogRr = group$seLogRr)
+    if (nrow(pcs) >= 5) {
+      model <- EmpiricalCalibration::fitSystematicErrorModel(
+        logRr = c(ncs$logRr, pcs$logRr),
+        seLogRr = c(ncs$seLogRr, pcs$seLogRr),
+        trueLogRr = log(c(ncs$trueEffectSize, pcs$trueEffectSize)),
+        estimateCovarianceMatrix = FALSE
+      )
+    } else {
+      model <- EmpiricalCalibration::convertNullToErrorModel(null)
+    }
+    calibratedCi <- EmpiricalCalibration::calibrateConfidenceInterval(model = model, logRr = group$logRr, seLogRr = group$seLogRr)
+    group$calibratedRr <- exp(calibratedCi$logRr)
+    group$calibratedCi95Lb <- exp(calibratedCi$logLb95Rr)
+    group$calibratedCi95Ub <- exp(calibratedCi$logUb95Rr)
+    group$calibratedP <- calibratedP$p
+    group$calibratedLogRr <- calibratedCi$logRr
+    group$calibratedSeLogRr <- calibratedCi$seLogRr
+    group$ease <- ease$ease
+  } else {
+    group$calibratedRr <- NA
+    group$calibratedCi95Lb <- NA
+    group$calibratedCi95Ub <- NA
+    group$calibratedP <- NA
+    group$calibratedLogRr <- NA
+    group$calibratedSeLogRr <- NA
+    group$ease <- NA
+  }
+  return(group)
+}
+
+
+#' Get file reference
+#'
+#' @param outputFolder       Name of the folder where all the outputs have been written to.
+#'
+#' @return
+#' A tibble containing the names of the files for various artifacts created for each outcome-exposures set.
+#'
+#' @export
+getFileReference <- function(outputFolder) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+  outputFolder <- normalizePath(outputFolder)
+  omr <- readRDS(file.path(outputFolder, "outcomeModelReference.rds"))
+  return(omr)
+}
+
+#' Get a summary report of the analyses results
+#'
+#' @param outputFolder       Name of the folder where all the outputs have been written to.
+#'
+#' @return
+#' A tibble containing summary statistics for each outcome-covariate-analysis combination.
+#'
+#' @export
+getResultsSummary <- function(outputFolder) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+  outputFolder <- normalizePath(outputFolder)
+  results <- readRDS(file.path(outputFolder, "resultsSummary.rds"))
+  return(results)
 }

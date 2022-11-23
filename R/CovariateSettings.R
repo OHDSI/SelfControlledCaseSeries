@@ -67,7 +67,7 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
                                        splitPoints = c(),
                                        allowRegularization = FALSE,
                                        profileLikelihood = FALSE,
-                                       exposureOfInterest = FALSE) {
+                                       exposureOfInterest = TRUE) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is.character(includeEraIds)) {
     checkmate::assertCharacter(includeEraIds, add = errorMessages)

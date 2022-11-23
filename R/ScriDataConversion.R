@@ -46,26 +46,25 @@ createScriIntervalData <- function(studyPopulation,
                                    sccsData,
                                    eraCovariateSettings,
                                    controlIntervalSettings) {
-  if (class(controlIntervalSettings) != "ControlIntervalSettings") {
-    stop("The controlIntervalSettings argument should be of type 'ControlIntervalSettings'")
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  if (is.list(eraCovariateSettings) && class(eraCovariateSettings) != "EraCovariateSettings") {
+    for (i in 1:length(eraCovariateSettings)) {
+      checkmate::assertClass(eraCovariateSettings[[i]], "EraCovariateSettings", add = errorMessages)
+    }
+  } else {
+    checkmate::assertClass(eraCovariateSettings, "EraCovariateSettings", add = errorMessages)
   }
+  checkmate::assertClass(controlIntervalSettings, "ControlIntervalSettings", null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
 
   start <- Sys.time()
-  if (nrow(studyPopulation$outcomes) == 0) {
-    sccsIntervalData <- createEmptySccsIntervalData()
-    metaData <- studyPopulation$metaData
-    metaData$error <- "Error: No cases left"
-    attr(sccsIntervalData, "metaData") <- metaData
-
-    class(sccsIntervalData) <- "SccsIntervalData"
-    attr(class(sccsIntervalData), "package") <- "SelfControlledCaseSeries"
-    return(sccsIntervalData)
-  }
 
   settings <- list()
   settings$metaData <- list()
   settings$covariateRef <- tibble()
-
   if (is.list(eraCovariateSettings) && class(eraCovariateSettings) != "EraCovariateSettings") {
     covariateSettings <- eraCovariateSettings
   } else {
@@ -75,8 +74,18 @@ createScriIntervalData <- function(studyPopulation,
   settings <- addEraCovariateSettings(settings, covariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
   metaData <- append(studyPopulation$metaData, settings$metaData)
+  metaData$design <- "SCRI"
 
-  ParallelLogger::logInfo("Converting person data to SCRI intervals. This might take a while.")
+  if (nrow(studyPopulation$outcomes) == 0) {
+    sccsIntervalData <- createEmptySccsIntervalData()
+    metaData$error <- "Error: No cases left"
+    attr(sccsIntervalData, "metaData") <- metaData
+    class(sccsIntervalData) <- "SccsIntervalData"
+    attr(class(sccsIntervalData), "package") <- "SelfControlledCaseSeries"
+    return(sccsIntervalData)
+  }
+
+  message("Converting person data to SCRI intervals. This might take a while.")
   # Ensure all sorted bv caseId:
   cases <- studyPopulation$cases[order(studyPopulation$cases$caseId), ]
   outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$caseId), ]
@@ -125,7 +134,7 @@ createScriIntervalData <- function(studyPopulation,
   attr(class(data), "package") <- "SelfControlledCaseSeries"
 
   delta <- Sys.time() - start
-  ParallelLogger::logInfo(paste("Generating SCRI interval data took", signif(delta, 3), attr(delta, "units")))
+  message(paste("Generating SCRI interval data took", signif(delta, 3), attr(delta, "units")))
   return(data)
 }
 

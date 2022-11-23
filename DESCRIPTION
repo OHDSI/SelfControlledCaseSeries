@@ -1,8 +1,8 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 3.4.0
-Date: 2022-08-12
+Version: 4.0.0
+Date: 2022-11-23
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
@@ -22,16 +22,16 @@ VignetteBuilder: knitr
 URL: https://github.com/OHDSI/SelfControlledCaseSeries
 BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
-	R (>= 3.2.2),
-	Cyclops (>= 3.1.1),
-	DatabaseConnector (>= 5.0.0),
+	R (>= 4.0.0),
+	Cyclops (>= 3.2.0),
+	DatabaseConnector (>= 5.1.0),
 	Andromeda,
 	survival
 Imports:
 	SqlRender (>= 1.8.3),
 	dplyr (>= 1.0.0),
 	Rcpp (>= 0.11.2),
-	ParallelLogger (>= 2.0.2),
+	ParallelLogger (>= 3.0.1),
 	splines,
 	ggplot2,
 	methods,

@@ -9,11 +9,11 @@ simulateSccsData(nCases, settings)
 \arguments{
 \item{nCases}{The number of cases to simulate.}
 
-\item{settings}{An object of type \code{sccsSimulationSettings} as created using the \code{
-\link{createSccsSimulationSettings}}.}
+\item{settings}{An object of type \code{SccsSimulationSettings} as created using the
+\code{\link[=createSccsSimulationSettings]{createSccsSimulationSettings()}} function.}
 }
 \value{
-An object of type \code{sccsData}.
+An object of type \code{SccsData}.
 }
 \description{
 Simulate SCCS data

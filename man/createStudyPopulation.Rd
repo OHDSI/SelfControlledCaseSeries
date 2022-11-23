@@ -42,6 +42,17 @@ specified, no age restriction will be applied.}
 be specified in years, but non-integer values are allowed. If not
 specified, no age restriction will be applied.}
 }
+\value{
+A \code{list} specifying the study population, with the following items:
+\itemize{
+\item \code{cases}: A \code{tibble} with one row per observation period of a person with the outcome.
+\item \code{outcomes}: A \code{tibble} listing the days when a case has the outcome.
+\item \code{metaData}: A \code{list} with meta data about the study population, including the attrition.
+}
+}
 \description{
 Create a study population
+}
+\details{
+Create a study population for a specific outcome, applying several restrictions.
 }

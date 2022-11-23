@@ -4,11 +4,11 @@
 \alias{saveSccsIntervalData}
 \title{Save the cohort method data to file}
 \usage{
-saveSccsIntervalData(SccsIntervalData, file)
+saveSccsIntervalData(sccsIntervalData, file)
 }
 \arguments{
-\item{SccsIntervalData}{An object of type \link{SccsIntervalData} as generated using
-\code{\link[=createSccsIntervalData]{createSccsIntervalData()}}.}
+\item{sccsIntervalData}{An object of type \link{SccsIntervalData} as created using the
+\link{createSccsIntervalData} function.}
 
 \item{file}{The name of the file where the data will be written. If the file already
 exists it will be overwritten.}

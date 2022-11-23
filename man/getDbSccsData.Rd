@@ -7,7 +7,6 @@
 getDbSccsData(
   connectionDetails,
   cdmDatabaseSchema,
-  oracleTempSchema = NULL,
   tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
   outcomeDatabaseSchema = cdmDatabaseSchema,
   outcomeTable = "condition_era",
@@ -38,8 +37,6 @@ the function \code{\link[DatabaseConnector:createConnectionDetails]{DatabaseConn
 instance.  Requires read permissions to this database. On SQL
 Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.}
-
-\item{oracleTempSchema}{DEPRECATED: use \code{tempEmulationSchema} instead.}
 
 \item{tempEmulationSchema}{Some database platforms like Oracle and Impala do not truly support temp tables. To
 emulate temp tables, provide a schema with write privileges where temp tables
