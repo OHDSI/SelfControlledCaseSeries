@@ -382,17 +382,17 @@ computeObservedPerMonth <- function(studyPopulation) {
       startMonth = convertDateToMonth(.data$startDate),
       endMonth = convertDateToMonth(.data$endDate) + 1
     ) %>%
-    select(.data$startMonth, .data$endMonth)
+    select("startMonth", "endMonth")
 
   months <- full_join(
     observationPeriods %>%
       group_by(.data$startMonth) %>%
       summarise(startCount = n()) %>%
-      rename(month = .data$startMonth),
+      rename(month = "startMonth"),
     observationPeriods %>%
       group_by(.data$endMonth) %>%
       summarise(endCount = n()) %>%
-      rename(month = .data$endMonth),
+      rename(month = "endMonth"),
     by = "month"
   ) %>%
     mutate(
@@ -415,7 +415,7 @@ computeObservedPerMonth <- function(studyPopulation) {
       cumEnds = cumsum(.data$endCount)
     ) %>%
     mutate(observationPeriodCount = .data$cumStarts - .data$cumEnds) %>%
-    select(.data$month, .data$observationPeriodCount) %>%
+    select("month", "observationPeriodCount") %>%
     head(-1)
 
   return(months)
@@ -464,7 +464,7 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
     if (is.null(covariateSettings$includeEraIds) || length(covariateSettings$includeEraIds) == 0) {
       covariateSettings$eraIds <- eraRef %>%
         filter(.data$eraType != "hoi") %>%
-        select(.data$eraId) %>%
+        select("eraId") %>%
         pull()
     } else {
       covariateSettings$eraIds <- covariateSettings$includeEraIds

@@ -119,9 +119,9 @@ createStudyPopulation <- function(sccsData,
       filter(.data$endAgeInDays > .data$startAgeInDays)
 
     outcomes <- outcomes %>%
-      inner_join(select(cases, .data$caseId, .data$startAgeInDays, .data$ageInDays), by = "caseId") %>%
+      inner_join(select(cases, "caseId", "startAgeInDays", "ageInDays"), by = "caseId") %>%
       filter(.data$startDay >= .data$startAgeInDays - .data$ageInDays) %>%
-      select(-.data$startAgeInDays, -.data$ageInDays)
+      select(-"startAgeInDays", -"ageInDays")
 
     cases <- cases %>%
       filter(.data$caseId %in% unique(outcomes$caseId))
@@ -162,10 +162,10 @@ createStudyPopulation <- function(sccsData,
     }
 
     outcomes <- outcomes %>%
-      inner_join(select(cases, .data$observationPeriodId, .data$caseId, .data$startAgeInDays, .data$endAgeInDays, .data$ageInDays), by = "caseId") %>%
+      inner_join(select(cases, "observationPeriodId", "caseId", "startAgeInDays", "endAgeInDays", "ageInDays"), by = "caseId") %>%
       filter(.data$startDay >= .data$startAgeInDays - .data$ageInDays &
                .data$startDay <= .data$endAgeInDays - .data$ageInDays) %>%
-      select(-.data$startAgeInDays, -.data$endAgeInDays, -.data$ageInDays)
+      select(-"startAgeInDays", -"endAgeInDays", -"ageInDays")
 
     attrition <- bind_rows(
       attrition,
@@ -187,12 +187,12 @@ createStudyPopulation <- function(sccsData,
       endDay = .data$endAgeInDays - .data$startAgeInDays
     ) %>%
     mutate(ageInDays = .data$startAgeInDays) %>%
-    select(.data$observationPeriodId, .data$caseId, .data$personId, .data$startDate, .data$endDay, .data$ageInDays, .data$offset, .data$noninformativeEndCensor)
+    select("observationPeriodId", "caseId", "personId", "startDate", "endDay", "ageInDays", "offset", "noninformativeEndCensor")
 
   outcomes <- outcomes %>%
-    inner_join(select(cases, .data$caseId, .data$offset), by = "caseId") %>%
+    inner_join(select(cases, "caseId", "offset"), by = "caseId") %>%
     mutate(startDay = .data$startDay - .data$offset) %>%
-    select(.data$caseId, outcomeDay = .data$startDay)
+    select("caseId", outcomeDay = "startDay")
 
   result <- list(outcomes = outcomes, cases = cases, metaData = metaData)
   if (nrow(outcomes) == 0) {
@@ -211,7 +211,7 @@ countOutcomes <- function(outcomes, cases, description) {
       outcomeObsPeriods = n_distinct(.data$caseId),
       .groups = "drop_last"
     ) %>%
-    rename(outcomeId = .data$eraId) %>%
+    rename(outcomeId = "eraId") %>%
     mutate(description = description)
   return(counts)
 }

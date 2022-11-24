@@ -59,7 +59,7 @@ plotAgeSpans <- function(studyPopulation,
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(cases, ggplot2::aes(x = .data$startAge, xmin = .data$startAge, xmax = .data$endAge, y = rank)) +
-    ggplot2::geom_vline(xintercept = ageBreaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
+    ggplot2::geom_vline(xintercept = ageBreaks, colour = "#AAAAAA", lty = 1, linewidth = 0.2) +
     ggplot2::geom_errorbarh(color = rgb(0, 0, 0.8), alpha = 0.8) +
     ggplot2::scale_x_continuous("Age (years)", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Case rank") +
@@ -139,7 +139,7 @@ plotEventObservationDependence <- function(studyPopulation,
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(outcomes, ggplot2::aes(x = .data$daysFromEvent)) +
-    ggplot2::geom_vline(xintercept = ageBreaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
+    ggplot2::geom_vline(xintercept = ageBreaks, colour = "#AAAAAA", lty = 1, linewidth = 0.2) +
     ggplot2::geom_histogram(binwidth = 30.5, fill = rgb(0, 0, 0.8), alpha = 0.8) +
     ggplot2::scale_x_continuous("Years from event", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Frequency") +
@@ -210,7 +210,7 @@ plotExposureCentered <- function(studyPopulation,
   }
 
   cases <- studyPopulation$cases %>%
-    select(.data$caseId, caseEndDay = .data$endDay, .data$offset)
+    select("caseId", caseEndDay = "endDay", "offset")
 
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
@@ -238,7 +238,7 @@ plotExposureCentered <- function(studyPopulation,
   outcomes <- studyPopulation$outcomes %>%
     inner_join(firstExposures, by = "caseId") %>%
     mutate(delta = .data$outcomeDay - .data$startDay) %>%
-    select(.data$caseId, .data$outcomeDay, .data$delta)
+    select("caseId", "outcomeDay", "delta")
 
   exposedoutcomes <- exposures %>%
     inner_join(outcomes, by = "caseId") %>%
@@ -246,7 +246,7 @@ plotExposureCentered <- function(studyPopulation,
       .data$outcomeDay >= .data$startDay,
       .data$outcomeDay <= .data$endDay
     ) %>%
-    select(.data$caseId, .data$delta) %>%
+    select("caseId", "delta") %>%
     mutate(exposed = 1)
 
   outcomes <- outcomes %>%
@@ -260,7 +260,7 @@ plotExposureCentered <- function(studyPopulation,
     )
 
   events <- weeks %>%
-    full_join(select(outcomes, .data$delta, .data$exposed), by = character()) %>%
+    full_join(select(outcomes, "delta", "exposed"), by = character()) %>%
     filter(.data$delta >= .data$start, .data$delta < .data$end) %>%
     group_by(.data$number, .data$start, .data$end) %>%
     summarise(
@@ -311,7 +311,7 @@ plotExposureCentered <- function(studyPopulation,
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$start, xmin = .data$start, xmax = .data$end, ymax = .data$count1, ymin = 0)) +
     ggplot2::geom_rect(fill = rgb(0, 0, 0.8), alpha = 0.8) +
     ggplot2::geom_rect(ggplot2::aes(ymax = .data$count1 + .data$count2, ymin = .data$count1), fill = rgb(0.8, 0, 0), alpha = 0.8) +
-    ggplot2::geom_vline(xintercept = 0, colour = "#000000", lty = 1, size = 1) +
+    ggplot2::geom_vline(xintercept = 0, colour = "#000000", lty = 1, linewidth = 1) +
     ggplot2::scale_x_continuous("Days since first exposure start", breaks = breaks, labels = breaks) +
     ggplot2::scale_y_continuous("Count") +
     ggplot2::facet_grid(type ~ ., scales = "free_y") +
@@ -358,16 +358,16 @@ plotEventToCalendarTime <- function(studyPopulation,
                                     fileName = NULL) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  checkmate::assertClass(sccsModel, "SccsModel", add = errorMessages)
+  checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   data <- computeOutcomeRatePerMonth(studyPopulation)
   plotData <- bind_rows(
-    select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$rate) %>%
+    select(data, "month", "monthStartDate", "monthEndDate", value = "rate") %>%
       mutate(type = "Outcomes per person"),
-    select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$observationPeriodCount) %>%
+    select(data, "month", "monthStartDate", "monthEndDate", value = "observationPeriodCount") %>%
       mutate(type = "Observed persons"),
   )
   levels <- c("Observed persons", "Outcomes per person")
@@ -376,7 +376,7 @@ plotEventToCalendarTime <- function(studyPopulation,
     data <- adjustOutcomeRatePerMonth(data, sccsModel)
     plotData <- bind_rows(
       plotData,
-      select(data, .data$month, .data$monthStartDate, .data$monthEndDate, value = .data$adjustedRate) %>%
+      select(data, "month", "monthStartDate", "monthEndDate", value = "adjustedRate") %>%
         mutate(type = "Adj. outcomes per person"),
     )
     levels <- c(levels, "Adj. outcomes per person")
@@ -386,7 +386,7 @@ plotEventToCalendarTime <- function(studyPopulation,
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(plotData, ggplot2::aes(xmin = .data$monthStartDate, xmax = .data$monthEndDate + 1)) +
-    ggplot2::geom_rect(ggplot2::aes(ymax = .data$value), ymin = 0, fill = rgb(0, 0, 0.8), alpha = 0.8, size = 0) +
+    ggplot2::geom_rect(ggplot2::aes(ymax = .data$value), ymin = 0, fill = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 0) +
     ggplot2::scale_x_date("Calendar time") +
     ggplot2::scale_y_continuous("Count", limits = c(0, NA)) +
     ggplot2::facet_grid(.data$type ~ ., scales = "free_y") +
@@ -465,8 +465,8 @@ plotAgeEffect <- function(sccsModel,
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$age, y = .data$rr)) +
-    ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
-    ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
+    ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, linewidth = 0.2) +
+    ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
     ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Relative risk",
       limits = rrLim,
@@ -543,8 +543,8 @@ plotSeasonality <- function(sccsModel,
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = season, y = rr)) +
-    ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
-    ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
+    ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, linewidth = 0.2) +
+    ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
     ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
     ggplot2::scale_y_continuous("Relative risk",
       limits = rrLim,
@@ -604,7 +604,7 @@ plotCalendarTimeSpans <- function(studyPopulation,
 
   cases <- studyPopulation$cases %>%
     mutate(endDate = .data$startDate + .data$endDay) %>%
-    select(.data$startDate, .data$endDate) %>%
+    select("startDate", "endDate") %>%
     arrange(.data$startDate, .data$endDate) %>%
     mutate(rank = row_number())
   if (nrow(cases) > maxPersons) {
@@ -620,7 +620,7 @@ plotCalendarTimeSpans <- function(studyPopulation,
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
       panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-      panel.grid.major.x = ggplot2::element_line(colour = "#AAAAAA", size = 0.2),
+      panel.grid.major.x = ggplot2::element_line(colour = "#AAAAAA", linewidth = 0.2),
       panel.grid.major.y = ggplot2::element_blank(),
       axis.ticks = ggplot2::element_blank(),
       axis.text.y = themeRA,
@@ -690,7 +690,7 @@ plotCalendarTimeEffect <- function(sccsModel,
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = calendarTime, y = rr)) +
-    ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, lwd = 1) +
+    ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
     ggplot2::scale_x_date("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",
       limits = rrLim,
@@ -701,7 +701,7 @@ plotCalendarTimeEffect <- function(sccsModel,
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
       panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-      panel.grid.major = ggplot2::element_line(colour = "#AAAAAA", size = 0.2),
+      panel.grid.major = ggplot2::element_line(colour = "#AAAAAA", linewidth = 0.2),
       axis.ticks = ggplot2::element_blank(),
       axis.text.y = themeRA,
       axis.text.x = theme,

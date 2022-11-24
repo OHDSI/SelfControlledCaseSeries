@@ -615,7 +615,7 @@ test_that("Aggregates on large set", {
     collect()
 
   z3 <- sccsData$cases %>%
-    select(stratumId = .data$caseId, .data$observationDays) %>%
+    select(stratumId = "caseId", "observationDays") %>%
     inner_join(outcomes, by = "stratumId", copy = TRUE) %>%
     collect()
 

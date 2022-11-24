@@ -33,7 +33,7 @@ Imports:
 	Rcpp (>= 0.11.2),
 	ParallelLogger (>= 3.0.1),
 	splines,
-	ggplot2,
+	ggplot2 (>= 3.4.0),
 	methods,
 	utils,
 	cli,

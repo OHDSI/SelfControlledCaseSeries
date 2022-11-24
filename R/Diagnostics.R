@@ -43,8 +43,8 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
     calendarTime[calendarTime < calendarTimeKnots[1]] <- calendarTimeKnots[1]
     calendarTime[calendarTime > calendarTimeKnots[length(calendarTimeKnots)]] <- calendarTimeKnots[length(calendarTimeKnots)]
     calendarTimeDesignMatrix <- splines::bs(calendarTime,
-      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+                                            knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+                                            Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
     )
     logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
     logRr <- logRr - mean(logRr)
@@ -165,7 +165,7 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  checkmate::assertInt(exposureEraId, len = 1, add = errorMessages)
+  checkmate::assertInt(exposureEraId, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   if (is.null(exposureEraId)) {
@@ -176,7 +176,7 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   }
 
   cases <- studyPopulation$cases %>%
-    select(.data$caseId, caseEndDay = .data$endDay, .data$offset)
+    select("caseId", caseEndDay = "endDay", "offset")
 
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
@@ -204,7 +204,7 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   outcomes <- studyPopulation$outcomes %>%
     inner_join(firstExposures, by = "caseId") %>%
     mutate(delta = .data$outcomeDay - .data$startDay) %>%
-    select(.data$caseId, .data$outcomeDay, .data$delta)
+    select("caseId", "outcomeDay", "delta")
 
   # Restrict to 30 days before and after exposure start:
   outcomes <- outcomes %>%
@@ -213,11 +213,7 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
       beforeExposure = .data$delta < 0,
       y = 1
     ) %>%
-    select(
-      .data$caseId,
-      .data$beforeExposure,
-      .data$y
-    )
+    select("caseId", "beforeExposure", "y")
 
   observed <- bind_rows(
     firstExposures %>%
@@ -225,22 +221,14 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
         daysObserved = if_else(.data$startDay > 30, 30, .data$startDay),
         beforeExposure = TRUE
       ) %>%
-      select(
-        .data$caseId,
-        .data$daysObserved,
-        .data$beforeExposure
-      ),
+      select("caseId", "daysObserved", "beforeExposure"),
     firstExposures %>%
       mutate(daysAfterExposure = .data$caseEndDay - .data$startDay) %>%
       mutate(
         daysObserved = if_else(.data$daysAfterExposure > 30, 30, .data$daysAfterExposure),
         beforeExposure = FALSE
       ) %>%
-      select(
-        .data$caseId,
-        .data$daysObserved,
-        .data$beforeExposure
-      )
+      select("caseId", "daysObserved", "beforeExposure")
   ) %>%
     filter(.data$daysObserved > 0)
 

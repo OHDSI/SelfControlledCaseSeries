@@ -245,7 +245,7 @@ coef.SccsModel <- function(object, ...) {
 
 #' @export
 confint.SccsModel <- function(object, ...) {
-  return(object$estimates %>% select(.data$covariateId, .data$logLb95, .data$logUb95))
+  return(object$estimates %>% select("covariateId", "logLb95", "logUb95"))
 }
 
 #' @export

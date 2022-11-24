@@ -132,7 +132,7 @@ setMethod("summary", "SccsData", function(object) {
       outcomeEvents = count(),
       outcomeObsPeriods = n_distinct(.data$caseId)
     ) %>%
-    rename(outcomeId = .data$eraId) %>%
+    rename(outcomeId = "eraId") %>%
     collect()
 
   result <- list(
