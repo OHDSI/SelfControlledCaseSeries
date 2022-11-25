@@ -44,6 +44,7 @@ test_that("Running multiple analyses against Eunomia", {
     start = 0,
     end = 7,
     endAnchor = "era start",
+    profileLikelihood = TRUE,
     exposureOfInterest = TRUE
   )
 

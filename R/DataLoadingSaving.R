@@ -166,14 +166,14 @@ getDbSccsData <- function(connectionDetails,
   if (cdmVersion == "4") {
     stop("CDM version 4 is no longer supported")
   }
-
-  start <- Sys.time()
-  conn <- DatabaseConnector::connect(connectionDetails)
-  on.exit(DatabaseConnector::disconnect(conn))
   DatabaseConnector::assertTempEmulationSchemaSet(
     dbms = connectionDetails$dbms,
     tempEmulationSchema = tempEmulationSchema
   )
+
+  start <- Sys.time()
+  conn <- DatabaseConnector::connect(connectionDetails)
+  on.exit(DatabaseConnector::disconnect(conn))
 
   if (is.null(exposureIds) || length(exposureIds) == 0) {
     hasExposureIds <- FALSE
@@ -382,6 +382,7 @@ getDbSccsData <- function(connectionDetails,
         outcomeSubjects = n_distinct(.data$personId),
         outcomeEvents = count(),
         outcomeObsPeriods = n_distinct(.data$observationPeriodId),
+        daysObserved = sum(.data$observation_days),
         .groups = "drop_last"
       ) %>%
       rename(outcomeId = "eraId") %>%

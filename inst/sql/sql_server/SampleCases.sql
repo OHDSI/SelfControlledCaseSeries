@@ -23,11 +23,9 @@ limitations under the License.
 {DEFAULT @study_start_date = '' }
 {DEFAULT @study_end_date = '' }
 
-IF OBJECT_ID('tempdb..#sampled_cases_per_o', 'U') IS NOT NULL
-	DROP TABLE #sampled_cases_per_o;
+DROP TABLE IF EXISTS #sampled_cases_per_o;
 
-IF OBJECT_ID('tempdb..#sampled_cases', 'U') IS NOT NULL
-	DROP TABLE #sampled_cases;
+DROP TABLE IF EXISTS #sampled_cases;
 
 SELECT observation_period_id,
 	case_id,

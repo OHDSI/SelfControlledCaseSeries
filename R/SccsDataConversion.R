@@ -84,8 +84,8 @@ createSccsIntervalData <- function(studyPopulation,
 
   timeCovariateCases <- numeric(0)
   if (!is.null(ageCovariateSettings) ||
-    !is.null(seasonalityCovariateSettings) ||
-    !is.null(calendarTimeCovariateSettings)) {
+      !is.null(seasonalityCovariateSettings) ||
+      !is.null(calendarTimeCovariateSettings)) {
     if (nrow(studyPopulation$cases) > minCasesForTimeCovariates) {
       set.seed(0)
       timeCovariateCases <- sample(studyPopulation$cases$caseId, minCasesForTimeCovariates, replace = FALSE)
@@ -193,7 +193,8 @@ createEmptySccsIntervalData <- function() {
       covariateName = "",
       originalEraId = 1,
       originalEraName = "",
-      originalEraType = ""
+      originalEraType = "",
+      covariateAnalysisId = 1
     )[-1, ]
   )
   return(sccsIntervalData)
@@ -224,8 +225,8 @@ addAgeSettings <- function(settings,
     }
     settings$ageOffset <- ageKnots[1]
     ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)],
-      knots = ageKnots[2:(length(ageKnots) - 1)],
-      Boundary.knots = ageKnots[c(1, length(ageKnots))]
+                                   knots = ageKnots[2:(length(ageKnots) - 1)],
+                                   Boundary.knots = ageKnots[c(1, length(ageKnots))]
     )
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$ageDesignMatrix <- ageDesignMatrix[, 2:ncol(ageDesignMatrix)]
@@ -320,8 +321,8 @@ addCalendarTimeSettings <- function(settings,
     }
     settings$calendarTimeOffset <- calendarTimeKnots[1]
     calendarTimeDesignMatrix <- splines::bs(calendarTimeKnots[1]:calendarTimeKnots[length(calendarTimeKnots)],
-      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+                                            knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+                                            Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
     )
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$calendarTimeDesignMatrix <- calendarTimeDesignMatrix[, 2:ncol(calendarTimeDesignMatrix)]
@@ -457,6 +458,7 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
   outputId <- 1000
   for (i in 1:length(eraCovariateSettingsList)) {
     covariateSettings <- eraCovariateSettingsList[[i]]
+    covariateSettings$covariateAnalysisId <- 1
 
     if (is.null(covariateSettings$label)) {
       covariateSettings$label <- "Covariate"
@@ -473,110 +475,57 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
       covariateSettings$eraIds <- covariateSettings$eraIds[!covariateSettings$eraIds %in% covariateSettings$excludeEraIds]
     }
 
-    if (length(covariateSettings$splitPoints) == 0) {
-      if (!covariateSettings$stratifyById) {
-        # Create a single output ID
-        covariateSettings$outputIds <- as.matrix(outputId)
+    if (!covariateSettings$stratifyById) {
+      # stratifyById == FALSE
+      covariateSettings$outputIds <- as.matrix(outputId)
+      if (!covariateSettings$isControlInterval) {
+        if (length(covariateSettings$eraIds) == 1) {
+          originalEraId <- covariateSettings$eraIds
+        } else {
+          originalEraId <- 0
+        }
+        exposureId <- covariateSettings$eraIds
         newCovariateRef <- tibble(
           covariateId = outputId,
           covariateName = covariateSettings$label,
-          originalEraId = 0,
+          covariateAnalysisId = i,
+          originalEraId = originalEraId,
           originalEraType = "",
           originalEraName = "",
           isControlInterval = covariateSettings$isControlInterval
         )
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
-        outputId <- outputId + 1
-      } else {
-        # Create a unique output ID for every covariate ID
-        outputIds <- outputId:(outputId + length(covariateSettings$eraIds) - 1)
-        covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
-        outputId <- outputId + length(outputIds)
-        varNames <- eraRef[eraRef$eraId %in% covariateSettings$eraIds, ]
-        if (nrow(varNames) == 0) {
-          warning(paste0("Could not find era with ID ", covariateSettings$eraIds, " in data"))
-        } else {
-          varNames <- varNames %>%
-            transmute(
-              originalEraId = .data$eraId,
-              originalEraType = .data$eraType,
-              originalEraName = .data$eraName,
-              covariateName = paste(covariateSettings$label,
-                .data$eraName,
-                sep = ": "
-              ),
-              isControlInterval = FALSE
-            )
-
-          newCovariateRef <- tibble(
-            covariateId = outputIds,
-            originalEraId = covariateSettings$eraIds
-          ) %>%
-            inner_join(varNames, by = "originalEraId")
-          settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
-        }
       }
+      outputId <- outputId + 1
     } else {
-      startDays <- c(covariateSettings$start, covariateSettings$splitPoints + 1)
-      endDays <- c(covariateSettings$splitPoints, NA)
-      if (!covariateSettings$stratifyById) {
-        outputIds <- outputId:(outputId + length(covariateSettings$splitPoints))
-        outputId <- outputId + length(covariateSettings$splitPoints) + 1
-        varNames <- rep(covariateSettings$label, length(covariateSettings$splitPoints) + 1)
-        varNames <- paste(varNames, " day ", startDays, "-", c(endDays[1:length(endDays) - 1], ""))
-        # covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
-        covariateSettings$outputIds <- matrix(outputIds,
-          ncol = length(covariateSettings$splitPoints) + 1,
-          byrow = TRUE
-        )
-        newCovariateRef <- tibble(
-          covariateId = outputIds,
-          covariateName = varNames,
-          originaEraId = 0,
-          originalEraType = "",
-          originalEraName = "",
-          isControlInterval = FALSE
-        )
-        settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
+      # stratifyById == TRUE
+      # Create a unique output ID for every covariate ID:
+      outputIds <- outputId:(outputId + length(covariateSettings$eraIds) - 1)
+      covariateSettings$outputIds <- matrix(outputIds, ncol = 1)
+      outputId <- outputId + length(outputIds)
+      varNames <- eraRef[eraRef$eraId %in% covariateSettings$eraIds, ]
+      if (nrow(varNames) == 0) {
+        warning(paste0("Could not find era with ID ", covariateSettings$eraIds, " in data"))
       } else {
-        outputIds <- outputId:(outputId + (length(covariateSettings$splitPoint) + 1) * length(covariateSettings$eraIds) - 1)
-        outputId <- max(outputIds) + 1
-        covariateSettings$outputIds <- matrix(outputIds,
-          ncol = length(covariateSettings$splitPoints) + 1,
-          byrow = TRUE
-        )
-        if (any(covariateSettings$eraIds %in% eraRef$eraId)) {
-          originalEraId <- rep(covariateSettings$eraIds,
-            each = length(covariateSettings$splitPoints) + 1
-          )
-          originalEraType <- eraRef$eraType[match(
-            originalEraId,
-            eraRef$eraId
-          )]
-          originalEraName <- eraRef$eraName[match(
-            originalEraId,
-            eraRef$eraId
-          )]
-          originalEraName[originalEraName == ""] <- originalEraId[originalEraName == ""]
-          varNames <- paste(covariateSettings$label, ": ", originalEraName, sep = "")
-          varNames <- paste(varNames,
-            ", day ",
-            startDays,
-            "-",
-            c(endDays[1:length(endDays) - 1], ""),
-            sep = ""
-          )
-
-          newCovariateRef <- tibble(
-            covariateId = outputIds,
-            covariateName = varNames,
-            originalEraId = originalEraId,
-            originalEraType = originalEraType,
-            originalEraName = originalEraName,
+        varNames <- varNames %>%
+          transmute(
+            originalEraId = .data$eraId,
+            originalEraType = .data$eraType,
+            originalEraName = .data$eraName,
+            covariateName = paste(covariateSettings$label,
+                                  .data$eraName,
+                                  sep = ": "
+            ),
             isControlInterval = FALSE
           )
-          settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
-        }
+
+        newCovariateRef <- tibble(
+          covariateId = outputIds,
+          covariateAnalysisId = i,
+          originalEraId = covariateSettings$eraIds
+        ) %>%
+          left_join(varNames, by = "originalEraId")
+        settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
       }
     }
     eraCovariateSettingsList[[i]] <- covariateSettings

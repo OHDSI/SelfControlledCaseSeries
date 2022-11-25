@@ -26,8 +26,7 @@ limitations under the License.
 {DEFAULT @study_start_date = '' }
 {DEFAULT @study_end_date = '' }
 
-IF OBJECT_ID('tempdb..#cases', 'U') IS NOT NULL
-	DROP TABLE #cases;
+DROP TABLE IF EXISTS #cases;
 	
 SELECT observation_period_id,
 	ROW_NUMBER() OVER (ORDER BY observation_period_id) AS case_id,

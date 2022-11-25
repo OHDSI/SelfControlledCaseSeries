@@ -71,6 +71,8 @@ fitSccsModel <- function(sccsIntervalData,
 
   ParallelLogger::logTrace("Fitting SCCS model")
   metaData <- attr(sccsIntervalData, "metaData")
+  metaData$covariateRef <- sccsIntervalData$covariateRef %>%
+    collect()
   if (!is.null(metaData$error)) {
     result <- list(
       status = metaData$error,
@@ -180,8 +182,10 @@ fitSccsModel <- function(sccsIntervalData,
       } else {
         status <- "OK"
         estimates <- coef(fit)
-        estimates <- data.frame(logRr = estimates, covariateId = as.numeric(names(estimates)))
-        estimates <- merge(estimates, collect(sccsIntervalData$covariateRef), all.x = TRUE)
+        estimates <- tibble(logRr = estimates, covariateId = as.numeric(names(estimates))) %>%
+          left_join(sccsIntervalData$covariateRef %>%
+                      collect(),
+                    by = "covariateId")
         if (length(needCi) == 0) {
           estimates$logLb95 <- NA
           estimates$logUb95 <- NA

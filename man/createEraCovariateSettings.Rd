@@ -8,13 +8,12 @@ createEraCovariateSettings(
   includeEraIds = NULL,
   excludeEraIds = NULL,
   label = "Covariates",
-  stratifyById = TRUE,
+  stratifyById = FALSE,
   start = 0,
   startAnchor = "era start",
   end = 0,
   endAnchor = "era end",
   firstOccurrenceOnly = FALSE,
-  splitPoints = c(),
   allowRegularization = FALSE,
   profileLikelihood = FALSE,
   exposureOfInterest = FALSE
@@ -47,11 +46,6 @@ or \code{"era end"}.}
 or \code{"era end"}.}
 
 \item{firstOccurrenceOnly}{Should only the first occurrence of the exposure be used?}
-
-\item{splitPoints}{To split the risk window into several smaller windows, specify the end
-of each sub- window relative to the start of the main risk window. If
-add ExposedDaysToStart is TRUE, the split points will be considered to
-be relative to the end of the main risk window instead.}
 
 \item{allowRegularization}{When fitting the model, should the covariates defined here be allowed
 to be regularized?}

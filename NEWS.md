@@ -9,7 +9,9 @@ Changes
 
 3. The `studyStartDate` and `studyEndDate` arguments of the `getDbSccsData()` function have been changed from character to Date type.
 
-3. Major overhaul of the multiple-analyses framework:
+4. Dropping support of split points. This can be achieved by creating multiple era covariates with different times at risk.
+
+5. Major overhaul of the multiple-analyses framework:
 
     - Added the `createExposure()` function for creating objects of type `exposure. This argument allows specifying the true effect size of the exposure, if known (e.g. for negative controls).
     

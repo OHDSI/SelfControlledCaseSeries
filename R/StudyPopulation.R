@@ -209,6 +209,7 @@ countOutcomes <- function(outcomes, cases, description) {
       outcomeSubjects = n_distinct(.data$personId),
       outcomeEvents = n(),
       outcomeObsPeriods = n_distinct(.data$caseId),
+      observedDays = sum(.data$observationDays),
       .groups = "drop_last"
     ) %>%
     rename(outcomeId = "eraId") %>%

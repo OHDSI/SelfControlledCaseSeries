@@ -2,8 +2,7 @@
 File vignette.sql 
 ***********************************/
 
-IF OBJECT_ID('@cohortDatabaseSchema.@outcomeTable', 'U') IS NOT NULL
-  DROP TABLE @cohortDatabaseSchema.@outcomeTable;
+DROP TABLE IF EXISTS @cohortDatabaseSchema.@outcomeTable;
 
 SELECT 1 AS cohort_definition_id,
 	condition_start_date AS cohort_start_date,

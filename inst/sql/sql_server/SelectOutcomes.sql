@@ -29,11 +29,11 @@ limitations under the License.
 {DEFAULT @study_start_date = '' }
 {DEFAULT @study_end_date = '' }
 
-IF OBJECT_ID('tempdb..#outcomes', 'U') IS NOT NULL
-	DROP TABLE #outcomes;
+DROP TABLE IF EXISTS #outcomes;
 	
 SELECT outcome_id,
 	observation_period_id,
+	DATEDIFF(DAY, observation_period_start_date, observation_period_end_date) + 1 AS observed_days,
 	outcome.person_id,
 	outcome_date
 INTO #outcomes
@@ -66,11 +66,11 @@ INNER JOIN (
 		AND outcome_date <= observation_period_end_date;
 
 {@study_start_date != '' & @study_end_date != ''} ? {
-IF OBJECT_ID('tempdb..#outcomes_in_period', 'U') IS NOT NULL
-	DROP TABLE #outcomes_in_period;
+DROP TABLE IF EXISTS #outcomes_in_period;
 
 SELECT outcome_id,
 	observation_period_id,
+	observed_days,
 	person_id,
 	outcome_date
 INTO #outcomes_in_period
@@ -83,11 +83,11 @@ WHERE
 }	
 	
 {@use_nesting_cohort} ? {
-IF OBJECT_ID('tempdb..#outcomes_in_nesting', 'U') IS NOT NULL
-	DROP TABLE #outcomes_in_nesting;
+DROP TABLE IF EXISTS #outcomes_in_nesting;
 
 SELECT outcome_id,
 	observation_period_id,
+	observed_days,
 	person_id,
 	outcome_date
 INTO #outcomes_in_nesting

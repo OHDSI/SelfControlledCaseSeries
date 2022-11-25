@@ -38,7 +38,8 @@ Imports:
 	utils,
 	cli,
 	pillar,
-	checkmate
+	checkmate,
+	readr
 Suggests:
 	testthat,
 	knitr,

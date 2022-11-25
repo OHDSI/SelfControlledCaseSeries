@@ -362,31 +362,8 @@ void SccsConverter::addCovariateEra(std::vector<Era>& outputEras, int start, int
   }
   if (newEnd < newStart)
     return;
-  if (covariateSettings.splitPoints.size() == 0) {
-    Era era(newStart, newEnd, covariateSettings.outputIds(covariateIdRow,0), 1);
-    outputEras.push_back(era);
-  } else {
-    int splitStart = newStart;
-    for (unsigned int j = 0; j < covariateSettings.splitPoints.size() + 1; j++){
-      int splitEnd;
-      if (j == covariateSettings.splitPoints.size()) {
-        splitEnd = newEnd;
-      } else {
-        splitEnd = covariateSettings.splitPoints[j] + (covariateSettings.addExposedDaysToStart?end:start);
-        if (splitEnd > newEnd) {
-          splitEnd = newEnd;
-        }
-      }
-      if (splitEnd > newStart) {
-        Era era(splitStart, splitEnd, covariateSettings.outputIds(covariateIdRow, j), 1);
-        outputEras.push_back(era);
-      }
-      splitStart = splitEnd + 1;
-      if (splitStart > newEnd){
-        break;
-      }
-    }
-  }
+  Era era(newStart, newEnd, covariateSettings.outputIds(covariateIdRow,0), 1);
+  outputEras.push_back(era);
 }
 
 void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings) {

@@ -34,11 +34,9 @@ limitations under the License.
 {DEFAULT @study_end_date = '' }
 {DEFAULT @sampled_cases = FALSE}
 
-IF OBJECT_ID('tempdb..#eras', 'U') IS NOT NULL
-	DROP TABLE #eras;
+DROP TABLE IF EXISTS #eras;
 
-IF OBJECT_ID('tempdb..#era_ref', 'U') IS NOT NULL
-	DROP TABLE #era_ref;
+DROP TABLE IF EXISTS #era_ref;
 
 CREATE TABLE #eras (
 	era_type VARCHAR(3),

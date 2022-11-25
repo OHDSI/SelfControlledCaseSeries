@@ -15,6 +15,7 @@ convertToSccsDataWrapper <- function(cases,
   if (is.null(covariateSettings)) {
     covariateSettings <- createEraCovariateSettings(
       includeEraIds = exposureId,
+      stratifyById = TRUE,
       start = 0,
       end = 0,
       endAnchor = "era end"
@@ -556,7 +557,8 @@ test_that("Aggregates on large set", {
     sccsData,
     eraCovariateSettings = createEraCovariateSettings(
       includeEraIds = c(1, 2),
-      endAnchor = "era end"
+      endAnchor = "era end",
+      stratifyById = TRUE,
     )
   )
 
@@ -623,86 +625,6 @@ test_that("Aggregates on large set", {
   expect_equal(z3$observationDays, z3$time)
 })
 
-test_that("Exposure splitting", {
-  cases <- tibble(
-    observationPeriodId = "1000",
-    caseId = 1,
-    personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
-    startDay = 1,
-    censoredDays = 0,
-    noninformativeEndCensor = 0
-  )
-  eras <- tibble(
-    eraType = c("hoi", "rx"),
-    caseId = c(1, 1),
-    eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(50, 25),
-    endDay = c(50, 75)
-  )
-  result <- convertToSccsDataWrapper(cases,
-    eras,
-    covariateSettings = createEraCovariateSettings(
-      includeEraIds = 11,
-      start = 0,
-      end = 0,
-      endAnchor = "era end",
-      splitPoints = c(7)
-    )
-  )
-  expect_equal(result$outcomes$rowId, c(0, 1, 2))
-  expect_equal(result$outcomes$stratumId, c(1, 1, 1))
-  expect_equal(result$outcomes$time, c(49, 8, 43))
-  expect_equal(result$outcomes$y, c(0, 0, 1))
-  expect_equal(result$covariates$rowId, c(1, 2))
-  expect_equal(result$covariates$stratumId, c(1, 1))
-  expect_equal(result$covariates$covariateId, c(1000, 1001))
-})
-
-test_that("Exposure splitting twice", {
-  cases <- tibble(
-    observationPeriodId = "1000",
-    caseId = 1,
-    personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
-    startDay = 1,
-    censoredDays = 0,
-    noninformativeEndCensor = 0
-  )
-  eras <- tibble(
-    eraType = c("hoi", "rx"),
-    caseId = c(1, 1),
-    eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(50, 25),
-    endDay = c(50, 75)
-  )
-  result <- convertToSccsDataWrapper(cases,
-    eras,
-    covariateSettings = createEraCovariateSettings(
-      includeEraIds = 11,
-      start = 0,
-      end = 0,
-      endAnchor = "era end",
-      splitPoints = c(7, 15)
-    )
-  )
-  expect_equal(result$outcomes$rowId, c(0, 1, 2, 3))
-  expect_equal(result$outcomes$stratumId, c(1, 1, 1, 1))
-  expect_equal(result$outcomes$time, c(49, 8, 8, 35))
-  expect_equal(result$outcomes$y, c(0, 0, 0, 1))
-  expect_equal(result$covariates$rowId, c(1, 2, 3))
-  expect_equal(result$covariates$stratumId, c(1, 1, 1))
-  expect_equal(result$covariates$covariateId, c(1000, 1001, 1002))
-})
-
 test_that("Merging exposures (stratifyById=FALSE)", {
   cases <- tibble(
     observationPeriodId = "1000",
@@ -741,48 +663,6 @@ test_that("Merging exposures (stratifyById=FALSE)", {
   expect_equal(result$covariates$rowId, c(1))
   expect_equal(result$covariates$stratumId, c(1))
   expect_equal(result$covariates$covariateId, c(1000))
-})
-
-
-test_that("Exposure splitting without stratifyById", {
-  cases <- tibble(
-    observationPeriodId = "1000",
-    caseId = 1,
-    personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
-    startDay = 1,
-    censoredDays = 0,
-    noninformativeEndCensor = 0
-  )
-  eras <- tibble(
-    eraType = c("hoi", "rx", "rx"),
-    caseId = c(1, 1, 1),
-    eraId = c(10, 11, 12),
-    value = c(1, 1, 1),
-    startDay = c(50, 25, 70),
-    endDay = c(50, 75, 100)
-  )
-  result <- convertToSccsDataWrapper(cases,
-    eras,
-    covariateSettings = createEraCovariateSettings(
-      includeEraIds = c(11, 12),
-      stratifyById = FALSE,
-      start = 0,
-      end = 0,
-      endAnchor = "era end",
-      splitPoints = c(50)
-    )
-  )
-  expect_equal(result$outcomes$rowId, c(0, 1, 2))
-  expect_equal(result$outcomes$stratumId, c(1, 1, 1))
-  expect_equal(result$outcomes$time, c(25, 51, 24))
-  expect_equal(result$outcomes$y, c(0, 1, 0))
-  expect_equal(result$covariates$rowId, c(1, 2))
-  expect_equal(result$covariates$stratumId, c(1, 1))
-  expect_equal(result$covariates$covariateId, c(1000, 1001))
 })
 
 test_that("Pre-exposure window", {

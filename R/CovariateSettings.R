@@ -37,10 +37,6 @@
 #' @param endAnchor             The anchor point for the end of the risk window. Can be `"era start"`
 #'                              or `"era end"`.
 #' @param firstOccurrenceOnly   Should only the first occurrence of the exposure be used?
-#' @param splitPoints           To split the risk window into several smaller windows, specify the end
-#'                              of each sub- window relative to the start of the main risk window. If
-#'                              add ExposedDaysToStart is TRUE, the split points will be considered to
-#'                              be relative to the end of the main risk window instead.
 #' @param allowRegularization   When fitting the model, should the covariates defined here be allowed
 #'                              to be regularized?
 #' @param profileLikelihood     When fitting the model, should the likelihood profile be computed for
@@ -59,13 +55,12 @@
 createEraCovariateSettings <- function(includeEraIds = NULL,
                                        excludeEraIds = NULL,
                                        label = "Covariates",
-                                       stratifyById = TRUE,
+                                       stratifyById = FALSE,
                                        start = 0,
                                        startAnchor = "era start",
                                        end = 0,
                                        endAnchor = "era end",
                                        firstOccurrenceOnly = FALSE,
-                                       splitPoints = c(),
                                        allowRegularization = FALSE,
                                        profileLikelihood = FALSE,
                                        exposureOfInterest = FALSE) {
@@ -87,7 +82,6 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
   checkmate::assertInt(end, add = errorMessages)
   checkmate::assertChoice(endAnchor, c("era start", "era end"), add = errorMessages)
   checkmate::assertLogical(firstOccurrenceOnly, len = 1, add = errorMessages)
-  checkmate::assertIntegerish(splitPoints, null.ok = TRUE, add = errorMessages)
   checkmate::assertLogical(allowRegularization, len = 1, add = errorMessages)
   checkmate::assertLogical(profileLikelihood, len = 1, add = errorMessages)
   checkmate::assertLogical(exposureOfInterest, len = 1, add = errorMessages)
@@ -333,7 +327,6 @@ createControlIntervalSettings <- function(includeEraIds = NULL,
     end = end,
     endAnchor = endAnchor,
     firstOccurrenceOnly = firstOccurrenceOnly,
-    splitPoints = c(),
     allowRegularization = FALSE
   )
   analysis$isControlInterval <- TRUE
