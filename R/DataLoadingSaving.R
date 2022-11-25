@@ -1,5 +1,3 @@
-# @file DataLoadingSaving.R
-#
 # Copyright 2022 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
@@ -41,6 +39,9 @@
 #'
 #' All five locations could point to the same database schema.
 #'
+#' Cohort tables are assumed to have the following fields: `cohort_definition_id`, `subject_id`,
+#' `cohort_start_date`, and `cohort_end_date.`
+#'
 #' @return
 #' An [SccsData] object.
 #'
@@ -50,64 +51,57 @@
 #'                                        instance.  Requires read permissions to this database. On SQL
 #'                                        Server, this should specify both the database and the
 #'                                        schema, so for example 'cdm_instance.dbo'.
-#' @param tempEmulationSchema Some database platforms like Oracle and Impala do not truly support temp tables. To
-#'                            emulate temp tables, provide a schema with write privileges where temp tables
-#'                            can be created.
+#' @param tempEmulationSchema             Some database platforms like Oracle and Impala do not truly support
+#'                                        temp tables. To emulate temp tables, provide a schema with write
+#'                                        privileges where temp tables can be created.
 #' @param outcomeDatabaseSchema           The name of the database schema that is the location where
 #'                                        the data used to define the outcome cohorts is available. If
-#'                                        outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
+#'                                        `outcomeTable = "condition_era"`, `outcomeDatabaseSchema` is not
 #'                                        used.  Requires read permissions to this database.
-#' @param outcomeTable                    The tablename that contains the outcome cohorts.  If
-#'                                        outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
-#'                                        then expectation is outcomeTable has format of COHORT table:
-#'                                        COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
-#'                                        COHORT_END_DATE.
-#' @param outcomeIds                      A list of ids used to define outcomes.  If outcomeTable =
-#'                                        CONDITION_OCCURRENCE, the list is a set of ancestor
-#'                                        CONCEPT_IDs, and all occurrences of all descendant concepts
-#'                                        will be selected.  If outcomeTable <> CONDITION_OCCURRENCE,
-#'                                        the list contains records found in COHORT_DEFINITION_ID
-#'                                        field.
+#' @param outcomeTable                    The table name that contains the outcome cohorts.  If
+#'                                        `outcomeTable` is not `"condition_era"`,
+#'                                        then expectation is `outcomeTable` has format of cohort table (see
+#'                                        details).
+#' @param outcomeIds                      A list of IDs used to define outcomes.  If `outcomeTable` is not
+#'                                        `"condition_era"` the list contains records found in the
+#'                                        `cohort_definition_id` field.
 #' @param exposureDatabaseSchema          The name of the database schema that is the location where
-#'                                        the exposure data used to define the exposure cohorts is
-#'                                        available. If exposureTable = DRUG_ERA,
-#'                                        exposureDatabaseSchema is not used but assumed to be
-#'                                        cdmSchema.  Requires read permissions to this database.
+#'                                        the exposure data used to define the exposure eras is
+#'                                        available. If `exposureTable = "drug_era"`,
+#'                                        `exposureDatabaseSchema` is not used but assumed to be equal to
+#'                                        `cdmDatabaseSchema`.  Requires read permissions to this database.
 #' @param exposureTable                   The tablename that contains the exposure cohorts.  If
-#'                                        exposureTable <> DRUG_ERA, then expectation is exposureTable
-#'                                        has format of COHORT table: cohort_concept_id, SUBJECT_ID,
-#'                                        COHORT_START_DATE, COHORT_END_DATE.
-#' @param exposureIds                     A list of identifiers to define the exposures of interest. If
+#'                                        `exposureTable` is not "drug_era", then expectation is `exposureTable`
+#'                                        has format of a cohort table (see details).
+#' @param exposureIds                     A list of identifiers to extract from the exposure table. If
 #'                                        exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
-#'                                        If exposureTable <> DRUG_ERA, exposureIds is used to select
-#'                                        the cohort_concept_id in the cohort-like table. If no
-#'                                        exposureIds are provided, all drugs or cohorts in the
-#'                                        exposureTable are included as exposures.
+#'                                        If `exposureTable = "drug_era"`, `exposureIds` is used to select
+#'                                        the `drug_concept_id`. If no exposure IDs are provided, all drugs
+#'                                        or cohorts in the `exposureTable` are included as exposures.
 #' @param useCustomCovariates             Create covariates from a custom table?
 #' @param customCovariateDatabaseSchema   The name of the database schema that is the location where
 #'                                        the custom covariate data is available.
 #' @param customCovariateTable            Name of the table holding the custom covariates. This table
-#'                                        should have the same structure as the cohort table.
-#' @param customCovariateIds              A list of cohort definition IDS identifying the records in
-#'                                        the customCovariateTable to use for building custom
+#'                                        should have the same structure as the cohort table (see details).
+#' @param customCovariateIds              A list of cohort definition IDs identifying the records in
+#'                                        the `customCovariateTable` to use for building custom
 #'                                        covariates.
-#' @param useNestingCohort                    Should the study be nested in a cohort (e.g. people with
-#'                                            a specific indication)? If not, the study will be nested
-#'                                            in the general population.
-#' @param nestingCohortDatabaseSchema         The name of the database schema that is the location
-#'                                            where the nesting cohort is defined.
-#' @param nestingCohortTable                  Name of the table holding the nesting cohort. This table
-#'                                            should have the same structure as the cohort table.
-#' @param nestingCohortId                     A cohort definition ID identifying the records in the
-#'                                            nestingCohortTable to use as nesting cohort.
+#' @param useNestingCohort                Should the study be nested in a cohort (e.g. people with
+#'                                        a specific indication)? If not, the study will be nested
+#'                                        in the general population.
+#' @param nestingCohortDatabaseSchema     The name of the database schema that is the location
+#'                                        where the nesting cohort is defined.
+#' @param nestingCohortTable              Name of the table holding the nesting cohort. This table
+#'                                        should have the same structure as the cohort table (see details).
+#' @param nestingCohortId                 A cohort definition ID identifying the records in the
+#'                                        `nestingCohortTable` to use as nesting cohort.
 #' @param deleteCovariatesSmallCount      The minimum count for a covariate to appear in the data to be
 #'                                        kept.
-#' @param studyStartDate                  A calendar date specifying the minimum date where data is
-#'                                        used. Date format is 'yyyymmdd'.
-#' @param studyEndDate                    A calendar date specifying the maximum date where data is
-#'                                        used. Date format is 'yyyymmdd'.
-#' @param cdmVersion                      Define the OMOP CDM version used: currently support "4" and
-#'                                        "5".
+#' @param studyStartDate                  A `Date` object specifying the minimum date where data is
+#'                                        used.
+#' @param studyEndDate                    A `Date` object specifying the maximum date where data is
+#'                                        used.
+#' @param cdmVersion                      Define the OMOP CDM version used: currently supports "5".
 #' @param maxCasesPerOutcome              If there are more than this number of cases for a single
 #'                                        outcome cases will be sampled to this size. `maxCasesPerOutcome = 0`
 #'                                        indicates no maximum size.
@@ -131,8 +125,8 @@ getDbSccsData <- function(connectionDetails,
                           nestingCohortTable = "cohort",
                           nestingCohortId = NULL,
                           deleteCovariatesSmallCount = 0,
-                          studyStartDate = "",
-                          studyEndDate = "",
+                          studyStartDate = NULL,
+                          studyEndDate = NULL,
                           cdmVersion = "5",
                           maxCasesPerOutcome = 0) {
   errorMessages <- checkmate::makeAssertCollection()
@@ -144,7 +138,7 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertIntegerish(outcomeIds, add = errorMessages)
   checkmate::assertCharacter(exposureDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(exposureTable, len = 1, add = errorMessages)
-  checkmate::assertIntegerish(exposureIds, add = errorMessages)
+  checkmate::assertIntegerish(exposureIds, null.ok = TRUE, add = errorMessages)
   checkmate::assertLogical(useCustomCovariates, len = 1, add = errorMessages)
   checkmate::assertCharacter(customCovariateDatabaseSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(customCovariateTable, len = 1, null.ok = TRUE, add = errorMessages)
@@ -152,18 +146,22 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertLogical(useNestingCohort, len = 1, add = errorMessages)
   checkmate::assertCharacter(nestingCohortDatabaseSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(nestingCohortTable, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertIntegerish(nestingCohortId, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertInt(nestingCohortId, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(deleteCovariatesSmallCount, lower = 0, add = errorMessages)
-  checkmate::assertCharacter(studyStartDate, len = 1, add = errorMessages)
-  checkmate::assertCharacter(studyEndDate, len = 1, add = errorMessages)
+  checkmate::assertDate(studyStartDate, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertDate(studyEndDate, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
   checkmate::assertInt(maxCasesPerOutcome, lower = 0, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (studyStartDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
-    stop("Study start date must have format YYYYMMDD")
+  if (is.null(studyStartDate)) {
+    studyStartDate <- ""
+  } else {
+    studyStartDate <- format(studyStartDate, "%Y%m%d")
   }
-  if (studyEndDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyEndDate) == -1) {
-    stop("Study end date must have format YYYYMMDD")
+  if (is.null(studyEndDate)) {
+    studyEndDate <- ""
+  } else {
+    studyEndDate <- format(studyEndDate, "%Y%m%d")
   }
   if (cdmVersion == "4") {
     stop("CDM version 4 is no longer supported")
@@ -172,6 +170,10 @@ getDbSccsData <- function(connectionDetails,
   start <- Sys.time()
   conn <- DatabaseConnector::connect(connectionDetails)
   on.exit(DatabaseConnector::disconnect(conn))
+  DatabaseConnector::assertTempEmulationSchemaSet(
+    dbms = connectionDetails$dbms,
+    tempEmulationSchema = tempEmulationSchema
+  )
 
   if (is.null(exposureIds) || length(exposureIds) == 0) {
     hasExposureIds <- FALSE

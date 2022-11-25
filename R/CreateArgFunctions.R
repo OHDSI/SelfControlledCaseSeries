@@ -9,8 +9,8 @@
 #' @param useNestingCohort  Should the study be nested in a cohort (e.g. people with a specific indication)? If not, the study will be nested in the general population.
 #' @param nestingCohortId  A cohort definition ID identifying the records in the nestingCohortTable to use as nesting cohort.
 #' @param deleteCovariatesSmallCount  The minimum count for a covariate to appear in the data to be kept.
-#' @param studyStartDate  A calendar date specifying the minimum date where data is used. Date format is 'yyyymmdd'.
-#' @param studyEndDate  A calendar date specifying the maximum date where data is used. Date format is 'yyyymmdd'.
+#' @param studyStartDate  A `Date` object specifying the minimum date where data is used.
+#' @param studyEndDate  A `Date` object specifying the maximum date where data is used.
 #' @param maxCasesPerOutcome  If there are more than this number of cases for a single outcome cases will be sampled to this size. maxCasesPerOutcome = 0 indicates no maximum size.
 #' @param exposureIds  A list of identifiers to define the exposures of interest. If exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID. If exposureTable <> DRUG_ERA, exposureIds is used to select the cohort_concept_id in the cohort-like table. If no exposureIds are provided, all drugs or cohorts in the exposureTable are included as exposures.
 #' @param customCovariateIds  A list of cohort definition IDS identifying the records in the customCovariateTable to use for building custom covariates.
@@ -20,8 +20,8 @@ createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
                                     useNestingCohort = FALSE,
                                     nestingCohortId = NULL,
                                     deleteCovariatesSmallCount = 0,
-                                    studyStartDate = "",
-                                    studyEndDate = "",
+                                    studyStartDate = NULL,
+                                    studyEndDate = NULL,
                                     maxCasesPerOutcome = 0,
                                     exposureIds = "exposureId",
                                     customCovariateIds = "") {

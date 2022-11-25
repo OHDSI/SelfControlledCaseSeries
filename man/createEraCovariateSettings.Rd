@@ -17,7 +17,7 @@ createEraCovariateSettings(
   splitPoints = c(),
   allowRegularization = FALSE,
   profileLikelihood = FALSE,
-  exposureOfInterest = TRUE
+  exposureOfInterest = FALSE
 )
 }
 \arguments{
@@ -63,7 +63,8 @@ methods specifically designed to make use of the profile, but may take a
 while to compute.}
 
 \item{exposureOfInterest}{If TRUE, the fitted coefficient for this variable will be reported when
-using \code{runSccsAnalyses()}.}
+using \code{runSccsAnalyses()}. Requires \code{includeEraIds} to be a exposure
+reference ID as defined in \code{createExposure()}.}
 }
 \value{
 An object of type \code{EraCovariateSettings}.

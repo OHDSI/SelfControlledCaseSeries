@@ -23,8 +23,8 @@ getDbSccsData(
   nestingCohortTable = "cohort",
   nestingCohortId = NULL,
   deleteCovariatesSmallCount = 0,
-  studyStartDate = "",
-  studyEndDate = "",
+  studyStartDate = NULL,
+  studyEndDate = NULL,
   cdmVersion = "5",
   maxCasesPerOutcome = 0
 )
@@ -38,45 +38,39 @@ instance.  Requires read permissions to this database. On SQL
 Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.}
 
-\item{tempEmulationSchema}{Some database platforms like Oracle and Impala do not truly support temp tables. To
-emulate temp tables, provide a schema with write privileges where temp tables
-can be created.}
+\item{tempEmulationSchema}{Some database platforms like Oracle and Impala do not truly support
+temp tables. To emulate temp tables, provide a schema with write
+privileges where temp tables can be created.}
 
 \item{outcomeDatabaseSchema}{The name of the database schema that is the location where
 the data used to define the outcome cohorts is available. If
-outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
+\code{outcomeTable = "condition_era"}, \code{outcomeDatabaseSchema} is not
 used.  Requires read permissions to this database.}
 
-\item{outcomeTable}{The tablename that contains the outcome cohorts.  If
-outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
-then expectation is outcomeTable has format of COHORT table:
-COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
-COHORT_END_DATE.}
+\item{outcomeTable}{The table name that contains the outcome cohorts.  If
+\code{outcomeTable} is not \code{"condition_era"},
+then expectation is \code{outcomeTable} has format of cohort table (see
+details).}
 
-\item{outcomeIds}{A list of ids used to define outcomes.  If outcomeTable =
-CONDITION_OCCURRENCE, the list is a set of ancestor
-CONCEPT_IDs, and all occurrences of all descendant concepts
-will be selected.  If outcomeTable <> CONDITION_OCCURRENCE,
-the list contains records found in COHORT_DEFINITION_ID
-field.}
+\item{outcomeIds}{A list of IDs used to define outcomes.  If \code{outcomeTable} is not
+\code{"condition_era"} the list contains records found in the
+\code{cohort_definition_id} field.}
 
 \item{exposureDatabaseSchema}{The name of the database schema that is the location where
-the exposure data used to define the exposure cohorts is
-available. If exposureTable = DRUG_ERA,
-exposureDatabaseSchema is not used but assumed to be
-cdmSchema.  Requires read permissions to this database.}
+the exposure data used to define the exposure eras is
+available. If \code{exposureTable = "drug_era"},
+\code{exposureDatabaseSchema} is not used but assumed to be equal to
+\code{cdmDatabaseSchema}.  Requires read permissions to this database.}
 
 \item{exposureTable}{The tablename that contains the exposure cohorts.  If
-exposureTable <> DRUG_ERA, then expectation is exposureTable
-has format of COHORT table: cohort_concept_id, SUBJECT_ID,
-COHORT_START_DATE, COHORT_END_DATE.}
+\code{exposureTable} is not "drug_era", then expectation is \code{exposureTable}
+has format of a cohort table (see details).}
 
-\item{exposureIds}{A list of identifiers to define the exposures of interest. If
+\item{exposureIds}{A list of identifiers to extract from the exposure table. If
 exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
-If exposureTable <> DRUG_ERA, exposureIds is used to select
-the cohort_concept_id in the cohort-like table. If no
-exposureIds are provided, all drugs or cohorts in the
-exposureTable are included as exposures.}
+If \code{exposureTable = "drug_era"}, \code{exposureIds} is used to select
+the \code{drug_concept_id}. If no exposure IDs are provided, all drugs
+or cohorts in the \code{exposureTable} are included as exposures.}
 
 \item{useCustomCovariates}{Create covariates from a custom table?}
 
@@ -84,10 +78,10 @@ exposureTable are included as exposures.}
 the custom covariate data is available.}
 
 \item{customCovariateTable}{Name of the table holding the custom covariates. This table
-should have the same structure as the cohort table.}
+should have the same structure as the cohort table (see details).}
 
-\item{customCovariateIds}{A list of cohort definition IDS identifying the records in
-the customCovariateTable to use for building custom
+\item{customCovariateIds}{A list of cohort definition IDs identifying the records in
+the \code{customCovariateTable} to use for building custom
 covariates.}
 
 \item{useNestingCohort}{Should the study be nested in a cohort (e.g. people with
@@ -98,22 +92,21 @@ in the general population.}
 where the nesting cohort is defined.}
 
 \item{nestingCohortTable}{Name of the table holding the nesting cohort. This table
-should have the same structure as the cohort table.}
+should have the same structure as the cohort table (see details).}
 
 \item{nestingCohortId}{A cohort definition ID identifying the records in the
-nestingCohortTable to use as nesting cohort.}
+\code{nestingCohortTable} to use as nesting cohort.}
 
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be
 kept.}
 
-\item{studyStartDate}{A calendar date specifying the minimum date where data is
-used. Date format is 'yyyymmdd'.}
+\item{studyStartDate}{A \code{Date} object specifying the minimum date where data is
+used.}
 
-\item{studyEndDate}{A calendar date specifying the maximum date where data is
-used. Date format is 'yyyymmdd'.}
+\item{studyEndDate}{A \code{Date} object specifying the maximum date where data is
+used.}
 
-\item{cdmVersion}{Define the OMOP CDM version used: currently support "4" and
-"5".}
+\item{cdmVersion}{Define the OMOP CDM version used: currently supports "5".}
 
 \item{maxCasesPerOutcome}{If there are more than this number of cases for a single
 outcome cases will be sampled to this size. \code{maxCasesPerOutcome = 0}
@@ -147,4 +140,7 @@ for example a cohort of diabetics patients.
 }
 
 All five locations could point to the same database schema.
+
+Cohort tables are assumed to have the following fields: \code{cohort_definition_id}, \code{subject_id},
+\code{cohort_start_date}, and \code{cohort_end_date.}
 }

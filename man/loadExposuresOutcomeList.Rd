@@ -2,7 +2,7 @@
 % Please edit documentation in R/Analyses.R
 \name{loadExposuresOutcomeList}
 \alias{loadExposuresOutcomeList}
-\title{Load a list of \code{exposuresOutcome} from file}
+\title{Load a list of \code{ExposuresOutcome} from file}
 \usage{
 loadExposuresOutcomeList(file)
 }
@@ -10,8 +10,8 @@ loadExposuresOutcomeList(file)
 \item{file}{The name of the file}
 }
 \value{
-A list of objects of type \code{exposuresOutcome}.
+A list of objects of type \code{ExposuresOutcome}.
 }
 \description{
-Load a list of objects of type \code{exposuresOutcome} from file. The file is in JSON format.
+Load a list of objects of type \code{ExposuresOutcome} from file. The file is in JSON format.
 }

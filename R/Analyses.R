@@ -29,7 +29,7 @@
 #'                                     [fitSccsModel] function.
 #'
 #' @return
-#' An object of type `sccsAnalysis`, to be used with the [runSccsAnalyses] function.
+#' An object of type `SccsAnalysis`, to be used with the [runSccsAnalyses] function.
 #'
 #' @export
 createSccsAnalysis <- function(analysisId = 1,
@@ -50,16 +50,16 @@ createSccsAnalysis <- function(analysisId = 1,
   for (name in names(formals(createSccsAnalysis))) {
     analysis[[name]] <- get(name)
   }
-  class(analysis) <- "sccsAnalysis"
+  class(analysis) <- "SccsAnalysis"
   return(analysis)
 }
 
-#' Save a list of sccsAnalysis to file
+#' Save a list of SccsAnalysis to file
 #'
 #' @description
-#' Write a list of objects of type `sccsAnalysis` to file. The file is in JSON format.
+#' Write a list of objects of type `SccsAnalysis` to file. The file is in JSON format.
 #'
-#' @param sccsAnalysisList   The `sccsAnalysis` list to be written to file
+#' @param sccsAnalysisList   The `SccsAnalysis` list to be written to file
 #' @param file               The name of the file where the results will be written
 #'
 #' @export
@@ -67,30 +67,41 @@ saveSccsAnalysisList <- function(sccsAnalysisList, file) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(sccsAnalysisList, min.len = 1, add = errorMessages)
   for (i in 1:length(sccsAnalysisList)) {
-    checkmate::assertClass(sccsAnalysisList[[i]], "sccsAnalysis", add = errorMessages)
+    checkmate::assertClass(sccsAnalysisList[[i]], "SccsAnalysis", add = errorMessages)
   }
   checkmate::assertCharacter(file, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   ParallelLogger::saveSettingsToJson(sccsAnalysisList, file)
 }
 
-
 #' Load a list of sccsAnalysis from file
 #'
 #' @description
-#' Load a list of objects of type `sccsAnalysis` from file. The file is in JSON format.
+#' Load a list of objects of type `SccsAnalysis` from file. The file is in JSON format.
 #'
 #' @param file   The name of the file
 #'
 #' @return
-#' A list of objects of type `sccsAnalysis`.
+#' A list of objects of type `SccsAnalysis`.
 #'
 #' @export
 loadSccsAnalysisList <- function(file) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertCharacter(file, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  return(ParallelLogger::loadSettingsFromJson(file))
+  settings <- ParallelLogger::loadSettingsFromJson(file)
+
+  restoreDates <- function(sccsAnalysis) {
+    if (!is.null(sccsAnalysis$getDbSccsDataArgs$studyStartDate)) {
+      sccsAnalysis$getDbSccsDataArgs$studyStartDate <- as.Date(sccsAnalysis$getDbSccsDataArgs$studyStartDate)
+    }
+    if (!is.null(sccsAnalysis$getDbSccsDataArgs$studyEndDate)) {
+      sccsAnalysis$getDbSccsDataArgs$studyEndDate <- as.Date(sccsAnalysis$getDbSccsDataArgs$studyEndDate)
+    }
+    return(sccsAnalysis)
+  }
+  settings <- lapply(settings, restoreDates)
+  return(settings)
 }
 
 #' Create exposure definition
@@ -107,7 +118,7 @@ loadSccsAnalysisList <- function(file) {
 #'                       `trueEffectSize = NA`.
 #'
 #' @return
-#' An object of type `exposure`.
+#' An object of type `Exposure`.
 #'
 #' @export
 createExposure <- function(exposureId, exposureIdRef = "exposureId", trueEffectSize = NA) {
@@ -121,7 +132,7 @@ createExposure <- function(exposureId, exposureIdRef = "exposureId", trueEffectS
   for (name in names(formals(createExposure))) {
     exposure[[name]] <- get(name)
   }
-  class(exposure) <- "exposure"
+  class(exposure) <- "Exposure"
   return(exposure)
 }
 
@@ -131,10 +142,10 @@ createExposure <- function(exposureId, exposureIdRef = "exposureId", trueEffectS
 #' Create a set of hypotheses of interest, to be used with the [runSccsAnalyses] function.
 #'
 #' @param outcomeId    An integer used to identify the outcome in the outcome cohort table.
-#' @param exposures    A list of object of type `exposure` as created by [createExposure()].
+#' @param exposures    A list of object of type `Exposure` as created by [createExposure()].
 #'
 #' @return
-#' An object of type `exposuresOutcome`.
+#' An object of type `ExposuresOutcome`.
 #'
 #' @export
 createExposuresOutcome <- function(outcomeId, exposures) {
@@ -142,7 +153,7 @@ createExposuresOutcome <- function(outcomeId, exposures) {
   checkmate::assertInt(outcomeId, add = errorMessages)
   checkmate::assertList(exposures, min.len = 1, add = errorMessages)
   for (i in seq_along(exposures)) {
-    checkmate::assertClass(exposures[[i]], "exposure", add = errorMessages)
+    checkmate::assertClass(exposures[[i]], "Exposure", add = errorMessages)
   }
   checkmate::reportAssertions(collection = errorMessages)
   uniqueExposureIdRefs <- unlist(unique(ParallelLogger::selectFromList(exposures, "exposureIdRef")))
@@ -154,16 +165,16 @@ createExposuresOutcome <- function(outcomeId, exposures) {
   for (name in names(formals(createExposuresOutcome))) {
     exposuresOutcome[[name]] <- get(name)
   }
-  class(exposuresOutcome) <- "exposuresOutcome"
+  class(exposuresOutcome) <- "ExposuresOutcome"
   return(exposuresOutcome)
 }
 
-#' Save a list of `exposuresOutcome` to file
+#' Save a list of `ExposuresOutcome` to file
 #'
 #' @description
-#' Write a list of objects of type `exposuresOutcome` to file. The file is in JSON format.
+#' Write a list of objects of type `ExposuresOutcome` to file. The file is in JSON format.
 #'
-#' @param exposuresOutcomeList  The `exposuresOutcome` list to be written to file
+#' @param exposuresOutcomeList  The `ExposuresOutcome` list to be written to file
 #' @param file                  The name of the file where the results will be written
 #'
 #' @export
@@ -171,22 +182,22 @@ saveExposuresOutcomeList <- function(exposuresOutcomeList, file) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(exposuresOutcomeList, min.len = 1, add = errorMessages)
   for (i in 1:length(exposuresOutcomeList)) {
-    checkmate::assertClass(exposuresOutcomeList[[i]], "exposuresOutcome", add = errorMessages)
+    checkmate::assertClass(exposuresOutcomeList[[i]], "ExposuresOutcome", add = errorMessages)
   }
   checkmate::assertCharacter(file, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   ParallelLogger::saveSettingsToJson(exposuresOutcomeList, file)
 }
 
-#' Load a list of `exposuresOutcome` from file
+#' Load a list of `ExposuresOutcome` from file
 #'
 #' @description
-#' Load a list of objects of type `exposuresOutcome` from file. The file is in JSON format.
+#' Load a list of objects of type `ExposuresOutcome` from file. The file is in JSON format.
 #'
 #' @param file   The name of the file
 #'
 #' @return
-#' A list of objects of type `exposuresOutcome`.
+#' A list of objects of type `ExposuresOutcome`.
 #'
 #' @export
 loadExposuresOutcomeList <- function(file) {

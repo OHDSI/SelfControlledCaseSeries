@@ -9,8 +9,8 @@ createGetDbSccsDataArgs(
   useNestingCohort = FALSE,
   nestingCohortId = NULL,
   deleteCovariatesSmallCount = 0,
-  studyStartDate = "",
-  studyEndDate = "",
+  studyStartDate = NULL,
+  studyEndDate = NULL,
   maxCasesPerOutcome = 0,
   exposureIds = "exposureId",
   customCovariateIds = ""
@@ -25,9 +25,9 @@ createGetDbSccsDataArgs(
 
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be kept.}
 
-\item{studyStartDate}{A calendar date specifying the minimum date where data is used. Date format is 'yyyymmdd'.}
+\item{studyStartDate}{A \code{Date} object specifying the minimum date where data is used.}
 
-\item{studyEndDate}{A calendar date specifying the maximum date where data is used. Date format is 'yyyymmdd'.}
+\item{studyEndDate}{A \code{Date} object specifying the maximum date where data is used.}
 
 \item{maxCasesPerOutcome}{If there are more than this number of cases for a single outcome cases will be sampled to this size. maxCasesPerOutcome = 0 indicates no maximum size.}
 

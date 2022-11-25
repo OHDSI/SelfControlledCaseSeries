@@ -43,7 +43,8 @@ test_that("Running multiple analyses against Eunomia", {
     includeEraIds = "exposureId",
     start = 0,
     end = 7,
-    endAnchor = "era start"
+    endAnchor = "era start",
+    exposureOfInterest = TRUE
   )
 
   covarExposureOfInt2 <- createEraCovariateSettings(
@@ -139,7 +140,7 @@ test_that("Running multiple analyses against Eunomia", {
 
   analysisSum <- getResultsSummary(outputFolder)
 
-  expect_equal(nrow(analysisSum), 9)
+  expect_equal(nrow(analysisSum), 6)
 
   # Assert appropriate designs:
   sccsIntervalData <- loadSccsIntervalData(file.path(outputFolder, pull(filter(ref, analysisId == 1), sccsIntervalDataFile)[1]))

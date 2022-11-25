@@ -2,15 +2,15 @@
 % Please edit documentation in R/Analyses.R
 \name{saveSccsAnalysisList}
 \alias{saveSccsAnalysisList}
-\title{Save a list of sccsAnalysis to file}
+\title{Save a list of SccsAnalysis to file}
 \usage{
 saveSccsAnalysisList(sccsAnalysisList, file)
 }
 \arguments{
-\item{sccsAnalysisList}{The \code{sccsAnalysis} list to be written to file}
+\item{sccsAnalysisList}{The \code{SccsAnalysis} list to be written to file}
 
 \item{file}{The name of the file where the results will be written}
 }
 \description{
-Write a list of objects of type \code{sccsAnalysis} to file. The file is in JSON format.
+Write a list of objects of type \code{SccsAnalysis} to file. The file is in JSON format.
 }

@@ -18,7 +18,7 @@ used for empirical calibration. Negative controls have
 \code{trueEffectSize = NA}.}
 }
 \value{
-An object of type \code{exposure}.
+An object of type \code{Exposure}.
 }
 \description{
 Create exposure definition

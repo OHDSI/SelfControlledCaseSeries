@@ -71,10 +71,10 @@ should have the same structure as the cohort table.}
 
 \item{outputFolder}{Name of the folder where all the outputs will written to.}
 
-\item{sccsAnalysisList}{A list of objects of \code{sccsAnalysis} as created
+\item{sccsAnalysisList}{A list of objects of \code{SccsAnalysis} as created
 using the \code{\link[=createSccsAnalysis]{createSccsAnalysis()}} function.}
 
-\item{exposuresOutcomeList}{A list of objects of type \code{exposuresOutcome} as created
+\item{exposuresOutcomeList}{A list of objects of type \code{ExposuresOutcome} as created
 using the \code{\link[=createExposuresOutcome]{createExposuresOutcome()}} function.}
 
 \item{analysesToExclude}{Analyses to exclude. See the Analyses to Exclude section for

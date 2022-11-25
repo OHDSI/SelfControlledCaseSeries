@@ -9,10 +9,10 @@ createExposuresOutcome(outcomeId, exposures)
 \arguments{
 \item{outcomeId}{An integer used to identify the outcome in the outcome cohort table.}
 
-\item{exposures}{A list of object of type \code{exposure} as created by \code{\link[=createExposure]{createExposure()}}.}
+\item{exposures}{A list of object of type \code{Exposure} as created by \code{\link[=createExposure]{createExposure()}}.}
 }
 \value{
-An object of type \code{exposuresOutcome}.
+An object of type \code{ExposuresOutcome}.
 }
 \description{
 Create a exposures-outcome combination.

@@ -32,7 +32,7 @@ of analysis choices.}
 \link{fitSccsModel} function.}
 }
 \value{
-An object of type \code{sccsAnalysis}, to be used with the \link{runSccsAnalyses} function.
+An object of type \code{SccsAnalysis}, to be used with the \link{runSccsAnalyses} function.
 }
 \description{
 Create a SelfControlledCaseSeries analysis specification

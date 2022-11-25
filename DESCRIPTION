@@ -24,7 +24,7 @@ BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
 	R (>= 4.0.0),
 	Cyclops (>= 3.2.0),
-	DatabaseConnector (>= 5.1.0),
+	DatabaseConnector (>= 6.0.0),
 	Andromeda,
 	survival
 Imports:
@@ -46,7 +46,8 @@ Suggests:
 	EmpiricalCalibration,
 	Eunomia
 Remotes:
-  ohdsi/Eunomia
+  ohdsi/Eunomia,
+  ohdsi/DatabaseConnector@beta_6.0.0
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes

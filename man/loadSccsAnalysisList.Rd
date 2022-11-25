@@ -10,8 +10,8 @@ loadSccsAnalysisList(file)
 \item{file}{The name of the file}
 }
 \value{
-A list of objects of type \code{sccsAnalysis}.
+A list of objects of type \code{SccsAnalysis}.
 }
 \description{
-Load a list of objects of type \code{sccsAnalysis} from file. The file is in JSON format.
+Load a list of objects of type \code{SccsAnalysis} from file. The file is in JSON format.
 }

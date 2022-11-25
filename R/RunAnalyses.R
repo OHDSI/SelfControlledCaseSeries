@@ -87,7 +87,6 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
     cvThreads = min(5, maxCores),
     calibrationThreads = min(4, maxCores)
   )
-  class(settings) <- "sccsMultiThreadingSettings"
   return(settings)
 }
 
@@ -146,9 +145,9 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
 #' @param nestingCohortTable               Name of the table holding the nesting cohort. This table
 #'                                         should have the same structure as the cohort table.
 #' @param cdmVersion                       Define the OMOP CDM version used: currently supports "5".
-#' @param sccsAnalysisList                 A list of objects of `sccsAnalysis` as created
+#' @param sccsAnalysisList                 A list of objects of `SccsAnalysis` as created
 #'                                         using the [createSccsAnalysis()] function.
-#' @param exposuresOutcomeList             A list of objects of type `exposuresOutcome` as created
+#' @param exposuresOutcomeList             A list of objects of type `ExposuresOutcome` as created
 #'                                         using the [createExposuresOutcome()] function.
 #' @param outputFolder                     Name of the folder where all the outputs will written to.
 #' @param combineDataFetchAcrossOutcomes   Should fetching data from the database be done one outcome
@@ -200,11 +199,11 @@ runSccsAnalyses <- function(connectionDetails,
   checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
   checkmate::assertList(sccsAnalysisList, min.len = 1, add = errorMessages)
   for (i in 1:length(sccsAnalysisList)) {
-    checkmate::assertClass(sccsAnalysisList[[i]], "sccsAnalysis", add = errorMessages)
+    checkmate::assertClass(sccsAnalysisList[[i]], "SccsAnalysis", add = errorMessages)
   }
   checkmate::assertList(exposuresOutcomeList, min.len = 1, add = errorMessages)
   for (i in 1:length(exposuresOutcomeList)) {
-    checkmate::assertClass(exposuresOutcomeList[[i]], "exposuresOutcome", add = errorMessages)
+    checkmate::assertClass(exposuresOutcomeList[[i]], "ExposuresOutcome", add = errorMessages)
   }
   checkmate::assertDataFrame(analysesToExclude, null.ok = TRUE, add = errorMessages)
   checkmate::assertLogical(combineDataFetchAcrossOutcomes, len = 1, add = errorMessages)
@@ -391,6 +390,8 @@ runSccsAnalyses <- function(connectionDetails,
   referenceTable$studyPopId <- NULL
   attr(referenceTable, "loadConcepts") <- NULL
   saveRDS(referenceTable, file.path(outputFolder, "outcomeModelReference.rds"))
+  saveRDS(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.rds"))
+  saveRDS(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.rds"))
 
   # Construction of objects -------------------------------------------------------------------------
   if (length(sccsDataObjectsToCreate) != 0) {

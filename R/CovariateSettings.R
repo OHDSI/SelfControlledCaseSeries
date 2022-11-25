@@ -49,7 +49,8 @@
 #'                              methods specifically designed to make use of the profile, but may take a
 #'                              while to compute.
 #' @param exposureOfInterest    If TRUE, the fitted coefficient for this variable will be reported when
-#'                              using `runSccsAnalyses()`.
+#'                              using `runSccsAnalyses()`. Requires `includeEraIds` to be a exposure
+#'                              reference ID as defined in `createExposure()`.
 #'
 #' @return
 #' An object of type `EraCovariateSettings`.
@@ -67,7 +68,7 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
                                        splitPoints = c(),
                                        allowRegularization = FALSE,
                                        profileLikelihood = FALSE,
-                                       exposureOfInterest = TRUE) {
+                                       exposureOfInterest = FALSE) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is.character(includeEraIds)) {
     checkmate::assertCharacter(includeEraIds, add = errorMessages)
@@ -82,9 +83,9 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
   checkmate::assertCharacter(label, len = 1, add = errorMessages)
   checkmate::assertLogical(stratifyById, len = 1, add = errorMessages)
   checkmate::assertInt(start, add = errorMessages)
-  checkmate::assertCharacter(startAnchor, len = 1, add = errorMessages)
+  checkmate::assertChoice(startAnchor, c("era start", "era end"), add = errorMessages)
   checkmate::assertInt(end, add = errorMessages)
-  checkmate::assertCharacter(endAnchor, len = 1, add = errorMessages)
+  checkmate::assertChoice(endAnchor, c("era start", "era end"), add = errorMessages)
   checkmate::assertLogical(firstOccurrenceOnly, len = 1, add = errorMessages)
   checkmate::assertIntegerish(splitPoints, null.ok = TRUE, add = errorMessages)
   checkmate::assertLogical(allowRegularization, len = 1, add = errorMessages)
@@ -94,30 +95,16 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
   if (allowRegularization && profileLikelihood) {
     stop("Cannot profile the likelihood of regularized covariates")
   }
-  if (!grepl("start$|end$", startAnchor, ignore.case = TRUE)) {
-    stop("startAnchor should have value 'era start' or 'era end'")
-  }
-  if (!grepl("start$|end$", endAnchor, ignore.case = TRUE)) {
-    stop("endAnchor should have value 'era start' or 'era end'")
-  }
-  isEnd <- function(anchor) {
-    return(grepl("end$", anchor, ignore.case = TRUE))
-  }
-  if (end < start && !isEnd(endAnchor)) {
+  if (end < start && endAnchor == "era start") {
     stop("End day always precedes start day. Either pick a later end day, or set endAnchor to 'era end'.")
   }
+  if (exposureOfInterest && !(is.character(includeEraIds) && length(includeEraIds) == 1)) {
+    stop(
+      "The exposureOfInterest argument can only be set to TRUE if includeEraIds ",
+      "contains a single exposure reference ID as defined in createExposure()."
+    )
+  }
 
-  # Make sure string is exact:
-  if (isEnd(startAnchor)) {
-    startAnchor <- "era end"
-  } else {
-    startAnchor <- "era start"
-  }
-  if (isEnd(endAnchor)) {
-    endAnchor <- "era end"
-  } else {
-    endAnchor <- "era start"
-  }
   analysis <- list()
   for (name in names(formals(createEraCovariateSettings))) {
     analysis[[name]] <- get(name)

@@ -7,6 +7,8 @@ Changes
 
 2. Adding checking of user input to all functions.
 
+3. The `studyStartDate` and `studyEndDate` arguments of the `getDbSccsData()` function have been changed from character to Date type.
+
 3. Major overhaul of the multiple-analyses framework:
 
     - Added the `createExposure()` function for creating objects of type `exposure. This argument allows specifying the true effect size of the exposure, if known (e.g. for negative controls).
@@ -20,6 +22,8 @@ Changes
     - Dropping `exposureType` and `outcomeType` options from the `createSccsAnalysis ()` function, since the notion of analysis-specific exposure and outcome selection strategies can also be implemented using the `analysesToExclude` argument of `runSccsAnalyses()`.
         
     - Settings related to multi-threading are combined in to a single settings object that be created using the new `createSccsMultiThreadingSettings()` function.    
+    
+    - The `design` argument of the `createSccsAnalysis()` function has been removed, and the `createSccsIntervalDataArgs` and `createScriIntervalDataArgs` arguments have been replaced with a single `createIntervalDataArgs` argument that accepts arguments for both the `createSccsIntervalData()` and createScriIntervalData()` functions.
 
 
 SelfControlledCaseSeries 3.4.0
