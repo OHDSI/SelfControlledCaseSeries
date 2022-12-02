@@ -83,7 +83,7 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
     getDbSccsDataThreads = min(3, maxCores),
     createStudyPopulationThreads = min(3, maxCores),
     createIntervalDataThreads = min(3, maxCores),
-    fitSccsModelThreads = max(1, floor(maxCores / 5)),
+    fitSccsModelThreads = min(5, max(1, floor(maxCores / 5))),
     cvThreads = min(5, maxCores),
     calibrationThreads = min(4, maxCores)
   )
@@ -413,7 +413,7 @@ runSccsAnalyses <- function(connectionDetails,
 
   if (length(sccsIntervalDataObjectsToCreate) != 0) {
     message("*** Creating sccsIntervalData objects ***")
-    cluster <- ParallelLogger::makeCluster(min(length(sccsIntervalDataObjectsToCreate), sccsMultiThreadingSettings$createSccsIntervalDataThreads))
+    cluster <- ParallelLogger::makeCluster(min(length(sccsIntervalDataObjectsToCreate), sccsMultiThreadingSettings$createIntervalDataThreads))
     ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
     dummy <- ParallelLogger::clusterApply(cluster, sccsIntervalDataObjectsToCreate, createSccsIntervalDataObject)
     ParallelLogger::stopCluster(cluster)
@@ -815,7 +815,7 @@ summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder,
               filter(.data$covariateId == covariateSettings$outputIds[j])
           }
           if (is.null(sccsModel$estimates)) {
-            estimates <- tibble()
+            estimate <- tibble()
           } else {
             estimate <- sccsModel$estimates %>%
               filter(.data$covariateId == covariateSettings$outputIds[j])

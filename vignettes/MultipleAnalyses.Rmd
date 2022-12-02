@@ -19,7 +19,7 @@ vignette: >
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
 library(EmpiricalCalibration)
-outputFolder <- "s:/temp/sccsVignette2"
+outputFolder <- "d:/temp/sccsVignette2"
 ```
 # Introduction
 

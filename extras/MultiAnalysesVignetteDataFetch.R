@@ -18,7 +18,7 @@
 library(SqlRender)
 library(DatabaseConnector)
 library(SelfControlledCaseSeries)
-options(andromedaTempFolder = "s:/andromedaTemp")
+options(andromedaTempFolder = "d:/andromedaTemp")
 
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "redshift",
@@ -32,7 +32,7 @@ outcomeTable <- "sccs_vignette"
 options(sqlRenderTempEmulationSchema = NULL)
 outcomeTable <- "sccs_vignette"
 cdmVersion <- "5"
-outputFolder <- "s:/temp/sccsVignette2"
+outputFolder <- "d:/temp/sccsVignette2"
 
 
 # Create cohorts ---------------------------------------
@@ -233,10 +233,9 @@ sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalys
 saveExposuresOutcomeList(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.txt"))
 saveSccsAnalysisList(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.txt"))
 
-# exposuresOutcomeList <- loadExposuresOutcomeList(file.path(outputFolder, "exposuresOutcomeList.txt"))
-# sccsAnalysisList <- loadSccsAnalysisList(file.path(outputFolder, "sccsAnalysisList.txt"))
-
 # Run analyses --------------------------------------------------------
+exposuresOutcomeList <- loadExposuresOutcomeList(file.path(outputFolder, "exposuresOutcomeList.txt"))
+sccsAnalysisList <- loadSccsAnalysisList(file.path(outputFolder, "sccsAnalysisList.txt"))
 multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(parallel::detectCores() - 1)
 
 referenceTable <- runSccsAnalyses(

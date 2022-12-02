@@ -31,7 +31,7 @@ Imports:
 	SqlRender (>= 1.8.3),
 	dplyr (>= 1.0.0),
 	Rcpp (>= 0.11.2),
-	ParallelLogger (>= 3.0.1),
+	ParallelLogger (>= 3.1.0),
 	splines,
 	ggplot2 (>= 3.4.0),
 	methods,
@@ -48,7 +48,8 @@ Suggests:
 	Eunomia
 Remotes:
   ohdsi/Eunomia,
-  ohdsi/DatabaseConnector@beta_6.0.0
+  ohdsi/DatabaseConnector@beta_6.0.0,
+  ohdsi/ParallelLogger@develop
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
