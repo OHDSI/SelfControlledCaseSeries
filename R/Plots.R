@@ -166,49 +166,9 @@ plotEventObservationDependence <- function(studyPopulation,
   return(plot)
 }
 
-#' Plot information centered around the start of exposure
-#'
-#' @param exposureEraId       The exposure to create the era data for. If not specified it is
-#'                            assumed to be the one exposure for which the data was loaded from
-#'                            the database.
-#' @template StudyPopulation
-#' @template SccsData
-#' @param highlightExposedEvents Highlight events that occurred during the exposure era using a different color?
-#' @param fileName            Name of the file where the plot should be saved, for example 'plot.png'.
-#'                            See the function [ggplot2::ggsave()] for supported file formats.
-#' @param title               Optional: the main title for the plot
-#'
-#' @details
-#' This plot shows the number of events and the number of subjects under observation in week-sized intervals relative to the start
-#' of the first exposure.
-#'
-#' @return
-#' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
-#' format.
-#'
-#' @export
-plotExposureCentered <- function(studyPopulation,
-                                 sccsData,
-                                 exposureEraId = NULL,
-                                 highlightExposedEvents = TRUE,
-                                 title = NULL,
-                                 fileName = NULL) {
-  errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
-  checkmate::assertInt(exposureEraId, null.ok = TRUE, add = errorMessages)
-  checkmate::assertLogical(highlightExposedEvents, len = 1, add = errorMessages)
-  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::reportAssertions(collection = errorMessages)
-
-  if (is.null(exposureEraId)) {
-    exposureEraId <- attr(sccsData, "metaData")$exposureIds
-    if (length(exposureEraId) != 1) {
-      stop("No exposure ID specified, but multiple exposures found")
-    }
-  }
-
+computeTimeToEvent <- function(studyPopulation,
+                               sccsData,
+                               exposureEraId) {
   cases <- studyPopulation$cases %>%
     select("caseId", caseEndDay = "endDay", "offset")
 
@@ -266,7 +226,7 @@ plotExposureCentered <- function(studyPopulation,
     summarise(
       eventsExposed = sum(.data$exposed),
       eventsUnexposed = n() - sum(.data$exposed),
-      .groups = "drop_last"
+      .groups = "drop"
     )
 
   observed <- weeks %>%
@@ -275,34 +235,86 @@ plotExposureCentered <- function(studyPopulation,
     group_by(.data$number, .data$start, .data$end) %>%
     summarise(
       observed = n(),
-      .groups = "drop_last"
+      .groups = "drop"
     )
+
+  result <- observed %>%
+    left_join(events, by = c("number", "start", "end")) %>%
+    mutate(eventsExposed = if_else(is.na(.data$eventsExposed), 0, .data$eventsExposed),
+           eventsUnexposed = if_else(is.na(.data$eventsUnexposed), 0, .data$eventsUnexposed))
+
+  return(result)
+}
+
+#' Plot information centered around the start of exposure
+#'
+#' @param exposureEraId       The exposure to create the era data for. If not specified it is
+#'                            assumed to be the one exposure for which the data was loaded from
+#'                            the database.
+#' @template StudyPopulation
+#' @template SccsData
+#' @param highlightExposedEvents Highlight events that occurred during the exposure era using a different color?
+#' @param fileName            Name of the file where the plot should be saved, for example 'plot.png'.
+#'                            See the function [ggplot2::ggsave()] for supported file formats.
+#' @param title               Optional: the main title for the plot
+#'
+#' @details
+#' This plot shows the number of events and the number of subjects under observation in week-sized intervals relative to the start
+#' of the first exposure.
+#'
+#' @return
+#' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
+#' format.
+#'
+#' @export
+plotExposureCentered <- function(studyPopulation,
+                                 sccsData,
+                                 exposureEraId = NULL,
+                                 highlightExposedEvents = TRUE,
+                                 title = NULL,
+                                 fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
+  checkmate::assertInt(exposureEraId, null.ok = TRUE, add = errorMessages)
+  checkmate::assertLogical(highlightExposedEvents, len = 1, add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
+  if (is.null(exposureEraId)) {
+    exposureEraId <- attr(sccsData, "metaData")$exposureIds
+    if (length(exposureEraId) != 1) {
+      stop("No exposure ID specified, but multiple exposures found")
+    }
+  }
+
+  data <- computeTimeToEvent(studyPopulation, sccsData, exposureEraId)
 
   if (highlightExposedEvents) {
-    events <- events %>%
+    events <- data %>%
       transmute(.data$start,
-        .data$end,
-        type = "Events",
-        count1 = .data$eventsUnexposed,
-        count2 = .data$eventsExposed
+                .data$end,
+                type = "Events",
+                count1 = .data$eventsUnexposed,
+                count2 = .data$eventsExposed
       )
   } else {
-    events <- events %>%
+    events <- data %>%
       transmute(.data$start,
-        .data$end,
-        type = "Events",
-        count1 = .data$eventsUnexposed + .data$eventsExposed,
-        count2 = NA
+                .data$end,
+                type = "Events",
+                count1 = .data$eventsUnexposed + .data$eventsExposed,
+                count2 = NA
       )
   }
-  observed <- observed %>%
+  observed <- data %>%
     transmute(.data$start,
-      .data$end,
-      type = "Subjects under observation",
-      count1 = .data$observed,
-      count2 = NA
+              .data$end,
+              type = "Subjects under observation",
+              count1 = .data$observed,
+              count2 = NA
     )
-
   data <- bind_rows(events, observed)
 
   breaks <- seq(-150, 150, 30)

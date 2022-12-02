@@ -30,6 +30,12 @@ sccs_spline,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
 sccs_spline,spline_type,varchar,Yes,Yes,No,"Either 'age', 'season', or 'calendar time'."
 sccs_spline,month,int,Yes,Yes,No,"Location of the knot. For age, the month since birth. For season, the month of the year. For calendar time, the month since 1-1-1970."
 sccs_spline,rr,float,No,No,No,The estimated relative risk (i.e. the incidence rate ratio).
+sccs_censor_model,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
+sccs_censor_model,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_censor_model,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
+sccs_censor_model,parameter_id,int,Yes,Yes,No,The parameter number in the censor model (starting at 1).
+sccs_censor_model,parameter_value,float,No,No,No,The fitted parameter value.
+sccs_censor_model,model_type,varchar,Yes,No,No,"The type of censor model. Can be 'Weibull-Age'. 'Weibull-Interval', 'Gamma-Age', or 'Gamma-Interval'."
 sccs_result,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_result,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_result,covariate_id,int,Yes,Yes,No,A foreign key referencing the sccs_covariate table. The identifier for the covariate of interest.
@@ -90,7 +96,7 @@ sccs_time_trend,p,float,No,No,No,The two-sided p-value against the null hypothes
 sccs_time_to_event,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_time_to_event,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_time_to_event,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_time_to_event,covariate_id,int,Yes,Yes,No,A foreign key referencing the sccs_covariate table. The identifier for the covariate of interest.
+sccs_time_to_event,era_id,int,Yes,Yes,No,A foreign key referencing the sccs_era table. The identifier for the era of interest.
 sccs_time_to_event,week,int,Yes,Yes,No,The number of the week relative to exposure. Week 0 starts on the day of exposure initiation.
 sccs_time_to_event,observed_subjects,int,Yes,No,Yes,The numer of people observed during the week.
 sccs_time_to_event,outcomes,int,Yes,No,Yes,The number of outcomes observed durig the week.

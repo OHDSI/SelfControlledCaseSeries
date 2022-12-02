@@ -39,11 +39,11 @@ outputFolder <- "d:/temp/sccsVignette2"
 connection <- DatabaseConnector::connect(connectionDetails)
 
 sql <- loadRenderTranslateSql("vignette.sql",
-  packageName = "SelfControlledCaseSeries",
-  dbms = connectionDetails$dbms,
-  cdmDatabaseSchema = cdmDatabaseSchema,
-  cohortDatabaseSchema = cohortDatabaseSchema,
-  outcomeTable = outcomeTable
+                              packageName = "SelfControlledCaseSeries",
+                              dbms = connectionDetails$dbms,
+                              cdmDatabaseSchema = cdmDatabaseSchema,
+                              cohortDatabaseSchema = cohortDatabaseSchema,
+                              outcomeTable = outcomeTable
 )
 
 DatabaseConnector::executeSql(connection, sql)
@@ -51,8 +51,8 @@ DatabaseConnector::executeSql(connection, sql)
 # Check number of subjects per cohort:
 sql <- "SELECT cohort_definition_id, COUNT(*) AS count FROM @cohortDatabaseSchema.@outcomeTable GROUP BY cohort_definition_id"
 sql <- SqlRender::render(sql,
-  cohortDatabaseSchema = cohortDatabaseSchema,
-  outcomeTable = outcomeTable
+                         cohortDatabaseSchema = cohortDatabaseSchema,
+                         outcomeTable = outcomeTable
 )
 sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
 DatabaseConnector::querySql(connection, sql)
@@ -254,25 +254,13 @@ referenceTable <- runSccsAnalyses(
 )
 
 referenceTable <- getFileReference(outputFolder)
-
 resultsSummary <- getResultsSummary(outputFolder)
 
-
-sccsData <- loadSccsData(file.path(outputFolder, result$sccsDataFile[1]))
-summary(sccsData)
-
-
-
-#
-# for (i in seq_len(nrow(referenceTable))) {
-#   refRow <- referenceTable[i, ]
-#   sccsModel <- readRDS(file.path(outputFolder, as.character(refRow$sccsModelFile)))
-#   for (j in seq_along(sccsModel$metaData$covariateSettingsList))
-#     if (sccsModel$metaData$covariateSettingsList[[j]]$label == "Prophylactics") {
-#       writeLines(paste("Correcting", i ))
-#       sccsModel$metaData$covariateSettingsList[[j]]$exposureOfInterest <- FALSE
-#       saveRDS(sccsModel, file.path(outputFolder, as.character(refRow$sccsModelFile)))
-#       break
-#     }
-# }
+# Export results ---------------------------------------------------------------
+exportToCsv(
+  outputFolder = outputFolder,
+  exportFolder = file.path(outputFolder, "export"),
+  databaseId = "MDCD",
+  minCellCount = 5
+)
 
