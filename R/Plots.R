@@ -290,6 +290,9 @@ plotExposureCentered <- function(studyPopulation,
   }
 
   data <- computeTimeToEvent(studyPopulation, sccsData, exposureEraId)
+  if (is.null(data)) {
+    return(NULL)
+  }
 
   if (highlightExposedEvents) {
     events <- data %>%
