@@ -66,10 +66,10 @@ test_that("Support functions and diagnostics", {
   )
   expect_is(diagnostic, "numeric")
 
-  mdrr <- computeMdrr(sccsIntervalData = sccsIntervalData, exposureCovariateId = 1000)
+  mdrr <- computeMdrr(sccsIntervalData, exposureCovariateId = 1000)
   expect_lt(mdrr$mdrr, Inf)
 
-  mdrr <- computeMdrr(sccsIntervalData = sccsIntervalData, exposureCovariateId = 9999)
+  mdrr <- computeMdrr(sccsIntervalData, exposureCovariateId = 9999)
   expect_equal(mdrr$mdrr, Inf)
 })
 

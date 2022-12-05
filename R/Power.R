@@ -1,5 +1,3 @@
-# @file Power.R
-#
 # Copyright 2022 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
@@ -24,14 +22,16 @@
 #' sampling proportion, binomial proportion, 2 signed root likelihood ratio methods, and likelihood extension for
 #' age effects. The expressions by Musonda (2006) are used.
 #'
-#' @template SccsIntervalData
+#' @param object              An object either of type [SccsIntervalData] as created using the
+#'                            [createSccsIntervalData] function, or an object of type `SccsModel` as created
+#'                            using the [fitSccsModel()] function.
 #' @param exposureCovariateId Covariate Id for the health exposure of interest.
-#' @param alpha             Type I error.
-#' @param power             1 - beta, where beta is the type II error.
-#' @param twoSided          Consider a two-sided test?
-#' @param method            The type of sample size formula that will be used. Allowable values are
-#'                          "proportion", "binomial", "SRL1", "SRL2", or "ageEffects". Currently "ageEffects"
-#'                          is not supported.
+#' @param alpha               Type I error.
+#' @param power               1 - beta, where beta is the type II error.
+#' @param twoSided            Consider a two-sided test?
+#' @param method              The type of sample size formula that will be used. Allowable values are
+#'                            "proportion", "binomial", "SRL1", "SRL2", or "ageEffects". Currently "ageEffects"
+#'                            is not supported.
 #'
 #' @references
 #' Musonda P, Farrington CP, Whitaker HJ (2006) Samples sizes for self-controlled case series studies,
@@ -41,14 +41,13 @@
 #' A data frame with the MDRR, number of events, time at risk, and total time.
 #'
 #' @export
-computeMdrr <- function(sccsIntervalData,
+computeMdrr <- function(object,
                         exposureCovariateId,
                         alpha = 0.05,
                         power = 0.8,
                         twoSided = TRUE,
                         method = "SRL1") {
   errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertClass(sccsIntervalData, "SccsIntervalData", add = errorMessages)
   checkmate::assertInt(exposureCovariateId, add = errorMessages)
   checkmate::assertNumeric(alpha, lower = 0, upper = 1, len = 1, add = errorMessages)
   checkmate::assertNumeric(power, lower = 0, upper = 1, len = 1, add = errorMessages)
@@ -56,12 +55,18 @@ computeMdrr <- function(sccsIntervalData,
   checkmate::assertChoice(method, c("proportion", "binomial", "SRL1", "SRL2", "ageEffects"), add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  # Check if there is anyone with the exposure at all;
-  nExposed <- sccsIntervalData$covariates %>%
-    filter(.data$covariateId == exposureCovariateId) %>%
-    count() %>%
-    pull()
-  if (nExposed == 0) {
+  if (is(object, "SccsModel")) {
+    covariateStatistics <- object$metaData$covariateStatistics
+  } else if (is(object, "SccsIntervalData")) {
+    covariateStatistics <- attr(object, "metaData")$covariateStatistics
+  } else {
+    stop(sprintf("The argument 'object' must of type 'SccsModel' or 'SccsIntervalData', but is of type '%s'.", class(object)))
+  }
+
+  covariateStatistics <- covariateStatistics %>%
+    filter(.data$covariateId == exposureCovariateId)
+
+  if (nrow(covariateStatistics) == 0) {
     result <- tibble(
       timeExposed = 0,
       timeTotal = 0,
@@ -73,35 +78,9 @@ computeMdrr <- function(sccsIntervalData,
     return(result)
   }
 
-  # For power calculations we only use subjects who are both exposed and have the outcome
-  # The sccsIntervalData may contain unexposed subjects used to fit age and season effects,
-  # or effect of other exposures, so we should remove those first.
-
-  exposedStratumIds <- sccsIntervalData$covariates %>%
-    filter(.data$covariateId == exposureCovariateId) %>%
-    distinct(.data$stratumId) %>%
-    pull()
-
-  overall <- sccsIntervalData$outcomes %>%
-    filter(.data$stratumId %in% exposedStratumIds) %>%
-    summarise(
-      time = sum(.data$time, na.rm = TRUE),
-      observationPeriods = n_distinct(.data$stratumId),
-      events = sum(.data$y, na.rm = TRUE)
-    ) %>%
-    collect()
-
-  exposed <- sccsIntervalData$outcomes %>%
-    inner_join(sccsIntervalData$covariates, by = c("rowId", "stratumId")) %>%
-    filter(.data$covariateId == exposureCovariateId) %>%
-    summarise(time = sum(.data$time, na.rm = TRUE), observationPeriods = n_distinct(.data$stratumId)) %>%
-    collect()
-
-  timeExposed <- exposed$time
-  timeTotal <- overall$time
-  r <- timeExposed / timeTotal
-  pr <- exposed$observationPeriods / overall$observationPeriods
-  n <- overall$events
+  r <- covariateStatistics$dayCount / covariateStatistics$observedDayCount
+  # pr <- exposed$observationPeriods / overall$observationPeriods
+  n <- covariateStatistics$observedOutcomeCount
 
   if (twoSided) {
     alpha <- alpha / 2
@@ -153,17 +132,18 @@ computeMdrr <- function(sccsIntervalData,
   }
 
   if (method == "SRL2") {
+    stop("SRL2 method not currently supported")
     # expression 8
-    computePowerSrl <- function(b, z, r, n, alpha) {
-      A <- 2 * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
-      B <- b^2 / A * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * exp(b) * r * (1 - r) / (exp(b) * r + 1 - r)^2
-      zb <- (sqrt(n * A) - z) / sqrt(B)
-      power <- pnorm(zb)
-      if (power < alpha | n < 1) {
-        power <- alpha
-      }
-      return(power)
-    }
+    # computePowerSrl <- function(b, z, r, n, alpha) {
+    #   A <- 2 * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * ((exp(b) * r / (exp(b) * r + 1 - r)) * b - log(exp(b) * r + 1 - r))
+    #   B <- b^2 / A * pr * (exp(b) * r + 1 - r) / (1 + pr * r * (exp(b) - 1)) * exp(b) * r * (1 - r) / (exp(b) * r + 1 - r)^2
+    #   zb <- (sqrt(n * A) - z) / sqrt(B)
+    #   power <- pnorm(zb)
+    #   if (power < alpha | n < 1) {
+    #     power <- alpha
+    #   }
+    #   return(power)
+    # }
   }
 
   if (method == "ageEffects") {
@@ -197,11 +177,11 @@ computeMdrr <- function(sccsIntervalData,
   mdrr <- exp(mdLogRr)
 
   result <- tibble(
-    timeExposed = timeExposed,
-    timeTotal = timeTotal,
+    timeExposed = covariateStatistics$dayCount,
+    timeTotal = covariateStatistics$observedDayCount,
     propTimeExposed = round(r, 4),
-    propPopulationExposed = round(pr, 4),
-    events = n,
+    # propPopulationExposed = round(pr, 4),
+    events = covariateStatistics$observedOutcomeCount,
     mdrr = round(mdrr, 4)
   )
   return(result)

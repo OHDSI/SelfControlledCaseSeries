@@ -65,11 +65,13 @@ struct CovariateSettings {
 
 struct CovariateStatistics {
   CovariateStatistics() :
-  observationPeriodCount(0), eraCount(0), dayCount(0), outcomeCount(0), personIds() {}
+  observationPeriodCount(0), eraCount(0), dayCount(0), outcomeCount(0), observedDayCount(0), observedOutcomeCount(0), personIds() {}
   int observationPeriodCount;
   long eraCount;
   long dayCount;
   int outcomeCount;
+  long observedDayCount;
+  long observedOutcomeCount;
   std::set<std::string> personIds;
 
 };
@@ -157,7 +159,7 @@ struct ResultStruct {
     }
   }
 
-  void computeCovariateStatistics(std::vector<Era>& eras, std::vector<Era>& outcomes, const String& personId) {
+  void computeCovariateStatistics(std::vector<Era>& eras, std::vector<Era>& outcomes, const String& personId, const int &endDay) {
     std::set<int64_t> eraIds;
     for (std::vector<Era>::iterator era = eras.begin(); era != eras.end(); ++era) {
       CovariateStatistics& covariateStatistics = covariateIdToCovariateStatistics[era->eraId];
@@ -174,6 +176,8 @@ struct ResultStruct {
       CovariateStatistics& covariateStatistics = covariateIdToCovariateStatistics[*eraId];
       covariateStatistics.observationPeriodCount++;
       covariateStatistics.personIds.insert(personId);
+      covariateStatistics.observedDayCount += endDay + 1;
+      covariateStatistics.observedOutcomeCount += outcomes.size();
     }
   }
 
@@ -206,6 +210,9 @@ private:
     std::vector<long> dayCount(size);
     std::vector<int> outcomeCount(size);
     std::vector<int> observationPeriodCount(size);
+    std::vector<int> observedDayCount(size);
+    std::vector<int> observedOutcomeCount(size);
+
     int cursor(0);
     for (std::map<int64_t, CovariateStatistics>::iterator i = covariateIdToCovariateStatistics.begin(); i != covariateIdToCovariateStatistics.end(); ++i) {
       covariateId[cursor] = i->first;
@@ -215,6 +222,8 @@ private:
       dayCount[cursor] = covariateStatistics.dayCount;
       outcomeCount[cursor] = covariateStatistics.outcomeCount;
       observationPeriodCount[cursor] = covariateStatistics.observationPeriodCount;
+      observedDayCount[cursor] = covariateStatistics.observedDayCount;
+      observedOutcomeCount[cursor] = covariateStatistics.observedDayCount;
       cursor++;
     }
     DataFrame covariateStatistics = DataFrame::create(Named("covariateId") = wrap(covariateId),
@@ -222,7 +231,9 @@ private:
                                                       Named("eraCount") = wrap(eraCount),
                                                       Named("dayCount") = wrap(dayCount),
                                                       Named("outcomeCount") = wrap(outcomeCount),
-                                                      Named("observationPeriodCount") = wrap(observationPeriodCount));
+                                                      Named("observationPeriodCount") = wrap(observationPeriodCount),
+                                                      Named("observedDayCount") = wrap(observedDayCount),
+                                                      Named("observedOutcomeCount") = wrap(observedOutcomeCount));
     andromedaBuilder.appendToTable("covariateStatistics", covariateStatistics);
   }
 

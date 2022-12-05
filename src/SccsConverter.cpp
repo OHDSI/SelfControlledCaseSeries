@@ -469,7 +469,7 @@ void SccsConverter::processPerson(PersonData& personData) {
         return;
     addMonthEras(outputEras, personData);
   }
-  resultStruct.computeCovariateStatistics(outputEras, *outcomes, personData.personId);
+  resultStruct.computeCovariateStatistics(outputEras, *outcomes, personData.personId, personData.endDay);
 
   std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, 0, personData.endDay);
   if (concomitantEras.size() == 1) { // Not informative

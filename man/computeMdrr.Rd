@@ -5,7 +5,7 @@
 \title{Compute the minimum detectable relative risk}
 \usage{
 computeMdrr(
-  sccsIntervalData,
+  object,
   exposureCovariateId,
   alpha = 0.05,
   power = 0.8,
@@ -14,8 +14,9 @@ computeMdrr(
 )
 }
 \arguments{
-\item{sccsIntervalData}{An object of type \link{SccsIntervalData} as created using the
-\link{createSccsIntervalData} function.}
+\item{object}{An object either of type \link{SccsIntervalData} as created using the
+\link{createSccsIntervalData} function, or an object of type \code{SccsModel} as created
+using the \code{\link[=fitSccsModel]{fitSccsModel()}} function.}
 
 \item{exposureCovariateId}{Covariate Id for the health exposure of interest.}
 

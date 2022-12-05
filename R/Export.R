@@ -17,6 +17,38 @@
 # options(andromedaTempFolder = "d:/andromedaTemp")
 # library(dplyr)
 
+#' Create SCCS diagnostics thresholds
+#'
+#' @description
+#' Threshold used when calling [exportToCsv()] to determine if we pass or fail diagnostics.
+#'
+#' @param mdrrThreshold         What is the maximum allowed minimum detectable relative risk
+#'                              (MDRR)?
+#' @param easeThreshold         What is the maximum allowed expected absolute systematic error
+#'                              (EASE).
+#' @param timeTrendPThreshold   What family-wise p-value threshold (alpha) will be used to determine
+#'                              temporal instability?
+#' @param preExposurePThreshold What p-value threshold (alpha) will be used to determine whether the
+#'                              rate of the outcome was higher just before exposure initiation?
+#'
+#' @return
+#' An object of type `SccsDiagnosticThresholds`.
+#'
+#' @export
+createSccsDiagnosticThresholds <- function(
+    mdrrThreshold = 10,
+    easeThreshold = 0.25,
+    timeTrendPThreshold = 0.05,
+    preExposurePThreshold = 0.05
+) {
+  thresholds <- list()
+  for (name in names(formals(createSccsDiagnosticThresholds))) {
+    thresholds[[name]] <- get(name)
+  }
+  class(thresholds) <- "SccsDiagnosticThresholds"
+  return(thresholds)
+}
+
 
 #' Export SCCSresults to CSV files
 #'
@@ -32,6 +64,8 @@
 #' @param minCellCount  To preserve privacy: the minimum number of subjects contributing
 #'                      to a count before it can be included in the results. If the
 #'                      count is below this threshold, it will be set to `-minCellCount`.
+#' @param sccsDiagnosticThresholds An object of type `SccsDiagnosticThresholds` as created using
+#'                                 [createSccsDiagnosticThresholds()].
 #'
 #' @return
 #' Does not return anything. Is called for the side-effect of populating the `exportFolder`
@@ -41,7 +75,8 @@
 exportToCsv <- function(outputFolder,
                         exportFolder = file.path(outputFolder, "export"),
                         databaseId = 1,
-                        minCellCount = 5) {
+                        minCellCount = 5,
+                        sccsDiagnosticThresholds = createSccsDiagnosticThresholds()) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
   checkmate::assertDirectoryExists(outputFolder, add = errorMessages)
@@ -50,6 +85,7 @@ exportToCsv <- function(outputFolder,
   checkmate::assertFileExists(file.path(outputFolder, "resultsSummary.rds"), add = errorMessages)
   checkmate::assertCharacter(exportFolder, len = 1, add = errorMessages)
   checkmate::assertInt(minCellCount, lower = 0, add = errorMessages)
+  checkmate::assertClass(sccsDiagnosticThresholds, "SccsDiagnosticThresholds", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   if (!file.exists(exportFolder)) {
@@ -71,13 +107,8 @@ exportToCsv <- function(outputFolder,
     outputFolder = outputFolder,
     exportFolder = exportFolder,
     databaseId = databaseId,
-    minCellCount = minCellCount
-  )
-
-  exportDiagnosticsSummary(
-    outputFolder = outputFolder,
-    exportFolder = exportFolder,
-    databaseId = databaseId
+    minCellCount = minCellCount,
+    sccsDiagnosticThresholds = sccsDiagnosticThresholds
   )
 
   # Add all to zip file -------------------------------------------------------------------------------
@@ -230,11 +261,13 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
   writeToCsv(sccsExposuresOutcomeSet, fileName)
 }
 
-exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, databaseId, minCellCount) {
-  message("- sccs_age_spanning, sccs_attrition, sccs_calender_time_spanning, sccs_censor_model, sccs_covariate, sccs_covariate_result, sccs_era, sccs_likelihood_profile, sccs_spline, sccs_time_to_event, and sccs_time_trend tables")
+exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, databaseId, minCellCount, sccsDiagnosticThresholds) {
+  message("- sccs_age_spanning, sccs_attrition, sccs_calender_time_spanning, sccs_censor_model, sccs_covariate, sccs_covariate_result, sccs_diagnostics_summary, sccs_era, sccs_likelihood_profile, sccs_spline, sccs_time_to_event, and sccs_time_trend tables")
   reference <- getFileReference(outputFolder) %>%
     arrange(.data$sccsDataFile, .data$studyPopFile , .data$sccsModelFile)
   esoList <- readRDS(file.path(outputFolder, "exposuresOutcomeList.rds"))
+  ease <- getResultsSummary(outputFolder) %>%
+    distinct(.data$exposuresOutcomeSetId, .data$analysisId, .data$eraId, .data$covariateId, .data$ease)
 
   sccsAgeSpanning <- list()
   sccsAttrition <- list()
@@ -247,12 +280,13 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   sccsSpline <- list()
   sccsTimeToEvent <- list()
   sccsTimeTrend <- list()
+  sccsDiagnosticsSummary <- list()
 
   sccsDataFile <- ""
   studyPopFile <- ""
 
   pb <- txtProgressBar(style = 3)
-  # i <- 49
+  # i <- 1
   for (i in seq_len(nrow(reference))) {
     refRow <- reference[i, ]
     if (refRow$sccsDataFile != sccsDataFile) {
@@ -412,14 +446,14 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
     }
 
     # sccsTimeTrend table
-    data <- computeTimeStability(
+    timeTrendData <- computeTimeStability(
       studyPopulation = studyPop,
       sccsModel = sccsModel
     ) %>%
       mutate(
         year = floor(.data$month / 12),
         month = floor(.data$month %% 12) + 1,
-        stable = as.integer(stable)
+        stable = as.integer(.date$stable)
       ) %>%
       select(
         "year",
@@ -430,12 +464,42 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         "stable",
         "p"
       )
-    data <- enforceMinCellValue(data, "outcomeRate", minCellCount / data$observedSubjects, silent = TRUE)
-    data <- enforceMinCellValue(data, "adjustedRate", minCellCount / data$observedSubjects, silent = TRUE)
+    timeTrendData <- enforceMinCellValue(data, "outcomeRate", minCellCount / timeTrendData$observedSubjects, silent = TRUE)
+    timeTrendData <- enforceMinCellValue(data, "adjustedRate", minCellCount / timeTrendData$observedSubjects, silent = TRUE)
 
     sccsTimeTrend[[length(sccsTimeTrend) + 1]] <- refRow %>%
       select("analysisId", "exposuresOutcomeSetId") %>%
-      bind_cols(data)
+      bind_cols(timeTrendData)
+
+    # sccsDiagnosticsSummary table
+    table <- ease %>%
+      filter(.data$exposuresOutcomeSetId == refRow$exposuresOutcomeSetId & .data$analysisId == refRow$analysisId) %>%
+      mutate(
+        mdrr = as.numeric(NA),
+        timeTrendP = min(timeTrendData$p * nrow(timeTrendData)),
+        preExposureP = as.numeric(NA)
+      )
+    for (i in seq_len(nrow(table))) {
+      mdrr <- computeMdrr(object = sccsModel, exposureCovariateId = table$covariateId[i])
+      table$mdrr[i] <- mdrr$mdrr
+      preExposureP <- computePreExposureGainP(
+        sccsData = sccsData,
+        studyPopulation = studyPop,
+        exposureEraId =table$eraId[i]
+
+      )
+      table$preExposureP[i] <- preExposureP
+    }
+    table <- table %>%
+      mutate(
+        easeDiagnostic = ifelse(.data$ease <= sccsDiagnosticThresholds$easeThreshold, "PASS", "FAIL"),
+        mdrrDiagnostic = ifelse(.data$mdrr <= sccsDiagnosticThresholds$mdrrThreshold, "PASS", "FAIL"),
+        timeTrendDiagnostic = ifelse(.data$timeTrendP >= sccsDiagnosticThresholds$timeTrendPThreshold, "PASS", "FAIL"),
+        preExposureDiagnostic = ifelse(.data$timeTrendP >= sccsDiagnosticThresholds$preExposurePThreshold, "PASS", "FAIL")
+      ) %>%
+      mutate(unblind = ifelse(.data$easeDiagnostic == "PASS" & .data$mdrrDiagnostic == "PASS" & .data$timeTrendDiagnostic == "PASS" & .data$preExposureDiagnostic == "PASS", 1, 0)) %>%
+      select(-"eraId")
+    sccsDiagnosticsSummary[[length(sccsDiagnosticsSummary) + 1]] <- table
 
     setTxtProgressBar(pb, i / nrow(reference))
   }
@@ -481,6 +545,11 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   fileName <- file.path(exportFolder, "sccs_covariate_result.csv")
   writeToCsv(sccsCovariateResult, fileName)
 
+  sccsDiagnosticsSummary <- sccsDiagnosticsSummary %>%
+    bind_rows()
+  fileName <- file.path(exportFolder, "sccs_diagnostics_summary.csv")
+  writeToCsv(sccsDiagnosticsSummary, fileName)
+
   sccsLikelihoodProfile <- sccsLikelihoodProfile %>%
     bind_rows()
   fileName <- file.path(exportFolder, "sccs_likelihood_profile.csv")
@@ -501,7 +570,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
     bind_rows() %>%
     enforceMinCellValue("outcomes", minCellCount) %>%
     enforceMinCellValue("observedSubjects", minCellCount)
-  fileName <- file.path(exportFolder, "sccs_time_to_evant.csv")
+  fileName <- file.path(exportFolder, "sccs_time_to_event.csv")
   writeToCsv(sccsTimeToEvent, fileName)
 
   message(" Censoring sccs_time_trend table")
@@ -553,7 +622,7 @@ computeSpans <- function(studyPopulation, variable = "age") {
       tibble(month = seq(min(counts$month), max(counts$month))),
       by = "month"
     ) %>%
-    arrange(month)
+    arrange(.data$month)
   lastCount <- 0
   for (i in seq_len(nrow(counts))) {
     if (is.na(counts$count[i])) {
@@ -617,135 +686,5 @@ exportSccsResults <- function(outputFolder,
     enforceMinCellValue("covariateOutcomes", minCellCount) %>%
     enforceMinCellValue("observedDays", minCellCount)
   fileName <- file.path(exportFolder, "sccs_result.csv")
-  writeToCsv(results, fileName)
-}
-
-exportDiagnosticsSummary <- function(outputFolder = outputFolder,
-                                     exportFolder = exportFolder,
-                                     databaseId = databaseId) {
-  #TODO: change from CM to SCCS
-  message("- diagnostics_summary table")
-  reference <- getFileReference(outputFolder)
-
-  getMaxSdm <- function(balanceFile) {
-    balance <- readRDS(file.path(outputFolder, balanceFile))
-    if (nrow(balance) == 0) {
-      return(as.numeric(NA))
-    } else {
-      return(max(abs(balance$afterMatchingStdDiff), na.rm = TRUE))
-    }
-  }
-
-  getEquipoise <- function(sharedPsFile) {
-    ps <- readRDS(file.path(outputFolder, sharedPsFile))
-    return(computeEquipoise(ps))
-  }
-
-  balanceFiles <- reference %>%
-    filter(.data$balanceFile != "") %>%
-    distinct(.data$balanceFile) %>%
-    pull()
-  maxSdm <- as.numeric(sapply(balanceFiles, getMaxSdm))
-
-  sharedBalanceFiles <- reference %>%
-    filter(.data$sharedBalanceFile != "") %>%
-    distinct(.data$sharedBalanceFile) %>%
-    pull()
-  sharedMaxSdm <- as.numeric(sapply(sharedBalanceFiles, getMaxSdm))
-
-  sharedPsFiles <- reference %>%
-    filter(.data$sharedPsFile != "") %>%
-    distinct(.data$sharedPsFile) %>%
-    pull()
-  equipoise <- as.numeric(sapply(sharedPsFiles, getEquipoise))
-
-  results1 <- reference %>%
-    filter(.data$outcomeOfInterest) %>%
-    left_join(tibble(
-      balanceFile = balanceFiles,
-      maxSdm = maxSdm
-    ),
-    by = "balanceFile"
-    ) %>%
-    left_join(tibble(
-      sharedBalanceFile = sharedBalanceFiles,
-      sharedMaxSdm = sharedMaxSdm
-    ),
-    by = "sharedBalanceFile"
-    ) %>%
-    left_join(tibble(
-      sharedPsFile = sharedPsFiles,
-      equipoise = equipoise
-    ),
-    by = "sharedPsFile"
-    ) %>%
-    select(
-      .data$analysisId,
-      .data$targetId,
-      .data$comparatorId,
-      .data$outcomeId,
-      .data$maxSdm,
-      .data$sharedMaxSdm,
-      .data$equipoise
-    )
-
-  results2 <- getResultsSummary(outputFolder) %>%
-    select(
-      .data$analysisId,
-      .data$targetId,
-      .data$comparatorId,
-      .data$outcomeId,
-      .data$mdrr,
-      .data$attritionFraction,
-      .data$ease
-    )
-
-  results <- results1 %>%
-    inner_join(results2, by = c("analysisId", "targetId", "comparatorId", "outcomeId")) %>%
-    mutate(balanceDiagnostic = case_when(
-      is.na(.data$maxSdm) ~ "NOT EVALUATED",
-      .data$maxSdm < 0.1 ~ "PASS",
-      TRUE ~ "FAIL"
-    )) %>%
-    mutate(sharedBalanceDiagnostic = case_when(
-      is.na(.data$sharedMaxSdm) ~ "NOT EVALUATED",
-      .data$sharedMaxSdm < 0.1 ~ "PASS",
-      TRUE ~ "FAIL"
-    )) %>%
-    mutate(equipoiseDiagnostic = case_when(
-      is.na(.data$equipoise) ~ "NOT EVALUATED",
-      .data$equipoise >= 0.5 ~ "PASS",
-      .data$equipoise >= 0.1 ~ "WARNING",
-      TRUE ~ "FAIL"
-    )) %>%
-    mutate(mdrrDiagnostic = case_when(
-      is.na(.data$mdrr) ~ "NOT EVALUATED",
-      .data$mdrr < 2 ~ "PASS",
-      .data$mdrr < 10 ~ "WARNING",
-      TRUE ~ "FAIL"
-    )) %>%
-    mutate(attritionDiagnostic = case_when(
-      is.na(.data$attritionFraction) ~ "NOT EVALUATED",
-      .data$attritionFraction < 0.5 ~ "PASS",
-      .data$attritionFraction < 0.9 ~ "WARNING",
-      TRUE ~ "FAIL"
-    )) %>%
-    mutate(easeDiagnostic = case_when(
-      is.na(.data$ease) ~ "NOT EVALUATED",
-      abs(.data$ease) < 0.1 ~ "PASS",
-      abs(.data$ease) < 0.25 ~ "WARNING",
-      TRUE ~ "FAIL"
-    )) %>%
-    mutate(unblind = ifelse(.data$mdrrDiagnostic != "FAIL" &
-                              .data$attritionDiagnostic != "FAIL" &
-                              .data$easeDiagnostic != "FAIL" &
-                              .data$equipoiseDiagnostic != "FAIL" &
-                              .data$balanceDiagnostic != "FAIL", 1, 0),
-           databaseId = !!databaseId)
-
-  if (nrow(results) == 0) {
-    results <- createEmptyResult("sccs_diagnostics_summary")
-  }
-  fileName <- file.path(exportFolder, "sccs_diagnostics_summary.csv")
   writeToCsv(results, fileName)
 }

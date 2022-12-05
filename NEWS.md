@@ -11,7 +11,9 @@ Changes
 
 4. Dropping support of split points. This can be achieved by creating multiple era covariates with different times at risk.
 
-5. Major overhaul of the multiple-analyses framework:
+5. The `computeMdrr()` now works with either an `SccsIntervalData` or an `SccsModel` object. 
+
+6. Major overhaul of the multiple-analyses framework:
 
     - Added the `createExposure()` function for creating objects of type `exposure. This argument allows specifying the true effect size of the exposure, if known (e.g. for negative controls).
     
@@ -26,6 +28,8 @@ Changes
     - Settings related to multi-threading are combined in to a single settings object that be created using the new `createSccsMultiThreadingSettings()` function.    
     
     - The `design` argument of the `createSccsAnalysis()` function has been removed, and the `createSccsIntervalDataArgs` and `createScriIntervalDataArgs` arguments have been replaced with a single `createIntervalDataArgs` argument that accepts arguments for both the `createSccsIntervalData()` and createScriIntervalData()` functions.
+    
+7. Added the `exportToCsv()` function, to export the results of a multi-analysis study to CSV files for sharing between sites.
 
 
 SelfControlledCaseSeries 3.4.0
