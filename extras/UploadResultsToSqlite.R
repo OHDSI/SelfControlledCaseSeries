@@ -36,6 +36,41 @@ uploadResults(
   resultsFolder = file.path(outputFolder, "export")
 )
 
+# Add cg_cohort_definition table:
+cohortDefinition <- dplyr::tibble(
+  cohortDefinitionId = 1,
+  cohortName = "GI bleed",
+  description = "Gastrointestinal bleeding",
+  json = ""
+)
+connection <- connect(connectionDetails)
+insertTable(
+  connection = connection,
+  databaseSchema = "main",
+  tableName = "cg_cohort_definition",
+  data = cohortDefinition,
+  dropTableIfExists = TRUE,
+  createTable = TRUE,
+  camelCaseToSnakeCase = TRUE)
+disconnect(connection)
+
+# Add database_meta_data table:
+databaseMetaData <- dplyr::tibble(
+  databaseId = "MDCD",
+  cdmSourceAbbreviation = "MDCD"
+)
+connection <- connect(connectionDetails)
+insertTable(
+  connection = connection,
+  databaseSchema = "main",
+  tableName = "database_meta_data",
+  data = databaseMetaData,
+  dropTableIfExists = TRUE,
+  createTable = TRUE,
+  camelCaseToSnakeCase = TRUE)
+disconnect(connection)
+
+
 
 
 csv <- readr::read_csv(file.path(outputFolder, "export", "sccs_attrition.csv"))
