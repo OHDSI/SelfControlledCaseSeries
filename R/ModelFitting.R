@@ -78,7 +78,7 @@ fitSccsModel <- function(sccsIntervalData,
       status = metaData$error,
       metaData = metaData
     )
-    class(result) <- "sccsModel"
+    class(result) <- "SccsModel"
     return(result)
   }
   start <- Sys.time()

@@ -105,12 +105,12 @@ sccs_age_spanning,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referenc
 sccs_age_spanning,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
 sccs_age_spanning,age_month,int,Yes,No,No,Age in months since birth.
 sccs_age_spanning,cover_before_after_subjects,int,Yes,No,Yes,Number of subjects whose observation period covers this month as well as the one before and after.
-sccs_calender_time_spanning,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_calender_time_spanning,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_calender_time_spanning,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_calender_time_spanning,year,int,Yes,No,No,Calendar year (e.g. 2022)
-sccs_calender_time_spanning,month,int,Yes,No,No,Calendar month (e.g. 1 is January).
-sccs_calender_time_spanning,cover_before_after_subjects,int,Yes,No,Yes,Number of subjects whose observation period covers this month as well as the one before and after.
+sccs_calendar_time_spanning,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
+sccs_calendar_time_spanning,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_calendar_time_spanning,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
+sccs_calendar_time_spanning,year,int,Yes,No,No,Calendar year (e.g. 2022)
+sccs_calendar_time_spanning,month,int,Yes,No,No,Calendar month (e.g. 1 is January).
+sccs_calendar_time_spanning,cover_before_after_subjects,int,Yes,No,Yes,Number of subjects whose observation period covers this month as well as the one before and after.
 sccs_event_dep_observation,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_event_dep_observation,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_event_dep_observation,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
@@ -123,9 +123,10 @@ sccs_diagnostics_summary,covariate_id,int,Yes,Yes,No,The identifier for the cova
 sccs_diagnostics_summary,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
 sccs_diagnostics_summary,mdrr,float,No,No,No,The minimum detectable relative risk.
 sccs_diagnostics_summary,ease,float,No,No,No,The expected absolute systematic error.
-sccs_diagnostics_summary,unstable_months,float,No,No,No,Number of months flagged as 'unstable'.
+sccs_diagnostics_summary,time_trend_p,float,No,No,No,The family-wise p for whether the monthly outcome rate is equal to the mean.
 sccs_diagnostics_summary,pre_exposure_p,float,No,No,No,"One-sided p-value for whether the rate before expore is higher than after, against the null of no difference."
 sccs_diagnostics_summary,mdrr_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the MDRR diagnostic.
 sccs_diagnostics_summary,ease_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the EASE diagnostic.
 sccs_diagnostics_summary,time_trend_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the time trend (unstalbe months) diagnostic.
+sccs_diagnostics_summary,pre_exposure_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the time trend (unstalbe months) diagnostic.
 sccs_diagnostics_summary,unblind,int,Yes,No,No,"Is unblinding the result recommended? (1 = yes, 0 = no)"

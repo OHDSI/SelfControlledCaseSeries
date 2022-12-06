@@ -15,8 +15,6 @@
 # limitations under the License.
 
 # This code should be used to fetch the data that is used in the vignettes.
-library(SqlRender)
-library(DatabaseConnector)
 library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "d:/andromedaTemp")
 

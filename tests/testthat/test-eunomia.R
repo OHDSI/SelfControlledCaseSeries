@@ -1,9 +1,8 @@
 library(SelfControlledCaseSeries)
 library(testthat)
-library(Eunomia)
 
-connectionDetails <- getEunomiaConnectionDetails()
-createCohorts(connectionDetails)
+connectionDetails <- Eunomia::getEunomiaConnectionDetails()
+Eunomia::createCohorts(connectionDetails)
 
 # connection <- connect(connectionDetails)
 
@@ -149,6 +148,27 @@ test_that("Running multiple analyses against Eunomia", {
 
   sccsIntervalData <- loadSccsIntervalData(file.path(outputFolder, pull(filter(ref, analysisId == 2), sccsIntervalDataFile)[1]))
   expect_equal(attr(sccsIntervalData, "metaData")$design, "SCRI")
+
+  # Test export to CSV:
+  exportToCsv(outputFolder)
+
+  diagnosticsSummary <- readr::read_csv(file.path(outputFolder, "export", "sccs_diagnostics_summary.csv"), show_col_types = FALSE)
+  expect_true(all(diagnosticsSummary$ease_diagnostic == "NOT EVALUATED"))
+
+  specs <- readr::read_csv(
+    file = system.file("csv", "resultsDataModelSpecification.csv", package = "SelfControlledCaseSeries"),
+    show_col_types = FALSE
+  ) %>%
+    SqlRender::snakeCaseToCamelCaseNames()
+
+  specs <- split(specs, specs$tableName)
+  # tableSpecs = specs[[1]]
+  for (tableSpecs in specs) {
+    fileName <- file.path(outputFolder, "export", sprintf("%s.csv", tableSpecs$tableName[1]))
+    expect_true(file.exists(fileName))
+    table <- readr::read_csv(fileName, show_col_types = FALSE)
+    expect_setequal(colnames(table), tableSpecs$columnName)
+  }
 
   # unlink(outputFolder, recursive = TRUE)
 })

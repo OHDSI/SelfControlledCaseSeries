@@ -86,6 +86,21 @@ plotAgeSpans <- function(studyPopulation,
   return(plot)
 }
 
+computeTimeToObsEnd <- function(studyPopulation) {
+  outcomes <- studyPopulation$outcomes %>%
+    group_by(.data$caseId) %>%
+    summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
+    inner_join(studyPopulation$cases, by = "caseId") %>%
+    transmute(
+      daysFromEvent = .data$endDay - .data$outcomeDay,
+      censoring = case_when(
+        .data$noninformativeEndCensor == 1 ~ "Uncensored",
+        TRUE ~ "Censored"
+      )
+    )
+  return(outcomes)
+}
+
 #' Plot time from event to observation end for censored and uncensored time.
 #'
 #' @template StudyPopulation
@@ -120,17 +135,7 @@ plotEventObservationDependence <- function(studyPopulation,
   checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  outcomes <- studyPopulation$outcomes %>%
-    group_by(.data$caseId) %>%
-    summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
-    inner_join(studyPopulation$cases, by = "caseId") %>%
-    transmute(
-      daysFromEvent = .data$endDay - .data$outcomeDay,
-      censoring = case_when(
-        .data$noninformativeEndCensor == 1 ~ "Uncensored",
-        TRUE ~ "Censored"
-      )
-    )
+  outcomes <- computeTimeToObsEnd(studyPopulation)
 
   ageLabels <- 0:ceiling(max(outcomes$daysFromEvent) / 365.25)
 
@@ -185,7 +190,15 @@ computeTimeToEvent <- function(studyPopulation,
 
   if (nrow(exposures) == 0) {
     warning("No exposures found with era ID ", exposureEraId)
-    return(NULL)
+    tibble(number = 1,
+           start = 1.0,
+           end = 1.0,
+           observed = 1,
+           eventsExposed  = 1.0,
+           eventsUnexposed = 1.0
+           ) %>%
+      filter(.data$number == -1) %>%
+    return()
   }
   firstExposures <- exposures %>%
     group_by(.data$caseId, .data$caseEndDay) %>%
@@ -290,7 +303,7 @@ plotExposureCentered <- function(studyPopulation,
   }
 
   data <- computeTimeToEvent(studyPopulation, sccsData, exposureEraId)
-  if (is.null(data)) {
+  if (nrow(data) == 0) {
     return(NULL)
   }
 

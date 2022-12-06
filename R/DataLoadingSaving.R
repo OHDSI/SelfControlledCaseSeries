@@ -382,7 +382,7 @@ getDbSccsData <- function(connectionDetails,
         outcomeSubjects = n_distinct(.data$personId),
         outcomeEvents = count(),
         outcomeObsPeriods = n_distinct(.data$observationPeriodId),
-        daysObserved = sum(.data$observationDays),
+        observedDays = sum(.data$observationDays),
         .groups = "drop_last"
       ) %>%
       rename(outcomeId = "eraId") %>%

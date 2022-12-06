@@ -1,5 +1,5 @@
 library(SelfControlledCaseSeries)
-options(andromedaTempFolder = "s:/andromedaTemp")
+options(andromedaTempFolder = "d:/andromedaTemp")
 
 rw <- createSimulationRiskWindow(start = 0,
                                  end = 0,
@@ -33,7 +33,8 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = covarSettings,
-                                           ageCovariateSettings = createAgeCovariateSettings(ageKnots = 5),
+                                           # ageCovariateSettings = createAgeCovariateSettings(ageKnots = 5),
+                                           calendarTimeCovariateSettings = createCalendarTimeCovariateSettings(calendarTimeKnots = 5),
                                            seasonalityCovariateSettings = createSeasonalityCovariateSettings(seasonKnots = 5))
 
 model <- fitSccsModel(sccsIntervalData)

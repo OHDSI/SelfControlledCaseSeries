@@ -63,10 +63,11 @@ computeMdrr <- function(object,
     stop(sprintf("The argument 'object' must of type 'SccsModel' or 'SccsIntervalData', but is of type '%s'.", class(object)))
   }
 
-  covariateStatistics <- covariateStatistics %>%
-    filter(.data$covariateId == exposureCovariateId)
-
-  if (nrow(covariateStatistics) == 0) {
+  if (!is.null(covariateStatistics)) {
+    covariateStatistics <- covariateStatistics %>%
+      filter(.data$covariateId == exposureCovariateId)
+  }
+  if (is.null(covariateStatistics) || nrow(covariateStatistics) == 0) {
     result <- tibble(
       timeExposed = 0,
       timeTotal = 0,

@@ -402,13 +402,14 @@ computeObservedPerMonth <- function(studyPopulation) {
     )
 
   # Adding months with no starts and ends:
-  months <- months %>%
-    full_join(tibble(month = min(months$month):max(months$month)), by = "month") %>%
-    mutate(
-      startCount = if_else(is.na(.data$startCount), 0, .data$startCount),
-      endCount = if_else(is.na(.data$endCount), 0, .data$endCount)
-    )
-
+  if (nrow(months) > 0) {
+    months <- months %>%
+      full_join(tibble(month = min(months$month):max(months$month)), by = "month") %>%
+      mutate(
+        startCount = if_else(is.na(.data$startCount), 0, .data$startCount),
+        endCount = if_else(is.na(.data$endCount), 0, .data$endCount)
+      )
+  }
   months <- months %>%
     arrange(.data$month) %>%
     mutate(
