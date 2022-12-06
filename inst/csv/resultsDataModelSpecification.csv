@@ -11,7 +11,7 @@ sccs_covariate,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing
 sccs_covariate,covariate_id,int,Yes,Yes,No,A unique identifier for a covariate.
 sccs_covariate,covariate_name,varchar,Yes,No,No,A description for the covariate.
 sccs_covariate,era_id,int,Yes,No,No,A foreign key referencing the sccs_era table.
-sccs_covariate,covariate_analysis_id,int,Yes,No,No,A foreign key referencing the sccs_covariate_analysis table.
+sccs_covariate,covariate_analysis_id,int,No,No,No,A foreign key referencing the sccs_covariate_analysis table.
 sccs_covariate,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
 sccs_era,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_era,analysis_id,int,Yes,Yes,No,A unique identifier for an analysis.
@@ -28,7 +28,7 @@ sccs_spline,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analys
 sccs_spline,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_spline,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
 sccs_spline,spline_type,varchar,Yes,Yes,No,"Either 'age', 'season', or 'calendar time'."
-sccs_spline,month,int,Yes,Yes,No,"Location of the knot. For age, the month since birth. For season, the month of the year. For calendar time, the month since 1-1-1970."
+sccs_spline,knot_month,int,Yes,Yes,No,"Location of the knot. For age, the month since birth. For season, the month of the year. For calendar time, the month since 1-1-1970."
 sccs_spline,rr,float,No,No,No,The estimated relative risk (i.e. the incidence rate ratio).
 sccs_censor_model,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_censor_model,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
@@ -86,8 +86,8 @@ sccs_likelihood_profile,database_id,varchar,Yes,Yes,No,Foreign key referencing t
 sccs_time_trend,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_time_trend,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_time_trend,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_time_trend,year,int,Yes,Yes,No,The calendar year (e.g. 2022).
-sccs_time_trend,month,int,Yes,Yes,No,The calendar month (e.g. 1 for January).
+sccs_time_trend,calendar_year,int,Yes,Yes,No,The calendar year (e.g. 2022).
+sccs_time_trend,calendar_month,int,Yes,Yes,No,The calendar month (e.g. 1 for January).
 sccs_time_trend,observed_subjects,int,No,No,Yes,Number of people observed during the month.
 sccs_time_trend,outcome_rate,float,No,No,Yes,Number of outcomes divided by the number of subjects.
 sccs_time_trend,adjusted_rate,float,No,No,Yes,"The outcome rate, adjusted for age, season, or calendar time, as specified in the analysis."
@@ -103,13 +103,13 @@ sccs_time_to_event,outcomes,int,Yes,No,Yes,The number of outcomes observed durig
 sccs_age_spanning,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_age_spanning,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_age_spanning,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_age_spanning,age_month,int,Yes,No,No,Age in months since birth.
+sccs_age_spanning,age_month,int,Yes,Yes,No,Age in months since birth.
 sccs_age_spanning,cover_before_after_subjects,int,Yes,No,Yes,Number of subjects whose observation period covers this month as well as the one before and after.
 sccs_calendar_time_spanning,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_calendar_time_spanning,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_calendar_time_spanning,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_calendar_time_spanning,year,int,Yes,No,No,Calendar year (e.g. 2022)
-sccs_calendar_time_spanning,month,int,Yes,No,No,Calendar month (e.g. 1 is January).
+sccs_calendar_time_spanning,calendar_year,int,Yes,Yes,No,Calendar year (e.g. 2022)
+sccs_calendar_time_spanning,calendar_month,int,Yes,Yes,No,Calendar month (e.g. 1 is January).
 sccs_calendar_time_spanning,cover_before_after_subjects,int,Yes,No,Yes,Number of subjects whose observation period covers this month as well as the one before and after.
 sccs_event_dep_observation,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_event_dep_observation,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.

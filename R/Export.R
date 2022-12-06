@@ -49,7 +49,6 @@ createSccsDiagnosticThresholds <- function(
   return(thresholds)
 }
 
-
 #' Export SCCSresults to CSV files
 #'
 #' @details
@@ -203,7 +202,7 @@ exportSccsAnalyses <- function(outputFolder, exportFolder) {
   # sccsAnalysis <- sccsAnalysisList[[1]]
   # i = 1
   sccsAnalysisToRows <- function(sccsAnalysis) {
-    if (is.list(sccsAnalysis$createIntervalDataArgs$eraCovariateSettings) && class(sccsAnalysis$createIntervalDataArgs$eraCovariateSettings) != "EraCovariateSettings") {
+    if (is.list(sccsAnalysis$createIntervalDataArgs$eraCovariateSettings) && !is(sccsAnalysis$createIntervalDataArgs$eraCovariateSettings,"EraCovariateSettings")) {
       eraCovariateSettingsList <- sccsAnalysis$createIntervalDataArgs$eraCovariateSettings
     } else {
       eraCovariateSettingsList <- list(sccsAnalysis$createIntervalDataArgs$eraCovariateSettings)
@@ -215,7 +214,7 @@ exportSccsAnalyses <- function(outputFolder, exportFolder) {
         analysisId = sccsAnalysis$analysisId,
         covariateAnalysisId = i,
         covariateAnalysisName = eraCovariateSettings$label,
-        variableOfInterest = eraCovariateSettings$exposureOfInterest
+        variableOfInterest = ifelse(eraCovariateSettings$exposureOfInterest, 1, 0)
       )
       rows[[length(rows) + 1]] <- row
     }
@@ -436,13 +435,13 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         bind_cols(
           tibble(
             covariateId = 99 + seq_len(length(ageKnots)),
-            month = ageKnots
+            knotMonth = ageKnots
           ) %>%
             left_join(estimates %>%
                         filter(.data$covariateId >= 99 & .data$covariateId < 200) %>%
                         select("covariateId", "rr"),
                       by = "covariateId") %>%
-            select("month", "rr")
+            select("knotMonth", "rr")
         ) %>%
         mutate(databaseId = !!databaseId,
                splineType = "age")
@@ -513,13 +512,13 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
       sccsModel = sccsModel
     ) %>%
       mutate(
-        year = floor(.data$month / 12),
-        month = floor(.data$month %% 12) + 1,
+        calendarYear = floor(.data$month / 12),
+        calendarMonth = floor(.data$month %% 12) + 1,
         stable = as.integer(.data$stable)
       ) %>%
       select(
-        "year",
-        "month",
+        "calendarYear",
+        "calendarMonth",
         observedSubjects = "observationPeriodCount",
         outcomeRate = "rate",
         "adjustedRate",
@@ -725,8 +724,8 @@ computeSpans <- function(studyPopulation, variable = "age") {
       rename(ageMonth = "month", coverBeforeAfterSubjects = "count")
   } else {
     counts <- counts %>%
-      transmute(year = floor(.data$month / 12),
-                month = .data$month %% 12 +1,
+      transmute(calendarYear = floor(.data$month / 12),
+                calendarMonth = .data$month %% 12 +1,
                 coverBeforeAfterSubjects = .data$count)
   }
 
