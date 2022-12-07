@@ -2,6 +2,7 @@ library(DatabaseConnector)
 library(dplyr)
 
 source("dataPulls.R")
+source("plotsAndTables.R")
 
 connectionPool <- pool::dbPool(
     drv = DatabaseConnector::DatabaseConnectorDriver(),

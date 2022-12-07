@@ -48,3 +48,66 @@ getTable <- function(connectionPool, resultsDatabaseSchema, tableName) {
     SqlRender::snakeCaseToCamelCaseNames() %>%
     return()
 }
+
+getSccsResults <- function(connectionPool,
+                           resultsDatabaseSchema,
+                           exposuresOutcomeSetId,
+                           databaseIds,
+                           analysisIds) {
+  connection <- pool::poolCheckout(connectionPool)
+  on.exit(pool::poolReturn(connection))
+  sccsResult <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_result"))
+  diagnosticsSummary <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_diagnostics_summary"))
+  covariate <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_covariate"))
+
+  sccsResult %>%
+    inner_join(diagnosticsSummary, by = c("exposures_outcome_set_id", "database_id", "analysis_id", "covariate_id")) %>%
+    inner_join(covariate, by = c("exposures_outcome_set_id", "database_id", "analysis_id", "covariate_id")) %>%
+    filter(
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      database_id %in% databaseIds,
+      analysis_id %in% analysisIds
+    ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}
+
+getModel <- function(connectionPool,
+                     resultsDatabaseSchema,
+                     exposuresOutcomeSetId,
+                     databaseId,
+                     analysisId) {
+  connection <- pool::poolCheckout(connectionPool)
+  on.exit(pool::poolReturn(connection))
+
+  covariateResult <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_covariate_result"))
+  covariate <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_covariate"))
+  era <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_era"))
+  cohortDefinition <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "cg_cohort_definition"))
+
+  covariateResult %>%
+    inner_join(covariate, by = c("analysis_id", "exposures_outcome_set_id", "database_id", "covariate_id")) %>%
+    filter(
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId,
+      !is.na(rr)
+    ) %>%
+    left_join(era, by = c("exposures_outcome_set_id","analysis_id", "era_id", "database_id")) %>%
+    left_join(cohortDefinition %>%
+                select(era_id = "cohort_definition_id",
+                       era_name_2 = "cohort_name"),
+              by = "era_id") %>%
+    mutate(exposure_name = if_else(is.na(era_name), era_name_2, era_name)) %>%
+    mutate(covariate_name = if_else(is.na(era_name), covariate_name, paste(covariate_name, era_name, sep = ": "))) %>%
+    select(
+      "covariate_id",
+      "covariate_name",
+      "rr",
+      "ci_95_lb",
+      "ci_95_ub") %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}
