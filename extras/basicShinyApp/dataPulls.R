@@ -111,3 +111,39 @@ getModel <- function(connectionPool,
     SqlRender::snakeCaseToCamelCaseNames() %>%
     return()
 }
+
+getTimeTrend <- function(connectionPool,
+                     resultsDatabaseSchema,
+                     exposuresOutcomeSetId,
+                     databaseId,
+                     analysisId) {
+  timeTrend <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_time_trend"))
+  timeTrend %>%
+    filter (
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId,
+    ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}
+
+getTimeTrendToEvent <- function(connectionPool,
+                                resultsDatabaseSchema,
+                                exposuresOutcomeSetId,
+                                eraId,
+                                databaseId,
+                                analysisId) {
+  timeToEvent <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_time_to_event"))
+  timeToEvent %>%
+    filter (
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      era_id == !!eraId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId,
+    ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}

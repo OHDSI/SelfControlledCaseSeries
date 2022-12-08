@@ -465,15 +465,6 @@ createReferenceTable <- function(sccsAnalysisList,
 
   convertExposuresOutcomeToTable <- function(i) {
     exposuresOutcome <- exposuresOutcomeList[[i]]
-    # names <- c("exposuresOutcomeSetId", "outcomeId", uniqueExposureIdRefs, sprintf("%sTrueEffectSize", uniqueExposureIdRefs))
-    # values <- c(i, exposuresOutcome$outcomeId, rep(-1, length(uniqueExposureIdRefs)), rep(NA, length(uniqueExposureIdRefs)))
-    # for (exposure in exposuresOutcome$exposures) {
-    #   idx <- which(uniqueExposureIdRefs == exposure$exposureIdRef)
-    #   values[idx + 1] <- exposure$exposureId
-    #   if (!is.null(exposure$trueEffectSize)) {
-    #     values[idx + 1 + length(uniqueExposureIdRefs)] <- exposure$trueEffectSize
-    #   }
-    # }
     names <- c("exposuresOutcomeSetId", "outcomeId", uniqueExposureIdRefs)
     values <- c(i, exposuresOutcome$outcomeId, rep(-1, length(uniqueExposureIdRefs)))
     for (exposure in exposuresOutcome$exposures) {

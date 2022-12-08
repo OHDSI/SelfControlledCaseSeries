@@ -318,29 +318,6 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
       studyPopFile <- refRow$studyPopFile
       studyPop <- readRDS(file.path(outputFolder, studyPopFile))
 
-      # sccsTimeToEvent table
-      for (exposure in esoList[[refRow$exposuresOutcomeSetId]]$exposures) {
-        data <- computeTimeToEvent(
-          studyPopulation = studyPop,
-          sccsData = sccsData,
-          exposureEraId = exposure$exposureId
-        ) %>%
-          mutate(databaseId = !!databaseId,
-                 eraId = exposure$exposureId,
-                 outcomes = .data$eventsExposed + .data$eventsUnexposed) %>%
-          select("databaseId",
-                 "eraId",
-                 week = "number",
-                 "outcomes",
-                 observedSubjects = "observed")
-
-        refRows <- reference %>%
-          filter(.data$studyPopFile == !!studyPopFile)
-        sccsTimeToEvent[[length(sccsTimeToEvent) + 1]] <- refRows %>%
-          select("analysisId", "exposuresOutcomeSetId") %>%
-          inner_join(data, by = character())
-      }
-
       # sccs_age_spanning table
       ageSpans <- computeSpans(studyPop, variable = "age") %>%
         mutate(databaseId = !!databaseId)
@@ -380,6 +357,27 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
     } else {
       estimates <- sccsModel$estimates %>%
         mutate(rr = exp(.data$logRr), ci95Lb = exp(.data$logLb95), ci95Ub = exp(.data$logUb95))
+    }
+
+    # sccsTimeToEvent table
+    for (exposure in esoList[[refRow$exposuresOutcomeSetId]]$exposures) {
+      data <- SelfControlledCaseSeries:::computeTimeToEvent(
+        studyPopulation = studyPop,
+        sccsData = sccsData,
+        exposureEraId = exposure$exposureId
+      ) %>%
+        mutate(databaseId = !!databaseId,
+               eraId = exposure$exposureId,
+               outcomes = .data$eventsExposed + .data$eventsUnexposed) %>%
+        select("databaseId",
+               "eraId",
+               week = "number",
+               "outcomes",
+               observedSubjects = "observed")
+
+      sccsTimeToEvent[[length(sccsTimeToEvent) + 1]] <- refRow %>%
+        select("analysisId", "exposuresOutcomeSetId") %>%
+        bind_cols(data)
     }
 
     #sccsAttrition table
@@ -455,14 +453,14 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         bind_cols(
           tibble(
             covariateId = 199 + seq_len(length(seasonKnots)),
-            month = seasonKnots
+            knotMonth = seasonKnots
           ) %>%
             left_join(estimates %>%
                         filter(.data$covariateId >= 200 & .data$covariateId < 300) %>%
                         select("covariateId", "rr"),
                       by = "covariateId") %>%
-            select("month", "rr") %>%
-            bind_rows(tibble(month = 0, rr = 0))
+            select("knotMonth", "rr") %>%
+            bind_rows(tibble(knotMonth = 0, rr = 0))
         ) %>%
         mutate(databaseId = !!databaseId,
                splineType = "season")
@@ -475,13 +473,13 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         bind_cols(
           tibble(
             covariateId = 299 + seq_len(length(calendarTimeKnots)),
-            month = calendarTimeKnots
+            knotMonth = calendarTimeKnots
           ) %>%
             left_join(estimates %>%
                         filter(.data$covariateId >= 299 & .data$covariateId < 400) %>%
                         select("covariateId", "rr"),
                       by = "covariateId") %>%
-            select("month", "rr")
+            select("knotMonth", "rr")
         ) %>%
         mutate(databaseId = !!databaseId,
                splineType = "calendar time")

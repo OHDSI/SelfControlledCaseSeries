@@ -169,4 +169,20 @@ shinyServer(function(input, output, session) {
     }
   })
 
+  output$timeTrendPlot <- renderPlot({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      timeTrend <- getTimeTrend(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId
+      )
+      plotTimeTrend(timeTrend)
+    }
+  })
+
 })

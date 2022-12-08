@@ -21,3 +21,14 @@ exposuresOutcomeNames <- exposuresOutcomeSets %>%
 sccsAnalyses <- getTable(connectionPool, resultsDatabaseSchema, "sccs_analysis")
 
 databases <- getTable(connectionPool, resultsDatabaseSchema, "database_meta_data")
+
+
+# For debugging:
+# results <- getSccsResults(
+#   connectionPool = connectionPool,
+#   resultsDatabaseSchema = resultsDatabaseSchema,
+#   exposuresOutcomeSetId = 1,
+#   databaseIds = "MDCD",
+#   analysisIds = 1:4
+# )
+# row <- results[1,]

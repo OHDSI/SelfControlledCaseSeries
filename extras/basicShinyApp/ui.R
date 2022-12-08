@@ -32,12 +32,16 @@ shinyUI(
                      conditionalPanel("output.rowIsSelected == true",
                                       tabsetPanel(id = "detailsTabsetPanel",
                                                   tabPanel("Power",
-                                                           div(strong("Figure 1."), "For each variable of interest: the number of cases (people with at least one outcome), the number of years those people were observed, the number of outcomes, the number of subjects with at least one exposure, the number of patient-years exposed, the number of outcomes while exposed, and the minimum detectable relative risk (MDRR)."),
+                                                           div(strong("Table 1."), "For each variable of interest: the number of cases (people with at least one outcome), the number of years those people were observed, the number of outcomes, the number of subjects with at least one exposure, the number of patient-years exposed, the number of outcomes while exposed, and the minimum detectable relative risk (MDRR)."),
                                                            tableOutput("powerTable")
                                                   ),
                                                   tabPanel("Model",
-                                                           div(strong("Figure 2."), "The fitted coefficent (incidence rate ratio) and 95 percent confidence interval for all variables in the model."),
+                                                           div(strong("Table 2."), "The fitted non-zero coefficent (incidence rate ratio) and 95 percent confidence interval for all variables in the model."),
                                                            tableOutput("modelTable")
+                                                  ),
+                                                  tabPanel("Time trend",
+                                                           plotOutput("timeTrendPlot", height = 600),
+                                                           div(strong("Figure 1."), "Per calendar month the number of people observed, the unadjusted rate of the outcome, and the rate of the outcome after adjusting for age, season, and calendar time, if specified in the model. Red indicates months where the adjusted rate was significantly different from the mean adjusted rate."),
                                                   )
                                       )
                      )
