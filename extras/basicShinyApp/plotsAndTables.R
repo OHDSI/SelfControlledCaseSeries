@@ -67,11 +67,64 @@ plotTimeTrend <- function(timeTrend) {
       axis.ticks = ggplot2::element_blank(),
       axis.text.y = themeRA,
       axis.text.x = theme,
+      axis.title = theme,
       strip.text.y = theme,
       strip.background = ggplot2::element_blank(),
       legend.title = ggplot2::element_blank(),
       legend.position = "top",
       legend.text = theme
+    )
+  return(plot)
+}
+
+plotTimeToEvent <- function(timeToEvent) {
+
+  events <- timeToEvent %>%
+    transmute(.data$week,
+              type = "Events",
+              count = .data$outcomes
+    )
+
+  observed <- timeToEvent %>%
+    transmute(.data$week,
+              type = "Subjects under observation",
+              count = .data$observedSubjects
+    )
+
+  data <- bind_rows(events, observed) %>%
+    mutate(count = pmax(0, .data$count),
+           day = 3.5 + .data$week * 7)
+
+  pLabel <- tibble(
+    text = sprintf("P for pre-exposure gain = %0.2f", timeToEvent$p[1]),
+    day = -178,
+    count = max(events$count),
+    type = "Events"
+  )
+
+  breaks <- seq(-180, 180, 30)
+  theme <- ggplot2::element_text(colour = "#000000", size = 14)
+  themeRA <- ggplot2::element_text(colour = "#000000", size = 14, hjust = 1)
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = day, y = count)) +
+    ggplot2::geom_col(width = 7, fill = rgb(0, 0, 0.8), alpha = 0.6) +
+    ggplot2::geom_vline(xintercept = -0.5, colour = "#000000", lty = 1, linewidth = 1) +
+    ggplot2::geom_label(ggplot2::aes(label = .data$text), data = pLabel, hjust = 0, size = 4.5, alpha = 0.8) +
+    ggplot2::scale_x_continuous("Days since first exposure start", breaks = breaks, labels = breaks) +
+    ggplot2::scale_y_continuous("Count") +
+    ggplot2::facet_grid(type ~ ., scales = "free_y") +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major = ggplot2::element_line(colour = "#AAAAAA"),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      axis.title = theme,
+      strip.text.y = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
     )
   return(plot)
 }

@@ -129,17 +129,46 @@ getTimeTrend <- function(connectionPool,
     return()
 }
 
-getTimeTrendToEvent <- function(connectionPool,
-                                resultsDatabaseSchema,
-                                exposuresOutcomeSetId,
-                                eraId,
-                                databaseId,
-                                analysisId) {
+getTimeToEvent <- function(connectionPool,
+                           resultsDatabaseSchema,
+                           exposuresOutcomeSetId,
+                           eraId,
+                           covariateId,
+                           databaseId,
+                           analysisId) {
+  diagnosticsSummary <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_diagnostics_summary"))
+  p <- diagnosticsSummary %>%
+    filter (
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      covariate_id == !!covariateId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId,
+    ) %>%
+    pull("pre_exposure_p")
+
   timeToEvent <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_time_to_event"))
   timeToEvent %>%
     filter (
       exposures_outcome_set_id == exposuresOutcomeSetId,
       era_id == !!eraId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId,
+    ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    mutate(p = !!p) %>%
+    return()
+}
+
+getAttrition <- function(connectionPool,
+                         resultsDatabaseSchema,
+                         exposuresOutcomeSetId,
+                         databaseId,
+                         analysisId) {
+  attrition <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_attrition"))
+  attrition %>%
+    filter (
+      exposures_outcome_set_id == exposuresOutcomeSetId,
       database_id == !!databaseId,
       analysis_id == !!analysisId,
     ) %>%

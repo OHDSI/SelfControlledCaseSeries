@@ -42,6 +42,10 @@ shinyUI(
                                                   tabPanel("Time trend",
                                                            plotOutput("timeTrendPlot", height = 600),
                                                            div(strong("Figure 1."), "Per calendar month the number of people observed, the unadjusted rate of the outcome, and the rate of the outcome after adjusting for age, season, and calendar time, if specified in the model. Red indicates months where the adjusted rate was significantly different from the mean adjusted rate."),
+                                                  ),
+                                                  tabPanel("Time to event",
+                                                           plotOutput("timeToEventPlot"),
+                                                           div(strong("Figure 2."), "The number of events and subjects observed per week relative to the start of the first exposure (indicated by the thick vertical line)."),
                                                   )
                                       )
                      )

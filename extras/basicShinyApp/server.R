@@ -185,4 +185,22 @@ shinyServer(function(input, output, session) {
     }
   })
 
+  output$timeToEventPlot <- renderPlot({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      timeToEvent <- getTimeToEvent(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        eraId = row$eraId,
+        covariateId = row$covariateId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId
+      )
+      plotTimeToEvent(timeToEvent)
+    }
+  })
+
 })

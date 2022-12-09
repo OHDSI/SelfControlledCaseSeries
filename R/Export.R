@@ -545,7 +545,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
       preExposureP <- computePreExposureGainP(
         sccsData = sccsData,
         studyPopulation = studyPop,
-        exposureEraId =table$eraId[j]
+        exposureEraId = table$eraId[j]
 
       )
       table$preExposureP[j] <- preExposureP
