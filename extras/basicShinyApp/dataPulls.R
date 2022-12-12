@@ -113,10 +113,10 @@ getModel <- function(connectionPool,
 }
 
 getTimeTrend <- function(connectionPool,
-                     resultsDatabaseSchema,
-                     exposuresOutcomeSetId,
-                     databaseId,
-                     analysisId) {
+                         resultsDatabaseSchema,
+                         exposuresOutcomeSetId,
+                         databaseId,
+                         analysisId) {
   timeTrend <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_time_trend"))
   timeTrend %>%
     filter (
@@ -164,14 +164,116 @@ getAttrition <- function(connectionPool,
                          resultsDatabaseSchema,
                          exposuresOutcomeSetId,
                          databaseId,
-                         analysisId) {
+                         analysisId,
+                         covariateId) {
   attrition <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_attrition"))
   attrition %>%
     filter (
       exposures_outcome_set_id == exposuresOutcomeSetId,
       database_id == !!databaseId,
       analysis_id == !!analysisId,
+      covariateId == !!covariateId
     ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}
+
+getEventDepObservation <- function(connectionPool,
+                                   resultsDatabaseSchema,
+                                   exposuresOutcomeSetId,
+                                   databaseId,
+                                   analysisId) {
+  eventDepObservation <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_event_dep_observation"))
+  eventDepObservation %>%
+    filter (
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId
+    ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}
+
+getAgeSpanning <- function(connectionPool,
+                           resultsDatabaseSchema,
+                           exposuresOutcomeSetId,
+                           databaseId,
+                           analysisId) {
+  ageSpanning <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_age_spanning"))
+  ageSpanning %>%
+    filter (
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId
+    ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}
+
+getCalendarTimeSpanning <- function(connectionPool,
+                                    resultsDatabaseSchema,
+                                    exposuresOutcomeSetId,
+                                    databaseId,
+                                    analysisId) {
+  calendarTimeSpanning <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_calendar_time_spanning"))
+  calendarTimeSpanning %>%
+    filter (
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId
+    ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}
+
+getSpline <- function(connectionPool,
+                      resultsDatabaseSchema,
+                      exposuresOutcomeSetId,
+                      databaseId,
+                      analysisId,
+                      splineType = "age") {
+  spline <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_spline"))
+  spline %>%
+    filter (
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId,
+      spline_type == splineType
+    ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}
+
+
+
+getControlEstimates <- function(connectionPool,
+                                resultsDatabaseSchema,
+                                exposuresOutcomeSetId,
+                                databaseId,
+                                analysisId,
+                                covariateId) {
+  connection <- pool::poolCheckout(connectionPool)
+  on.exit(pool::poolReturn(connection))
+
+  sccsResult <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_result"))
+  sccsExposure <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_exposure"))
+  sccsCovariate <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_covariate"))
+
+  sccsResult %>%
+    inner_join(sccsCovariate, by = c("analysis_id", "exposures_outcome_set_id", "covariate_id", "database_id")) %>%
+    inner_join(sccsExposure, by = c("exposures_outcome_set_id", "era_id")) %>%
+    filter (
+      database_id == !!databaseId,
+      analysis_id == !!analysisId,
+      covariate_id == !!covariateId,
+      !is.na(true_effect_size)
+    ) %>%
+    select("ci_95_lb", "ci_95_ub", "log_rr", "se_log_rr", "calibrated_ci_95_lb", "calibrated_ci_95_ub", "calibrated_log_rr", "calibrated_se_log_rr", "true_effect_size") %>%
     collect() %>%
     SqlRender::snakeCaseToCamelCaseNames() %>%
     return()

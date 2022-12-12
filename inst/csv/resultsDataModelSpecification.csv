@@ -72,6 +72,7 @@ sccs_attrition,sequence_number,int,Yes,Yes,No,The place in the sequence of steps
 sccs_attrition,description,varchar,Yes,No,No,"A description of the last restriction, e.g. ""Removing persons with the outcome prior"". "
 sccs_attrition,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_attrition,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_attrition,covariate_id,int,Yes,Yes,No,A foreign key referencing the sccs_covariate table. The identifier for the covariate of interest.
 sccs_attrition,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
 sccs_attrition,outcome_subjects,int,Yes,No,Yes,The number of subjects with at least one outcome.
 sccs_attrition,outcome_events,int,Yes,No,Yes,The number of outcome events.

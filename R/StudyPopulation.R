@@ -128,7 +128,7 @@ createStudyPopulation <- function(sccsData,
 
     attrition <- bind_rows(
       attrition,
-      countOutcomes(outcomes, cases, sprintf("%s days naive period", naivePeriod))
+      countOutcomes(outcomes, cases, sprintf("Requiring %s days naive period", naivePeriod))
     )
   }
 
@@ -142,7 +142,7 @@ createStudyPopulation <- function(sccsData,
           TRUE ~ .data$startAgeInDays
         )) %>%
         filter(.data$endAgeInDays > .data$startAgeInDays)
-      labels <- c(labels, sprintf("Age >= %s", minAge))
+      labels <- c(labels, sprintf("age >= %s", minAge))
     }
     if (!is.null(maxAge)) {
       maxAgeInDays <- round((maxAge + 1) * 365.25)
@@ -158,7 +158,7 @@ createStudyPopulation <- function(sccsData,
           )
         ) %>%
         filter(.data$endAgeInDays > .data$startAgeInDays)
-      labels <- c(labels, sprintf("Age <= %s", maxAge))
+      labels <- c(labels, sprintf("age <= %s", maxAge))
     }
 
     outcomes <- outcomes %>%
@@ -169,7 +169,7 @@ createStudyPopulation <- function(sccsData,
 
     attrition <- bind_rows(
       attrition,
-      countOutcomes(outcomes, cases, paste(labels, collapse = " & "))
+      countOutcomes(outcomes, cases, paste("Restrict to", paste(labels, collapse = " & ")))
     )
   }
 

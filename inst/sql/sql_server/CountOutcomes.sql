@@ -22,7 +22,7 @@ limitations under the License.
 {DEFAULT @study_end_date = ''}
 
 DROP TABLE IF EXISTS #counts;
-	
+
 CREATE TABLE #counts (
 	outcome_id INT,
 	description VARCHAR(255),
@@ -30,21 +30,21 @@ CREATE TABLE #counts (
 	outcome_events INT,
 	outcome_obs_periods INT,
 	observed_days BIGINT);
-	
+
 INSERT INTO #counts (outcome_id, description, outcome_subjects, outcome_events, outcome_obs_periods, observed_days)
 SELECT outcome_ids.outcome_id,
-	'Outcomes',
+	'All outcome occurrences',
 	CASE WHEN outcome_subjects IS NULL THEN 0 ELSE outcome_subjects END AS outcome_subjects,
 	CASE WHEN outcome_events IS NULL THEN 0 ELSE outcome_events END AS outcome_events,
 	CASE WHEN outcome_obs_periods IS NULL THEN 0 ELSE outcome_obs_periods END AS outcome_obs_periods,
 	CASE WHEN observed_days IS NULL THEN 0 ELSE observed_days END AS observed_days
 FROM #outcome_ids outcome_ids
 LEFT JOIN (
-	SELECT outcome_id, 
+	SELECT outcome_id,
 		COUNT(DISTINCT person_id) AS outcome_subjects,
 		COUNT(*) AS outcome_events,
 		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods,
-		SUM(observed_days) AS observed_days		
+		SUM(observed_days) AS observed_days
 	FROM #outcomes
 	GROUP BY outcome_id
 	) counts
@@ -60,11 +60,11 @@ SELECT outcome_ids.outcome_id,
 	CASE WHEN observed_days IS NULL THEN 0 ELSE observed_days END AS observed_days
 FROM #outcome_ids outcome_ids
 LEFT JOIN (
-	SELECT outcome_id, 
+	SELECT outcome_id,
 		COUNT(DISTINCT person_id) AS outcome_subjects,
 		COUNT(*) AS outcome_events,
 		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods,
-		SUM(observed_days) AS observed_days		
+		SUM(observed_days) AS observed_days
 	FROM #outcomes_in_period
 	GROUP BY outcome_id
 	) counts
@@ -81,11 +81,11 @@ SELECT outcome_ids.outcome_id,
 	CASE WHEN observed_days IS NULL THEN 0 ELSE observed_days END AS observed_days
 FROM #outcome_ids outcome_ids
 LEFT JOIN (
-	SELECT outcome_id, 
+	SELECT outcome_id,
 		COUNT(DISTINCT person_id) AS outcome_subjects,
 		COUNT(*) AS outcome_events,
 		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods,
-		SUM(observed_days) AS observed_days		
+		SUM(observed_days) AS observed_days
 	FROM #outcomes_in_nesting
 	GROUP BY outcome_id
 	) counts

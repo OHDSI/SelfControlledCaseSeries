@@ -297,7 +297,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   studyPopFile <- ""
 
   pb <- txtProgressBar(style = 3)
-  # i <- 1
+  # i <- 75
   for (i in seq_len(nrow(reference))) {
     refRow <- reference[i, ]
     if (refRow$sccsDataFile != sccsDataFile) {
@@ -337,7 +337,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         inner_join(timeSpans, by = character())
 
       # sccsEventDepObservation table
-      data <- computeTimeToObsEnd(studyPop) %>%
+      data <- SelfControlledCaseSeries:::computeTimeToObsEnd(studyPop) %>%
         mutate(monthsToEnd = round(.data$daysFromEvent / 30.5)) %>%
         group_by(.data$monthsToEnd, .data$censoring) %>%
         summarize(outcomes = n(), .groups = "drop") %>%
@@ -381,7 +381,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
     }
 
     #sccsAttrition table
-    sccsAttrition[[length(sccsAttrition) + 1]] <- refRow %>%
+    baseAttrition <- refRow %>%
       select("analysisId", "exposuresOutcomeSetId") %>%
       bind_cols(
         sccsModel$metaData$attrition %>%
@@ -390,6 +390,48 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
           select(-"outcomeId")
       ) %>%
       mutate(databaseId = !!databaseId)
+    # covariateSettings = sccsModel$metaData$covariateSettingsList[[1]]
+    for (covariateSettings in sccsModel$metaData$covariateSettingsList) {
+      if (covariateSettings$exposureOfInterest) {
+        if (is.null(sccsModel$metaData$covariateStatistics)) {
+          covariateStatistics <- tibble(
+            covariateId = covariateSettings$outputIds[1],
+            personCount = 0,
+            eraCount = 0,
+            dayCount = 0,
+            outcomeCount = 0,
+            observationPeriodCount = 0,
+            observedDayCount = 0,
+            observedOutcomeCount = 0
+          )
+        } else {
+          covariateStatistics <- sccsModel$metaData$covariateStatistics
+        }
+        attrition <- bind_rows(
+          baseAttrition,
+          covariateStatistics %>%
+            filter(covariateId == covariateSettings$outputIds[1]) %>%
+            mutate(
+              analysisId = refRow$analysisId,
+              exposuresOutcomeSetId = refRow$exposuresOutcomeSetId,
+              description = "Having time at risk",
+              sequenceNumber = max(baseAttrition$sequenceNumber) + 1,
+              databaseId = !!databaseId) %>%
+            select(
+              "analysisId",
+              "exposuresOutcomeSetId",
+              "description",
+              outcomeSubjects = "personCount",
+              outcomeEvents = "outcomeCount",
+              outcomeObservationPeriods = "observationPeriodCount",
+              observedDays = "observedDayCount",
+              "sequenceNumber",
+              "databaseId")
+        ) %>%
+          mutate(covariateId = covariateSettings$outputIds[1])
+        sccsAttrition[[length(sccsAttrition) + 1]] <- attrition
+      }
+    }
 
     # sccsCovariate table
     sccsCovariate[[length(sccsCovariate) + 1]] <- refRow %>%
@@ -460,7 +502,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
                         select("covariateId", "rr"),
                       by = "covariateId") %>%
             select("knotMonth", "rr") %>%
-            bind_rows(tibble(knotMonth = 0, rr = 0))
+            bind_rows(tibble(knotMonth = 1, rr = 1))
         ) %>%
         mutate(databaseId = !!databaseId,
                splineType = "season")
@@ -676,8 +718,8 @@ computeSpans <- function(studyPopulation, variable = "age") {
   } else {
     ages <- studyPopulation$cases %>%
       transmute(
-        start = convertDateToMonth(.data$startDate) + 1,
-        end = convertDateToMonth(.data$startDate + .data$endDay) - 1,
+        start = SelfControlledCaseSeries:::convertDateToMonth(.data$startDate) + 1,
+        end = SelfControlledCaseSeries:::convertDateToMonth(.data$startDate + .data$endDay) - 1,
         count = 1
       )
   }

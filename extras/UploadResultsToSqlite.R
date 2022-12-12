@@ -13,6 +13,7 @@ connectionDetails <- createConnectionDetails(
   server = file.path(outputFolder, "Results.sqlite")
 )
 
+unlink(file.path(outputFolder, "export",  "resultsDataModelSpecification.csv"))
 file.copy(
   from = system.file("csv", "resultsDataModelSpecification.csv", package = "SelfControlledCaseSeries"),
   to = file.path(outputFolder, "export")

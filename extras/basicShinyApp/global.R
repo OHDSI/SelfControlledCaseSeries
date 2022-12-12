@@ -32,3 +32,7 @@ databases <- getTable(connectionPool, resultsDatabaseSchema, "database_meta_data
 #   analysisIds = 1:4
 # )
 # row <- results[1,]
+# exposuresOutcomeSetId = 1
+# databaseId = "MDCD"
+# analysisId = 1
+# covariateId = 1000

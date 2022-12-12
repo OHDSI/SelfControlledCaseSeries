@@ -406,7 +406,7 @@ simulateSccsData <- function(nCases, settings) {
     outcomeIds = settings$outcomeId,
     attrition = tibble(
       outcomeId = settings$outcomeId,
-      description = "Outcomes",
+      description = "All outcome occurrences",
       outcomeSubjects = 0,
       outcomeEvents = 0,
       outcomeObsPeriods = 0

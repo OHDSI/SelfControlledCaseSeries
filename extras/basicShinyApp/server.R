@@ -144,6 +144,23 @@ shinyServer(function(input, output, session) {
     }
   })
 
+  output$attritionPlot <- renderPlot({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      attrition <- getAttrition(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId,
+        covariateId = row$covariateId
+      )
+      drawAttritionDiagram(attrition)
+    }
+  })
+
   output$modelTable <- renderTable({
     row <- selectedRow()
     if (is.null(row)) {
@@ -200,6 +217,126 @@ shinyServer(function(input, output, session) {
         analysisId = row$analysisId
       )
       plotTimeToEvent(timeToEvent)
+    }
+  })
+
+  output$eventDepObservationPlot <- renderPlot({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      eventDepObservation <- getEventDependentObservation(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId
+      )
+      plotEventDepObservation(eventDepObservation)
+    }
+  })
+
+  output$spanningPlot <- renderPlot({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      if (input$spanningType == "Age") {
+        ageSpanning <- getAgeSpanning(
+          connectionPool = connectionPool,
+          resultsDatabaseSchema = resultsDatabaseSchema,
+          exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+          databaseId = row$databaseId,
+          analysisId = row$analysisId
+        )
+        plotSpanning(ageSpanning, type = "age")
+      } else {
+        calendarTimeSpanning <- getCalendarTimeSpanning(
+          connectionPool = connectionPool,
+          resultsDatabaseSchema = resultsDatabaseSchema,
+          exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+          databaseId = row$databaseId,
+          analysisId = row$analysisId
+        )
+        plotSpanning(calendarTimeSpanning, type = "calendar time")
+      }
+    }
+  })
+
+  output$ageSplinePlot <- renderPlot({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      ageSpline <- getSpline(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId,
+        splineType = "age"
+      )
+      if (nrow(ageSpline) == 0) {
+        return(NULL)
+      }
+      plotAgeSpline(ageSpline)
+    }
+  })
+
+  output$seasonSplinePlot <- renderPlot({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      seasonSpline <- getSpline(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId,
+        splineType = "season"
+      )
+      if (nrow(seasonSpline) == 0) {
+        return(NULL)
+      }
+      plotSeasonSpline(seasonSpline)
+    }
+  })
+
+  output$calendarTimeSplinePlot <- renderPlot({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      calendarTimeSpline <- getSpline(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId,
+        splineType = "calendar time"
+      )
+      if (nrow(calendarTimeSpline) == 0) {
+        return(NULL)
+      }
+      plotCalendarTimeSpline(calendarTimeSpline)
+    }
+  })
+
+  output$controlEstimatesPlot <- renderPlot({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      controlEstimates <- getControlEstimates(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        covariateId = row$covariateId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId
+      )
+      plotControlEstimates(controlEstimates)
     }
   })
 

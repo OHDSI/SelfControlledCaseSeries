@@ -164,10 +164,6 @@ sccsAnalysis2 <- createSccsAnalysis(
   fitSccsModelArgs = fitSccsModelArgs
 )
 
-ageSettings <- createAgeCovariateSettings(ageKnots = 5)
-
-seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
-
 covarPreExp <- createEraCovariateSettings(
   label = "Pre-exposure",
   includeEraIds = "exposureId",
@@ -175,6 +171,12 @@ covarPreExp <- createEraCovariateSettings(
   end = -1,
   endAnchor = "era start"
 )
+
+ageSettings <- createAgeCovariateSettings(ageKnots = 5)
+
+seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
+
+calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5)
 
 createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(
   eraCovariateSettings = list(
@@ -184,12 +186,12 @@ createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(
   ),
   ageCovariateSettings = ageSettings,
   seasonalityCovariateSettings = seasonalitySettings,
-  eventDependentObservation = TRUE
+  calendarTimeCovariateSettings = calendarTimeSettings
 )
 
 sccsAnalysis3 <- createSccsAnalysis(
   analysisId = 3,
-  description = "Including prophylactics, age, season, pre-exposure, and censoring",
+  description = "Including prophylactics, age, season, calendar time, and pre-exposure",
   getDbSccsDataArgs = getDbSccsDataArgs,
   createStudyPopulationArgs = createStudyPopulationArgs,
   createIntervalDataArgs = createSccsIntervalDataArgs3,
@@ -213,8 +215,7 @@ createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(
     covarAllDrugs
   ),
   ageCovariateSettings = ageSettings,
-  seasonalityCovariateSettings = seasonalitySettings,
-  eventDependentObservation = TRUE
+  seasonalityCovariateSettings = seasonalitySettings
 )
 
 sccsAnalysis4 <- createSccsAnalysis(
@@ -226,7 +227,25 @@ sccsAnalysis4 <- createSccsAnalysis(
   fitSccsModelArgs = fitSccsModelArgs
 )
 
-sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4)
+createSccsIntervalDataArgs5 <- createCreateSccsIntervalDataArgs(
+  eraCovariateSettings = list(
+    covarExposureOfInt,
+    covarPreExp,
+    covarProphylactics
+  ),
+  eventDependentObservation = TRUE
+)
+
+sccsAnalysis5 <- createSccsAnalysis(
+  analysisId = 5,
+  description = "Adjusting for event-dependent obs. end",
+  getDbSccsDataArgs = getDbSccsDataArgs,
+  createStudyPopulationArgs = createStudyPopulationArgs,
+  createIntervalDataArgs = createSccsIntervalDataArgs5,
+  fitSccsModelArgs = fitSccsModelArgs
+)
+
+sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4, sccsAnalysis5)
 
 saveExposuresOutcomeList(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.txt"))
 saveSccsAnalysisList(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.txt"))
