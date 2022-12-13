@@ -278,3 +278,22 @@ getControlEstimates <- function(connectionPool,
     SqlRender::snakeCaseToCamelCaseNames() %>%
     return()
 }
+
+getDiagnosticsSummary <- function(connectionPool,
+                                  resultsDatabaseSchema,
+                                  exposuresOutcomeSetId,
+                                  databaseId,
+                                  analysisId,
+                                  covariateId) {
+  diagnosticsSummary <- tbl(connectionPool, inDatabaseSchema(resultsDatabaseSchema, "sccs_diagnostics_summary"))
+  diagnosticsSummary %>%
+    filter (
+      exposures_outcome_set_id == exposuresOutcomeSetId,
+      database_id == !!databaseId,
+      analysis_id == !!analysisId,
+      covariateId == !!covariateId
+    ) %>%
+    collect() %>%
+    SqlRender::snakeCaseToCamelCaseNames() %>%
+    return()
+}

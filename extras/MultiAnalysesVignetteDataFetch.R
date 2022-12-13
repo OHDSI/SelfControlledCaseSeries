@@ -215,7 +215,8 @@ createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(
     covarAllDrugs
   ),
   ageCovariateSettings = ageSettings,
-  seasonalityCovariateSettings = seasonalitySettings
+  seasonalityCovariateSettings = seasonalitySettings,
+  calendarTimeCovariateSettings = calendarTimeSettings
 )
 
 sccsAnalysis4 <- createSccsAnalysis(

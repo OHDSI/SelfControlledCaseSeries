@@ -478,7 +478,6 @@ void SccsConverter::processPerson(PersonData& personData) {
   if (scri) {
     removeNonRiskOrControlIntervals(concomitantEras);
   }
-  resultStruct.addObservedDays(personData.endDay);
   if (eventDependentObservation) {
     computeEventDepObsWeights(concomitantEras, personData);
   }

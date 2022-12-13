@@ -154,17 +154,18 @@ createSccsIntervalData <- function(studyPopulation,
   if (is.null(data$outcomes) || is.null(data$covariates)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
     data <- createEmptySccsIntervalData()
-    metaData$daysObserved <- 0
     if (nrow(settings$covariateRef) > 0) {
       data$covariateRef <- settings$covariateRef
     }
   } else {
     metaData$covariateStatistics <- collect(data$covariateStatistics)
-    metaData$daysObserved <- pull(data$observedDays, .data$observedDays)
     data$covariateStatistics <- NULL
-    data$observedDays <- NULL
     data$covariateRef <- settings$covariateRef
   }
+  metaData$attrition <- bind_rows(
+    metaData$attrition,
+    countOutcomesIntervalData(data, sccsData, metaData$outcomeId)
+  )
   attr(data, "metaData") <- metaData
   class(data) <- "SccsIntervalData"
   attr(class(data), "package") <- "SelfControlledCaseSeries"
@@ -573,4 +574,22 @@ cyclicSplineDesign <- function(x, knots, ord = 4) {
     X1[ind, ] <- X1[ind, ] + X2
   }
   X1
+}
+
+countOutcomesIntervalData <- function(data, sccsData, outcomeId) {
+  data$outcomes %>%
+    inner_join(select(sccsData$cases, stratumId = "caseId", "personId"), by = "stratumId", copy = TRUE) %>%
+    summarize(
+      outcomeSubjects = n_distinct(.data$personId),
+      outcomeEvents = sum(.data$y, na.rm = TRUE),
+      outcomeObsPeriods = n_distinct(.data$stratumId),
+      observedDays = sum(.data$time, na.rm = TRUE)) %>%
+    collect() %>%
+    mutate(
+      outcomeId = !!outcomeId,
+      description = "Having at least one covariate (full model)",
+      outcomeEvents = ifelse(is.na(.data$outcomeEvents), 0, .data$outcomeEvents),
+      observedDays = ifelse(is.na(.data$observedDays), 0, .data$observedDays)
+    ) %>%
+    return()
 }

@@ -225,7 +225,7 @@ shinyServer(function(input, output, session) {
     if (is.null(row)) {
       return(NULL)
     } else {
-      eventDepObservation <- getEventDependentObservation(
+      eventDepObservation <- getEventDepObservation(
         connectionPool = connectionPool,
         resultsDatabaseSchema = resultsDatabaseSchema,
         exposuresOutcomeSetId = row$exposuresOutcomeSetId,
@@ -337,6 +337,24 @@ shinyServer(function(input, output, session) {
         analysisId = row$analysisId
       )
       plotControlEstimates(controlEstimates)
+    }
+  })
+
+  output$diagnosticsSummary <- renderTable({
+    row <- selectedRow()
+    if (is.null(row)) {
+      return(NULL)
+    } else {
+      diagnosticsSummary <- getDiagnosticsSummary(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        covariateId = row$covariateId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId
+      )
+      table <- renderDiagnosticsSummary(diagnosticsSummary)
+      return(table)
     }
   })
 

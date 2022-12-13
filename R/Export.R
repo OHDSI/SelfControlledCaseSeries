@@ -410,11 +410,11 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         attrition <- bind_rows(
           baseAttrition,
           covariateStatistics %>%
-            filter(covariateId == covariateSettings$outputIds[1]) %>%
+            filter(.data$covariateId == covariateSettings$outputIds[1]) %>%
             mutate(
               analysisId = refRow$analysisId,
               exposuresOutcomeSetId = refRow$exposuresOutcomeSetId,
-              description = "Having time at risk",
+              description = "Having the covariate of interest",
               sequenceNumber = max(baseAttrition$sequenceNumber) + 1,
               databaseId = !!databaseId) %>%
             select(

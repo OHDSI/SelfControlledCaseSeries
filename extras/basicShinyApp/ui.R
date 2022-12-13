@@ -36,8 +36,8 @@ shinyUI(
                                                            tableOutput("powerTable")
                                                   ),
                                                   tabPanel("Attrition",
-                                                           plotOutput("attritionPlot", width = 600, height = 600),
-                                                           div(strong("Figure 1."), "Attrition, showing the number of cases (number of subjects with at least one outcome), and number of outcomes (number of ocurrences of the outcome) after each step in the study."),
+                                                           plotOutput("attritionPlot", width = 500, height = 500),
+                                                           div(strong("Figure 1."), "Attrition, showing the number of cases (number of subjects with at least one outcome), and number of outcomes (number of ocurrences of the outcome) after each step in the study.")
                                                   ),
                                                   tabPanel("Model",
                                                            tabsetPanel(id = "modelTabsetPanel",
@@ -62,30 +62,31 @@ shinyUI(
                                                   tabPanel("Spanning",
                                                            radioButtons("spanningType", label = "Type:", choices = c("Age", "Calendar time")),
                                                            plotOutput("spanningPlot"),
-                                                           div(strong("Figure 3."), "Number of subjects observed for 3 consecutive months, centered on the indicated month."),
+                                                           div(strong("Figure 3."), "Number of subjects observed for 3 consecutive months, centered on the indicated month.")
                                                   ),
                                                   tabPanel("Time trend",
                                                            plotOutput("timeTrendPlot", height = 600),
-                                                           div(strong("Figure 4."), "Per calendar month the number of people observed, the unadjusted rate of the outcome, and the rate of the outcome after adjusting for age, season, and calendar time, if specified in the model. Red indicates months where the adjusted rate was significantly different from the mean adjusted rate."),
+                                                           div(strong("Figure 4."), "Per calendar month the number of people observed, the unadjusted rate of the outcome, and the rate of the outcome after adjusting for age, season, and calendar time, if specified in the model. Red indicates months where the adjusted rate was significantly different from the mean adjusted rate.")
                                                   ),
                                                   tabPanel("Time to event",
                                                            plotOutput("timeToEventPlot"),
-                                                           div(strong("Figure 5."), "The number of events and subjects observed per week relative to the start of the first exposure (indicated by the thick vertical line)."),
+                                                           div(strong("Figure 5."), "The number of events and subjects observed per week relative to the start of the first exposure (indicated by the thick vertical line).")
                                                   ),
                                                   tabPanel("Event dep. observation",
                                                            plotOutput("eventDepObservationPlot"),
-                                                           div(strong("Figure 6."), "Histograms for the number of months between the first occurrence of the outcome and the end of observation, stratified by whether the end of observation was censored (inferred as not being equal to the end of database time), or uncensored (inferred as having the subject still be observed at the end of database time)."),
+                                                           div(strong("Figure 6."), "Histograms for the number of months between the first occurrence of the outcome and the end of observation, stratified by whether the end of observation was censored (inferred as not being equal to the end of database time), or uncensored (inferred as having the subject still be observed at the end of database time).")
                                                   ),
                                                   tabPanel("Systematic error",
                                                            plotOutput("controlEstimatesPlot"),
                                                            div(strong("Figure 7."),"Systematic error. Effect size estimates for the negative controls (true incidence rate ratio = 1)
                                                                                     and positive controls (true incidence rate ratio > 1), before and after calibration. Estimates below the diagonal dashed
                                                                                     lines are statistically significant (alpha = 0.05) different from the true effect size. A well-calibrated
-                                                                                    estimator should have the true effect size within the 95 percent confidence interval 95 percent of times."),
-
+                                                                                    estimator should have the true effect size within the 95 percent confidence interval 95 percent of times.")
                                                   ),
+                                                  tabPanel("Diagnostics summary",
+                                                           tableOutput("diagnosticsSummary")
 
-
+                                                  )
                                       )
                      )
               )

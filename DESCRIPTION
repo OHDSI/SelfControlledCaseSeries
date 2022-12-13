@@ -32,6 +32,7 @@ Imports:
 	dplyr (>= 1.0.0),
 	Rcpp (>= 0.11.2),
 	ParallelLogger (>= 3.1.0),
+	EmpiricalCalibration,
 	splines,
 	ggplot2 (>= 3.4.0),
 	methods,
@@ -44,12 +45,10 @@ Suggests:
 	testthat,
 	knitr,
 	rmarkdown,
-	EmpiricalCalibration,
 	Eunomia
 Remotes:
   ohdsi/Eunomia,
-  ohdsi/DatabaseConnector@beta_6.0.0,
-  ohdsi/ParallelLogger@develop
+  ohdsi/DatabaseConnector@beta_6.0.0
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes

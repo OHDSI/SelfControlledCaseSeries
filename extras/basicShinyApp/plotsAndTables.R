@@ -135,11 +135,18 @@ drawAttritionDiagram <- function(attrition) {
   }
   addStep <- function(data, attrition, row) {
     label <- paste(strwrap(as.character(attrition$description[row]), width = 30), collapse = "\n")
-    data$leftBoxText[length(data$leftBoxText) + 1] <- label
-    data$rightBoxText[length(data$rightBoxText) + 1] <- paste("Cases: n = ",
+    data$leftBoxText[length(data$leftBoxText) + 1] <- paste(label,
+                                                            "\n",
+                                                            "Cases: ",
+                                                            formatNumber(attrition$outcomeSubjects[row]),
+                                                            "\n",
+                                                            "Outcomes: ",
+                                                            formatNumber(attrition$outcomeEvents[row]),
+                                                            sep = "")
+    data$rightBoxText[length(data$rightBoxText) + 1] <- paste("Cases: ",
                                                               formatNumber(data$currentCases - attrition$outcomeSubjects[row]),
                                                               "\n",
-                                                              "Outcomes: n = ",
+                                                              "Outcomes: ",
                                                               formatNumber(data$currentOutcomes - attrition$outcomeEvents[row]),
                                                               sep = "")
     data$currentCases <- attrition$outcomeSubjects[row]
@@ -147,10 +154,10 @@ drawAttritionDiagram <- function(attrition) {
     return(data)
   }
   data <- list(leftBoxText = c(paste("All outcomes occurrences:\n",
-                                     "Cases: n = ",
+                                     "Cases: ",
                                      formatNumber(attrition$outcomeSubjects[1]),
                                      "\n",
-                                     "Outcomes: n = ",
+                                     "Outcomes: ",
                                      formatNumber(attrition$outcomeEvents[1]),
                                      sep = "")),
                rightBoxText = c(""),
@@ -160,19 +167,11 @@ drawAttritionDiagram <- function(attrition) {
     data <- addStep(data, attrition, i)
   }
 
-
-  data$leftBoxText[length(data$leftBoxText) + 1] <- paste("Study population:\n",
-                                                          "Cases: n = ",
-                                                          formatNumber(data$currentCases),
-                                                          "\n",
-                                                          "Outcomes: n = ",
-                                                          formatNumber(data$currentOutcomes),
-                                                          sep = "")
   leftBoxText <- data$leftBoxText
   rightBoxText <- data$rightBoxText
   nSteps <- length(leftBoxText)
 
-  boxHeight <- (1/nSteps) - 0.03
+  boxHeight <- (1/nSteps) - 0.05
   boxWidth <- 0.45
   shadowOffset <- 0.01
   arrowLength <- 0.01
@@ -208,48 +207,35 @@ drawAttritionDiagram <- function(attrition) {
     return(p)
   }
   box <- function(p, x, y) {
-    p <- p + ggplot2::geom_rect(ggplot2::aes(xmin = !!x - (boxWidth/2) + shadowOffset,
-                                             ymin = !!y - (boxHeight/2) - shadowOffset,
-                                             xmax = !!x + (boxWidth/2) + shadowOffset,
-                                             ymax = !!y + (boxHeight/2) - shadowOffset), fill = rgb(0,
-                                                                                                    0,
-                                                                                                    0,
-                                                                                                    alpha = 0.2))
     p <- p + ggplot2::geom_rect(ggplot2::aes(xmin = !!x - (boxWidth/2),
                                              ymin = !!y - (boxHeight/2),
                                              xmax = !!x + (boxWidth/2),
-                                             ymax = !!y + (boxHeight/2)), fill = rgb(0.94,
-                                                                                     0.94,
-                                                                                     0.94), color = "black")
+                                             ymax = !!y + (boxHeight/2)),
+                                color = rgb(0, 0, 0.8, alpha = 1),
+                                fill = rgb(0, 0, 0.8, alpha = 0.1))
     return(p)
   }
   label <- function(p, x, y, text, hjust = 0) {
     p <- p + ggplot2::geom_text(ggplot2::aes(x = !!x, y = !!y, label = !!text),
                                 hjust = hjust,
-                                size = 4.5)
+                                size = 5)
     return(p)
   }
 
   p <- ggplot2::ggplot()
   for (i in 2:nSteps - 1) {
     p <- downArrow(p, x(1), y(i) - (boxHeight/2), x(1), y(i + 1) + (boxHeight/2))
-    p <- label(p, x(1) + 0.02, y(i + 0.5), "Y")
   }
-  for (i in 2:(nSteps - 1)) {
-    p <- rightArrow(p, x(1) + boxWidth/2, y(i), x(2) - boxWidth/2, y(i))
-    p <- label(p, x(1.5), y(i) - 0.02, "N", 0.5)
+  for (i in 2:(nSteps)) {
+    p <- rightArrow(p, x(1), y(i-0.5), x(2) - boxWidth/2, y(i-0.5))
   }
   for (i in 1:nSteps) {
     p <- box(p, x(1), y(i))
-  }
-  for (i in 2:(nSteps - 1)) {
-    p <- box(p, x(2), y(i))
-  }
-  for (i in 1:nSteps) {
     p <- label(p, x(1) - boxWidth/2 + 0.02, y(i), text = leftBoxText[i])
   }
-  for (i in 2:(nSteps - 1)) {
-    p <- label(p, x(2) - boxWidth/2 + 0.02, y(i), text = rightBoxText[i])
+  for (i in 2:(nSteps )) {
+    p <- box(p, x(2), y(i-0.5))
+    p <- label(p, x(2) - boxWidth/2 + 0.02, y(i-0.5), text = rightBoxText[i])
   }
   p <- p + ggplot2::theme(legend.position = "none",
                           plot.background = ggplot2::element_blank(),
@@ -591,4 +577,13 @@ plotControlEstimates <- function(controlEstimates) {
                    strip.background = ggplot2::element_blank(),
                    legend.position = "none")
   return(plot)
+}
+
+renderDiagnosticsSummary <- function(diagnosticsSummary) {
+  tibble(
+    Diagnostic = c("Minimum detectable relative risk (MDRR)", "Time trend P", "Pre-exposure gain P", "Expected absolute systematic error (EASE)"),
+    Value = c(sprintf("%0.2f", diagnosticsSummary$mdrr), sprintf("%0.2f", diagnosticsSummary$timeTrendP), sprintf("%0.2f", diagnosticsSummary$preExposureP), sprintf("%0.2f", diagnosticsSummary$ease)),
+    Status = c(diagnosticsSummary$mdrrDiagnostic, diagnosticsSummary$timeTrendDiagnostic, diagnosticsSummary$preExposureDiagnostic, diagnosticsSummary$easeDiagnostic)
+  ) %>%
+    return()
 }
