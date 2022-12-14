@@ -52,10 +52,12 @@ The function arguments you need to define have been divided into four groups:
 We need to tell R how to connect to the server where the data are. `SelfControlledCaseSeries` uses the `DatabaseConnector` package, which provides the `createConnectionDetails` function. Type `?createConnectionDetails` for the specific settings required for the various database management systems (DBMS). For example, one might connect to a PostgreSQL database using this code:
 
 ```{r eval=TRUE,eval=FALSE}
-connectionDetails <- createConnectionDetails(dbms = "postgresql", 
-                                             server = "localhost/ohdsi", 
-                                             user = "joe", 
-                                             password = "supersecret")
+connectionDetails <- createConnectionDetails(
+  dbms = "postgresql",
+  server = "localhost/ohdsi",
+  user = "joe",
+  password = "supersecret"
+)
 
 outputFolder <- "s:/temp/sccsVignette2"
 
@@ -100,8 +102,9 @@ This is parameterized SQL which can be used by the `SqlRender` package. We use p
 library(SqlRender)
 sql <- readSql("vignette.sql")
 sql <- render(sql,
-              cdmDatabaseSchema = cdmDatabaseSchema, 
-              cohortDatabaseSchema = cohortDatabaseSchema)
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  cohortDatabaseSchema = cohortDatabaseSchema
+)
 sql <- translate(sql, targetDialect = connectionDetails$dbms)
 
 connection <- connect(connectionDetails)
@@ -116,10 +119,12 @@ The first group of arguments define the exposures and outcome. Here we demonstra
 
 ```{r eval=FALSE}
 diclofenac <- 1124300
-negativeControls <- c(705178, 705944, 710650, 714785, 719174, 719311, 735340, 742185, 
-                      780369, 781182, 924724, 990760, 1110942, 1111706, 1136601, 
-                      1317967, 1501309, 1505346, 1551673, 1560278, 1584910, 19010309, 
-                      40163731)
+negativeControls <- c(
+  705178, 705944, 710650, 714785, 719174, 719311, 735340, 742185,
+  780369, 781182, 924724, 990760, 1110942, 1111706, 1136601,
+  1317967, 1501309, 1505346, 1551673, 1560278, 1584910, 19010309,
+  40163731
+)
 
 exposuresOutcomeList <- list()
 exposuresOutcomeList[[1]] <- createExposuresOutcome(
@@ -302,11 +307,13 @@ sccsAnalysis5 <- createSccsAnalysis(
 These analyses can be combined in a list:
 
 ```{r eval=TRUE}
-sccsAnalysisList <- list(sccsAnalysis1, 
-                         sccsAnalysis2,
-                         sccsAnalysis3, 
-                         sccsAnalysis4, 
-                         sccsAnalysis5)
+sccsAnalysisList <- list(
+  sccsAnalysis1,
+  sccsAnalysis2,
+  sccsAnalysis3,
+  sccsAnalysis4,
+  sccsAnalysis5
+)
 ```
 
 A convenient way to save `sccsAnalysisList` to file is by using the `saveSccsAnalysisList` function, and we can load it again using the `loadSccsAnalysisList` function.
@@ -349,18 +356,18 @@ If for some reason the execution was interrupted, you can restart by re-issuing 
 The result of the `runSccsAnalyses()` is a data frame with one row per exposures-outcome-analysis combination, so one row per fitted SCCS model. It provides the file names of the intermediate and end-result files that were constructed. For example, we can retrieve the fitted model for the combination of our drug of interest,  outcome, and first analysis:
 
 ```{r eval=FALSE}
-sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 & 
-                                        result$outcomeId == 1 &
-                                        result$analysisId == 1]
+sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 &
+  result$outcomeId == 1 &
+  result$analysisId == 1]
 sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
 sccsModel
 ```
 ```{r echo=FALSE,message=FALSE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   result <- readRDS(file.path(outputFolder, "outcomeModelReference.rds"))
-  sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 & 
-                                          result$outcomeId == 1 &
-                                          result$analysisId == 1]
+  sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 &
+    result$outcomeId == 1 &
+    result$analysisId == 1]
   sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
   sccsModel
 }
@@ -397,130 +404,170 @@ library(EmpiricalCalibration)
 
 # Analysis 1: Simplest model
 negCons <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId != 1124300, ]
-ei <-  resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == 1124300, ]
-null <- fitNull(negCons$logRr, 
-                negCons$seLogRr)
-plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                      seLogRrNegatives = negCons$seLogRr, 
-                      logRrPositives = ei$logRr, 
-                      seLogRrPositives = ei$seLogRr, 
-                      null)
+ei <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == 1124300, ]
+null <- fitNull(
+  negCons$logRr,
+  negCons$seLogRr
+)
+plotCalibrationEffect(
+  logRrNegatives = negCons$logRr,
+  seLogRrNegatives = negCons$seLogRr,
+  logRrPositives = ei$logRr,
+  seLogRrPositives = ei$seLogRr,
+  null
+)
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   negCons <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId != 1124300, ]
-  ei <-  resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == 1124300, ]
-  null <- fitNull(negCons$logRr, 
-                  negCons$seLogRr)
-  plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                        seLogRrNegatives = negCons$seLogRr, 
-                        logRrPositives = ei$logRr, 
-                        seLogRrPositives = ei$seLogRr, 
-                        null)
+  ei <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == 1124300, ]
+  null <- fitNull(
+    negCons$logRr,
+    negCons$seLogRr
+  )
+  plotCalibrationEffect(
+    logRrNegatives = negCons$logRr,
+    seLogRrNegatives = negCons$seLogRr,
+    logRrPositives = ei$logRr,
+    seLogRrPositives = ei$seLogRr,
+    null
+  )
 }
 ```
 
 ```{r eval=FALSE}
 # Analysis 2: Including prophylactics and pre-exposure
 negCons <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId != 1124300, ]
-ei <-  resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == 1124300, ]
-null <- fitNull(negCons$logRr, 
-                negCons$seLogRr)
-plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                      seLogRrNegatives = negCons$seLogRr, 
-                      logRrPositives = ei$logRr, 
-                      seLogRrPositives = ei$seLogRr, 
-                      null)
+ei <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == 1124300, ]
+null <- fitNull(
+  negCons$logRr,
+  negCons$seLogRr
+)
+plotCalibrationEffect(
+  logRrNegatives = negCons$logRr,
+  seLogRrNegatives = negCons$seLogRr,
+  logRrPositives = ei$logRr,
+  seLogRrPositives = ei$seLogRr,
+  null
+)
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   negCons <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId != 1124300, ]
-  ei <-  resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == 1124300, ]
-  null <- fitNull(negCons$logRr, 
-                  negCons$seLogRr)
-  plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                        seLogRrNegatives = negCons$seLogRr, 
-                        logRrPositives = ei$logRr, 
-                        seLogRrPositives = ei$seLogRr, 
-                        null)
+  ei <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == 1124300, ]
+  null <- fitNull(
+    negCons$logRr,
+    negCons$seLogRr
+  )
+  plotCalibrationEffect(
+    logRrNegatives = negCons$logRr,
+    seLogRrNegatives = negCons$seLogRr,
+    logRrPositives = ei$logRr,
+    seLogRrPositives = ei$seLogRr,
+    null
+  )
 }
 ```
 
 ```{r eval=FALSE}
 # Analysis 3: Including prophylactics, season, calendar time, and pre-exposure
 negCons <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId != 1124300, ]
-ei <-  resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == 1124300, ]
-null <- fitNull(negCons$logRr, 
-                negCons$seLogRr)
-plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                      seLogRrNegatives = negCons$seLogRr, 
-                      logRrPositives = ei$logRr, 
-                      seLogRrPositives = ei$seLogRr, 
-                      null)
+ei <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == 1124300, ]
+null <- fitNull(
+  negCons$logRr,
+  negCons$seLogRr
+)
+plotCalibrationEffect(
+  logRrNegatives = negCons$logRr,
+  seLogRrNegatives = negCons$seLogRr,
+  logRrPositives = ei$logRr,
+  seLogRrPositives = ei$seLogRr,
+  null
+)
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   negCons <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId != 1124300, ]
-  ei <-  resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == 1124300, ]
-  null <- fitNull(negCons$logRr, 
-                  negCons$seLogRr)
-  plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                        seLogRrNegatives = negCons$seLogRr, 
-                        logRrPositives = ei$logRr, 
-                        seLogRrPositives = ei$seLogRr, 
-                        null)
+  ei <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == 1124300, ]
+  null <- fitNull(
+    negCons$logRr,
+    negCons$seLogRr
+  )
+  plotCalibrationEffect(
+    logRrNegatives = negCons$logRr,
+    seLogRrNegatives = negCons$seLogRr,
+    logRrPositives = ei$logRr,
+    seLogRrPositives = ei$seLogRr,
+    null
+  )
 }
 ```
 
 ```{r eval=FALSE}
 # Analysis 4: Including all other drugs
 negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
-ei <-  resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
-null <- fitNull(negCons$logRr, 
-                negCons$seLogRr)
-plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                      seLogRrNegatives = negCons$seLogRr, 
-                      logRrPositives = ei$logRr, 
-                      seLogRrPositives = ei$seLogRr, 
-                      null)
+ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+null <- fitNull(
+  negCons$logRr,
+  negCons$seLogRr
+)
+plotCalibrationEffect(
+  logRrNegatives = negCons$logRr,
+  seLogRrNegatives = negCons$seLogRr,
+  logRrPositives = ei$logRr,
+  seLogRrPositives = ei$seLogRr,
+  null
+)
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
-  ei <-  resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
-  null <- fitNull(negCons$logRr, 
-                  negCons$seLogRr)
-  plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                        seLogRrNegatives = negCons$seLogRr, 
-                        logRrPositives = ei$logRr, 
-                        seLogRrPositives = ei$seLogRr, 
-                        null)
+  ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+  null <- fitNull(
+    negCons$logRr,
+    negCons$seLogRr
+  )
+  plotCalibrationEffect(
+    logRrNegatives = negCons$logRr,
+    seLogRrNegatives = negCons$seLogRr,
+    logRrPositives = ei$logRr,
+    seLogRrPositives = ei$seLogRr,
+    null
+  )
 }
 ```
 
 ```{r eval=FALSE}
 # Analysis 5: Adjusting for event-dependent obs. end
 negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
-ei <-  resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
-null <- fitNull(negCons$logRr, 
-                negCons$seLogRr)
-plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                      seLogRrNegatives = negCons$seLogRr, 
-                      logRrPositives = ei$logRr, 
-                      seLogRrPositives = ei$seLogRr, 
-                      null)
+ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+null <- fitNull(
+  negCons$logRr,
+  negCons$seLogRr
+)
+plotCalibrationEffect(
+  logRrNegatives = negCons$logRr,
+  seLogRrNegatives = negCons$seLogRr,
+  logRrPositives = ei$logRr,
+  seLogRrPositives = ei$seLogRr,
+  null
+)
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
-  ei <-  resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
-  null <- fitNull(negCons$logRr, 
-                  negCons$seLogRr)
-  plotCalibrationEffect(logRrNegatives = negCons$logRr, 
-                        seLogRrNegatives = negCons$seLogRr, 
-                        logRrPositives = ei$logRr, 
-                        seLogRrPositives = ei$seLogRr, 
-                        null)
+  ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+  null <- fitNull(
+    negCons$logRr,
+    negCons$seLogRr
+  )
+  plotCalibrationEffect(
+    logRrNegatives = negCons$logRr,
+    seLogRrNegatives = negCons$seLogRr,
+    logRrPositives = ei$logRr,
+    seLogRrPositives = ei$seLogRr,
+    null
+  )
 }
 ```
 

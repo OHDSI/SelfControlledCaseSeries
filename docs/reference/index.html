@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.0.0</span>
       </span>
     </div>
 
@@ -33,6 +33,9 @@
   </a>
   <ul class="dropdown-menu" role="menu"><li>
       <a href="../articles/MultipleAnalyses.html">Running multiple analyses at once using the SelfControlledCaseSeries package</a>
+    </li>
+    <li>
+      <a href="../articles/ResultsSchema.html">Results schema of the SelfControlledCaseSeries package</a>
     </li>
     <li>
       <a href="../articles/SingleStudies.html">Single studies using the SelfControlledCaseSeries package</a>
@@ -103,13 +106,21 @@
         </td>
         <td><p>Create a parameter object for the function createStudyPopulation</p></td>
       </tr><tr><td>
+          <p><code><a href="createDefaultSccsMultiThreadingSettings.html">createDefaultSccsMultiThreadingSettings()</a></code> </p>
+        </td>
+        <td><p>Create default SelfControlledCaseSeries multi-threading settings</p></td>
+      </tr><tr><td>
           <p><code><a href="createEraCovariateSettings.html">createEraCovariateSettings()</a></code> </p>
         </td>
         <td><p>Create era covariate settings</p></td>
       </tr><tr><td>
-          <p><code><a href="createExposureOutcome.html">createExposureOutcome()</a></code> </p>
+          <p><code><a href="createExposure.html">createExposure()</a></code> </p>
         </td>
-        <td><p>Create a exposure-outcome combination.</p></td>
+        <td><p>Create exposure definition</p></td>
+      </tr><tr><td>
+          <p><code><a href="createExposuresOutcome.html">createExposuresOutcome()</a></code> </p>
+        </td>
+        <td><p>Create a exposures-outcome combination.</p></td>
       </tr><tr><td>
           <p><code><a href="createFitSccsModelArgs.html">createFitSccsModelArgs()</a></code> </p>
         </td>
@@ -123,9 +134,17 @@
         </td>
         <td><p>Create a SelfControlledCaseSeries analysis specification</p></td>
       </tr><tr><td>
+          <p><code><a href="createSccsDiagnosticThresholds.html">createSccsDiagnosticThresholds()</a></code> </p>
+        </td>
+        <td><p>Create SCCS diagnostics thresholds</p></td>
+      </tr><tr><td>
           <p><code><a href="createSccsIntervalData.html">createSccsIntervalData()</a></code> </p>
         </td>
         <td><p>Create SCCS era data</p></td>
+      </tr><tr><td>
+          <p><code><a href="createSccsMultiThreadingSettings.html">createSccsMultiThreadingSettings()</a></code> </p>
+        </td>
+        <td><p>Create SelfControlledCaseSeries multi-threading settings</p></td>
       </tr><tr><td>
           <p><code><a href="createSccsSimulationSettings.html">createSccsSimulationSettings()</a></code> </p>
         </td>
@@ -151,6 +170,10 @@
         </td>
         <td><p>Create a design matrix for a cyclic spline</p></td>
       </tr><tr><td>
+          <p><code><a href="exportToCsv.html">exportToCsv()</a></code> </p>
+        </td>
+        <td><p>Export SCCSresults to CSV files</p></td>
+      </tr><tr><td>
           <p><code><a href="fitSccsModel.html">fitSccsModel()</a></code> </p>
         </td>
         <td><p>Fit the SCCS model</p></td>
@@ -163,9 +186,17 @@
         </td>
         <td><p>Load data for SCCS from the database</p></td>
       </tr><tr><td>
+          <p><code><a href="getFileReference.html">getFileReference()</a></code> </p>
+        </td>
+        <td><p>Get file reference</p></td>
+      </tr><tr><td>
           <p><code><a href="getModel.html">getModel()</a></code> </p>
         </td>
         <td><p>Output the full model</p></td>
+      </tr><tr><td>
+          <p><code><a href="getResultsSummary.html">getResultsSummary()</a></code> </p>
+        </td>
+        <td><p>Get a summary report of the analyses results</p></td>
       </tr><tr><td>
           <p><code><a href="hasAgeEffect.html">hasAgeEffect()</a></code> </p>
         </td>
@@ -187,9 +218,9 @@
         </td>
         <td><p>Check whether an object is a SccsIntervalData object</p></td>
       </tr><tr><td>
-          <p><code><a href="loadExposureOutcomeList.html">loadExposureOutcomeList()</a></code> </p>
+          <p><code><a href="loadExposuresOutcomeList.html">loadExposuresOutcomeList()</a></code> </p>
         </td>
-        <td><p>Load a list of exposureOutcome from file</p></td>
+        <td><p>Load a list of <code>ExposuresOutcome</code> from file</p></td>
       </tr><tr><td>
           <p><code><a href="loadSccsAnalysisList.html">loadSccsAnalysisList()</a></code> </p>
         </td>
@@ -239,13 +270,13 @@
         </td>
         <td><p>Run a list of analyses</p></td>
       </tr><tr><td>
-          <p><code><a href="saveExposureOutcomeList.html">saveExposureOutcomeList()</a></code> </p>
+          <p><code><a href="saveExposuresOutcomeList.html">saveExposuresOutcomeList()</a></code> </p>
         </td>
-        <td><p>Save a list of <code>exposureOutcome</code> to file</p></td>
+        <td><p>Save a list of <code>ExposuresOutcome</code> to file</p></td>
       </tr><tr><td>
           <p><code><a href="saveSccsAnalysisList.html">saveSccsAnalysisList()</a></code> </p>
         </td>
-        <td><p>Save a list of sccsAnalysis to file</p></td>
+        <td><p>Save a list of SccsAnalysis to file</p></td>
       </tr><tr><td>
           <p><code><a href="saveSccsData.html">saveSccsData()</a></code> </p>
         </td>
@@ -266,10 +297,6 @@
           <p><code><a href="simulateSccsData.html">simulateSccsData()</a></code> </p>
         </td>
         <td><p>Simulate SCCS data</p></td>
-      </tr><tr><td>
-          <p><code><a href="summarizeSccsAnalyses.html">summarizeSccsAnalyses()</a></code> </p>
-        </td>
-        <td><p>Create a summary report of the analyses</p></td>
       </tr></tbody></table></div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

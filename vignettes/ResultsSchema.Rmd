@@ -82,14 +82,14 @@ In this section you will find the list of tables and their fields.
 
 ```{r echo=FALSE, results="asis", warning=FALSE, message=FALSE}
 specifications <- readr::read_csv(system.file(
-  "csv", 
-  "resultsDataModelSpecification.csv", 
+  "csv",
+  "resultsDataModelSpecification.csv",
   package = "SelfControlledCaseSeries"
 )) %>%
   SqlRender::snakeCaseToCamelCaseNames()
 tables <- split(specifications, specifications$tableName)
 
-table= tables[[1]]
+table <- tables[[1]]
 for (table in tables) {
   header <- sprintf("## Table %s", table$tableName[1])
 
@@ -102,18 +102,18 @@ for (table in tables) {
     writeLines(header)
 
     writeLines(table %>%
-                 kable_styling(latex_options = "striped", font_size = latex_table_font_size) %>%
-                 column_spec(1, width = "10em") %>%
-                 column_spec(2, width = "5em") %>%
-                 column_spec(3, width = "3em") %>%
-                 column_spec(4, width = "3em") %>%
-                 column_spec(5, width = "13em"))
+      kable_styling(latex_options = "striped", font_size = latex_table_font_size) %>%
+      column_spec(1, width = "10em") %>%
+      column_spec(2, width = "5em") %>%
+      column_spec(3, width = "3em") %>%
+      column_spec(4, width = "3em") %>%
+      column_spec(5, width = "13em"))
   } else if (knitr::is_html_output()) {
     writeLines("")
     writeLines(header)
 
     writeLines(table %>%
-                 kable_styling(bootstrap_options = "striped"))
+      kable_styling(bootstrap_options = "striped"))
   }
 }
 ```

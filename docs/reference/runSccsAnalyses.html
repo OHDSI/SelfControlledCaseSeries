@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.0.0</span>
       </span>
     </div>
 
@@ -33,6 +33,9 @@
   </a>
   <ul class="dropdown-menu" role="menu"><li>
       <a href="../articles/MultipleAnalyses.html">Running multiple analyses at once using the SelfControlledCaseSeries package</a>
+    </li>
+    <li>
+      <a href="../articles/ResultsSchema.html">Results schema of the SelfControlledCaseSeries package</a>
     </li>
     <li>
       <a href="../articles/SingleStudies.html">Single studies using the SelfControlledCaseSeries package</a>
@@ -72,27 +75,22 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">runSccsAnalyses</span><span class="op">(</span></span>
 <span>  <span class="va">connectionDetails</span>,</span>
 <span>  <span class="va">cdmDatabaseSchema</span>,</span>
-<span>  oracleTempSchema <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tempEmulationSchema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"sqlRenderTempEmulationSchema"</span><span class="op">)</span>,</span>
 <span>  exposureDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
 <span>  exposureTable <span class="op">=</span> <span class="st">"drug_era"</span>,</span>
 <span>  outcomeDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
-<span>  outcomeTable <span class="op">=</span> <span class="st">"condition_era"</span>,</span>
+<span>  outcomeTable <span class="op">=</span> <span class="st">"cohort"</span>,</span>
 <span>  customCovariateDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
 <span>  customCovariateTable <span class="op">=</span> <span class="st">"cohort"</span>,</span>
 <span>  nestingCohortDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
 <span>  nestingCohortTable <span class="op">=</span> <span class="st">"cohort"</span>,</span>
-<span>  cdmVersion <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  cdmVersion <span class="op">=</span> <span class="st">"5"</span>,</span>
 <span>  outputFolder <span class="op">=</span> <span class="st">"./SccsOutput"</span>,</span>
 <span>  <span class="va">sccsAnalysisList</span>,</span>
-<span>  <span class="va">exposureOutcomeList</span>,</span>
-<span>  combineDataFetchAcrossOutcomes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  getDbSccsDataThreads <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  createStudyPopulationThreads <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  createSccsIntervalDataThreads <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  fitSccsModelThreads <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  cvThreads <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  analysesToExclude <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  <span class="va">exposuresOutcomeList</span>,</span>
+<span>  analysesToExclude <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  combineDataFetchAcrossOutcomes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  sccsMultiThreadingSettings <span class="op">=</span> <span class="fu"><a href="createSccsMultiThreadingSettings.html">createSccsMultiThreadingSettings</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -110,14 +108,10 @@ SQL Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.</p></dd>
 
 
-<dt>oracleTempSchema</dt>
-<dd><p>DEPRECATED: use <code>tempEmulationSchema</code> instead.</p></dd>
-
-
 <dt>tempEmulationSchema</dt>
-<dd><p>Some database platforms like Oracle and Impala do not truly support temp tables. To
-emulate temp tables, provide a schema with write privileges where temp tables
-can be created.</p></dd>
+<dd><p>Some database platforms like Oracle and Impala do not truly support
+temp tables. To emulate temp tables, provide a schema with write
+privileges where temp tables can be created.</p></dd>
 
 
 <dt>exposureDatabaseSchema</dt>
@@ -137,17 +131,12 @@ COHORT_START_DATE, COHORT_END_DATE.</p></dd>
 
 <dt>outcomeDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location where
-the data used to define the outcome cohorts is available. If
-<code>outcomeTable = "CONDITION_ERA"</code>, <code>outcomeDatabaseSchema</code> is not
-used.  Requires read permissions to this database.</p></dd>
+the data used to define the outcome cohorts is available. Requires
+read permissions to this database.</p></dd>
 
 
 <dt>outcomeTable</dt>
-<dd><p>The table name that contains the outcome cohorts.  If
-outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
-then expectation is outcomeTable has format of COHORT table:
-COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
-COHORT_END_DATE.</p></dd>
+<dd><p>The table name that contains the outcome cohorts.</p></dd>
 
 
 <dt>customCovariateDatabaseSchema</dt>
@@ -171,8 +160,7 @@ should have the same structure as the cohort table.</p></dd>
 
 
 <dt>cdmVersion</dt>
-<dd><p>Define the OMOP CDM version used: currently support "4" and
-"5".</p></dd>
+<dd><p>Define the OMOP CDM version used: currently supports "5".</p></dd>
 
 
 <dt>outputFolder</dt>
@@ -180,13 +168,18 @@ should have the same structure as the cohort table.</p></dd>
 
 
 <dt>sccsAnalysisList</dt>
-<dd><p>A list of objects of <code>sccsAnalysis</code> as created
+<dd><p>A list of objects of <code>SccsAnalysis</code> as created
 using the <code><a href="createSccsAnalysis.html">createSccsAnalysis()</a></code> function.</p></dd>
 
 
-<dt>exposureOutcomeList</dt>
-<dd><p>A list of objects of type <code>exposureOutcome</code> as created
-using the <code><a href="createExposureOutcome.html">createExposureOutcome()</a></code> function.</p></dd>
+<dt>exposuresOutcomeList</dt>
+<dd><p>A list of objects of type <code>ExposuresOutcome</code> as created
+using the <code><a href="createExposuresOutcome.html">createExposuresOutcome()</a></code> function.</p></dd>
+
+
+<dt>analysesToExclude</dt>
+<dd><p>Analyses to exclude. See the Analyses to Exclude section for
+details.</p></dd>
 
 
 <dt>combineDataFetchAcrossOutcomes</dt>
@@ -196,36 +189,10 @@ fetches will be more efficient if there is large overlap in
 the subjects that have the different outcomes.</p></dd>
 
 
-<dt>getDbSccsDataThreads</dt>
-<dd><p>The number of parallel threads to use for building the
-<code>SccsData</code> objects.</p></dd>
-
-
-<dt>createStudyPopulationThreads</dt>
-<dd><p>The number of parallel threads to use for building the
-<code>studyPopulation</code> objects.</p></dd>
-
-
-<dt>createSccsIntervalDataThreads</dt>
-<dd><p>The number of parallel threads to use for building the
-<code>SccsIntervalData</code> objects.</p></dd>
-
-
-<dt>fitSccsModelThreads</dt>
-<dd><p>The number of parallel threads to use for fitting the
-models.</p></dd>
-
-
-<dt>cvThreads</dt>
-<dd><p>The number of parallel threads to use for the cross-
-validation when estimating the hyperparameter for the
-outcome model. Note that the total number of CV threads at
-one time could be <code>fitSccsModelThreads * cvThreads</code>.</p></dd>
-
-
-<dt>analysesToExclude</dt>
-<dd><p>Analyses to exclude. See the Analyses to Exclude section for
-details.</p></dd>
+<dt>sccsMultiThreadingSettings</dt>
+<dd><p>An object of type <code>SccsMultiThreadingSettings</code> as created using
+the <code><a href="createSccsMultiThreadingSettings.html">createSccsMultiThreadingSettings()</a></code> or
+<code><a href="createDefaultSccsMultiThreadingSettings.html">createDefaultSccsMultiThreadingSettings()</a></code> functions.</p></dd>
 
 </dl></div>
     <div id="value">
@@ -237,18 +204,15 @@ outcome model files can be found, relative to the <code>outputFolder</code>.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
-    <p>Run a list of analyses for the drug-comparator-outcomes of interest. This function will run all
+    <p>Run a list of analyses for the exposures-outcomes of interest. This function will run all
 specified analyses against all hypotheses of interest, meaning that the total number of outcome
-models is <code>length(cmAnalysisList) * length(drugComparatorOutcomesList)</code> (if all analyses specify an
-outcome model should be fitted). When you provide several analyses it will determine whether any of
-the analyses have anything in common, and will take advantage of this fact. For example, if we
-specify several analyses that only differ in the way the outcome model is fitted, then this
-function will extract the data and fit the propensity model only once, and re-use this in all the
-analysis.</p><div class="section">
+models is <code>length(sccsAnalysisList) * length(exposuresOutcomeList)</code> When you provide several analyses
+it will determine whether any of the analyses have anything in common, and will take advantage of
+this fact.</p><div class="section">
 <h3 id="analyses-to-exclude">Analyses to Exclude<a class="anchor" aria-label="anchor" href="#analyses-to-exclude"></a></h3>
 
 
-<p>Normally, <code>runSccsAnalyses</code> will run all combinations of exposure-outcome-analyses settings.
+<p>Normally, <code>runSccsAnalyses</code> will run all combinations of exposures-outcome-analyses settings.
 However, sometimes we may not need all those combinations. Using the <code>analysesToExclude</code> argument,
 we can remove certain items from the full matrix. This argument should be a data frame with at least
 one of the following columns:</p><ul><li><p>exposureId</p></li>

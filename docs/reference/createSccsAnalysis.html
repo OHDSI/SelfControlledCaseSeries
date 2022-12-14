@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.0.0</span>
       </span>
     </div>
 
@@ -33,6 +33,9 @@
   </a>
   <ul class="dropdown-menu" role="menu"><li>
       <a href="../articles/MultipleAnalyses.html">Running multiple analyses at once using the SelfControlledCaseSeries package</a>
+    </li>
+    <li>
+      <a href="../articles/ResultsSchema.html">Results schema of the SelfControlledCaseSeries package</a>
     </li>
     <li>
       <a href="../articles/SingleStudies.html">Single studies using the SelfControlledCaseSeries package</a>
@@ -72,13 +75,9 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">createSccsAnalysis</span><span class="op">(</span></span>
 <span>  analysisId <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  description <span class="op">=</span> <span class="st">""</span>,</span>
-<span>  exposureType <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  outcomeType <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">getDbSccsDataArgs</span>,</span>
 <span>  <span class="va">createStudyPopulationArgs</span>,</span>
-<span>  design <span class="op">=</span> <span class="st">"SCCS"</span>,</span>
-<span>  createSccsIntervalDataArgs <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  createScriIntervalDataArgs <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  createIntervalDataArgs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">fitSccsModelArgs</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -94,18 +93,6 @@ of analysis choices.</p></dd>
 <dd><p>A short description of the analysis.</p></dd>
 
 
-<dt>exposureType</dt>
-<dd><p>If more than one exposure is provided for each
-<code>exposureOutcome</code>, this field should be used to select the
-specific exposure to use in this analysis.</p></dd>
-
-
-<dt>outcomeType</dt>
-<dd><p>If more than one outcome is provided for each <code>exposureOutcom</code>e,
-this field should be used to select the specific outcome to use
-in this analysis.</p></dd>
-
-
 <dt>getDbSccsDataArgs</dt>
 <dd><p>An object representing the arguments to be used when calling the
 <a href="getDbSccsData.html">getDbSccsData</a> function.</p></dd>
@@ -116,19 +103,9 @@ in this analysis.</p></dd>
 <a href="getDbSccsData.html">getDbSccsData</a> function.</p></dd>
 
 
-<dt>design</dt>
-<dd><p>Either "SCCS" for the general self-controlled case series design,
-or "SCRI" for the self-controlled risk interval design.</p></dd>
-
-
-<dt>createSccsIntervalDataArgs</dt>
+<dt>createIntervalDataArgs</dt>
 <dd><p>An object representing the arguments to be used when calling the
-<a href="createSccsIntervalData.html">createSccsIntervalData</a> function. Ignored when <code>design = "SCRI"</code>.</p></dd>
-
-
-<dt>createScriIntervalDataArgs</dt>
-<dd><p>An object representing the arguments to be used when calling the
-<a href="createScriIntervalData.html">createScriIntervalData</a> function. Ignored when <code>design = "SCCS"</code>.</p></dd>
+<a href="createSccsIntervalData.html">createSccsIntervalData</a> or <a href="createScriIntervalData.html">createScriIntervalData</a> function.</p></dd>
 
 
 <dt>fitSccsModelArgs</dt>
@@ -136,9 +113,11 @@ or "SCRI" for the self-controlled risk interval design.</p></dd>
 <a href="fitSccsModel.html">fitSccsModel</a> function.</p></dd>
 
 </dl></div>
-    <div id="details">
-    <h2>Details</h2>
-    <p>Create a set of analysis choices, to be used with the <a href="runSccsAnalyses.html">runSccsAnalyses</a> function.</p>
+    <div id="value">
+    <h2>Value</h2>
+    
+
+<p>An object of type <code>SccsAnalysis</code>, to be used with the <a href="runSccsAnalyses.html">runSccsAnalyses</a> function.</p>
     </div>
 
   </div>

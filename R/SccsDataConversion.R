@@ -84,8 +84,8 @@ createSccsIntervalData <- function(studyPopulation,
 
   timeCovariateCases <- numeric(0)
   if (!is.null(ageCovariateSettings) ||
-      !is.null(seasonalityCovariateSettings) ||
-      !is.null(calendarTimeCovariateSettings)) {
+    !is.null(seasonalityCovariateSettings) ||
+    !is.null(calendarTimeCovariateSettings)) {
     if (nrow(studyPopulation$cases) > minCasesForTimeCovariates) {
       set.seed(0)
       timeCovariateCases <- sample(studyPopulation$cases$caseId, minCasesForTimeCovariates, replace = FALSE)
@@ -226,8 +226,8 @@ addAgeSettings <- function(settings,
     }
     settings$ageOffset <- ageKnots[1]
     ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)],
-                                   knots = ageKnots[2:(length(ageKnots) - 1)],
-                                   Boundary.knots = ageKnots[c(1, length(ageKnots))]
+      knots = ageKnots[2:(length(ageKnots) - 1)],
+      Boundary.knots = ageKnots[c(1, length(ageKnots))]
     )
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$ageDesignMatrix <- ageDesignMatrix[, 2:ncol(ageDesignMatrix)]
@@ -322,8 +322,8 @@ addCalendarTimeSettings <- function(settings,
     }
     settings$calendarTimeOffset <- calendarTimeKnots[1]
     calendarTimeDesignMatrix <- splines::bs(calendarTimeKnots[1]:calendarTimeKnots[length(calendarTimeKnots)],
-                                            knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-                                            Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
     )
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$calendarTimeDesignMatrix <- calendarTimeDesignMatrix[, 2:ncol(calendarTimeDesignMatrix)]
@@ -515,8 +515,8 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
             originalEraType = .data$eraType,
             originalEraName = .data$eraName,
             covariateName = paste(covariateSettings$label,
-                                  .data$eraName,
-                                  sep = ": "
+              .data$eraName,
+              sep = ": "
             ),
             isControlInterval = FALSE
           )
@@ -583,7 +583,8 @@ countOutcomesIntervalData <- function(data, sccsData, outcomeId) {
       outcomeSubjects = n_distinct(.data$personId),
       outcomeEvents = sum(.data$y, na.rm = TRUE),
       outcomeObsPeriods = n_distinct(.data$stratumId),
-      observedDays = sum(.data$time, na.rm = TRUE)) %>%
+      observedDays = sum(.data$time, na.rm = TRUE)
+    ) %>%
     collect() %>%
     mutate(
       outcomeId = !!outcomeId,

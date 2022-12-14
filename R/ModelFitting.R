@@ -183,9 +183,11 @@ fitSccsModel <- function(sccsIntervalData,
         status <- "OK"
         estimates <- coef(fit)
         estimates <- tibble(logRr = estimates, covariateId = as.numeric(names(estimates))) %>%
-          left_join(sccsIntervalData$covariateRef %>%
-                      collect(),
-                    by = "covariateId")
+          left_join(
+            sccsIntervalData$covariateRef %>%
+              collect(),
+            by = "covariateId"
+          )
         if (length(needCi) == 0) {
           estimates$logLb95 <- NA
           estimates$logUb95 <- NA

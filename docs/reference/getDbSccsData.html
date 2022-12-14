@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.0.0</span>
       </span>
     </div>
 
@@ -33,6 +33,9 @@
   </a>
   <ul class="dropdown-menu" role="menu"><li>
       <a href="../articles/MultipleAnalyses.html">Running multiple analyses at once using the SelfControlledCaseSeries package</a>
+    </li>
+    <li>
+      <a href="../articles/ResultsSchema.html">Results schema of the SelfControlledCaseSeries package</a>
     </li>
     <li>
       <a href="../articles/SingleStudies.html">Single studies using the SelfControlledCaseSeries package</a>
@@ -72,7 +75,6 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">getDbSccsData</span><span class="op">(</span></span>
 <span>  <span class="va">connectionDetails</span>,</span>
 <span>  <span class="va">cdmDatabaseSchema</span>,</span>
-<span>  oracleTempSchema <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tempEmulationSchema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"sqlRenderTempEmulationSchema"</span><span class="op">)</span>,</span>
 <span>  outcomeDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
 <span>  outcomeTable <span class="op">=</span> <span class="st">"condition_era"</span>,</span>
@@ -89,8 +91,8 @@
 <span>  nestingCohortTable <span class="op">=</span> <span class="st">"cohort"</span>,</span>
 <span>  nestingCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  deleteCovariatesSmallCount <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  studyStartDate <span class="op">=</span> <span class="st">""</span>,</span>
-<span>  studyEndDate <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  studyStartDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  studyEndDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cdmVersion <span class="op">=</span> <span class="st">"5"</span>,</span>
 <span>  maxCasesPerOutcome <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -110,62 +112,52 @@ Server, this should specify both the database and the
 schema, so for example 'cdm_instance.dbo'.</p></dd>
 
 
-<dt>oracleTempSchema</dt>
-<dd><p>DEPRECATED: use <code>tempEmulationSchema</code> instead.</p></dd>
-
-
 <dt>tempEmulationSchema</dt>
-<dd><p>Some database platforms like Oracle and Impala do not truly support temp tables. To
-emulate temp tables, provide a schema with write privileges where temp tables
-can be created.</p></dd>
+<dd><p>Some database platforms like Oracle and Impala do not truly support
+temp tables. To emulate temp tables, provide a schema with write
+privileges where temp tables can be created.</p></dd>
 
 
 <dt>outcomeDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location where
 the data used to define the outcome cohorts is available. If
-outcomeTable = CONDITION_ERA, outcomeDatabaseSchema is not
+<code>outcomeTable = "condition_era"</code>, <code>outcomeDatabaseSchema</code> is not
 used.  Requires read permissions to this database.</p></dd>
 
 
 <dt>outcomeTable</dt>
-<dd><p>The tablename that contains the outcome cohorts.  If
-outcomeTable is not CONDITION_OCCURRENCE or CONDITION_ERA,
-then expectation is outcomeTable has format of COHORT table:
-COHORT_DEFINITION_ID, SUBJECT_ID, COHORT_START_DATE,
-COHORT_END_DATE.</p></dd>
+<dd><p>The table name that contains the outcome cohorts.  If
+<code>outcomeTable</code> is not <code>"condition_era"</code>,
+then expectation is <code>outcomeTable</code> has format of cohort table (see
+details).</p></dd>
 
 
 <dt>outcomeIds</dt>
-<dd><p>A list of ids used to define outcomes.  If outcomeTable =
-CONDITION_OCCURRENCE, the list is a set of ancestor
-CONCEPT_IDs, and all occurrences of all descendant concepts
-will be selected.  If outcomeTable &lt;&gt; CONDITION_OCCURRENCE,
-the list contains records found in COHORT_DEFINITION_ID
-field.</p></dd>
+<dd><p>A list of IDs used to define outcomes.  If <code>outcomeTable</code> is not
+<code>"condition_era"</code> the list contains records found in the
+<code>cohort_definition_id</code> field.</p></dd>
 
 
 <dt>exposureDatabaseSchema</dt>
 <dd><p>The name of the database schema that is the location where
-the exposure data used to define the exposure cohorts is
-available. If exposureTable = DRUG_ERA,
-exposureDatabaseSchema is not used but assumed to be
-cdmSchema.  Requires read permissions to this database.</p></dd>
+the exposure data used to define the exposure eras is
+available. If <code>exposureTable = "drug_era"</code>,
+<code>exposureDatabaseSchema</code> is not used but assumed to be equal to
+<code>cdmDatabaseSchema</code>.  Requires read permissions to this database.</p></dd>
 
 
 <dt>exposureTable</dt>
 <dd><p>The tablename that contains the exposure cohorts.  If
-exposureTable &lt;&gt; DRUG_ERA, then expectation is exposureTable
-has format of COHORT table: cohort_concept_id, SUBJECT_ID,
-COHORT_START_DATE, COHORT_END_DATE.</p></dd>
+<code>exposureTable</code> is not "drug_era", then expectation is <code>exposureTable</code>
+has format of a cohort table (see details).</p></dd>
 
 
 <dt>exposureIds</dt>
-<dd><p>A list of identifiers to define the exposures of interest. If
+<dd><p>A list of identifiers to extract from the exposure table. If
 exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
-If exposureTable &lt;&gt; DRUG_ERA, exposureIds is used to select
-the cohort_concept_id in the cohort-like table. If no
-exposureIds are provided, all drugs or cohorts in the
-exposureTable are included as exposures.</p></dd>
+If <code>exposureTable = "drug_era"</code>, <code>exposureIds</code> is used to select
+the <code>drug_concept_id</code>. If no exposure IDs are provided, all drugs
+or cohorts in the <code>exposureTable</code> are included as exposures.</p></dd>
 
 
 <dt>useCustomCovariates</dt>
@@ -179,12 +171,12 @@ the custom covariate data is available.</p></dd>
 
 <dt>customCovariateTable</dt>
 <dd><p>Name of the table holding the custom covariates. This table
-should have the same structure as the cohort table.</p></dd>
+should have the same structure as the cohort table (see details).</p></dd>
 
 
 <dt>customCovariateIds</dt>
-<dd><p>A list of cohort definition IDS identifying the records in
-the customCovariateTable to use for building custom
+<dd><p>A list of cohort definition IDs identifying the records in
+the <code>customCovariateTable</code> to use for building custom
 covariates.</p></dd>
 
 
@@ -201,12 +193,12 @@ where the nesting cohort is defined.</p></dd>
 
 <dt>nestingCohortTable</dt>
 <dd><p>Name of the table holding the nesting cohort. This table
-should have the same structure as the cohort table.</p></dd>
+should have the same structure as the cohort table (see details).</p></dd>
 
 
 <dt>nestingCohortId</dt>
 <dd><p>A cohort definition ID identifying the records in the
-nestingCohortTable to use as nesting cohort.</p></dd>
+<code>nestingCohortTable</code> to use as nesting cohort.</p></dd>
 
 
 <dt>deleteCovariatesSmallCount</dt>
@@ -215,18 +207,17 @@ kept.</p></dd>
 
 
 <dt>studyStartDate</dt>
-<dd><p>A calendar date specifying the minimum date where data is
-used. Date format is 'yyyymmdd'.</p></dd>
+<dd><p>A <code>Date</code> object specifying the minimum date where data is
+used.</p></dd>
 
 
 <dt>studyEndDate</dt>
-<dd><p>A calendar date specifying the maximum date where data is
-used. Date format is 'yyyymmdd'.</p></dd>
+<dd><p>A <code>Date</code> object specifying the maximum date where data is
+used.</p></dd>
 
 
 <dt>cdmVersion</dt>
-<dd><p>Define the OMOP CDM version used: currently support "4" and
-"5".</p></dd>
+<dd><p>Define the OMOP CDM version used: currently supports "5".</p></dd>
 
 
 <dt>maxCasesPerOutcome</dt>
@@ -256,6 +247,8 @@ covariates. All four locations could point to the same database schema.</p></li>
 <li><p><strong>nestingCohortDatabaseSchema</strong> is optionally used to define a cohort in which the analysis is nested,
 for example a cohort of diabetics patients.</p></li>
 </ul><p>All five locations could point to the same database schema.</p>
+<p>Cohort tables are assumed to have the following fields: <code>cohort_definition_id</code>, <code>subject_id</code>,
+<code>cohort_start_date</code>, and <code>cohort_end_date.</code></p>
     </div>
 
   </div>

@@ -78,9 +78,9 @@ createStudyPopulation <- function(sccsData,
   attrition <- attr(sccsData, "metaData")$attrition
   if (is.null(outcomeId)) {
     if (outcomes %>%
-        distinct(.data$eraId) %>%
-        count() %>%
-        pull() > 1) {
+      distinct(.data$eraId) %>%
+      count() %>%
+      pull() > 1) {
       stop("No outcome ID specified, but more than one outcome ID found.")
     }
   } else {
@@ -164,7 +164,7 @@ createStudyPopulation <- function(sccsData,
     outcomes <- outcomes %>%
       inner_join(select(cases, "observationPeriodId", "caseId", "startAgeInDays", "endAgeInDays", "ageInDays"), by = "caseId") %>%
       filter(.data$startDay >= .data$startAgeInDays - .data$ageInDays &
-               .data$startDay <= .data$endAgeInDays - .data$ageInDays) %>%
+        .data$startDay <= .data$endAgeInDays - .data$ageInDays) %>%
       select(-"startAgeInDays", -"endAgeInDays", -"ageInDays")
 
     attrition <- bind_rows(

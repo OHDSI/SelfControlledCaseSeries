@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.0.0</span>
       </span>
     </div>
 
@@ -58,6 +58,9 @@
   <ul class="dropdown-menu" role="menu">
 <li>
       <a href="articles/MultipleAnalyses.html">Running multiple analyses at once using the SelfControlledCaseSeries package</a>
+    </li>
+    <li>
+      <a href="articles/ResultsSchema.html">Results schema of the SelfControlledCaseSeries package</a>
     </li>
     <li>
       <a href="articles/SingleStudies.html">Single studies using the SelfControlledCaseSeries package</a>
@@ -109,6 +112,7 @@
 <li>Extracts the necessary data from a database in OMOP Common Data Model format.</li>
 <li>Optionally add seasonality using a spline function.</li>
 <li>Optionally add age using a spline function.</li>
+<li>Optionally add calendar time using a spline function.</li>
 <li>Optionally correct for event-dependent censoring of the observation period.</li>
 <li>Optionally add many covariates in one analysis (e.g. all drugs).</li>
 <li>Options for constructing different types of covariates and risk windows, including pre-exposure windows (to capture contra-indications).</li>
@@ -163,14 +167,14 @@
 <div class="section level1">
 <h1 id="system-requirements">System Requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
 </h1>
-<p>Requires R (version 3.2.2 or higher). Installation on Windows requires <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">RTools</a>. Libraries used in SelfControlledCaseSeries require Java.</p>
+<p>Requires R (version 4.0.0 or higher). Installation on Windows requires <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">RTools</a>. Libraries used in SelfControlledCaseSeries require Java.</p>
 </div>
 <div class="section level1">
 <h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h1>
 <ol style="list-style-type: decimal">
 <li><p>See the instructions <a href="https://ohdsi.github.io/Hades/rSetup.html" class="external-link">here</a> for configuring your R environment, including Java.</p></li>
-<li><p>In R, use the following commands to download and install MethodEvaluation:</p></li>
+<li><p>In R, use the following commands to download and install SelfControlledCaseSeries:</p></li>
 </ol>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
@@ -180,7 +184,17 @@
 <h1 id="user-documentation">User Documentation<a class="anchor" aria-label="anchor" href="#user-documentation"></a>
 </h1>
 <p>Documentation can be found on the <a href="https://ohdsi.github.io/SelfControlledCaseSeries" class="external-link">package website</a>.</p>
-<p>PDF versions of the documentation are also available: * Vignette: <a href="https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/SingleStudies.pdf" class="external-link">Single studies using the SelfControlledCaseSeries package</a> * Vignette: <a href="https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/MultipleAnalyses.pdf" class="external-link">Running multiple analyses at once using the SelfControlledCaseSeries package</a> * Package manual: <a href="https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/extras/SelfControlledCaseSeries.pdf" class="external-link">SelfControlledCaseSeries.pdf</a></p>
+<p>PDF versions of the documentation are also available:</p>
+<ul>
+<li>Vignette: <a href="https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/SingleStudies.pdf" class="external-link">Single studies using the SelfControlledCaseSeries package</a>
+</li>
+<li>Vignette: <a href="https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/MultipleAnalyses.pdf" class="external-link">Running multiple analyses at once using the SelfControlledCaseSeries package</a>
+</li>
+<li>Vignette: <a href="https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/ResultsSchema.pdf" class="external-link">Results schema of the SelfControlledCaseSeries package</a>
+</li>
+<li>Package manual: <a href="https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/extras/SelfControlledCaseSeries.pdf" class="external-link">SelfControlledCaseSeries.pdf</a>
+</li>
+</ul>
 </div>
 <div class="section level1">
 <h1 id="support">Support<a class="anchor" aria-label="anchor" href="#support"></a>
@@ -208,7 +222,7 @@
 <div class="section level3">
 <h3 id="development-status">Development status<a class="anchor" aria-label="anchor" href="#development-status"></a>
 </h3>
-<p>Beta</p>
+<p>Stable. Actively used in several projects.</p>
 </div>
 </div>
 <div class="section level1">

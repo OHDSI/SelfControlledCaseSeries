@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.4.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.0.0</span>
       </span>
     </div>
 
@@ -33,6 +33,9 @@
   </a>
   <ul class="dropdown-menu" role="menu"><li>
       <a href="../articles/MultipleAnalyses.html">Running multiple analyses at once using the SelfControlledCaseSeries package</a>
+    </li>
+    <li>
+      <a href="../articles/ResultsSchema.html">Results schema of the SelfControlledCaseSeries package</a>
     </li>
     <li>
       <a href="../articles/SingleStudies.html">Single studies using the SelfControlledCaseSeries package</a>
@@ -64,6 +67,27 @@
     </div>
 
     <div class="section level2">
+<h2 class="page-header" data-toc-text="4.0.0" id="selfcontrolledcaseseries-400">SelfControlledCaseSeries 4.0.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-400"></a></h2>
+<p>Changes</p>
+<ol style="list-style-type: decimal"><li><p>Removing deprecated <code>oracleTempSchema</code> argument from <code><a href="../reference/getDbSccsData.html">getDbSccsData()</a></code> and <code><a href="../reference/runSccsAnalyses.html">runSccsAnalyses()</a></code> functions.</p></li>
+<li><p>Adding checking of user input to all functions.</p></li>
+<li><p>The <code>studyStartDate</code> and <code>studyEndDate</code> arguments of the <code><a href="../reference/getDbSccsData.html">getDbSccsData()</a></code> function have been changed from character to Date type.</p></li>
+<li><p>Dropping support of split points. This can be achieved by creating multiple era covariates with different times at risk.</p></li>
+<li><p>The <code><a href="../reference/computeMdrr.html">computeMdrr()</a></code> now works with either an <code>SccsIntervalData</code> or an <code>SccsModel</code> object.</p></li>
+<li>
+<p>Major overhaul of the multiple-analyses framework:</p>
+<ul><li><p>Added the <code><a href="../reference/createExposure.html">createExposure()</a></code> function for creating objects of type `exposure. This argument allows specifying the true effect size of the exposure, if known (e.g. for negative controls).</p></li>
+<li><p>The <code>createExposureOutcome()</code> function has been replaced with the <code><a href="../reference/createExposuresOutcome.html">createExposuresOutcome()</a></code> function, which accepts multiple objects of type <code>exposure</code>.</p></li>
+<li><p>The <code><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings()</a></code> function has a new argument <code>exposureOfInterest</code> which determines if its estimate will be reported in the result summary.</p></li>
+<li><p>The results summary table has been pivoted so it now only has one estimate per row. The results summary table is now precomputed as part of <code><a href="../reference/runSccsAnalyses.html">runSccsAnalyses()</a></code>, automatically includes empirically calibrated estimates (if controls have been provided) and can be retrieved using the <code><a href="../reference/getResultsSummary.html">getResultsSummary()</a></code> function.</p></li>
+<li><p>The reference table (the output of <code><a href="../reference/runSccsAnalyses.html">runSccsAnalyses()</a></code>) can now always be retrieved using the <code><a href="../reference/getFileReference.html">getFileReference()</a></code> function.</p></li>
+<li><p>Dropping <code>exposureType</code> and <code>outcomeType</code> options from the <code><a href="../reference/createSccsAnalysis.html">createSccsAnalysis ()</a></code> function, since the notion of analysis-specific exposure and outcome selection strategies can also be implemented using the <code>analysesToExclude</code> argument of <code><a href="../reference/runSccsAnalyses.html">runSccsAnalyses()</a></code>.</p></li>
+<li><p>Settings related to multi-threading are combined in to a single settings object that be created using the new <code><a href="../reference/createSccsMultiThreadingSettings.html">createSccsMultiThreadingSettings()</a></code> function.</p></li>
+<li><p>The <code>design</code> argument of the <code><a href="../reference/createSccsAnalysis.html">createSccsAnalysis()</a></code> function has been removed, and the <code>createSccsIntervalDataArgs</code> and <code>createScriIntervalDataArgs</code> arguments have been replaced with a single <code>createIntervalDataArgs</code> argument that accepts arguments for both the <code><a href="../reference/createSccsIntervalData.html">createSccsIntervalData()</a></code> and createScriIntervalData()` functions.</p></li>
+</ul></li>
+<li><p>Added the <code><a href="../reference/exportToCsv.html">exportToCsv()</a></code> function, to export the results of a multi-analysis study to CSV files for sharing between sites. The output results model is now documented in a new vignette.</p></li>
+</ol></div>
+    <div class="section level2">
 <h2 class="page-header" data-toc-text="3.4.0" id="selfcontrolledcaseseries-340">SelfControlledCaseSeries 3.4.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-340"></a></h2>
 <p>Changes</p>
 <ol style="list-style-type: decimal"><li><p>Setting the <code>deleteCovariatesSmallCount</code> argument to 0 in the <code><a href="../reference/getDbSccsData.html">getDbSccsData()</a></code> and <code><a href="../reference/createGetDbSccsDataArgs.html">createGetDbSccsDataArgs()</a></code> functions. This was originally set to 100 for SCCS analyses with many covariates, but makes no sense when considering only one or a few exposures.</p></li>
@@ -73,6 +97,7 @@
 <ol style="list-style-type: decimal"><li><p>Fixing “RIGHT and FULL OUTER JOINs are not currently supported” error on SQLite when using <code>drug_era</code> or <code>condition_era</code> table.</p></li>
 <li><p>Fixing <code><a href="../reference/computeTimeStability.html">computeTimeStability()</a></code> per-month p-value (was showing the minimum p-value for all months).</p></li>
 <li><p>Fixing uncaught errors when fitting models caused by Cyclops’s new return flags.</p></li>
+<li><p>Fix error about Andromeda object already being closed when generating SCCS era data.</p></li>
 </ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="3.3.0" id="selfcontrolledcaseseries-330">SelfControlledCaseSeries 3.3.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-330"></a></h2>

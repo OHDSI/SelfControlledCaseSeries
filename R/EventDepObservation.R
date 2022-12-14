@@ -53,7 +53,6 @@ fitModelsAndPickBest <- function(data) {
     #       Exponential- Weibull (Interval) mixture Model    #
     #--------------------------------------------------------#
     mod_ewid2 <- function(p, aevent, aend, present, Dmatrix) {
-
       #   Dmatrixevent <- cbind(Dmatrix, Yproduct(Dmatrix, as.matrix(aevent)))
       #   Dmatrixeventlog <- cbind(Dmatrix, Yproduct(Dmatrix, as.matrix(log(aevent))))
 
@@ -88,7 +87,6 @@ fitModelsAndPickBest <- function(data) {
     #       Exponential- Gamma (Age) mixture Model           #
     #--------------------------------------------------------#
     mod_egad2 <- function(p, astart, aevent, aend, present, Dmatrix) {
-
       #   Dmatrixevent <- cbind(Dmatrix, Yproduct(Dmatrix, as.matrix(aevent)))
       #   Dmatrixeventlog <- cbind(Dmatrix, Yproduct(Dmatrix, as.matrix(log(aevent))))
       #
@@ -126,7 +124,6 @@ fitModelsAndPickBest <- function(data) {
     #       Exponential- Gamma (Interval) mixture Model      #
     #--------------------------------------------------------#
     mod_egid2 <- function(p, aevent, aend, present, Dmatrix) {
-
       #   Dmatrixevent <- cbind(Dmatrix, Yproduct(Dmatrix, as.matrix(aevent)))
       #   Dmatrixeventlog <- cbind(Dmatrix, Yproduct(Dmatrix, as.matrix(log(aevent))))
 

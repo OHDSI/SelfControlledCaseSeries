@@ -190,15 +190,16 @@ computeTimeToEvent <- function(studyPopulation,
 
   if (nrow(exposures) == 0) {
     warning("No exposures found with era ID ", exposureEraId)
-    tibble(number = 1,
-           start = 1.0,
-           end = 1.0,
-           observed = 1,
-           eventsExposed  = 1.0,
-           eventsUnexposed = 1.0
-           ) %>%
+    tibble(
+      number = 1,
+      start = 1.0,
+      end = 1.0,
+      observed = 1,
+      eventsExposed = 1.0,
+      eventsUnexposed = 1.0
+    ) %>%
       filter(.data$number == -1) %>%
-    return()
+      return()
   }
   firstExposures <- exposures %>%
     group_by(.data$caseId, .data$caseEndDay) %>%
@@ -253,8 +254,10 @@ computeTimeToEvent <- function(studyPopulation,
 
   result <- observed %>%
     left_join(events, by = c("number", "start", "end")) %>%
-    mutate(eventsExposed = if_else(is.na(.data$eventsExposed), 0, .data$eventsExposed),
-           eventsUnexposed = if_else(is.na(.data$eventsUnexposed), 0, .data$eventsUnexposed))
+    mutate(
+      eventsExposed = if_else(is.na(.data$eventsExposed), 0, .data$eventsExposed),
+      eventsUnexposed = if_else(is.na(.data$eventsUnexposed), 0, .data$eventsUnexposed)
+    )
 
   return(result)
 }
@@ -310,26 +313,26 @@ plotExposureCentered <- function(studyPopulation,
   if (highlightExposedEvents) {
     events <- data %>%
       transmute(.data$start,
-                .data$end,
-                type = "Events",
-                count1 = .data$eventsUnexposed,
-                count2 = .data$eventsExposed
+        .data$end,
+        type = "Events",
+        count1 = .data$eventsUnexposed,
+        count2 = .data$eventsExposed
       )
   } else {
     events <- data %>%
       transmute(.data$start,
-                .data$end,
-                type = "Events",
-                count1 = .data$eventsUnexposed + .data$eventsExposed,
-                count2 = NA
+        .data$end,
+        type = "Events",
+        count1 = .data$eventsUnexposed + .data$eventsExposed,
+        count2 = NA
       )
   }
   observed <- data %>%
     transmute(.data$start,
-              .data$end,
-              type = "Subjects under observation",
-              count1 = .data$observed,
-              count2 = NA
+      .data$end,
+      type = "Subjects under observation",
+      count1 = .data$observed,
+      count2 = NA
     )
   data <- bind_rows(events, observed)
 

@@ -771,9 +771,9 @@ createSccsModelObject <- function(params) {
   if (is.null(type)) {
     if (is.list(value)) {
       stop(paste("Multiple ",
-                 label,
-                 "s specified, but none selected in analyses (comparatorType).",
-                 sep = ""
+        label,
+        "s specified, but none selected in analyses (comparatorType).",
+        sep = ""
       ))
     }
     return(value)
@@ -823,7 +823,7 @@ summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder,
             exposuresOutcome <- exposuresOutcomeList[[refRow$exposuresOutcomeSetId]]
             exposure <- ParallelLogger::matchInList(exposuresOutcome$exposures, list(exposureId = covariateSettings$eraIds[j]))
             if (length(exposure) != 1) {
-              stop(sprintf("Error finding exposure for covariate ID %d in analysis ID %d",  covariateSettings$outputIds[j], refRow$analysisId))
+              stop(sprintf("Error finding exposure for covariate ID %d in analysis ID %d", covariateSettings$outputIds[j], refRow$analysisId))
             } else {
               exposure <- exposure[[1]]
             }

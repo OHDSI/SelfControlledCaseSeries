@@ -12,8 +12,10 @@ test_that("Running multiple analyses against Eunomia", {
 
   exposuresOutcomeList <- list(
     createExposuresOutcome(
-      exposures = list(createExposure(exposureId = 1),
-                       createExposure(exposureId = 2, exposureIdRef = "exposureId2")),
+      exposures = list(
+        createExposure(exposureId = 1),
+        createExposure(exposureId = 2, exposureIdRef = "exposureId2")
+      ),
       outcomeId = 3
     ),
     createExposuresOutcome(
@@ -130,7 +132,8 @@ test_that("Running multiple analyses against Eunomia", {
         sccsAnalysisList = sccsAnalysisList,
         analysesToExclude = analysesToExclude
       )
-    }, "No cases left in study population"
+    },
+    "No cases left in study population"
   )
   ref <- getFileReference(outputFolder)
   expect_equal(nrow(ref), 6)
@@ -176,12 +179,14 @@ test_that("Running multiple analyses against Eunomia", {
 test_that("Fetching data from drug_era and condition_era tables from Eunomia", {
   # 192671 = Gastrointestinal haemorrhage
   # 1118084 = Celecoxib
-  sccsData <- SelfControlledCaseSeries::getDbSccsData(connectionDetails = connectionDetails,
-                                                      cdmDatabaseSchema = "main",
-                                                      exposureTable = "drug_era",
-                                                      outcomeTable = "condition_era",
-                                                      outcomeIds = 192671,
-                                                      exposureIds = 1118084)
+  sccsData <- SelfControlledCaseSeries::getDbSccsData(
+    connectionDetails = connectionDetails,
+    cdmDatabaseSchema = "main",
+    exposureTable = "drug_era",
+    outcomeTable = "condition_era",
+    outcomeIds = 192671,
+    exposureIds = 1118084
+  )
   expect_s4_class(sccsData, "SccsData")
 })
 

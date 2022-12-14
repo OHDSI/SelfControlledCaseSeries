@@ -126,7 +126,7 @@ library(SqlRender)
 sql <- readSql("vignette.sql")
 sql <- render(sql,
               cdmDatabaseSchema = cdmDatabaseSchema, 
-              cohortDatabaseSchema = cohortDatabaseSchema
+              cohortDatabaseSchema = cohortDatabaseSchema,
               outcomeTable = "my_outcomes")
 sql <- translate(sql, targetDialect = connectionDetails$dbms)
 

@@ -43,8 +43,8 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
     calendarTime[calendarTime < calendarTimeKnots[1]] <- calendarTimeKnots[1]
     calendarTime[calendarTime > calendarTimeKnots[length(calendarTimeKnots)]] <- calendarTimeKnots[length(calendarTimeKnots)]
     calendarTimeDesignMatrix <- splines::bs(calendarTime,
-                                            knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-                                            Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
+      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
     )
     logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
     logRr <- logRr - mean(logRr)

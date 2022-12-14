@@ -195,4 +195,3 @@ test_that("Control intervals overlapping with a risk window", {
   expect_equal(result$covariates$stratumId, c(1))
   expect_equal(result$covariates$covariateId, c(1000))
 })
-

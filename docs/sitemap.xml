@@ -10,6 +10,9 @@
     <loc>/articles/MultipleAnalyses.html</loc>
   </url>
   <url>
+    <loc>/articles/ResultsSchema.html</loc>
+  </url>
+  <url>
     <loc>/articles/SingleStudies.html</loc>
   </url>
   <url>
@@ -61,10 +64,19 @@
     <loc>/reference/createCreateStudyPopulationArgs.html</loc>
   </url>
   <url>
+    <loc>/reference/createDefaultSccsMultiThreadingSettings.html</loc>
+  </url>
+  <url>
     <loc>/reference/createEraCovariateSettings.html</loc>
   </url>
   <url>
+    <loc>/reference/createExposure.html</loc>
+  </url>
+  <url>
     <loc>/reference/createExposureOutcome.html</loc>
+  </url>
+  <url>
+    <loc>/reference/createExposuresOutcome.html</loc>
   </url>
   <url>
     <loc>/reference/createFitSccsModelArgs.html</loc>
@@ -76,10 +88,16 @@
     <loc>/reference/createSccsAnalysis.html</loc>
   </url>
   <url>
+    <loc>/reference/createSccsDiagnosticThresholds.html</loc>
+  </url>
+  <url>
     <loc>/reference/createSccsEraData.html</loc>
   </url>
   <url>
     <loc>/reference/createSccsIntervalData.html</loc>
+  </url>
+  <url>
+    <loc>/reference/createSccsMultiThreadingSettings.html</loc>
   </url>
   <url>
     <loc>/reference/createSccsSimulationSettings.html</loc>
@@ -103,6 +121,9 @@
     <loc>/reference/cyclicSplineDesign.html</loc>
   </url>
   <url>
+    <loc>/reference/exportToCsv.html</loc>
+  </url>
+  <url>
     <loc>/reference/fitSccsModel.html</loc>
   </url>
   <url>
@@ -115,7 +136,13 @@
     <loc>/reference/getDbSccsData.html</loc>
   </url>
   <url>
+    <loc>/reference/getFileReference.html</loc>
+  </url>
+  <url>
     <loc>/reference/getModel.html</loc>
+  </url>
+  <url>
+    <loc>/reference/getResultsSummary.html</loc>
   </url>
   <url>
     <loc>/reference/hasAgeEffect.html</loc>
@@ -137,6 +164,9 @@
   </url>
   <url>
     <loc>/reference/loadExposureOutcomeList.html</loc>
+  </url>
+  <url>
+    <loc>/reference/loadExposuresOutcomeList.html</loc>
   </url>
   <url>
     <loc>/reference/loadSccsAnalysisList.html</loc>
@@ -182,6 +212,9 @@
   </url>
   <url>
     <loc>/reference/saveExposureOutcomeList.html</loc>
+  </url>
+  <url>
+    <loc>/reference/saveExposuresOutcomeList.html</loc>
   </url>
   <url>
     <loc>/reference/saveSccsAnalysisList.html</loc>
