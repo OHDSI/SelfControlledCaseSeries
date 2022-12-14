@@ -15,6 +15,7 @@ Features
 - Extracts the necessary data from a database in OMOP Common Data Model format.
 - Optionally add seasonality using a spline function.
 - Optionally add age using a spline function.
+- Optionally add calendar time using a spline function.
 - Optionally correct for event-dependent censoring of the observation period.
 - Optionally add many covariates in one analysis (e.g. all drugs).
 - Options for constructing different types of covariates and risk windows, including pre-exposure windows (to capture contra-indications).
@@ -67,14 +68,14 @@ SelfControlledCaseSeries is an R package, with some functions implemented in C++
 
 System Requirements
 ===================
-Requires R (version 3.2.2 or higher). Installation on Windows requires [RTools](https://cran.r-project.org/bin/windows/Rtools/). Libraries used in SelfControlledCaseSeries require Java.
+Requires R (version 4.0.0 or higher). Installation on Windows requires [RTools](https://cran.r-project.org/bin/windows/Rtools/). Libraries used in SelfControlledCaseSeries require Java.
 
 Installation
 ============
 
 1. See the instructions [here](https://ohdsi.github.io/Hades/rSetup.html) for configuring your R environment, including Java.
 
-2. In R, use the following commands to download and install MethodEvaluation:
+2. In R, use the following commands to download and install SelfControlledCaseSeries:
 
   ```r
   install.packages("remotes")
@@ -86,8 +87,10 @@ User Documentation
 Documentation can be found on the [package website](https://ohdsi.github.io/SelfControlledCaseSeries).
 
 PDF versions of the documentation are also available:
+
 * Vignette: [Single studies using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/SingleStudies.pdf)
 * Vignette: [Running multiple analyses at once using the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/MultipleAnalyses.pdf)
+* Vignette: [Results schema of the SelfControlledCaseSeries package](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/inst/doc/ResultsSchema.pdf)
 * Package manual: [SelfControlledCaseSeries.pdf](https://raw.githubusercontent.com/OHDSI/SelfControlledCaseSeries/main/extras/SelfControlledCaseSeries.pdf)
 
 Support
@@ -109,7 +112,7 @@ SelfControlledCaseSeries is being developed in R Studio.
 
 ### Development status
 
-Beta
+Stable. Actively used in several projects.
 
 # Acknowledgements
 - This project is supported in part through the National Science Foundation grant IIS 1251151.

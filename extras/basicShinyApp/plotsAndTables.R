@@ -134,8 +134,7 @@ drawAttritionDiagram <- function(attrition) {
     return(formatC(x, big.mark = ","))
   }
   addStep <- function(data, attrition, row) {
-    label <- paste(strwrap(as.character(attrition$description[row]), width = 30), collapse = "\n")
-    data$leftBoxText[length(data$leftBoxText) + 1] <- paste(label,
+    data$leftBoxText[length(data$leftBoxText) + 1] <- paste(attrition$description[row],
                                                             "\n",
                                                             "Cases: ",
                                                             formatNumber(attrition$outcomeSubjects[row]),

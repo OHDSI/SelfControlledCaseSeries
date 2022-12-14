@@ -42,7 +42,7 @@ When you provide several analyses to the `SelfControlledCaseSeries` package, it 
 
 The function arguments you need to define have been divided into four groups:
 
-1. **Hypothesis of interest**: arguments that are specific to a hypothesis of interest, in the case of the self-controlled case series this is a combination of exposure and outcome.
+1. **Exposures-outcome sets**: arguments that are specific to a hypothesis of interest, in the case of the self-controlled case series this is a combination of one or more exposures and an outcome.
 2. **Analyses**: arguments that are not directly specific to a hypothesis of interest, such as the washout window, whether to adjust for age and seasonality, etc.
 3. Arguments that are the output of a previous function in the `SelfControlledCaseSeries` package, such as the `SccsIntervalData` argument of the `createSccsIntervalData` function. These cannot be specified by the user.
 4. Arguments that are specific to an environment, such as the connection details for connecting to the server, and the name of the schema holding the CDM data.
@@ -110,9 +110,9 @@ executeSql(connection, sql)
 
 In this code, we first read the SQL from the file into memory. In the next line, we replace the two parameter names with the actual values. We then translate the SQL into the dialect appropriate for the DBMS we already specified in the `connectionDetails`. Next, we connect to the server, and submit the rendered and translated SQL.
 
-# Specifying hypotheses of interest
+# Specifying exposures-outcome sets
 
-The first group of arguments define the exposure and outcome. Here we demonstrate how to create a list of exposure-outcome pairs:
+The first group of arguments define the exposures and outcome. Here we demonstrate how to create an exposures-outcome set:
 
 ```{r eval=FALSE}
 diclofenac <- 1124300
@@ -135,7 +135,7 @@ for (exposureId in c(negativeControls)) {
 }
 ```
 
-We defined the outcome of interest to be the cohort with ID 1 we defined in the SQL above. The exposures include diclofenac (concept ID 1124300) and a large number of negative control exposures. 
+We defined the outcome of interest to be the cohort with ID 1 we defined in the SQL above. The exposures include diclofenac (concept ID 1124300) and a large number of negative control exposures. Note that for the negative controls we specify `trueEffectSize = 1`. 
 
 A convenient way to save `exposuresOutcomeList` to file is by using the `saveExposuresOutcomeList` function, and we can load it again using the `loadExposuresOutcomeList` function.
 
@@ -190,10 +190,18 @@ sccsAnalysis1 <- createSccsAnalysis(
 
 Note that we have assigned an analysis ID (1) to this set of arguments. We can use this later to link the results back to this specific set of choices. We also include a short description of the analysis.
 
-We can easily create more analyses, for example by including adjustments for age and seasonality, or for including other drugs in the model. For example, here we create a covariate representing drugs that are used in preventing the outcome of interest, in this case proton pump inhibitors (PPIs):
+We can easily create more analyses, for example by including adjustments for age and seasonality, or for including other drugs in the model:
 
 ```{r eval=TRUE}
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
+
+covarPreExp <- createEraCovariateSettings(
+  label = "Pre-exposure",
+  includeEraIds = "exposureId",
+  start = -30,
+  end = -1,
+  endAnchor = "era start"
+)
 
 covarProphylactics <- createEraCovariateSettings(
   label = "Prophylactics",
@@ -206,30 +214,23 @@ covarProphylactics <- createEraCovariateSettings(
 createSccsIntervalDataArgs2 <- createCreateSccsIntervalDataArgs(
   eraCovariateSettings = list(
     covarExposureOfInt,
+    covarPreExp,
     covarProphylactics
   )
 )
 
 sccsAnalysis2 <- createSccsAnalysis(
   analysisId = 2,
-  description = "Including prophylactics",
+  description = "Including prophylactics and pre-exposure",
   getDbSccsDataArgs = getDbSccsDataArgs,
   createStudyPopulationArgs = createStudyPopulationArgs,
   createIntervalDataArgs = createSccsIntervalDataArgs2,
   fitSccsModelArgs = fitSccsModelArgs
 )
 
-ageSettings <- createAgeCovariateSettings(ageKnots = 5)
-
 seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
 
-covarPreExp <- createEraCovariateSettings(
-  label = "Pre-exposure",
-  includeEraIds = "exposureId",
-  start = -30,
-  end = -1,
-  endAnchor = "era start"
-)
+calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5)
 
 createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(
   eraCovariateSettings = list(
@@ -237,14 +238,13 @@ createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(
     covarPreExp,
     covarProphylactics
   ),
-  ageCovariateSettings = ageSettings,
   seasonalityCovariateSettings = seasonalitySettings,
-  eventDependentObservation = TRUE
+  calendarTimeCovariateSettings = calendarTimeSettings
 )
 
 sccsAnalysis3 <- createSccsAnalysis(
   analysisId = 3,
-  description = "Including prophylactics, age, season, pre-exposure, and censoring",
+  description = "Including prophylactics, season, calendar time, and pre-exposure",
   getDbSccsDataArgs = getDbSccsDataArgs,
   createStudyPopulationArgs = createStudyPopulationArgs,
   createIntervalDataArgs = createSccsIntervalDataArgs3,
@@ -267,9 +267,8 @@ createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(
     covarPreExp,
     covarAllDrugs
   ),
-  ageCovariateSettings = ageSettings,
   seasonalityCovariateSettings = seasonalitySettings,
-  eventDependentObservation = TRUE
+  calendarTimeCovariateSettings = calendarTimeSettings
 )
 
 sccsAnalysis4 <- createSccsAnalysis(
@@ -280,12 +279,34 @@ sccsAnalysis4 <- createSccsAnalysis(
   createIntervalDataArgs = createSccsIntervalDataArgs4,
   fitSccsModelArgs = fitSccsModelArgs
 )
+
+createSccsIntervalDataArgs5 <- createCreateSccsIntervalDataArgs(
+  eraCovariateSettings = list(
+    covarExposureOfInt,
+    covarPreExp,
+    covarProphylactics
+  ),
+  eventDependentObservation = TRUE
+)
+
+sccsAnalysis5 <- createSccsAnalysis(
+  analysisId = 5,
+  description = "Adjusting for event-dependent obs. end",
+  getDbSccsDataArgs = getDbSccsDataArgs,
+  createStudyPopulationArgs = createStudyPopulationArgs,
+  createIntervalDataArgs = createSccsIntervalDataArgs5,
+  fitSccsModelArgs = fitSccsModelArgs
+)
 ```
 
 These analyses can be combined in a list:
 
 ```{r eval=TRUE}
-sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4)
+sccsAnalysisList <- list(sccsAnalysis1, 
+                         sccsAnalysis2,
+                         sccsAnalysis3, 
+                         sccsAnalysis4, 
+                         sccsAnalysis5)
 ```
 
 A convenient way to save `sccsAnalysisList` to file is by using the `saveSccsAnalysisList` function, and we can load it again using the `loadSccsAnalysisList` function.
@@ -295,7 +316,9 @@ A convenient way to save `sccsAnalysisList` to file is by using the `saveSccsAna
 We can now run the analyses against the hypotheses of interest using the `runScsAnalyses()`function. This function will run all specified analyses against all hypotheses of interest, meaning that the total number of outcome models is `length(sccsAnalysisList) * length(exposuresOutcomeList)`. (If we want, we can skip some of these combinations using the `analysesToExclude` argument.)
 
 ```{r eval=FALSE}
-multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(parallel::detectCores() - 1)
+multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(
+  parallel::detectCores() - 1
+)
 
 referenceTable <- runSccsAnalyses(
   connectionDetails = connectionDetails,
@@ -323,7 +346,7 @@ If for some reason the execution was interrupted, you can restart by re-issuing 
 
 # Retrieving the results
 
-The result of the `runSccsAnalyses()` is a data frame with one row per exposure-outcome-analysis combination. It provides the file names of the intermediate and end-result files that were constructed. For example, we can retrieve the fitted model for the combination of our drug of interest,  outcome, and first analysis:
+The result of the `runSccsAnalyses()` is a data frame with one row per exposures-outcome-analysis combination, so one row per fitted SCCS model. It provides the file names of the intermediate and end-result files that were constructed. For example, we can retrieve the fitted model for the combination of our drug of interest,  outcome, and first analysis:
 
 ```{r eval=FALSE}
 sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 & 
@@ -343,11 +366,11 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 }
 ```
 
-Note that some of the file names will appear several times in the table. For example, all analysis share the same sccsData object.
+Note that some of the file names will appear several times in the table. In our example all analysis share the same `sccsData` object.
 
 We can always retrieve the file reference table again using the `getFileReference()` function:
 ```{r eval=FALSE}
-result <- getFileReference(folder)
+result <- getFileReference(outputFolder)
 ```
 
 We can get a summary of the results using `getResultsSummary()`:
@@ -362,7 +385,7 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 }
 ```
 
-This tells us, per exposure-outcome-analysis combination, the estimated relative risk and 95% confidence interval, as well as the number of subjects (cases) and the number of events observed for those subjects. The only covariates included in this summary are those we marked with `exposureOfInterest = TRUE` when calling `createEraCovariateSettings()` earlier.
+This tells us, per exposure-outcome-analysis combination (so possible multiple rows per SCCS model) the estimated relative risk and 95% confidence interval, as well as the number of subjects (cases) and the number of events observed for those subjects. The only covariates included in this summary are those we marked with `exposureOfInterest = TRUE` when calling `createEraCovariateSettings()` earlier.
 
 ## Empirical calibration
 
@@ -398,7 +421,7 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 ```
 
 ```{r eval=FALSE}
-# Analysis 2: Including prophylactics
+# Analysis 2: Including prophylactics and pre-exposure
 negCons <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId != 1124300, ]
 ei <-  resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == 1124300, ]
 null <- fitNull(negCons$logRr, 
@@ -424,7 +447,7 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 ```
 
 ```{r eval=FALSE}
-# Analysis 3: Including prophylactics, age, season, pre-exposure, and censoring
+# Analysis 3: Including prophylactics, season, calendar time, and pre-exposure
 negCons <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId != 1124300, ]
 ei <-  resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == 1124300, ]
 null <- fitNull(negCons$logRr, 
@@ -450,8 +473,33 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 ```
 
 ```{r eval=FALSE}
-# Analysis 4: Including all other drugs (as well as prophylactics, age, season, pre-
-# exposure, and censoring)
+# Analysis 4: Including all other drugs
+negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
+ei <-  resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+null <- fitNull(negCons$logRr, 
+                negCons$seLogRr)
+plotCalibrationEffect(logRrNegatives = negCons$logRr, 
+                      seLogRrNegatives = negCons$seLogRr, 
+                      logRrPositives = ei$logRr, 
+                      seLogRrPositives = ei$seLogRr, 
+                      null)
+```
+```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
+if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
+  negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
+  ei <-  resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+  null <- fitNull(negCons$logRr, 
+                  negCons$seLogRr)
+  plotCalibrationEffect(logRrNegatives = negCons$logRr, 
+                        seLogRrNegatives = negCons$seLogRr, 
+                        logRrPositives = ei$logRr, 
+                        seLogRrPositives = ei$seLogRr, 
+                        null)
+}
+```
+
+```{r eval=FALSE}
+# Analysis 5: Adjusting for event-dependent obs. end
 negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
 ei <-  resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
 null <- fitNull(negCons$logRr, 

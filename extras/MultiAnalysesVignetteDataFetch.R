@@ -33,7 +33,7 @@ cdmVersion <- "5"
 outputFolder <- "d:/temp/sccsVignette2"
 
 
-# Create cohorts ---------------------------------------
+# Create cohorts ---------------------------------------------------------------
 connection <- DatabaseConnector::connect(connectionDetails)
 
 sql <- loadRenderTranslateSql("vignette.sql",
@@ -142,27 +142,6 @@ sccsAnalysis1 <- createSccsAnalysis(
   fitSccsModelArgs = fitSccsModelArgs
 )
 
-covarProphylactics <- createEraCovariateSettings(
-  label = "Prophylactics",
-  includeEraIds = ppis,
-  start = 1,
-  end = 0,
-  endAnchor = "era end"
-)
-
-createSccsIntervalDataArgs2 <- createCreateSccsIntervalDataArgs(eraCovariateSettings = list(
-  covarExposureOfInt,
-  covarProphylactics
-))
-
-sccsAnalysis2 <- createSccsAnalysis(
-  analysisId = 2,
-  description = "Including prophylactics",
-  getDbSccsDataArgs = getDbSccsDataArgs,
-  createStudyPopulationArgs = createStudyPopulationArgs,
-  createIntervalDataArgs = createSccsIntervalDataArgs2,
-  fitSccsModelArgs = fitSccsModelArgs
-)
 
 covarPreExp <- createEraCovariateSettings(
   label = "Pre-exposure",
@@ -172,7 +151,30 @@ covarPreExp <- createEraCovariateSettings(
   endAnchor = "era start"
 )
 
-ageSettings <- createAgeCovariateSettings(ageKnots = 5)
+covarProphylactics <- createEraCovariateSettings(
+  label = "Prophylactics",
+  includeEraIds = ppis,
+  start = 1,
+  end = 0,
+  endAnchor = "era end"
+)
+
+createSccsIntervalDataArgs2 <- createCreateSccsIntervalDataArgs(
+  eraCovariateSettings = list(
+    covarExposureOfInt,
+    covarPreExp,
+    covarProphylactics
+  )
+)
+
+sccsAnalysis2 <- createSccsAnalysis(
+  analysisId = 2,
+  description = "Including prophylactics and pre-exposure",
+  getDbSccsDataArgs = getDbSccsDataArgs,
+  createStudyPopulationArgs = createStudyPopulationArgs,
+  createIntervalDataArgs = createSccsIntervalDataArgs2,
+  fitSccsModelArgs = fitSccsModelArgs
+)
 
 seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
 
@@ -184,14 +186,13 @@ createSccsIntervalDataArgs3 <- createCreateSccsIntervalDataArgs(
     covarPreExp,
     covarProphylactics
   ),
-  ageCovariateSettings = ageSettings,
   seasonalityCovariateSettings = seasonalitySettings,
   calendarTimeCovariateSettings = calendarTimeSettings
 )
 
 sccsAnalysis3 <- createSccsAnalysis(
   analysisId = 3,
-  description = "Including prophylactics, age, season, calendar time, and pre-exposure",
+  description = "Including prophylactics, season, calendar time, and pre-exposure",
   getDbSccsDataArgs = getDbSccsDataArgs,
   createStudyPopulationArgs = createStudyPopulationArgs,
   createIntervalDataArgs = createSccsIntervalDataArgs3,
@@ -214,7 +215,6 @@ createSccsIntervalDataArgs4 <- createCreateSccsIntervalDataArgs(
     covarPreExp,
     covarAllDrugs
   ),
-  ageCovariateSettings = ageSettings,
   seasonalityCovariateSettings = seasonalitySettings,
   calendarTimeCovariateSettings = calendarTimeSettings
 )

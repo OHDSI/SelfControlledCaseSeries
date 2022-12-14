@@ -1,5 +1,5 @@
 library(SelfControlledCaseSeries)
-options(andromedaTempFolder = "s:/andromedaTemp")
+options(andromedaTempFolder = "d:/andromedaTemp")
 settings <- createSccsSimulationSettings(includeAgeEffect = TRUE,
                                          includeCalendarTimeEffect = FALSE,
                                          includeSeasonality = TRUE)
@@ -14,6 +14,7 @@ calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 
                                                             allowRegularization = TRUE)
 covarSettings <- createEraCovariateSettings(label = "Exposure of interest",
                                             includeEraIds = c(1, 2),
+                                            stratifyById = TRUE,
                                             start = 0,
                                             end = 0,
                                             endAnchor = "era end")

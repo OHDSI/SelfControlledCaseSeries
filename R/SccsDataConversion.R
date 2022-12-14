@@ -587,7 +587,7 @@ countOutcomesIntervalData <- function(data, sccsData, outcomeId) {
     collect() %>%
     mutate(
       outcomeId = !!outcomeId,
-      description = "Having at least one covariate (full model)",
+      description = "Having at least one covariate",
       outcomeEvents = ifelse(is.na(.data$outcomeEvents), 0, .data$outcomeEvents),
       observedDays = ifelse(is.na(.data$observedDays), 0, .data$observedDays)
     ) %>%

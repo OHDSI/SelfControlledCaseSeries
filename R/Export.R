@@ -422,7 +422,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
               "exposuresOutcomeSetId",
               "description",
               outcomeSubjects = "personCount",
-              outcomeEvents = "outcomeCount",
+              outcomeEvents = "observedOutcomeCount",
               outcomeObservationPeriods = "observationPeriodCount",
               observedDays = "observedDayCount",
               "sequenceNumber",
@@ -456,14 +456,16 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
 
     # sccsLikelihoodProfile table
     for (j in seq_along(sccsModel$logLikelihoodProfiles)) {
-      sccsLikelihoodProfile[[length(sccsLikelihoodProfile) + 1]] <- refRow %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
-        bind_cols(
-          sccsModel$logLikelihoodProfiles[[j]] %>%
-            rename(logRr = "point", logLikelihood = "value") %>%
-            mutate(covariateId = as.numeric(names(sccsModel$logLikelihoodProfiles[j])))
-        ) %>%
-        mutate(databaseId = !!databaseId)
+      if (!is.null(sccsModel$logLikelihoodProfiles[[j]])) {
+        sccsLikelihoodProfile[[length(sccsLikelihoodProfile) + 1]] <- refRow %>%
+          select("analysisId", "exposuresOutcomeSetId") %>%
+          bind_cols(
+            sccsModel$logLikelihoodProfiles[[j]] %>%
+              rename(logRr = "point", logLikelihood = "value") %>%
+              mutate(covariateId = as.numeric(names(sccsModel$logLikelihoodProfiles[j])))
+          ) %>%
+          mutate(databaseId = !!databaseId)
+      }
     }
 
     # sccsSpline table

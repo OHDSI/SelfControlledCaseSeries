@@ -39,8 +39,8 @@ private:
   List progressBar;
   S4 resultSet;
   bool showProgressBar;
-  int total;
-  int completed;
+  int64_t total;
+  int64_t completed;
   bool done;
 };
 }

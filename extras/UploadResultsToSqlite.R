@@ -75,8 +75,7 @@ disconnect(connection)
 
 
 
-
-csv <- readr::read_csv(file.path(outputFolder, "export", "sccs_attrition.csv"))
-csv$observed_days[is.na(csv$observed_days)] <- csv$days_observed[is.na(csv$observed_days)]
-csv$days_observed <- NULL
-readr::write_csv(csv, file.path(outputFolder, "export", "sccs_attrition.csv"))
+# csv <- readr::read_csv(file.path(outputFolder, "export", "sccs_attrition.csv"))
+# csv$observed_days[is.na(csv$observed_days)] <- csv$days_observed[is.na(csv$observed_days)]
+# csv$days_observed <- NULL
+# readr::write_csv(csv, file.path(outputFolder, "export", "sccs_attrition.csv"))

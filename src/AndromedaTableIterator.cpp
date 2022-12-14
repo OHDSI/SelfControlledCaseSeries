@@ -45,7 +45,7 @@ done(false) {
     // total = tally(_andromedaTable, R_NilValue, false, R_NilValue);
     Environment utils = Environment::namespace_env("utils");
     Function txtProgressBar = utils["txtProgressBar"];
-    progressBar = txtProgressBar(0, total, 0, "=", NA_REAL, "" ,"", 3, "");
+    progressBar = txtProgressBar(0, 1, 0, "=", NA_REAL, "" ,"", 3, "");
 
   }
   Environment dbplyr = Environment::namespace_env("dbplyr");
@@ -94,7 +94,7 @@ List AndromedaTableIterator::next() {
 
     Environment utils = Environment::namespace_env("utils");
     Function setTxtProgressBar = utils["setTxtProgressBar"];
-    setTxtProgressBar(progressBar, completed);
+    setTxtProgressBar(progressBar, (double)completed / (double)total);
     if (completed == total){
       Environment base = Environment::namespace_env("base");
       Function close = base["close"];

@@ -30,17 +30,11 @@ devtools::spell_check()
 
 # Run simulations. These are too computationally expensive to run as unit tests
 source("extras/SimpleSimulation.R")
-source("extras/SplittingSimulations.R")
 source("extras/AgeAndSeasonSimulations.R")
 
 # Create manual and vignette
-if (.Platform$OS.type == "unix") {
-  system("rm extras/SelfControlledCaseSeries.pdf")
-  system("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
-} else {
-  unlink("extras/SelfControlledCaseSeries.pdf")
-  shell("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
-}
+unlink("extras/SelfControlledCaseSeries.pdf")
+shell("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
 
 rmarkdown::render("vignettes/SingleStudies.Rmd",
                   output_file = "../inst/doc/SingleStudies.pdf",
@@ -55,6 +49,13 @@ rmarkdown::render("vignettes/MultipleAnalyses.Rmd",
                                           toc = TRUE,
                                           number_sections = TRUE))
 unlink("inst/doc/MultipleAnalyses.tex")
+
+rmarkdown::render("vignettes/ResultsSchema.Rmd",
+                  output_file = "../inst/doc/ResultsSchema.pdf",
+                  rmarkdown::pdf_document(latex_engine = "pdflatex",
+                                          toc = TRUE,
+                                          number_sections = TRUE))
+unlink("inst/doc/ResultsSchema.tex")
 
 pkgdown::build_site()
 OhdsiRTools::fixHadesLogo()

@@ -36,7 +36,7 @@ shinyUI(
                                                            tableOutput("powerTable")
                                                   ),
                                                   tabPanel("Attrition",
-                                                           plotOutput("attritionPlot", width = 500, height = 500),
+                                                           plotOutput("attritionPlot", width = 600, height = 500),
                                                            div(strong("Figure 1."), "Attrition, showing the number of cases (number of subjects with at least one outcome), and number of outcomes (number of ocurrences of the outcome) after each step in the study.")
                                                   ),
                                                   tabPanel("Model",

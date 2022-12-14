@@ -28,9 +28,9 @@ Depends:
 	Andromeda,
 	survival
 Imports:
-	SqlRender (>= 1.8.3),
+	SqlRender (>= 1.11.0),
 	dplyr (>= 1.0.0),
-	Rcpp (>= 0.11.2),
+	Rcpp (>= 1.0.9),
 	ParallelLogger (>= 3.1.0),
 	EmpiricalCalibration,
 	splines,

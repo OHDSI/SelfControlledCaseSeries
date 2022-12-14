@@ -21,7 +21,9 @@ Changes
     
     - The `createEraCovariateSettings()` function has a new argument `exposureOfInterest` which determines if its estimate will be reported in the result summary.
     
-    - The results summary table has been pivoted so it now only has one estimate per row.
+    - The results summary table has been pivoted so it now only has one estimate per row. The results summary table is now precomputed as part of `runSccsAnalyses()`, automatically includes empirically calibrated estimates (if controls have been provided) and can be retrieved using the `getResultsSummary()` function. 
+    
+    - The reference table (the output of `runSccsAnalyses()`) can now always be retrieved using the `getFileReference()` function.
     
     - Dropping `exposureType` and `outcomeType` options from the `createSccsAnalysis ()` function, since the notion of analysis-specific exposure and outcome selection strategies can also be implemented using the `analysesToExclude` argument of `runSccsAnalyses()`.
         
@@ -29,7 +31,7 @@ Changes
     
     - The `design` argument of the `createSccsAnalysis()` function has been removed, and the `createSccsIntervalDataArgs` and `createScriIntervalDataArgs` arguments have been replaced with a single `createIntervalDataArgs` argument that accepts arguments for both the `createSccsIntervalData()` and createScriIntervalData()` functions.
     
-7. Added the `exportToCsv()` function, to export the results of a multi-analysis study to CSV files for sharing between sites.
+7. Added the `exportToCsv()` function, to export the results of a multi-analysis study to CSV files for sharing between sites. The output results model is now documented in a new vignette.
 
 
 SelfControlledCaseSeries 3.4.0

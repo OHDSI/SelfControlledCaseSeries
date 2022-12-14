@@ -214,7 +214,7 @@ private:
       outcomeCount[cursor] = covariateStatistics.outcomeCount;
       observationPeriodCount[cursor] = covariateStatistics.observationPeriodCount;
       observedDayCount[cursor] = covariateStatistics.observedDayCount;
-      observedOutcomeCount[cursor] = covariateStatistics.observedDayCount;
+      observedOutcomeCount[cursor] = covariateStatistics.observedOutcomeCount;
       cursor++;
     }
     DataFrame covariateStatistics = DataFrame::create(Named("covariateId") = wrap(covariateId),
