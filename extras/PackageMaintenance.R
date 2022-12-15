@@ -50,12 +50,10 @@ rmarkdown::render("vignettes/MultipleAnalyses.Rmd",
                                           number_sections = TRUE))
 unlink("inst/doc/MultipleAnalyses.tex")
 
+
 rmarkdown::render("vignettes/ResultsSchema.Rmd",
-                  output_file = "../inst/doc/ResultsSchema.pdf",
-                  rmarkdown::pdf_document(latex_engine = "pdflatex",
-                                          toc = TRUE,
-                                          number_sections = TRUE))
-unlink("inst/doc/ResultsSchema.tex")
+                  output_file = "../inst/doc/ResultsSchema.pdf")
+
 
 pkgdown::build_site()
 OhdsiRTools::fixHadesLogo()

@@ -45,8 +45,7 @@ Suggests:
 	testthat,
 	knitr,
 	rmarkdown,
-	Eunomia,
-	kableExtra
+	Eunomia
 Remotes:
   ohdsi/Eunomia,
   ohdsi/DatabaseConnector@beta_6.0.0

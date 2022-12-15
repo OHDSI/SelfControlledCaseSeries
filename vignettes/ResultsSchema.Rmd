@@ -3,10 +3,10 @@ title: "Results schema of the SelfControlledCaseSeries package"
 author: "Martijn J. Schuemie"
 date: "`r Sys.Date()`"
 output:
-  pdf_document:
+  html_document:
     number_sections: yes
     toc: yes
-  html_document:
+  pdf_document:
     number_sections: yes
     toc: yes
 vignette: >
@@ -17,9 +17,8 @@ vignette: >
 
 
 ```{r setup, include=FALSE}
-library(kableExtra)
 library(dplyr)
-latex_table_font_size <- 8
+library(knitr)
 ```
 
 # Introduction
@@ -72,25 +71,10 @@ for (table in tables) {
 
   table <- table %>%
     select(Field = "columnName", Type = "dataType", Key = "primaryKey", "Min. count" = "minCellCount", Description = "description") %>%
-    kable(linesep = "", booktabs = TRUE, longtable = TRUE)
-
-  if (knitr::is_latex_output()) {
-    writeLines("")
-    writeLines(header)
-
-    writeLines(table %>%
-      kable_styling(latex_options = "striped", font_size = latex_table_font_size) %>%
-      column_spec(1, width = "10em") %>%
-      column_spec(2, width = "5em") %>%
-      column_spec(3, width = "3em") %>%
-      column_spec(4, width = "3em") %>%
-      column_spec(5, width = "13em"))
-  } else if (knitr::is_html_output()) {
-    writeLines("")
-    writeLines(header)
-
-    writeLines(table %>%
-      kable_styling(bootstrap_options = "striped"))
-  }
+    kable(format = "simple", linesep = "", booktabs = TRUE, longtable = TRUE)
+  
+  writeLines("")
+  writeLines(header)
+  writeLines(table)
 }
 ```
