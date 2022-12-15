@@ -51,7 +51,7 @@ LEFT JOIN (
 ON outcome_ids.outcome_id = counts.outcome_id;
 
 {@study_start_date != '' & @study_end_date != ''} ? {
-INSERT INTO #counts (outcome_id, description, outcome_subjects, outcome_events, outcome_obs_periods)
+INSERT INTO #counts (outcome_id, description, outcome_subjects, outcome_events, outcome_obs_periods, observed_days)
 SELECT outcome_ids.outcome_id,
 	'Outcomes in study period',
 	CASE WHEN outcome_subjects IS NULL THEN 0 ELSE outcome_subjects END AS outcome_subjects,
@@ -72,7 +72,7 @@ ON outcome_ids.outcome_id = counts.outcome_id;
 }
 
 {@use_nesting_cohort} ? {
-INSERT INTO #counts (outcome_id, description, outcome_subjects, outcome_events, outcome_obs_periods)
+INSERT INTO #counts (outcome_id, description, outcome_subjects, outcome_events, outcome_obs_periods, observed_days)
 SELECT outcome_ids.outcome_id,
 	'Outcomes in nesting cohort',
 	CASE WHEN outcome_subjects IS NULL THEN 0 ELSE outcome_subjects END AS outcome_subjects,

@@ -153,12 +153,12 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
   checkmate::assertInt(maxCasesPerOutcome, lower = 0, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (is.null(studyStartDate)) {
+  if (is.null(studyStartDate) || is.na(studyStartDate)) {
     studyStartDate <- ""
   } else {
     studyStartDate <- format(studyStartDate, "%Y%m%d")
   }
-  if (is.null(studyEndDate)) {
+  if (is.null(studyEndDate) || is.na(studyEndDate)) {
     studyEndDate <- ""
   } else {
     studyEndDate <- format(studyEndDate, "%Y%m%d")
