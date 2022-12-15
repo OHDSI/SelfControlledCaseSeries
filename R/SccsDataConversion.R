@@ -61,7 +61,7 @@ createSccsIntervalData <- function(studyPopulation,
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  if (is.list(eraCovariateSettings) && class(eraCovariateSettings) != "EraCovariateSettings") {
+  if (is.list(eraCovariateSettings) && !is(eraCovariateSetting, "EraCovariateSettings")) {
     for (i in 1:length(eraCovariateSettings)) {
       checkmate::assertClass(eraCovariateSettings[[i]], "EraCovariateSettings", add = errorMessages)
     }
@@ -448,7 +448,7 @@ addEventDependentObservationSettings <- function(settings,
 }
 
 addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
-  if (is.list(eraCovariateSettings) && class(eraCovariateSettings) != "EraCovariateSettings") {
+  if (is.list(eraCovariateSettings) && !is(eraCovariateSettings, "EraCovariateSettings")) {
     eraCovariateSettingsList <- eraCovariateSettings
   } else {
     eraCovariateSettingsList <- list(eraCovariateSettings)
