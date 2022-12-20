@@ -2,7 +2,7 @@ Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
 Version: 4.0.0
-Date: 2022-11-23
+Date: 2022-12-20
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
@@ -24,7 +24,7 @@ BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
 	R (>= 4.0.0),
 	Cyclops (>= 3.2.0),
-	DatabaseConnector (>= 6.0.0),
+	DatabaseConnector (>= 5.1.0),
 	Andromeda,
 	survival
 Imports:
@@ -47,11 +47,10 @@ Suggests:
 	rmarkdown,
 	Eunomia
 Remotes:
-  ohdsi/Eunomia,
-  ohdsi/DatabaseConnector@beta_6.0.0
+  ohdsi/Eunomia
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
 Encoding: UTF-8

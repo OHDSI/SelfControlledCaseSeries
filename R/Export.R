@@ -301,7 +301,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
     refRow <- reference[i, ]
     if (refRow$sccsDataFile != sccsDataFile) {
       sccsDataFile <- refRow$sccsDataFile
-      sccsData <- SelfControlledCaseSeries::loadSccsData(file.path(outputFolder, sccsDataFile))
+      sccsData <- loadSccsData(file.path(outputFolder, sccsDataFile))
 
       # sccsEra table
       eraRef <- sccsData$eraRef %>%
@@ -336,7 +336,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         inner_join(timeSpans, by = character())
 
       # sccsEventDepObservation table
-      data <- SelfControlledCaseSeries:::computeTimeToObsEnd(studyPop) %>%
+      data <- computeTimeToObsEnd(studyPop) %>%
         mutate(monthsToEnd = round(.data$daysFromEvent / 30.5)) %>%
         group_by(.data$monthsToEnd, .data$censoring) %>%
         summarize(outcomes = n(), .groups = "drop") %>%
@@ -360,7 +360,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
 
     # sccsTimeToEvent table
     for (exposure in esoList[[refRow$exposuresOutcomeSetId]]$exposures) {
-      data <- SelfControlledCaseSeries:::computeTimeToEvent(
+      data <- computeTimeToEvent(
         studyPopulation = studyPop,
         sccsData = sccsData,
         exposureEraId = exposure$exposureId
@@ -738,8 +738,8 @@ computeSpans <- function(studyPopulation, variable = "age") {
   } else {
     ages <- studyPopulation$cases %>%
       transmute(
-        start = SelfControlledCaseSeries:::convertDateToMonth(.data$startDate) + 1,
-        end = SelfControlledCaseSeries:::convertDateToMonth(.data$startDate + .data$endDay) - 1,
+        start = convertDateToMonth(.data$startDate) + 1,
+        end = convertDateToMonth(.data$startDate + .data$endDay) - 1,
         count = 1
       )
   }
