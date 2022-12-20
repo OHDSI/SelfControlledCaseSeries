@@ -37,23 +37,13 @@ unlink("extras/SelfControlledCaseSeries.pdf")
 shell("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
 
 rmarkdown::render("vignettes/SingleStudies.Rmd",
-                  output_file = "../inst/doc/SingleStudies.pdf",
-                  rmarkdown::pdf_document(latex_engine = "pdflatex",
-                                          toc = TRUE,
-                                          number_sections = TRUE))
-unlink("inst/doc/SingleStudies.tex")
+                  output_file = "../inst/doc/SingleStudies.pdf")
 
 rmarkdown::render("vignettes/MultipleAnalyses.Rmd",
-                  output_file = "../inst/doc/MultipleAnalyses.pdf",
-                  rmarkdown::pdf_document(latex_engine = "pdflatex",
-                                          toc = TRUE,
-                                          number_sections = TRUE))
-unlink("inst/doc/MultipleAnalyses.tex")
-
+                  output_file = "../inst/doc/MultipleAnalyses.pdf")
 
 rmarkdown::render("vignettes/ResultsSchema.Rmd",
                   output_file = "../inst/doc/ResultsSchema.pdf")
-
 
 pkgdown::build_site()
 OhdsiRTools::fixHadesLogo()

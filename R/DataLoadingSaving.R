@@ -168,9 +168,13 @@ getDbSccsData <- function(connectionDetails,
   }
   if (packageVersion("DatabaseConnector") >= "6.0.0") {
     # Avoids warning about missing or unexported object:
-    do.call(getExportedValue("DatabaseConnector", "assertTempEmulationSchemaSet"),
-            list(dbms = connectionDetails$dbms,
-                 tempEmulationSchema = tempEmulationSchema))
+    do.call(
+      getExportedValue("DatabaseConnector", "assertTempEmulationSchemaSet"),
+      list(
+        dbms = connectionDetails$dbms,
+        tempEmulationSchema = tempEmulationSchema
+      )
+    )
     # DatabaseConnector::assertTempEmulationSchemaSet(
     #   dbms = connectionDetails$dbms,
     #   tempEmulationSchema = tempEmulationSchema
@@ -186,12 +190,12 @@ getDbSccsData <- function(connectionDetails,
   } else {
     hasExposureIds <- TRUE
     DatabaseConnector::insertTable(conn,
-                                   tableName = "#exposure_ids",
-                                   data = data.frame(concept_id = as.integer(exposureIds)),
-                                   dropTableIfExists = TRUE,
-                                   createTable = TRUE,
-                                   tempTable = TRUE,
-                                   tempEmulationSchema = tempEmulationSchema
+      tableName = "#exposure_ids",
+      data = data.frame(concept_id = as.integer(exposureIds)),
+      dropTableIfExists = TRUE,
+      createTable = TRUE,
+      tempTable = TRUE,
+      tempEmulationSchema = tempEmulationSchema
     )
   }
 
@@ -200,65 +204,65 @@ getDbSccsData <- function(connectionDetails,
   } else {
     hasCustomCovariateIds <- TRUE
     DatabaseConnector::insertTable(conn,
-                                   tableName = "#custom_cov_ids",
-                                   data = data.frame(concept_id = as.integer(customCovariateIds)),
-                                   dropTableIfExists = TRUE,
-                                   createTable = TRUE,
-                                   tempTable = TRUE,
-                                   tempEmulationSchema = tempEmulationSchema
+      tableName = "#custom_cov_ids",
+      data = data.frame(concept_id = as.integer(customCovariateIds)),
+      dropTableIfExists = TRUE,
+      createTable = TRUE,
+      tempTable = TRUE,
+      tempEmulationSchema = tempEmulationSchema
     )
   }
 
   message("Selecting outcomes")
   sql <- SqlRender::loadRenderTranslateSql("SelectOutcomes.sql",
-                                           packageName = "SelfControlledCaseSeries",
-                                           dbms = connectionDetails$dbms,
-                                           tempEmulationSchema = tempEmulationSchema,
-                                           cdm_database_schema = cdmDatabaseSchema,
-                                           outcome_database_schema = outcomeDatabaseSchema,
-                                           outcome_table = outcomeTable,
-                                           outcome_concept_ids = outcomeIds,
-                                           use_nesting_cohort = useNestingCohort,
-                                           nesting_cohort_database_schema = nestingCohortDatabaseSchema,
-                                           nesting_cohort_table = nestingCohortTable,
-                                           nesting_cohort_id = nestingCohortId,
-                                           study_start_date = studyStartDate,
-                                           study_end_date = studyEndDate
+    packageName = "SelfControlledCaseSeries",
+    dbms = connectionDetails$dbms,
+    tempEmulationSchema = tempEmulationSchema,
+    cdm_database_schema = cdmDatabaseSchema,
+    outcome_database_schema = outcomeDatabaseSchema,
+    outcome_table = outcomeTable,
+    outcome_concept_ids = outcomeIds,
+    use_nesting_cohort = useNestingCohort,
+    nesting_cohort_database_schema = nestingCohortDatabaseSchema,
+    nesting_cohort_table = nestingCohortTable,
+    nesting_cohort_id = nestingCohortId,
+    study_start_date = studyStartDate,
+    study_end_date = studyEndDate
   )
   DatabaseConnector::executeSql(conn, sql)
 
   message("Creating cases")
   sql <- SqlRender::loadRenderTranslateSql("CreateCases.sql",
-                                           packageName = "SelfControlledCaseSeries",
-                                           dbms = connectionDetails$dbms,
-                                           tempEmulationSchema = tempEmulationSchema,
-                                           cdm_database_schema = cdmDatabaseSchema,
-                                           use_nesting_cohort = useNestingCohort,
-                                           nesting_cohort_database_schema = nestingCohortDatabaseSchema,
-                                           nesting_cohort_table = nestingCohortTable,
-                                           nesting_cohort_id = nestingCohortId,
-                                           study_start_date = studyStartDate,
-                                           study_end_date = studyEndDate
+    packageName = "SelfControlledCaseSeries",
+    dbms = connectionDetails$dbms,
+    tempEmulationSchema = tempEmulationSchema,
+    cdm_database_schema = cdmDatabaseSchema,
+    use_nesting_cohort = useNestingCohort,
+    nesting_cohort_database_schema = nestingCohortDatabaseSchema,
+    nesting_cohort_table = nestingCohortTable,
+    nesting_cohort_id = nestingCohortId,
+    study_start_date = studyStartDate,
+    study_end_date = studyEndDate
   )
   DatabaseConnector::executeSql(conn, sql)
 
   DatabaseConnector::insertTable(conn,
-                                 tableName = "#outcome_ids",
-                                 data = data.frame(outcome_id = as.integer(outcomeIds)),
-                                 dropTableIfExists = TRUE,
-                                 createTable = TRUE,
-                                 tempTable = TRUE,
-                                 tempEmulationSchema = tempEmulationSchema
+    tableName = "#outcome_ids",
+    data = data.frame(outcome_id = as.integer(outcomeIds)),
+    dropTableIfExists = TRUE,
+    createTable = TRUE,
+    tempTable = TRUE,
+    tempEmulationSchema = tempEmulationSchema
   )
 
   message("Counting outcomes")
   sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
-                                           packageName = "SelfControlledCaseSeries",
-                                           dbms = connectionDetails$dbms,
-                                           tempEmulationSchema = tempEmulationSchema,
-                                           use_nesting_cohort = useNestingCohort,
-                                           study_start_date = studyStartDate,
-                                           study_end_date = studyEndDate
+    packageName = "SelfControlledCaseSeries",
+    dbms = connectionDetails$dbms,
+    tempEmulationSchema = tempEmulationSchema,
+    use_nesting_cohort = useNestingCohort,
+    study_start_date = studyStartDate,
+    study_end_date = studyEndDate
   )
   DatabaseConnector::executeSql(conn, sql)
 
@@ -277,10 +281,10 @@ getDbSccsData <- function(connectionDetails,
     }
     if (sampledCases) {
       sql <- SqlRender::loadRenderTranslateSql("SampleCases.sql",
-                                               packageName = "SelfControlledCaseSeries",
-                                               dbms = connectionDetails$dbms,
-                                               tempEmulationSchema = tempEmulationSchema,
-                                               max_cases_per_outcome = maxCasesPerOutcome
+        packageName = "SelfControlledCaseSeries",
+        dbms = connectionDetails$dbms,
+        tempEmulationSchema = tempEmulationSchema,
+        max_cases_per_outcome = maxCasesPerOutcome
       )
       DatabaseConnector::executeSql(conn, sql)
     }
@@ -288,35 +292,35 @@ getDbSccsData <- function(connectionDetails,
 
   message("Creating eras")
   sql <- SqlRender::loadRenderTranslateSql("CreateEras.sql",
-                                           packageName = "SelfControlledCaseSeries",
-                                           dbms = connectionDetails$dbms,
-                                           tempEmulationSchema = tempEmulationSchema,
-                                           cdm_database_schema = cdmDatabaseSchema,
-                                           outcome_database_schema = outcomeDatabaseSchema,
-                                           outcome_table = outcomeTable,
-                                           outcome_concept_ids = outcomeIds,
-                                           exposure_database_schema = exposureDatabaseSchema,
-                                           exposure_table = exposureTable,
-                                           use_nesting_cohort = useNestingCohort,
-                                           use_custom_covariates = useCustomCovariates,
-                                           custom_covariate_database_schema = customCovariateDatabaseSchema,
-                                           custom_covariate_table = customCovariateTable,
-                                           has_exposure_ids = hasExposureIds,
-                                           has_custom_covariate_ids = hasCustomCovariateIds,
-                                           delete_covariates_small_count = deleteCovariatesSmallCount,
-                                           study_start_date = studyStartDate,
-                                           study_end_date = studyEndDate,
-                                           sampled_cases = sampledCases
+    packageName = "SelfControlledCaseSeries",
+    dbms = connectionDetails$dbms,
+    tempEmulationSchema = tempEmulationSchema,
+    cdm_database_schema = cdmDatabaseSchema,
+    outcome_database_schema = outcomeDatabaseSchema,
+    outcome_table = outcomeTable,
+    outcome_concept_ids = outcomeIds,
+    exposure_database_schema = exposureDatabaseSchema,
+    exposure_table = exposureTable,
+    use_nesting_cohort = useNestingCohort,
+    use_custom_covariates = useCustomCovariates,
+    custom_covariate_database_schema = customCovariateDatabaseSchema,
+    custom_covariate_table = customCovariateTable,
+    has_exposure_ids = hasExposureIds,
+    has_custom_covariate_ids = hasCustomCovariateIds,
+    delete_covariates_small_count = deleteCovariatesSmallCount,
+    study_start_date = studyStartDate,
+    study_end_date = studyEndDate,
+    sampled_cases = sampledCases
   )
   DatabaseConnector::executeSql(conn, sql)
 
   message("Fetching data from server")
   sccsData <- Andromeda::andromeda()
   sql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
-                                           packageName = "SelfControlledCaseSeries",
-                                           dbms = connectionDetails$dbms,
-                                           tempEmulationSchema = tempEmulationSchema,
-                                           sampled_cases = sampledCases
+    packageName = "SelfControlledCaseSeries",
+    dbms = connectionDetails$dbms,
+    tempEmulationSchema = tempEmulationSchema,
+    sampled_cases = sampledCases
   )
   DatabaseConnector::querySqlToAndromeda(
     connection = conn,
@@ -343,9 +347,9 @@ getDbSccsData <- function(connectionDetails,
   }
 
   sql <- SqlRender::loadRenderTranslateSql("QueryEras.sql",
-                                           packageName = "SelfControlledCaseSeries",
-                                           dbms = connectionDetails$dbms,
-                                           tempEmulationSchema = tempEmulationSchema
+    packageName = "SelfControlledCaseSeries",
+    dbms = connectionDetails$dbms,
+    tempEmulationSchema = tempEmulationSchema
   )
   DatabaseConnector::querySqlToAndromeda(
     connection = conn,
@@ -367,15 +371,15 @@ getDbSccsData <- function(connectionDetails,
 
   # Delete temp tables
   sql <- SqlRender::loadRenderTranslateSql("RemoveTempTables.sql",
-                                           packageName = "SelfControlledCaseSeries",
-                                           dbms = connectionDetails$dbms,
-                                           tempEmulationSchema = tempEmulationSchema,
-                                           study_start_date = studyStartDate,
-                                           study_end_date = studyEndDate,
-                                           sampled_cases = sampledCases,
-                                           has_exposure_ids = hasExposureIds,
-                                           use_nesting_cohort = useNestingCohort,
-                                           has_custom_covariate_ids = hasCustomCovariateIds
+    packageName = "SelfControlledCaseSeries",
+    dbms = connectionDetails$dbms,
+    tempEmulationSchema = tempEmulationSchema,
+    study_start_date = studyStartDate,
+    study_end_date = studyEndDate,
+    sampled_cases = sampledCases,
+    has_exposure_ids = hasExposureIds,
+    use_nesting_cohort = useNestingCohort,
+    has_custom_covariate_ids = hasCustomCovariateIds
   )
   DatabaseConnector::executeSql(conn, sql, progressBar = FALSE, reportOverallTime = FALSE)
 

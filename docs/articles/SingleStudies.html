@@ -92,7 +92,7 @@ SelfControlledCaseSeries package</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie, Marc A. Suchard and Patrick Ryan</h4>
             
-            <h4 data-toc-skip class="date">2022-12-14</h4>
+            <h4 data-toc-skip class="date">2022-12-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/SingleStudies.Rmd" class="external-link"><code>vignettes/SingleStudies.Rmd</code></a></small>
       <div class="hidden name"><code>SingleStudies.Rmd</code></div>
@@ -130,7 +130,7 @@ from the SCCS model to avoid exposure and incident outcome
 misclassification. For example, if we observe the outcome on the second
 day of a person’s observation period, we do not know whether the outcome
 is a new one or just a follow-up for an old one, and whether the patient
-may have started the exposure just prior to obervation start without us
+may have started the exposure just prior to observation start without us
 knowing about it.</li>
 <li>
 <strong>Nesting cohort</strong>: the observation period can be
@@ -283,16 +283,17 @@ the parameter values; we do not have to change the SQL code. By also
 making use of translation functionality in <code>SqlRender</code>, we
 can make sure the SQL code can be run in many different
 environments.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(SqlRender)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>sql <span class="ot">&lt;-</span> <span class="fu">readSql</span>(<span class="st">"vignette.sql"</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>sql <span class="ot">&lt;-</span> <span class="fu">render</span>(sql,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">cdmDatabaseSchema =</span> cdmDatabaseSchema, </span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">cohortDatabaseSchema =</span> cohortDatabaseSchema</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">outcomeTable =</span> <span class="st">"my_outcomes"</span>)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>sql <span class="ot">&lt;-</span> <span class="fu">translate</span>(sql, <span class="at">targetDialect =</span> connectionDetails<span class="sc">$</span>dbms)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>connection <span class="ot">&lt;-</span> <span class="fu">connect</span>(connectionDetails)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">executeSql</span>(connection, sql)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/SqlRender/" class="external-link">SqlRender</a></span><span class="op">)</span></span>
+<span><span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/readSql.html" class="external-link">readSql</a></span><span class="op">(</span><span class="st">"vignette.sql"</span><span class="op">)</span></span>
+<span><span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/render.html" class="external-link">render</a></span><span class="op">(</span><span class="va">sql</span>,</span>
+<span>              cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>, </span>
+<span>              cohortDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>,</span>
+<span>              outcomeTable <span class="op">=</span> <span class="st">"my_outcomes"</span><span class="op">)</span></span>
+<span><span class="va">sql</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ohdsi.github.io/SqlRender/reference/translate.html" class="external-link">translate</a></span><span class="op">(</span><span class="va">sql</span>, targetDialect <span class="op">=</span> <span class="va">connectionDetails</span><span class="op">$</span><span class="va">dbms</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">connection</span> <span class="op">&lt;-</span> <span class="fu">connect</span><span class="op">(</span><span class="va">connectionDetails</span><span class="op">)</span></span>
+<span><span class="fu">executeSql</span><span class="op">(</span><span class="va">connection</span>, <span class="va">sql</span><span class="op">)</span></span></code></pre></div>
 <p>In this code, we first read the SQL from the file into memory. In the
 next line, we replace the three parameter names with the actual values.
 We then translate the SQL into the dialect appropriate for the DBMS we
@@ -338,7 +339,7 @@ necessary data for our analysis:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmpiozb5W\file109830d5fe7.sqlite</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmpkplf0g\file26f070083428.sqlite</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, observationDays, startYear, startMonth, startDay, ageInDays, censoredDays, noninformativeEndCensor)</span></span>
@@ -557,7 +558,7 @@ the risk attributable to seasonality is assumed to be constant, but from
 month to month the risks are assumed to follow a cyclic cubic
 spline.</p>
 <p>Note that the by default all people that have the outcome will be
-used to estimate the effect of age, seasonality, and calender time on
+used to estimate the effect of age, seasonality, and calendar time on
 the outcome, so not just the people exposed to the drug of interest.
 Adjusting for age typically only makes sense for small children, where a
 small difference in age can still make a big difference (remember: we
@@ -565,20 +566,21 @@ are modeling the effect of age in each person by themselves, not the
 effect of age across persons). Since age and calendar time are often
 hard to fit simultaneously, it is often best to only mode seasonality,
 and calendar time, like this:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>seasonalityCovariateSettings <span class="ot">&lt;-</span> <span class="fu">createSeasonalityCovariateSettings</span>(<span class="at">seasonKnots =</span> <span class="dv">5</span>)</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>calendarTimeSettings <span class="ot">&lt;-</span> <span class="fu">createCalendarTimeCovariateSettings</span>(<span class="at">calendarTimeKnots =</span> <span class="dv">5</span>)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>sccsIntervalData <span class="ot">&lt;-</span> <span class="fu">createSccsIntervalData</span>(</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">studyPopulation =</span> studyPop,</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">sccsData =</span> sccsData,</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">eraCovariateSettings =</span> <span class="fu">list</span>(covarDiclofenac,</span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>                              covarPreDiclofenac)</span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">seasonalityCovariateSettings =</span> seasonalityCovariateSettings,</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">calendarTimeCovariateSettings =</span> calendarTimeSettings</span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">fitSccsModel</span>(sccsIntervalData)</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">seasonalityCovariateSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSeasonalityCovariateSettings.html">createSeasonalityCovariateSettings</a></span><span class="op">(</span>seasonKnots <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">calendarTimeSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCalendarTimeCovariateSettings.html">createCalendarTimeCovariateSettings</a></span><span class="op">(</span>calendarTimeKnots <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span></span>
+<span>  studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
+<span>  sccsData <span class="op">=</span> <span class="va">sccsData</span>,</span>
+<span>  eraCovariateSettings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">covarDiclofenac</span>,</span>
+<span>                              <span class="va">covarPreDiclofenac</span><span class="op">)</span>,</span>
+<span>  seasonalityCovariateSettings <span class="op">=</span> <span class="va">seasonalityCovariateSettings</span>,</span>
+<span>  calendarTimeCovariateSettings <span class="op">=</span> <span class="va">calendarTimeSettings</span></span>
+<span><span class="op">)</span></span>
+<span>  </span>
+<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></span></code></pre></div>
 <p>Again, we can inspect the model:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span></span></code></pre></div>
@@ -697,7 +699,7 @@ information on PPI exposure from the database:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmpiozb5W\file109867b27e1f.sqlite</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmpkplf0g\file26f073563b80.sqlite</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, observationDays, startYear, startMonth, startDay, ageInDays, censoredDays, noninformativeEndCensor)</span></span>
@@ -1072,7 +1074,7 @@ Foundation grant IIS 1251151.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer>

@@ -24,5 +24,5 @@ An object of type \code{Exposure}.
 Create exposure definition
 }
 \details{
-Create an exposur definition, to be used with the \link{createExposuresOutcome} function.
+Create an exposure definition, to be used with the \link{createExposuresOutcome} function.
 }

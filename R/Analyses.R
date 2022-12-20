@@ -107,7 +107,7 @@ loadSccsAnalysisList <- function(file) {
 #' Create exposure definition
 #'
 #' @details
-#' Create an exposur definition, to be used with the [createExposuresOutcome] function.
+#' Create an exposure definition, to be used with the [createExposuresOutcome] function.
 #'
 #' @param exposureId     An integer used to identify the exposure in the exposure cohort table.
 #' @param exposureIdRef  A string used to refer to the exposure when defining covariates using the

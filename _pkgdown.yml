@@ -7,6 +7,89 @@ home:
   - text: Ask a question
     href: http://forums.ohdsi.org
 
+reference:
+  - title: "Getting data and creating a study population"
+    desc: >
+      Functions for getting the necessary data from the database in Common Data Model, and creating a study population.
+    contents:
+      - SccsData-class
+      - getDbSccsData
+      - saveSccsData
+      - loadSccsData
+      - isSccsData
+      - createStudyPopulation
+  - title: "Interval data"
+    desc: >
+      Functions for creating interval data.
+    contents:
+      - SccsIntervalData-class
+      - createEraCovariateSettings
+      - createAgeCovariateSettings
+      - createSeasonalityCovariateSettings
+      - createCalendarTimeCovariateSettings
+      - createControlIntervalSettings
+      - createSccsIntervalData
+      - createScriIntervalData
+      - saveSccsIntervalData
+      - loadSccsIntervalData
+      - isSccsIntervalData
+  - title: "Model fitting"
+    desc: >
+      Functions for creating and viewing models.
+    contents:
+      - fitSccsModel
+      - getModel
+      - plotAgeEffect
+      - plotSeasonality
+      - plotCalendarTimeEffect
+      - hasAgeEffect
+      - hasSeasonality
+      - hasCalendarTimeEffect
+  - title: "Diagnostics"
+    desc: >
+      Functions for producing various study diagnostics.
+    contents:
+      - computeMdrr
+      - computePreExposureGainP
+      - computeTimeStability
+      - getAttritionTable
+      - plotAgeSpans
+      - plotCalendarTimeSpans
+      - plotEventObservationDependence
+      - plotEventToCalendarTime
+      - plotExposureCentered
+  - title: "Running multiple analyses"
+    desc: >
+      Functions for running multiple analyses in an efficient way.
+    contents:
+      - ends_with("Args")
+      - createExposure
+      - createExposuresOutcome
+      - saveExposuresOutcomeList
+      - loadExposuresOutcomeList
+      - createSccsAnalysis
+      - saveSccsAnalysisList
+      - loadSccsAnalysisList
+      - createSccsMultiThreadingSettings
+      - createDefaultSccsMultiThreadingSettings
+      - runSccsAnalyses
+      - getFileReference
+      - getResultsSummary
+      - createSccsDiagnosticThresholds
+      - exportToCsv
+  - title: "Simulation"
+    desc: >
+      Functions for simulating cohort method data objects.
+    contents:
+      - createSimulationRiskWindow
+      - createSccsSimulationSettings
+      - simulateSccsData
+  - title: "Helper functions"
+    desc: >
+      Various helper functions
+    contents:
+      - cyclicSplineDesign
+
 navbar:
   structure:
     right: [hades, github]

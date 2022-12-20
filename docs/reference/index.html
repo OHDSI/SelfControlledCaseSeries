@@ -66,8 +66,120 @@
     </div>
 
     <table class="ref-index"><colgroup><col class="alias"><col class="title"></colgroup><tbody><tr><th colspan="2">
-          <h2 id="all-functions">All functions <a href="#all-functions" class="anchor" aria-hidden="true"></a></h2>
-          <p class="section-desc"></p>
+          <h2 id="getting-data-and-creating-a-study-population">Getting data and creating a study population <a href="#getting-data-and-creating-a-study-population" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Functions for getting the necessary data from the database in Common Data Model, and creating a study population.</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="SccsData-class.html">show(<i>&lt;SccsData&gt;</i>)</a></code> <code><a href="SccsData-class.html">summary(<i>&lt;SccsData&gt;</i>)</a></code> </p>
+        </td>
+        <td><p>SCCS Data</p></td>
+      </tr><tr><td>
+          <p><code><a href="getDbSccsData.html">getDbSccsData()</a></code> </p>
+        </td>
+        <td><p>Load data for SCCS from the database</p></td>
+      </tr><tr><td>
+          <p><code><a href="saveSccsData.html">saveSccsData()</a></code> </p>
+        </td>
+        <td><p>Save the cohort method data to file</p></td>
+      </tr><tr><td>
+          <p><code><a href="loadSccsData.html">loadSccsData()</a></code> </p>
+        </td>
+        <td><p>Load the cohort method data from a file</p></td>
+      </tr><tr><td>
+          <p><code><a href="isSccsData.html">isSccsData()</a></code> </p>
+        </td>
+        <td><p>Check whether an object is a SccsData object</p></td>
+      </tr><tr><td>
+          <p><code><a href="createStudyPopulation.html">createStudyPopulation()</a></code> </p>
+        </td>
+        <td><p>Create a study population</p></td>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="interval-data">Interval data <a href="#interval-data" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Functions for creating interval data.</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="SccsIntervalData-class.html">show(<i>&lt;SccsIntervalData&gt;</i>)</a></code> <code><a href="SccsIntervalData-class.html">summary(<i>&lt;SccsIntervalData&gt;</i>)</a></code> </p>
+        </td>
+        <td><p>SCCS Interval Data</p></td>
+      </tr><tr><td>
+          <p><code><a href="createEraCovariateSettings.html">createEraCovariateSettings()</a></code> </p>
+        </td>
+        <td><p>Create era covariate settings</p></td>
+      </tr><tr><td>
+          <p><code><a href="createAgeCovariateSettings.html">createAgeCovariateSettings()</a></code> </p>
+        </td>
+        <td><p>Create age covariate settings</p></td>
+      </tr><tr><td>
+          <p><code><a href="createSeasonalityCovariateSettings.html">createSeasonalityCovariateSettings()</a></code> </p>
+        </td>
+        <td><p>Create seasonality settings</p></td>
+      </tr><tr><td>
+          <p><code><a href="createCalendarTimeCovariateSettings.html">createCalendarTimeCovariateSettings()</a></code> </p>
+        </td>
+        <td><p>Create calendar time settings</p></td>
+      </tr><tr><td>
+          <p><code><a href="createControlIntervalSettings.html">createControlIntervalSettings()</a></code> </p>
+        </td>
+        <td><p>Create control interval settings</p></td>
+      </tr><tr><td>
+          <p><code><a href="createSccsIntervalData.html">createSccsIntervalData()</a></code> </p>
+        </td>
+        <td><p>Create SCCS era data</p></td>
+      </tr><tr><td>
+          <p><code><a href="createScriIntervalData.html">createScriIntervalData()</a></code> </p>
+        </td>
+        <td><p>Create Self-Controlled Risk Interval (SCRI) era data</p></td>
+      </tr><tr><td>
+          <p><code><a href="saveSccsIntervalData.html">saveSccsIntervalData()</a></code> </p>
+        </td>
+        <td><p>Save the cohort method data to file</p></td>
+      </tr><tr><td>
+          <p><code><a href="loadSccsIntervalData.html">loadSccsIntervalData()</a></code> </p>
+        </td>
+        <td><p>Load the cohort method data from a file</p></td>
+      </tr><tr><td>
+          <p><code><a href="isSccsIntervalData.html">isSccsIntervalData()</a></code> </p>
+        </td>
+        <td><p>Check whether an object is a SccsIntervalData object</p></td>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="model-fitting">Model fitting <a href="#model-fitting" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Functions for creating and viewing models.</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="fitSccsModel.html">fitSccsModel()</a></code> </p>
+        </td>
+        <td><p>Fit the SCCS model</p></td>
+      </tr><tr><td>
+          <p><code><a href="getModel.html">getModel()</a></code> </p>
+        </td>
+        <td><p>Output the full model</p></td>
+      </tr><tr><td>
+          <p><code><a href="plotAgeEffect.html">plotAgeEffect()</a></code> </p>
+        </td>
+        <td><p>Plot the age effect</p></td>
+      </tr><tr><td>
+          <p><code><a href="plotSeasonality.html">plotSeasonality()</a></code> </p>
+        </td>
+        <td><p>Plot the seasonality effect</p></td>
+      </tr><tr><td>
+          <p><code><a href="plotCalendarTimeEffect.html">plotCalendarTimeEffect()</a></code> </p>
+        </td>
+        <td><p>Plot the calendar time effect</p></td>
+      </tr><tr><td>
+          <p><code><a href="hasAgeEffect.html">hasAgeEffect()</a></code> </p>
+        </td>
+        <td><p>Does the model contain an age effect?</p></td>
+      </tr><tr><td>
+          <p><code><a href="hasSeasonality.html">hasSeasonality()</a></code> </p>
+        </td>
+        <td><p>Does the model contain an age effect?</p></td>
+      </tr><tr><td>
+          <p><code><a href="hasCalendarTimeEffect.html">hasCalendarTimeEffect()</a></code> </p>
+        </td>
+        <td><p>Does the model contain an age effect?</p></td>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="diagnostics">Diagnostics <a href="#diagnostics" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Functions for producing various study diagnostics.</p>
         </th>
       </tr></tbody><tbody><tr><td>
           <p><code><a href="computeMdrr.html">computeMdrr()</a></code> </p>
@@ -82,169 +194,13 @@
         </td>
         <td><p>Compute stability of outcome rate over time</p></td>
       </tr><tr><td>
-          <p><code><a href="createAgeCovariateSettings.html">createAgeCovariateSettings()</a></code> </p>
-        </td>
-        <td><p>Create age covariate settings</p></td>
-      </tr><tr><td>
-          <p><code><a href="createCalendarTimeCovariateSettings.html">createCalendarTimeCovariateSettings()</a></code> </p>
-        </td>
-        <td><p>Create calendar time settings</p></td>
-      </tr><tr><td>
-          <p><code><a href="createControlIntervalSettings.html">createControlIntervalSettings()</a></code> </p>
-        </td>
-        <td><p>Create control interval settings</p></td>
-      </tr><tr><td>
-          <p><code><a href="createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs()</a></code> </p>
-        </td>
-        <td><p>Create a parameter object for the function createSccsIntervalData</p></td>
-      </tr><tr><td>
-          <p><code><a href="createCreateScriIntervalDataArgs.html">createCreateScriIntervalDataArgs()</a></code> </p>
-        </td>
-        <td><p>Create a parameter object for the function createScriIntervalData</p></td>
-      </tr><tr><td>
-          <p><code><a href="createCreateStudyPopulationArgs.html">createCreateStudyPopulationArgs()</a></code> </p>
-        </td>
-        <td><p>Create a parameter object for the function createStudyPopulation</p></td>
-      </tr><tr><td>
-          <p><code><a href="createDefaultSccsMultiThreadingSettings.html">createDefaultSccsMultiThreadingSettings()</a></code> </p>
-        </td>
-        <td><p>Create default SelfControlledCaseSeries multi-threading settings</p></td>
-      </tr><tr><td>
-          <p><code><a href="createEraCovariateSettings.html">createEraCovariateSettings()</a></code> </p>
-        </td>
-        <td><p>Create era covariate settings</p></td>
-      </tr><tr><td>
-          <p><code><a href="createExposure.html">createExposure()</a></code> </p>
-        </td>
-        <td><p>Create exposure definition</p></td>
-      </tr><tr><td>
-          <p><code><a href="createExposuresOutcome.html">createExposuresOutcome()</a></code> </p>
-        </td>
-        <td><p>Create a exposures-outcome combination.</p></td>
-      </tr><tr><td>
-          <p><code><a href="createFitSccsModelArgs.html">createFitSccsModelArgs()</a></code> </p>
-        </td>
-        <td><p>Create a parameter object for the function fitSccsModel</p></td>
-      </tr><tr><td>
-          <p><code><a href="createGetDbSccsDataArgs.html">createGetDbSccsDataArgs()</a></code> </p>
-        </td>
-        <td><p>Create a parameter object for the function getDbSccsData</p></td>
-      </tr><tr><td>
-          <p><code><a href="createSccsAnalysis.html">createSccsAnalysis()</a></code> </p>
-        </td>
-        <td><p>Create a SelfControlledCaseSeries analysis specification</p></td>
-      </tr><tr><td>
-          <p><code><a href="createSccsDiagnosticThresholds.html">createSccsDiagnosticThresholds()</a></code> </p>
-        </td>
-        <td><p>Create SCCS diagnostics thresholds</p></td>
-      </tr><tr><td>
-          <p><code><a href="createSccsIntervalData.html">createSccsIntervalData()</a></code> </p>
-        </td>
-        <td><p>Create SCCS era data</p></td>
-      </tr><tr><td>
-          <p><code><a href="createSccsMultiThreadingSettings.html">createSccsMultiThreadingSettings()</a></code> </p>
-        </td>
-        <td><p>Create SelfControlledCaseSeries multi-threading settings</p></td>
-      </tr><tr><td>
-          <p><code><a href="createSccsSimulationSettings.html">createSccsSimulationSettings()</a></code> </p>
-        </td>
-        <td><p>Create SCCS simulation settings</p></td>
-      </tr><tr><td>
-          <p><code><a href="createScriIntervalData.html">createScriIntervalData()</a></code> </p>
-        </td>
-        <td><p>Create Self-Controlled Risk Interval (SCRI) era data</p></td>
-      </tr><tr><td>
-          <p><code><a href="createSeasonalityCovariateSettings.html">createSeasonalityCovariateSettings()</a></code> </p>
-        </td>
-        <td><p>Create seasonality settings</p></td>
-      </tr><tr><td>
-          <p><code><a href="createSimulationRiskWindow.html">createSimulationRiskWindow()</a></code> </p>
-        </td>
-        <td><p>Create a risk window definition for simulation</p></td>
-      </tr><tr><td>
-          <p><code><a href="createStudyPopulation.html">createStudyPopulation()</a></code> </p>
-        </td>
-        <td><p>Create a study population</p></td>
-      </tr><tr><td>
-          <p><code><a href="cyclicSplineDesign.html">cyclicSplineDesign()</a></code> </p>
-        </td>
-        <td><p>Create a design matrix for a cyclic spline</p></td>
-      </tr><tr><td>
-          <p><code><a href="exportToCsv.html">exportToCsv()</a></code> </p>
-        </td>
-        <td><p>Export SCCSresults to CSV files</p></td>
-      </tr><tr><td>
-          <p><code><a href="fitSccsModel.html">fitSccsModel()</a></code> </p>
-        </td>
-        <td><p>Fit the SCCS model</p></td>
-      </tr><tr><td>
           <p><code><a href="getAttritionTable.html">getAttritionTable()</a></code> </p>
         </td>
         <td><p>Get the attrition table for a population</p></td>
       </tr><tr><td>
-          <p><code><a href="getDbSccsData.html">getDbSccsData()</a></code> </p>
-        </td>
-        <td><p>Load data for SCCS from the database</p></td>
-      </tr><tr><td>
-          <p><code><a href="getFileReference.html">getFileReference()</a></code> </p>
-        </td>
-        <td><p>Get file reference</p></td>
-      </tr><tr><td>
-          <p><code><a href="getModel.html">getModel()</a></code> </p>
-        </td>
-        <td><p>Output the full model</p></td>
-      </tr><tr><td>
-          <p><code><a href="getResultsSummary.html">getResultsSummary()</a></code> </p>
-        </td>
-        <td><p>Get a summary report of the analyses results</p></td>
-      </tr><tr><td>
-          <p><code><a href="hasAgeEffect.html">hasAgeEffect()</a></code> </p>
-        </td>
-        <td><p>Does the model contain an age effect?</p></td>
-      </tr><tr><td>
-          <p><code><a href="hasCalendarTimeEffect.html">hasCalendarTimeEffect()</a></code> </p>
-        </td>
-        <td><p>Does the model contain an age effect?</p></td>
-      </tr><tr><td>
-          <p><code><a href="hasSeasonality.html">hasSeasonality()</a></code> </p>
-        </td>
-        <td><p>Does the model contain an age effect?</p></td>
-      </tr><tr><td>
-          <p><code><a href="isSccsData.html">isSccsData()</a></code> </p>
-        </td>
-        <td><p>Check whether an object is a SccsData object</p></td>
-      </tr><tr><td>
-          <p><code><a href="isSccsIntervalData.html">isSccsIntervalData()</a></code> </p>
-        </td>
-        <td><p>Check whether an object is a SccsIntervalData object</p></td>
-      </tr><tr><td>
-          <p><code><a href="loadExposuresOutcomeList.html">loadExposuresOutcomeList()</a></code> </p>
-        </td>
-        <td><p>Load a list of <code>ExposuresOutcome</code> from file</p></td>
-      </tr><tr><td>
-          <p><code><a href="loadSccsAnalysisList.html">loadSccsAnalysisList()</a></code> </p>
-        </td>
-        <td><p>Load a list of sccsAnalysis from file</p></td>
-      </tr><tr><td>
-          <p><code><a href="loadSccsData.html">loadSccsData()</a></code> </p>
-        </td>
-        <td><p>Load the cohort method data from a file</p></td>
-      </tr><tr><td>
-          <p><code><a href="loadSccsIntervalData.html">loadSccsIntervalData()</a></code> </p>
-        </td>
-        <td><p>Load the cohort method data from a file</p></td>
-      </tr><tr><td>
-          <p><code><a href="plotAgeEffect.html">plotAgeEffect()</a></code> </p>
-        </td>
-        <td><p>Plot the age effect</p></td>
-      </tr><tr><td>
           <p><code><a href="plotAgeSpans.html">plotAgeSpans()</a></code> </p>
         </td>
         <td><p>Plot the age ranges spanned by each observation period.</p></td>
-      </tr><tr><td>
-          <p><code><a href="plotCalendarTimeEffect.html">plotCalendarTimeEffect()</a></code> </p>
-        </td>
-        <td><p>Plot the calendar time effect</p></td>
       </tr><tr><td>
           <p><code><a href="plotCalendarTimeSpans.html">plotCalendarTimeSpans()</a></code> </p>
         </td>
@@ -261,42 +217,110 @@
           <p><code><a href="plotExposureCentered.html">plotExposureCentered()</a></code> </p>
         </td>
         <td><p>Plot information centered around the start of exposure</p></td>
-      </tr><tr><td>
-          <p><code><a href="plotSeasonality.html">plotSeasonality()</a></code> </p>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="running-multiple-analyses">Running multiple analyses <a href="#running-multiple-analyses" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Functions for running multiple analyses in an efficient way.</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="createCreateSccsIntervalDataArgs.html">createCreateSccsIntervalDataArgs()</a></code> </p>
         </td>
-        <td><p>Plot the seasonality effect</p></td>
+        <td><p>Create a parameter object for the function createSccsIntervalData</p></td>
       </tr><tr><td>
-          <p><code><a href="runSccsAnalyses.html">runSccsAnalyses()</a></code> </p>
+          <p><code><a href="createCreateScriIntervalDataArgs.html">createCreateScriIntervalDataArgs()</a></code> </p>
         </td>
-        <td><p>Run a list of analyses</p></td>
+        <td><p>Create a parameter object for the function createScriIntervalData</p></td>
+      </tr><tr><td>
+          <p><code><a href="createCreateStudyPopulationArgs.html">createCreateStudyPopulationArgs()</a></code> </p>
+        </td>
+        <td><p>Create a parameter object for the function createStudyPopulation</p></td>
+      </tr><tr><td>
+          <p><code><a href="createFitSccsModelArgs.html">createFitSccsModelArgs()</a></code> </p>
+        </td>
+        <td><p>Create a parameter object for the function fitSccsModel</p></td>
+      </tr><tr><td>
+          <p><code><a href="createGetDbSccsDataArgs.html">createGetDbSccsDataArgs()</a></code> </p>
+        </td>
+        <td><p>Create a parameter object for the function getDbSccsData</p></td>
+      </tr><tr><td>
+          <p><code><a href="createExposure.html">createExposure()</a></code> </p>
+        </td>
+        <td><p>Create exposure definition</p></td>
+      </tr><tr><td>
+          <p><code><a href="createExposuresOutcome.html">createExposuresOutcome()</a></code> </p>
+        </td>
+        <td><p>Create a exposures-outcome combination.</p></td>
       </tr><tr><td>
           <p><code><a href="saveExposuresOutcomeList.html">saveExposuresOutcomeList()</a></code> </p>
         </td>
         <td><p>Save a list of <code>ExposuresOutcome</code> to file</p></td>
       </tr><tr><td>
+          <p><code><a href="loadExposuresOutcomeList.html">loadExposuresOutcomeList()</a></code> </p>
+        </td>
+        <td><p>Load a list of <code>ExposuresOutcome</code> from file</p></td>
+      </tr><tr><td>
+          <p><code><a href="createSccsAnalysis.html">createSccsAnalysis()</a></code> </p>
+        </td>
+        <td><p>Create a SelfControlledCaseSeries analysis specification</p></td>
+      </tr><tr><td>
           <p><code><a href="saveSccsAnalysisList.html">saveSccsAnalysisList()</a></code> </p>
         </td>
         <td><p>Save a list of SccsAnalysis to file</p></td>
       </tr><tr><td>
-          <p><code><a href="saveSccsData.html">saveSccsData()</a></code> </p>
+          <p><code><a href="loadSccsAnalysisList.html">loadSccsAnalysisList()</a></code> </p>
         </td>
-        <td><p>Save the cohort method data to file</p></td>
+        <td><p>Load a list of sccsAnalysis from file</p></td>
       </tr><tr><td>
-          <p><code><a href="saveSccsIntervalData.html">saveSccsIntervalData()</a></code> </p>
+          <p><code><a href="createSccsMultiThreadingSettings.html">createSccsMultiThreadingSettings()</a></code> </p>
         </td>
-        <td><p>Save the cohort method data to file</p></td>
+        <td><p>Create SelfControlledCaseSeries multi-threading settings</p></td>
       </tr><tr><td>
-          <p><code><a href="SccsData-class.html">show(<i>&lt;SccsData&gt;</i>)</a></code> <code><a href="SccsData-class.html">summary(<i>&lt;SccsData&gt;</i>)</a></code> </p>
+          <p><code><a href="createDefaultSccsMultiThreadingSettings.html">createDefaultSccsMultiThreadingSettings()</a></code> </p>
         </td>
-        <td><p>SCCS Data</p></td>
+        <td><p>Create default SelfControlledCaseSeries multi-threading settings</p></td>
       </tr><tr><td>
-          <p><code><a href="SccsIntervalData-class.html">show(<i>&lt;SccsIntervalData&gt;</i>)</a></code> <code><a href="SccsIntervalData-class.html">summary(<i>&lt;SccsIntervalData&gt;</i>)</a></code> </p>
+          <p><code><a href="runSccsAnalyses.html">runSccsAnalyses()</a></code> </p>
         </td>
-        <td><p>SCCS Interval Data</p></td>
+        <td><p>Run a list of analyses</p></td>
+      </tr><tr><td>
+          <p><code><a href="getFileReference.html">getFileReference()</a></code> </p>
+        </td>
+        <td><p>Get file reference</p></td>
+      </tr><tr><td>
+          <p><code><a href="getResultsSummary.html">getResultsSummary()</a></code> </p>
+        </td>
+        <td><p>Get a summary report of the analyses results</p></td>
+      </tr><tr><td>
+          <p><code><a href="createSccsDiagnosticThresholds.html">createSccsDiagnosticThresholds()</a></code> </p>
+        </td>
+        <td><p>Create SCCS diagnostics thresholds</p></td>
+      </tr><tr><td>
+          <p><code><a href="exportToCsv.html">exportToCsv()</a></code> </p>
+        </td>
+        <td><p>Export SCCSresults to CSV files</p></td>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="simulation">Simulation <a href="#simulation" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Functions for simulating cohort method data objects.</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="createSimulationRiskWindow.html">createSimulationRiskWindow()</a></code> </p>
+        </td>
+        <td><p>Create a risk window definition for simulation</p></td>
+      </tr><tr><td>
+          <p><code><a href="createSccsSimulationSettings.html">createSccsSimulationSettings()</a></code> </p>
+        </td>
+        <td><p>Create SCCS simulation settings</p></td>
       </tr><tr><td>
           <p><code><a href="simulateSccsData.html">simulateSccsData()</a></code> </p>
         </td>
         <td><p>Simulate SCCS data</p></td>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="helper-functions">Helper functions <a href="#helper-functions" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Various helper functions</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="cyclicSplineDesign.html">cyclicSplineDesign()</a></code> </p>
+        </td>
+        <td><p>Create a design matrix for a cyclic spline</p></td>
       </tr></tbody></table></div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -310,7 +334,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

@@ -3,10 +3,10 @@ title: "Results schema of the SelfControlledCaseSeries package"
 author: "Martijn J. Schuemie"
 date: "`r Sys.Date()`"
 output:
-  html_document:
+  pdf_document:
     number_sections: yes
     toc: yes
-  pdf_document:
+  html_document:
     number_sections: yes
     toc: yes
 vignette: >
@@ -72,7 +72,7 @@ for (table in tables) {
   table <- table %>%
     select(Field = "columnName", Type = "dataType", Key = "primaryKey", "Min. count" = "minCellCount", Description = "description") %>%
     kable(format = "simple", linesep = "", booktabs = TRUE, longtable = TRUE)
-  
+
   writeLines("")
   writeLines(header)
   writeLines(table)

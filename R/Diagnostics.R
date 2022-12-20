@@ -157,7 +157,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
 #' @template SccsData
 #'
 #' @return
-#' A one-sided p-value for whether the rate before expore is higher than after, against
+#' A one-sided p-value for whether the rate before exposure is higher than after, against
 #' the null of no change.
 #'
 #' @export

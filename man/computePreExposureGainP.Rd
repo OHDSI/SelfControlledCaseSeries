@@ -17,7 +17,7 @@ assumed to be the one exposure for which the data was loaded from
 the database.}
 }
 \value{
-A one-sided p-value for whether the rate before expore is higher than after, against
+A one-sided p-value for whether the rate before exposure is higher than after, against
 the null of no change.
 }
 \description{

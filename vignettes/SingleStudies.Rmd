@@ -30,7 +30,7 @@ The following terms are used consistently throughout the package:
 
 - **Case**: a person having one or more outcomes .
 - **Observation period**: the time when a case is observed in the database. One case can have more than one observation period, but only observation periods that contain an outcome are considered.
-- **Naive period**: the first part of a person's observation period (e.g. the first 180 days). This is typically removed from the SCCS model to avoid exposure and incident outcome misclassification. For example, if we observe the outcome on the second day of a person's observation period, we do not know whether the outcome is a new one or just a follow-up for an old one, and whether the patient may have started the exposure just prior to obervation start without us knowing about it.
+- **Naive period**: the first part of a person's observation period (e.g. the first 180 days). This is typically removed from the SCCS model to avoid exposure and incident outcome misclassification. For example, if we observe the outcome on the second day of a person's observation period, we do not know whether the outcome is a new one or just a follow-up for an old one, and whether the patient may have started the exposure just prior to observation start without us knowing about it.
 - **Nesting cohort**: the observation period can be restricted to the time when a case belongs to a certain cohort. This is typically the indication of the drug. For example, if the drug treats diabetes, we may want to nest the analysis in the time when people have diabetes to avoid (time-varying) confounding by indication.
 - **Study population**: the set of cases having a specific outcome, and their observation periods, that meet certain criteria, such as the naive period and age restrictions.
 - **Era**: a data element extracted from the database denoting a time period for a patient (a case). This can be a cohort, but also a drug era. 
@@ -329,7 +329,7 @@ For computational reasons we assume the effect of age, season, and calendar time
 ![Spline for seasonality](spline.png)
 *Figure 1*. Example of how a spline is used for seasonality: within a month, the risk attributable to seasonality is assumed to be constant, but from month to month the risks are assumed to follow a cyclic cubic spline.
 
-Note that the by default all people that have the outcome will be used to estimate the effect of age, seasonality, and calender time on the outcome, so not just the people exposed to the drug of interest. Adjusting for age typically only makes sense for small children, where a small difference in age can still make a big difference (remember: we are modeling the effect of age in each person by themselves, not the effect of age across persons). Since age and calendar time are often hard to fit simultaneously, it is often best to only mode seasonality, and calendar time, like this:
+Note that the by default all people that have the outcome will be used to estimate the effect of age, seasonality, and calendar time on the outcome, so not just the people exposed to the drug of interest. Adjusting for age typically only makes sense for small children, where a small difference in age can still make a big difference (remember: we are modeling the effect of age in each person by themselves, not the effect of age across persons). Since age and calendar time are often hard to fit simultaneously, it is often best to only mode seasonality, and calendar time, like this:
 
 
 ```{r eval=FALSE}
@@ -341,7 +341,7 @@ sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
   eraCovariateSettings = list(covarDiclofenac,
-                              covarPreDiclofenac)
+                              covarPreDiclofenac),
   seasonalityCovariateSettings = seasonalityCovariateSettings,
   calendarTimeCovariateSettings = calendarTimeSettings
 )
