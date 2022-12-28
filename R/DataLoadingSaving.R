@@ -148,20 +148,18 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertCharacter(nestingCohortTable, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(nestingCohortId, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(deleteCovariatesSmallCount, lower = 0, add = errorMessages)
-  #checkmate::assertDate(studyStartDate, len = 1, null.ok = TRUE, add = errorMessages)
-  #checkmate::assertDate(studyEndDate, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
   checkmate::assertInt(maxCasesPerOutcome, lower = 0, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   if (is.null(studyStartDate) || is.na(studyStartDate)) {
     studyStartDate <- ""
   } else {
-    studyStartDate <- format(studyStartDate, "%Y%m%d")
+    studyStartDate <- format(as.Date(studyStartDate), "%Y%m%d")
   }
   if (is.null(studyEndDate) || is.na(studyEndDate)) {
     studyEndDate <- ""
   } else {
-    studyEndDate <- format(studyEndDate, "%Y%m%d")
+    studyEndDate <- format(as.Date(studyEndDate), "%Y%m%d")
   }
   if (cdmVersion == "4") {
     stop("CDM version 4 is no longer supported")
