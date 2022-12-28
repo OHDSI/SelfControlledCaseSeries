@@ -134,7 +134,7 @@ createStudyPopulation <- function(sccsData,
 
   if (!is.null(minAge) || !is.null(maxAge)) {
     labels <- c()
-    if (!is.null(minAge)) {
+    if (!is.null(minAge) && nrow(cases) > 0) {
       minAgeInDays <- minAge * 365.25
       cases <- cases %>%
         mutate(startAgeInDays = case_when(
@@ -144,7 +144,7 @@ createStudyPopulation <- function(sccsData,
         filter(.data$endAgeInDays > .data$startAgeInDays)
       labels <- c(labels, sprintf("age >= %s", minAge))
     }
-    if (!is.null(maxAge)) {
+    if (!is.null(maxAge) && nrow(cases) > 0) {
       maxAgeInDays <- round((maxAge + 1) * 365.25)
       cases <- cases %>%
         mutate(
