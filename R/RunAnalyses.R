@@ -184,7 +184,7 @@ runSccsAnalyses <- function(connectionDetails,
                             combineDataFetchAcrossOutcomes = FALSE,
                             sccsMultiThreadingSettings = createSccsMultiThreadingSettings()) {
   errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
+  checkmate::assertClass(connectionDetails, "ConnectionDetails", add = errorMessages)
   checkmate::assertCharacter(cdmDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(tempEmulationSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(exposureDatabaseSchema, len = 1, add = errorMessages)
