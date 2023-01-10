@@ -130,7 +130,11 @@ getDbSccsData <- function(connectionDetails,
                           cdmVersion = "5",
                           maxCasesPerOutcome = 0) {
   errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
+  if (is(connectionDetails, "connectionDetails")) {
+    checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
+  } else {
+    checkmate::assertClass(connectionDetails, "ConnectionDetails", add = errorMessages)
+  }
   checkmate::assertCharacter(cdmDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(tempEmulationSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(outcomeDatabaseSchema, len = 1, add = errorMessages)
