@@ -23,8 +23,8 @@ getDbSccsData(
   nestingCohortTable = "cohort",
   nestingCohortId = NULL,
   deleteCovariatesSmallCount = 0,
-  studyStartDate = NULL,
-  studyEndDate = NULL,
+  studyStartDate = "",
+  studyEndDate = "",
   cdmVersion = "5",
   maxCasesPerOutcome = 0
 )
@@ -100,11 +100,11 @@ should have the same structure as the cohort table (see details).}
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be
 kept.}
 
-\item{studyStartDate}{A \code{Date} object specifying the minimum date where data is
-used.}
+\item{studyStartDate}{A character object specifying the minimum date where data is
+used. Date format is 'yyyymmdd'.}
 
-\item{studyEndDate}{A \code{Date} object specifying the maximum date where data is
-used.}
+\item{studyEndDate}{A character object specifying the maximum date where data is
+used. Date format is 'yyyymmdd'.}
 
 \item{cdmVersion}{Define the OMOP CDM version used: currently supports "5".}
 

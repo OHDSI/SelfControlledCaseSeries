@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: '0 9 * * 6' # every Sunday at 9am UTC
+    - cron: '0 9 * * 6' # every Saturday at 9am UTC
     
 name: 'R check'
 

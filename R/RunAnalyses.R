@@ -1,4 +1,4 @@
-# Copyright 2022 Observational Health Data Sciences and Informatics
+# Copyright 2023 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 #
@@ -184,7 +184,11 @@ runSccsAnalyses <- function(connectionDetails,
                             combineDataFetchAcrossOutcomes = FALSE,
                             sccsMultiThreadingSettings = createSccsMultiThreadingSettings()) {
   errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertClass(connectionDetails, "ConnectionDetails", add = errorMessages)
+  if (is(connectionDetails, "connectionDetails")) {
+    checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
+  } else {
+    checkmate::assertClass(connectionDetails, "ConnectionDetails", add = errorMessages)
+  }
   checkmate::assertCharacter(cdmDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(tempEmulationSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(exposureDatabaseSchema, len = 1, add = errorMessages)

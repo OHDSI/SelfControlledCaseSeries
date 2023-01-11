@@ -1,4 +1,4 @@
-# Copyright 2022 Observational Health Data Sciences and Informatics
+# Copyright 2023 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 #
@@ -97,10 +97,10 @@
 #'                                        `nestingCohortTable` to use as nesting cohort.
 #' @param deleteCovariatesSmallCount      The minimum count for a covariate to appear in the data to be
 #'                                        kept.
-#' @param studyStartDate                  A `Date` object specifying the minimum date where data is
-#'                                        used.
-#' @param studyEndDate                    A `Date` object specifying the maximum date where data is
-#'                                        used.
+#' @param studyStartDate                  A character object specifying the minimum date where data is
+#'                                        used. Date format is 'yyyymmdd'.
+#' @param studyEndDate                    A character object specifying the maximum date where data is
+#'                                        used. Date format is 'yyyymmdd'.
 #' @param cdmVersion                      Define the OMOP CDM version used: currently supports "5".
 #' @param maxCasesPerOutcome              If there are more than this number of cases for a single
 #'                                        outcome cases will be sampled to this size. `maxCasesPerOutcome = 0`
@@ -125,12 +125,16 @@ getDbSccsData <- function(connectionDetails,
                           nestingCohortTable = "cohort",
                           nestingCohortId = NULL,
                           deleteCovariatesSmallCount = 0,
-                          studyStartDate = NULL,
-                          studyEndDate = NULL,
+                          studyStartDate = "",
+                          studyEndDate = "",
                           cdmVersion = "5",
                           maxCasesPerOutcome = 0) {
   errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertClass(connectionDetails, "ConnectionDetails", add = errorMessages)
+  if (is(connectionDetails, "connectionDetails")) {
+    checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
+  } else {
+    checkmate::assertClass(connectionDetails, "ConnectionDetails", add = errorMessages)
+  }
   checkmate::assertCharacter(cdmDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(tempEmulationSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(outcomeDatabaseSchema, len = 1, add = errorMessages)
@@ -148,18 +152,16 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertCharacter(nestingCohortTable, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(nestingCohortId, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(deleteCovariatesSmallCount, lower = 0, add = errorMessages)
+  checkmate::assertCharacter(studyStartDate, len = 1, add = errorMessages)
+  checkmate::assertCharacter(studyEndDate, len = 1, add = errorMessages)
   checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
   checkmate::assertInt(maxCasesPerOutcome, lower = 0, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (is.null(studyStartDate) || is.na(studyStartDate)) {
-    studyStartDate <- ""
-  } else {
-    studyStartDate <- format(as.Date(studyStartDate), "%Y%m%d")
+  if (studyStartDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
+    stop("Study start date must have format YYYYMMDD")
   }
-  if (is.null(studyEndDate) || is.na(studyEndDate)) {
-    studyEndDate <- ""
-  } else {
-    studyEndDate <- format(as.Date(studyEndDate), "%Y%m%d")
+  if (studyEndDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyEndDate) == -1) {
+    stop("Study end date must have format YYYYMMDD")
   }
   if (cdmVersion == "4") {
     stop("CDM version 4 is no longer supported")

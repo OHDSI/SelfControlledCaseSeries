@@ -1,4 +1,4 @@
-# Copyright 2022 Observational Health Data Sciences and Informatics
+# Copyright 2023 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 #
@@ -90,17 +90,6 @@ loadSccsAnalysisList <- function(file) {
   checkmate::assertCharacter(file, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   settings <- ParallelLogger::loadSettingsFromJson(file)
-
-  restoreDates <- function(sccsAnalysis) {
-    if (!is.null(sccsAnalysis$getDbSccsDataArgs$studyStartDate)) {
-      sccsAnalysis$getDbSccsDataArgs$studyStartDate <- as.Date(sccsAnalysis$getDbSccsDataArgs$studyStartDate)
-    }
-    if (!is.null(sccsAnalysis$getDbSccsDataArgs$studyEndDate)) {
-      sccsAnalysis$getDbSccsDataArgs$studyEndDate <- as.Date(sccsAnalysis$getDbSccsDataArgs$studyEndDate)
-    }
-    return(sccsAnalysis)
-  }
-  settings <- lapply(settings, restoreDates)
   return(settings)
 }
 

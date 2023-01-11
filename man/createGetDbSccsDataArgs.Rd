@@ -9,8 +9,8 @@ createGetDbSccsDataArgs(
   useNestingCohort = FALSE,
   nestingCohortId = NULL,
   deleteCovariatesSmallCount = 0,
-  studyStartDate = NULL,
-  studyEndDate = NULL,
+  studyStartDate = "",
+  studyEndDate = "",
   maxCasesPerOutcome = 0,
   exposureIds = "exposureId",
   customCovariateIds = ""
@@ -25,15 +25,15 @@ createGetDbSccsDataArgs(
 
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be kept.}
 
-\item{studyStartDate}{A \code{Date} object specifying the minimum date where data is used.}
+\item{studyStartDate}{A character object specifying the minimum date where data is used. Date format is 'yyyymmdd'.}
 
-\item{studyEndDate}{A \code{Date} object specifying the maximum date where data is used.}
+\item{studyEndDate}{A character object specifying the maximum date where data is used. Date format is 'yyyymmdd'.}
 
 \item{maxCasesPerOutcome}{If there are more than this number of cases for a single outcome cases will be sampled to this size. maxCasesPerOutcome = 0 indicates no maximum size.}
 
-\item{exposureIds}{A list of identifiers to define the exposures of interest. If exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID. If exposureTable <> DRUG_ERA, exposureIds is used to select the cohort_concept_id in the cohort-like table. If no exposureIds are provided, all drugs or cohorts in the exposureTable are included as exposures.}
+\item{exposureIds}{A list of identifiers to extract from the exposure table. If exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID. If exposureTable = "drug_era", exposureIds is used to select the drug_concept_id. If no exposure IDs are provided, all drugs or cohorts in the exposureTable are included as exposures.}
 
-\item{customCovariateIds}{A list of cohort definition IDS identifying the records in the customCovariateTable to use for building custom covariates.}
+\item{customCovariateIds}{A list of cohort definition IDs identifying the records in the customCovariateTable to use for building custom covariates.}
 }
 \description{
 Create a parameter object for the function getDbSccsData
