@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.1.0</span>
       </span>
     </div>
 
@@ -77,8 +77,8 @@
 <span>  useNestingCohort <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  nestingCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  deleteCovariatesSmallCount <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  studyStartDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  studyEndDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  studyStartDate <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  studyEndDate <span class="op">=</span> <span class="st">""</span>,</span>
 <span>  maxCasesPerOutcome <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  exposureIds <span class="op">=</span> <span class="st">"exposureId"</span>,</span>
 <span>  customCovariateIds <span class="op">=</span> <span class="st">""</span></span>
@@ -104,11 +104,11 @@
 
 
 <dt>studyStartDate</dt>
-<dd><p>A <code>Date</code> object specifying the minimum date where data is used.</p></dd>
+<dd><p>A character object specifying the minimum date where data is used. Date format is 'yyyymmdd'.</p></dd>
 
 
 <dt>studyEndDate</dt>
-<dd><p>A <code>Date</code> object specifying the maximum date where data is used.</p></dd>
+<dd><p>A character object specifying the maximum date where data is used. Date format is 'yyyymmdd'.</p></dd>
 
 
 <dt>maxCasesPerOutcome</dt>
@@ -116,11 +116,11 @@
 
 
 <dt>exposureIds</dt>
-<dd><p>A list of identifiers to define the exposures of interest. If exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID. If exposureTable &lt;&gt; DRUG_ERA, exposureIds is used to select the cohort_concept_id in the cohort-like table. If no exposureIds are provided, all drugs or cohorts in the exposureTable are included as exposures.</p></dd>
+<dd><p>A list of identifiers to extract from the exposure table. If exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID. If exposureTable = "drug_era", exposureIds is used to select the drug_concept_id. If no exposure IDs are provided, all drugs or cohorts in the exposureTable are included as exposures.</p></dd>
 
 
 <dt>customCovariateIds</dt>
-<dd><p>A list of cohort definition IDS identifying the records in the customCovariateTable to use for building custom covariates.</p></dd>
+<dd><p>A list of cohort definition IDs identifying the records in the customCovariateTable to use for building custom covariates.</p></dd>
 
 </dl></div>
     <div id="details">

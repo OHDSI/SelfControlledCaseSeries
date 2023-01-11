@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.1.0</span>
       </span>
     </div>
 
@@ -91,8 +91,8 @@
 <span>  nestingCohortTable <span class="op">=</span> <span class="st">"cohort"</span>,</span>
 <span>  nestingCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  deleteCovariatesSmallCount <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  studyStartDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  studyEndDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  studyStartDate <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  studyEndDate <span class="op">=</span> <span class="st">""</span>,</span>
 <span>  cdmVersion <span class="op">=</span> <span class="st">"5"</span>,</span>
 <span>  maxCasesPerOutcome <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -207,13 +207,13 @@ kept.</p></dd>
 
 
 <dt>studyStartDate</dt>
-<dd><p>A <code>Date</code> object specifying the minimum date where data is
-used.</p></dd>
+<dd><p>A character object specifying the minimum date where data is
+used. Date format is 'yyyymmdd'.</p></dd>
 
 
 <dt>studyEndDate</dt>
-<dd><p>A <code>Date</code> object specifying the maximum date where data is
-used.</p></dd>
+<dd><p>A character object specifying the maximum date where data is
+used. Date format is 'yyyymmdd'.</p></dd>
 
 
 <dt>cdmVersion</dt>
