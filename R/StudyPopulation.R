@@ -179,7 +179,7 @@ createStudyPopulation <- function(sccsData,
 
   if (!is.null(genderConceptIds)) {
     cases <- cases %>%
-      filter(genderConceptId %in% genderConceptIds)
+      filter(.data$genderConceptId %in% genderConceptIds)
 
     outcomes <- outcomes  %>%
       filter(.data$caseId %in% cases$caseId)
