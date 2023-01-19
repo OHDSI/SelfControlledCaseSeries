@@ -3,6 +3,14 @@ SelfControlledCaseSeries 4.1.0
 
 Changes
 
+1. Adding the `genderConceptIds` argument to `createStudyPopulation()`.
+
+
+SelfControlledCaseSeries 4.1.0
+==============================
+
+Changes
+
 1. The `studyStartDate` and `studyEndDate` arguments have been changed back to strings instead of dates to facilitate easier conversion to and from JSON.
 
 Bug fixes

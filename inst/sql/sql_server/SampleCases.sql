@@ -59,7 +59,8 @@ SELECT cases.observation_period_id,
 	cases.start_date,
 	cases.end_date,
 	cases.age_in_days,
-	cases.noninformative_end_censor
+	cases.noninformative_end_censor,
+	cases.gender_concept_id
 INTO #sampled_cases
 FROM (
 	SELECT DISTINCT observation_period_id

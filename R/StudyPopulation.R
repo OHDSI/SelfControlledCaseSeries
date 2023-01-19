@@ -40,6 +40,8 @@
 #' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
 #'                              be specified in years, but non-integer values are allowed. If not
 #'                              specified, no age restriction will be applied.
+#' @param genderConceptIds      Set of gender concept IDs to restrict the population to. If not specified,
+#'                              no restriction on gender will be applied.
 #'
 #' @return
 #' A `list` specifying the study population, with the following items:
@@ -54,7 +56,8 @@ createStudyPopulation <- function(sccsData,
                                   firstOutcomeOnly = FALSE,
                                   naivePeriod = 0,
                                   minAge = NULL,
-                                  maxAge = NULL) {
+                                  maxAge = NULL,
+                                  genderConceptIds = NULL) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertInt(outcomeId, null.ok = TRUE, add = errorMessages)
@@ -62,6 +65,7 @@ createStudyPopulation <- function(sccsData,
   checkmate::assertInt(naivePeriod, lower = 0, add = errorMessages)
   checkmate::assertNumeric(minAge, lower = 0, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertNumeric(maxAge, lower = 0, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertIntegerish(genderConceptIds, lower = 0, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   if (!is.null(minAge) && !is.null(maxAge) && maxAge < minAge) {
@@ -170,6 +174,19 @@ createStudyPopulation <- function(sccsData,
     attrition <- bind_rows(
       attrition,
       countOutcomes(outcomes, cases, paste("Restrict to", paste(labels, collapse = " & ")))
+    )
+  }
+
+  if (!is.null(genderConceptIds)) {
+    cases <- cases %>%
+      filter(genderConceptId %in% genderConceptIds)
+
+    outcomes <- outcomes  %>%
+      filter(.data$caseId %in% cases$caseId)
+
+    attrition <- bind_rows(
+      attrition,
+      countOutcomes(outcomes, cases, sprintf("Restricting gender to concept(s) %s", paste(genderConceptIds, collapse = ", ")))
     )
   }
 

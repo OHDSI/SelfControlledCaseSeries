@@ -10,7 +10,8 @@ createStudyPopulation(
   firstOutcomeOnly = FALSE,
   naivePeriod = 0,
   minAge = NULL,
-  maxAge = NULL
+  maxAge = NULL,
+  genderConceptIds = NULL
 )
 }
 \arguments{
@@ -41,6 +42,9 @@ specified, no age restriction will be applied.}
 \item{maxAge}{Maximum age at which patient time will be included in the analysis. Age should
 be specified in years, but non-integer values are allowed. If not
 specified, no age restriction will be applied.}
+
+\item{genderConceptIds}{Set of gender concept IDs to restrict the population to. If not specified,
+no restriction on gender will be applied.}
 }
 \value{
 A \code{list} specifying the study population, with the following items:
