@@ -37,6 +37,8 @@
 #' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
 #'                              be specified in years, but non-integer values are allowed. If not
 #'                              specified, no age restriction will be applied.
+#' @param genderConceptIds      Set of gender concept IDs to restrict the population to. If not specified,
+#'                              no restriction on gender will be applied.
 #'
 #' @export
 createStudyPopulation <- function(sccsData,
@@ -44,7 +46,8 @@ createStudyPopulation <- function(sccsData,
                                   firstOutcomeOnly = FALSE,
                                   naivePeriod = 0,
                                   minAge = NULL,
-                                  maxAge = NULL) {
+                                  maxAge = NULL,
+                                  genderConceptIds = NULL) {
   outcomes <- sccsData$eras %>%
     filter(.data$eraType == "hoi") %>%
     collect()
@@ -146,6 +149,19 @@ createStudyPopulation <- function(sccsData,
     attrition <- bind_rows(
       attrition,
       countOutcomes(outcomes, cases, paste(labels, collapse = " & "))
+    )
+  }
+
+  if (!is.null(genderConceptIds)) {
+    cases <- cases %>%
+      filter(genderConceptId %in% genderConceptIds)
+
+    outcomes <- outcomes  %>%
+      filter(.data$caseId %in% cases$caseId)
+
+    attrition <- bind_rows(
+      attrition,
+      countOutcomes(outcomes, cases, sprintf("Restricting gender to concept(s) %s", paste(genderConceptIds, collapse = ", ")))
     )
   }
 

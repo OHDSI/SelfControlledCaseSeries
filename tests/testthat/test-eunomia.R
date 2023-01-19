@@ -36,7 +36,8 @@ test_that("Running multiple analyses against Eunomia", {
 
   createStudyPopulationArgs1 <- createCreateStudyPopulationArgs(
     naivePeriod = 180,
-    firstOutcomeOnly = FALSE
+    firstOutcomeOnly = FALSE,
+    genderConceptIds = 8507
   )
 
   covarExposureOfInt <- createEraCovariateSettings(
@@ -99,6 +100,9 @@ test_that("Running multiple analyses against Eunomia", {
     )
   )
   expect_equal(sum(result$exposureId == 1 & result$outcomeId == 3), 0)
+
+  model <- readRDS(file.path(outputFolder, result$sccsModelFile[1]))
+  expect_true(max(grepl("gender", getAttritionTable(model)$description)) == 1)
 
   analysisSum <- summarizeSccsAnalyses(result, outputFolder)
 

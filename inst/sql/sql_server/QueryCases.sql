@@ -30,7 +30,8 @@ SELECT
 	DAY(start_date) AS start_day,
 	age_in_days,
 	DATEDIFF(DAY, observation_period_start_date, start_date) AS censored_days,
-	noninformative_end_censor
+	noninformative_end_censor,
+	gender_concept_id
 {@sampled_cases} ? {
 FROM #sampled_cases
 } : {

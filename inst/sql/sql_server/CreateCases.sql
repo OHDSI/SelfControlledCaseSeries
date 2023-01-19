@@ -37,7 +37,8 @@ SELECT observation_period_id,
 	end_date,
 	DATEDIFF(DAY, DATEFROMPARTS(year_of_birth, ISNULL(month_of_birth, 1), ISNULL(day_of_birth, 1)), start_date) AS age_in_days,
 	noninformative_end_censor,
-	NEWID() AS random_id
+	NEWID() AS random_id,
+	person.gender_concept_id
 INTO #cases
 FROM (
 {@use_nesting_cohort} ? {
