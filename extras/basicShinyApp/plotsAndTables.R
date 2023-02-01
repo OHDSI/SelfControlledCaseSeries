@@ -131,7 +131,7 @@ plotTimeToEvent <- function(timeToEvent) {
 
 drawAttritionDiagram <- function(attrition) {
   formatNumber <- function(x) {
-    return(formatC(x, big.mark = ","))
+    return(formatC(x, big.mark = ",", format = "d"))
   }
   addStep <- function(data, attrition, row) {
     data$leftBoxText[length(data$leftBoxText) + 1] <- paste(attrition$description[row],
@@ -415,8 +415,7 @@ plotSeasonSpline <- function(seasonSpline, rrLim = c(0.1, 10)) {
 
 plotCalendarTimeSpline <- function(calendarTimeSpline, rrLim = c(0.1, 10)) {
   splineCoefs <- c(0, log(calendarTimeSpline$rr))
-  ageKnots <- calendarTimeSpline$ageMonth
-  calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
+  calendarTimeKnots <- calendarTimeSpline$knotMonth
   calendarTime <- seq(min(calendarTimeKnots), max(calendarTimeKnots), length.out = 100)
   calendarTimeDesignMatrix <- splines::bs(calendarTime,
                                           knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
@@ -425,14 +424,14 @@ plotCalendarTimeSpline <- function(calendarTimeSpline, rrLim = c(0.1, 10)) {
   logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
-  data <- data.frame(calendarTime = convertMonthToStartDate(calendarTime) + 14, rr = rr)
+  data <- data.frame(calendarTime = calendarTime / 12, rr = rr)
 
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = calendarTime, y = rr)) +
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
-    ggplot2::scale_x_date("Calendar Time") +
+    ggplot2::scale_x_continuous("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",
                                 limits = rrLim,
                                 trans = "log10",
