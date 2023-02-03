@@ -480,9 +480,8 @@ cyclicSplineDesign <- function(x, knots, ord = 4) {
   X1
 }
 
-plotControlEstimates <- function(controlEstimates) {
+plotControlEstimates <- function(controlEstimates, ease) {
   size <- 2
-  labelY <- 0.7
   d <- rbind(data.frame(yGroup = "Uncalibrated",
                         logRr = controlEstimates$logRr,
                         seLogRr = controlEstimates$seLogRr,
@@ -514,6 +513,11 @@ plotControlEstimates <- function(controlEstimates) {
   temp2$Significant <- NULL
   dd <- merge(temp1, temp2)
   dd$tes <- as.numeric(as.character(dd$Group))
+
+  ease <- data.frame(
+    easeLabel = sprintf("EASE = %0.2f", ease),
+    yGroup = "Uncalibrated"
+  )
 
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   theme <- ggplot2::element_text(colour = "#000000", size = 14)
@@ -550,12 +554,19 @@ plotControlEstimates <- function(controlEstimates) {
                         size = 5,
                         data = dd) +
     ggplot2::geom_label(x = log(0.15),
-                        y = labelY,
+                        y = 0.7,
                         alpha = 1,
                         hjust = "left",
                         ggplot2::aes(label = meanLabel),
                         size = 5,
                         data = dd) +
+    ggplot2::geom_label(x = log(0.15),
+                        y = 0.5,
+                        alpha = 1,
+                        hjust = "left",
+                        ggplot2::aes(label = easeLabel),
+                        size = 5,
+                        data = ease) +
     ggplot2::scale_x_continuous("Hazard ratio",
                                 limits = log(c(0.1, 10)),
                                 breaks = log(breaks),

@@ -328,6 +328,15 @@ shinyServer(function(input, output, session) {
     if (is.null(row)) {
       return(NULL)
     } else {
+      diagnosticsSummary <- getDiagnosticsSummary(
+        connectionPool = connectionPool,
+        resultsDatabaseSchema = resultsDatabaseSchema,
+        exposuresOutcomeSetId = row$exposuresOutcomeSetId,
+        covariateId = row$covariateId,
+        databaseId = row$databaseId,
+        analysisId = row$analysisId
+      )
+
       controlEstimates <- getControlEstimates(
         connectionPool = connectionPool,
         resultsDatabaseSchema = resultsDatabaseSchema,
@@ -336,7 +345,7 @@ shinyServer(function(input, output, session) {
         databaseId = row$databaseId,
         analysisId = row$analysisId
       )
-      plotControlEstimates(controlEstimates)
+      plotControlEstimates(controlEstimates, diagnosticsSummary$ease)
     }
   })
 
