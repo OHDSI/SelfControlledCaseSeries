@@ -25,8 +25,7 @@ Depends:
 	R (>= 4.0.0),
 	Cyclops (>= 3.2.0),
 	DatabaseConnector (>= 5.1.0),
-	Andromeda,
-	survival
+	Andromeda
 Imports:
 	SqlRender (>= 1.11.0),
 	dplyr (>= 1.0.0),

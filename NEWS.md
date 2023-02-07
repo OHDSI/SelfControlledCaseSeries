@@ -1,10 +1,11 @@
-SelfControlledCaseSeries 4.1.0
+SelfControlledCaseSeries 4.2.0
 ==============================
 
 Changes
 
 1. Adding the `genderConceptIds` argument to `createStudyPopulation()`.
 
+2. Dropping dependency on `survival`.
 
 SelfControlledCaseSeries 4.1.0
 ==============================

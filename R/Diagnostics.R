@@ -180,7 +180,6 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
 
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
-    group_by(.data$caseId) %>%
     inner_join(cases, by = "caseId", copy = TRUE) %>%
     mutate(
       startDay = .data$startDay - .data$offset,
@@ -198,7 +197,7 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
     summarise(
       startDay = min(.data$startDay, na.rm = TRUE),
       endDay = min(.data$endDay, na.rm = TRUE),
-      .groups = "drop_last"
+      .groups = "drop"
     )
 
   outcomes <- studyPopulation$outcomes %>%
@@ -213,7 +212,11 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
       beforeExposure = .data$delta < 0,
       y = 1
     ) %>%
-    select("caseId", "beforeExposure", "y")
+    group_by(.data$caseId, .data$beforeExposure) %>%
+    summarize(
+      y = sum(.data$y),
+      .groups = "drop"
+    )
 
   observed <- bind_rows(
     firstExposures %>%
@@ -235,14 +238,24 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   poissonData <- observed %>%
     left_join(outcomes, by = c("caseId", "beforeExposure")) %>%
     mutate(
+      rowId = row_number(),
       y = if_else(is.na(.data$y), 0, .data$y),
-      logDays = log(.data$daysObserved)
+      covariateId = 1
+    ) %>%
+    select(
+      "rowId",
+      stratumId = "caseId",
+      "covariateId",
+      covariateValue = "beforeExposure",
+      time = "daysObserved",
+      "y"
     )
-  # library(survival)
-  cyclopsData <- Cyclops::createCyclopsData(
-    y ~ beforeExposure + strata(caseId) + offset(logDays),
+  cyclopsData <- Cyclops::convertToCyclopsData(
+    outcomes = poissonData,
+    covariates = poissonData,
+    addIntercept = FALSE,
     modelType = "cpr",
-    data = poissonData
+    quiet = TRUE
   )
   fit <- Cyclops::fitCyclopsModel(cyclopsData)
   if (fit$return_flag != "SUCCESS") {
@@ -251,7 +264,7 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   # compute one-sided p-value:
   llNull <- Cyclops::getCyclopsProfileLogLikelihood(
     object = fit,
-    parm = "beforeExposureTRUE",
+    parm = 1,
     x = 0
   )$value
   llr <- fit$log_likelihood - llNull
