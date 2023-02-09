@@ -28,7 +28,7 @@ sccs_spline,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analys
 sccs_spline,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_spline,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
 sccs_spline,spline_type,varchar,Yes,Yes,No,"Either 'age', 'season', or 'calendar time'."
-sccs_spline,knot_month,int,Yes,Yes,No,"Location of the knot. For age, the month since birth. For season, the month of the year. For calendar time, the month since 1-1-1970."
+sccs_spline,knot_month,float,Yes,Yes,No,"Location of the knot. For age, the month since birth. For season, the month of the year. For calendar time, the month since 1-1-1970."
 sccs_spline,rr,float,No,No,No,The estimated relative risk (i.e. the incidence rate ratio).
 sccs_censor_model,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_censor_model,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
