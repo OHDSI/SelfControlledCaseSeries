@@ -50,7 +50,7 @@ sccs_result,covariate_subjects,int,Yes,No,Yes,The number of subjects having the 
 sccs_result,covariate_days,int,Yes,No,Yes,The total covariate time in days.
 sccs_result,covariate_eras,int,Yes,No,Yes,The number of continuous eras of the covariate.
 sccs_result,covariate_outcomes,int,Yes,No,Yes,The number of outcomes observed during the covariate time.
-sccs_result,observed_days,int,Yes,No,Yes,The number of days subjects were observed.
+sccs_result,observed_days,bigint,Yes,No,Yes,The number of days subjects were observed.
 sccs_result,log_rr,float,No,No,No,The log of the relative risk.
 sccs_result,se_log_rr,float,No,No,No,The standard error of the log of the relative risk.
 sccs_result,llr,float,No,No,No,The log of the likelihood ratio (of the MLE vs the null hypothesis of no effect).
@@ -77,7 +77,7 @@ sccs_attrition,database_id,varchar,Yes,Yes,No,Foreign key referencing the databa
 sccs_attrition,outcome_subjects,int,Yes,No,Yes,The number of subjects with at least one outcome.
 sccs_attrition,outcome_events,int,Yes,No,Yes,The number of outcome events.
 sccs_attrition,outcome_observation_periods,int,Yes,No,Yes,The number of observation periods containing at least one outcome.
-sccs_attrition,observed_days,int,Yes,No,Yes,The number of days subjects were observed.
+sccs_attrition,observed_days,bigint,Yes,No,Yes,The number of days subjects were observed.
 sccs_likelihood_profile,log_rr,float,Yes,Yes,No,The log of the relative risk where the likelihood is sampled.
 sccs_likelihood_profile,log_likelihood,float,Yes,No,No,The normalized log likelihood.
 sccs_likelihood_profile,covariate_id,int,Yes,Yes,No,The identifier for the covariate of interest.
