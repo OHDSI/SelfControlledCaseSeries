@@ -7,6 +7,11 @@ Changes
 
 2. Dropping dependency on `survival`.
 
+Bugfix
+
+1. Handling edge case in `computeMdrr()` when all observed time is exposed. (Returning `Inf` instead of throwing an error.)
+
+
 SelfControlledCaseSeries 4.1.0
 ==============================
 

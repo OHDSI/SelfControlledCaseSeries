@@ -174,8 +174,12 @@ computeMdrr <- function(object,
       }
     }
   }
-  mdLogRr <- binarySearch(z, r, n, power, alpha)
-  mdrr <- exp(mdLogRr)
+  if (r == 1) {
+    mdrr <- Inf
+  } else {
+    mdLogRr <- binarySearch(z, r, n, power, alpha)
+    mdrr <- exp(mdLogRr)
+  }
 
   result <- tibble(
     timeExposed = covariateStatistics$dayCount,
