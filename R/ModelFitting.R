@@ -128,6 +128,16 @@ fitSccsModel <- function(sccsIntervalData,
         }
       }
     }
+    if (!is.null(metaData$calendarTime$allowRegularization)) {
+      if (metaData$calendarTime$allowRegularization) {
+        needRegularization <- TRUE
+      } else {
+        nonRegularized <- c(nonRegularized, metaData$calendarTime$covariateIds)
+        if (metaData$calendarTime$computeConfidenceIntervals) {
+          needCi <- c(needCi, metaData$calendarTime$covariateIds)
+        }
+      }
+    }
 
     if (!needRegularization) {
       prior <- createPrior("none")

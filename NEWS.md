@@ -11,6 +11,8 @@ Bugfix
 
 1. Handling edge case in `computeMdrr()` when all observed time is exposed. (Returning `Inf` instead of throwing an error.)
 
+2. Not ignoring 'allowRegularization' in calendar time settings.
+
 
 SelfControlledCaseSeries 4.1.0
 ==============================
