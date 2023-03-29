@@ -126,7 +126,7 @@ setMethod("summary", "SccsData", function(object) {
     group_by(.data$eraId) %>%
     summarise(
       outcomeSubjects = n_distinct(.data$personId),
-      outcomeEvents = count(),
+      outcomeEvents = n(),
       outcomeObsPeriods = n_distinct(.data$caseId)
     ) %>%
     rename(outcomeId = "eraId") %>%
