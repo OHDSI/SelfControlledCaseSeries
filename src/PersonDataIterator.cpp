@@ -32,7 +32,7 @@ namespace sccs {
 
 
 PersonDataIterator::PersonDataIterator(const DataFrame& _cases, const DataFrame& _outcomes, const List& _eras) :
- erasIterator(_eras, true), casesStartDate(0), casesCursor(0), outcomesCursor(0), erasCursor(0) {
+ erasIterator(_eras), casesStartDate(0), casesCursor(0), outcomesCursor(0), erasCursor(0) {
 
   outcomesCaseId = _outcomes["caseId"];
   outcomesOutcomeDay = _outcomes["outcomeDay"];
@@ -47,6 +47,10 @@ PersonDataIterator::PersonDataIterator(const DataFrame& _cases, const DataFrame&
   casesStartDate = _cases["startDate"];
 
   loadNextEras();
+
+  Environment utils = Environment::namespace_env("utils");
+  Function txtProgressBar = utils["txtProgressBar"];
+  progressBar = txtProgressBar(0, 1, 0, "=", NA_REAL, "" ,"", 3, "");
 }
 
 
@@ -76,6 +80,17 @@ PersonData PersonDataIterator::next() {
                         offset,
                         casesNoninformativeEndCensor[casesCursor]);
   casesCursor++;
+
+  if (casesCursor % 100 == 0 || casesCursor == casesCaseId.length()) {
+    Environment utils = Environment::namespace_env("utils");
+    Function setTxtProgressBar = utils["setTxtProgressBar"];
+    setTxtProgressBar(progressBar, (double)casesCursor / (double)casesCaseId.length());
+    if (casesCursor == casesCaseId.length()) {
+      Environment base = Environment::namespace_env("base");
+      Function close = base["close"];
+      close(progressBar);
+    }
+  }
 
   // Rcpp::Rcout << outcomesCaseId[erasCursor] << " (outcomesCaseId[erasCursor])\n";
   // Rcpp::Rcout << observationPeriodId << " (observationPeriodId)\n";

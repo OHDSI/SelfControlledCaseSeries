@@ -330,12 +330,11 @@ getDbSccsData <- function(connectionDetails,
     snakeCaseToCamelCase = TRUE
   )
 
-  ParallelLogger::logDebug("Fetched ", sccsData$cases %>% count() %>% pull(), " cases from server")
+  ParallelLogger::logDebug("Fetched ", nrow_temp(sccsData$cases), " cases from server")
 
   countNegativeAges <- sccsData$cases %>%
     filter(.data$ageInDays < 0) %>%
-    count() %>%
-    pull()
+    nrow_temp()
 
   if (countNegativeAges > 0) {
     warning("There are ", countNegativeAges, " cases with negative ages. Setting their starting age to 0. Please review your data.")

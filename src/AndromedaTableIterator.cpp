@@ -29,80 +29,69 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace sccs {
 
-AndromedaTableIterator::AndromedaTableIterator(const List& _andromedaTable, const bool& _showProgressBar) :
-progressBar(0),
-showProgressBar(_showProgressBar),
-completed(0),
+AndromedaTableIterator::AndromedaTableIterator(const List& _andromedaTable) :
 done(false) {
-
-  if (showProgressBar){
-    Environment dplyr = Environment::namespace_env("dplyr");
-    Function count = dplyr["count"];
-    Function pull = dplyr["pull"];
-    total = as<int>(pull(count(_andromedaTable)));
-    // Function tally = dplyr["tally"];
-    // Function tally = dplyr["tally"];
-    // total = tally(_andromedaTable, R_NilValue, false, R_NilValue);
-    Environment utils = Environment::namespace_env("utils");
-    Function txtProgressBar = utils["txtProgressBar"];
-    progressBar = txtProgressBar(0, 1, 0, "=", NA_REAL, "" ,"", 3, "");
-
+  // Environment base = Environment::namespace_env("base");
+  // Function message = base["message"];
+  // message("Start");
+  isDbiTable = _andromedaTable.inherits("tbl_dbi");
+  if (isDbiTable) {
+    Environment dbplyr = Environment::namespace_env("dbplyr");
+    Function remote_con = dbplyr["remote_con"];
+    Function sql_render = dbplyr["sql_render"];
+    Environment dbi = Environment::namespace_env("DBI");
+    Function dbSendQuery = dbi["dbSendQuery"];
+    S4 connection = remote_con(_andromedaTable);
+    String sql = sql_render(_andromedaTable, connection);
+    resultSet = dbSendQuery(connection, sql);
+  } else {
+    Environment arrow = Environment::namespace_env("arrow");
+    Function as_record_batch_reader = arrow["as_record_batch_reader"];
+    recordBatchReader = as_record_batch_reader(_andromedaTable);
   }
-  Environment dbplyr = Environment::namespace_env("dbplyr");
-  Function remote_con = dbplyr["remote_con"];
-  Function sql_render = dbplyr["sql_render"];
-  Environment dbi = Environment::namespace_env("DBI");
-  Function dbSendQuery = dbi["dbSendQuery"];
-
-  S4 connection = remote_con(_andromedaTable);
-  String sql = sql_render(_andromedaTable, connection);
-  resultSet = dbSendQuery(connection, sql);
+  loadBuffer();
 }
 
 AndromedaTableIterator::~AndromedaTableIterator() {
-  if (!done) {
+  if (isDbiTable) {
     Environment dbi = Environment::namespace_env("DBI");
     Function dbClearResult = dbi["dbClearResult"];
     dbClearResult(resultSet);
+  } else {
+    Function Close = recordBatchReader["Close"];
+    Close();
+  }
+}
+
+void AndromedaTableIterator::loadBuffer() {
+  if (isDbiTable) {
+    Environment dbi = Environment::namespace_env("DBI");
+    Function dbHasCompleted = dbi["dbHasCompleted"];
+    if (as<bool>(dbHasCompleted(resultSet))) {
+      buffer = R_NilValue;
+    } else {
+      Function dbFetch = dbi["dbFetch"];
+      buffer = dbFetch(resultSet, 100000);
+    }
+  } else {
+    Environment base = Environment::namespace_env("base");
+    Function asDataFrame = base["as.data.frame"];
+    Function read_next_batch = recordBatchReader["read_next_batch"];
+    buffer = asDataFrame(read_next_batch());
+  }
+  if ((Rf_isNull(buffer)) || (buffer.nrow() == 0)) {
+    done = true;
   }
 }
 
 bool AndromedaTableIterator::hasNext() {
-  if (done)
-    return false;
-  else {
-    Environment dbi = Environment::namespace_env("DBI");
-    Function dbHasCompleted = dbi["dbHasCompleted"];
-    if (as<bool>(dbHasCompleted(resultSet))) {
-      Function dbClearResult = dbi["dbClearResult"];
-      dbClearResult(resultSet);
-      done = true;
-      return false;
-    } else {
-      return true;
-    }
-  }
+  return !done;
 }
 
 List AndromedaTableIterator::next() {
-  Environment dbi = Environment::namespace_env("DBI");
-  Function dbFetch = dbi["dbFetch"];
-  DataFrame batch = dbFetch(resultSet, 100000);
-
-  if (showProgressBar){
-    completed = completed + batch.nrows();
-
-    Environment utils = Environment::namespace_env("utils");
-    Function setTxtProgressBar = utils["setTxtProgressBar"];
-    setTxtProgressBar(progressBar, (double)completed / (double)total);
-    if (completed == total){
-      Environment base = Environment::namespace_env("base");
-      Function close = base["close"];
-      close(progressBar);
-    }
-  }
-
-  return batch;
+  DataFrame batch = buffer;
+  loadBuffer();
+return batch;
 }
 }
 }

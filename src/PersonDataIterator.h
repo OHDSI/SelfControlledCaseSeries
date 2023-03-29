@@ -121,6 +121,7 @@ private:
   int outcomesCursor;
   int erasCursor;
   void loadNextEras();
+  List progressBar;
 };
 }
 }

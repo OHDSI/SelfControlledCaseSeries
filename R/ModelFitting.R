@@ -86,7 +86,7 @@ fitSccsModel <- function(sccsIntervalData,
   priorVariance <- 0
   logLikelihood <- NA
   logLikelihoodProfiles <- NULL
-  if (sccsIntervalData$outcomes %>% count() %>% pull() == 0) {
+  if (nrow_temp(sccsIntervalData$outcomes) == 0) {
     coefficients <- c(0)
     status <- "Could not estimate because there was no data"
   } else {

@@ -31,16 +31,16 @@ namespace sccs {
 
 class AndromedaTableIterator {
 public:
-  AndromedaTableIterator(const List& _andromedaTable, const bool& _showProgressBar);
+  AndromedaTableIterator(const List& _andromedaTable);
   ~AndromedaTableIterator();
   bool hasNext();
   List next();
 private:
-  List progressBar;
+  void loadBuffer();
+  bool isDbiTable;
+  DataFrame buffer;
   S4 resultSet;
-  bool showProgressBar;
-  int64_t total;
-  int64_t completed;
+  Environment recordBatchReader;
   bool done;
 };
 }

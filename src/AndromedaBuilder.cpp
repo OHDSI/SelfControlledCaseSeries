@@ -32,23 +32,17 @@ namespace sccs {
 AndromedaBuilder::AndromedaBuilder(S4 _andromeda) : andromeda(_andromeda) {}
 
 void AndromedaBuilder::appendToTable(const String& tableName, const DataFrame& data) {
-  Environment andromedaPackage = Environment::namespace_env("Andromeda");
   Environment base = Environment::namespace_env("base");
-  Environment dplyr = Environment::namespace_env("dplyr");
-  Environment dbi = Environment::namespace_env("DBI");
   Function names = base["names"];
-
   CharacterVector tableNames = names(andromeda);
   if(std::find(tableNames.begin(), tableNames.end(), tableName) != tableNames.end()) {
-    Function tbl = dplyr["tbl"];
+    Environment andromedaPackage = Environment::namespace_env("Andromeda");
     Function appendToTable = andromedaPackage["appendToTable"];
-
-    List table = tbl(andromeda, tableName);
-    appendToTable(table, data);
+    Function bracket = base["[["];
+    appendToTable(bracket(andromeda, tableName), data);
   } else {
-    Function dbWriteTable = dbi["dbWriteTable"];
-
-    dbWriteTable(andromeda, tableName, data, true, false);
+    Function bracket = base["[[<-"];
+    bracket(Named("x") = andromeda, Named("i") = tableName, Named("value") = data);
   }
 }
 

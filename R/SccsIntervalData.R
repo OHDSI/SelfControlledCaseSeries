@@ -113,18 +113,12 @@ setMethod("summary", "SccsIntervalData", function(object) {
   caseCount <- object$outcomes %>%
     summarise(n = n_distinct(.data$stratumId)) %>%
     pull()
-  eraCount <- object$outcomes %>%
-    count() %>%
-    pull()
+  eraCount <- nrow_temp(object$outcomes)
   outcomeCount <- object$outcomes %>%
     summarise(n = sum(.data$y, na.rm = TRUE)) %>%
     pull()
-  covariateCount <- object$covariateRef %>%
-    count() %>%
-    pull()
-  covariateValueCount <- object$covariates %>%
-    count() %>%
-    pull()
+  covariateCount <- nrow_temp(object$covariateRef)
+  covariateValueCount <- nrow_temp(object$covariates)
 
   result <- list(
     metaData = attr(object, "metaData"),

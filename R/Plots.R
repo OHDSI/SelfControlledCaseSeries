@@ -175,7 +175,8 @@ computeTimeToEvent <- function(studyPopulation,
                                sccsData,
                                exposureEraId) {
   cases <- studyPopulation$cases %>%
-    select("caseId", caseEndDay = "endDay", "offset")
+    select("caseId", caseEndDay = "endDay", "offset") %>%
+    mutate(caseId = as.numeric(.data$caseId))
 
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%

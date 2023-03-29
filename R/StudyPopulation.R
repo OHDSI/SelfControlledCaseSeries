@@ -83,8 +83,7 @@ createStudyPopulation <- function(sccsData,
   if (is.null(outcomeId)) {
     if (outcomes %>%
       distinct(.data$eraId) %>%
-      count() %>%
-      pull() > 1) {
+      nrow_temp() > 1) {
       stop("No outcome ID specified, but more than one outcome ID found.")
     }
   } else {
