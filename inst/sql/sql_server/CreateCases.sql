@@ -53,6 +53,9 @@ FROM (
 		observation_period_id,
 		observation_period_start_date,
 		observation_period_end_date,
+{@use_nesting_cohort} ? {
+		nesting_cohort_start_date,
+}
 {@study_start_date == '' } ? {
 		observation_period_start_date AS start_date,
 } : {
@@ -76,31 +79,40 @@ FROM (
 			ELSE noninformative_end_censor
 		END AS noninformative_end_censor
 }
+
 	FROM (
 		SELECT person_id,
-			observation_period_id,
+			observation_period.observation_period_id,
 			observation_period_start_date,
 			observation_period_end_date,
+{@use_nesting_cohort} ? {
+			nesting_cohort_start_date,
+}
 			CASE WHEN observation_period_end_date = (SELECT MAX(observation_period_end_date) FROM @cdm_database_schema.observation_period)
 				THEN CAST(1 AS INT)
 				ELSE CAST(0 AS INT)
 			END AS noninformative_end_censor
 		FROM @cdm_database_schema.observation_period
-		WHERE observation_period_id IN (
+		INNER JOIN (
 			SELECT DISTINCT observation_period_id 
 {@use_nesting_cohort} ? {
-				FROM #outcomes_in_nesting
+				, nesting_cohort_start_date
+			FROM #outcomes_in_nesting
 } : { {@study_start_date != '' & @study_end_date != ''} ? {
-				FROM #outcomes_in_period
+			FROM #outcomes_in_period
 } : {
-				FROM #outcomes
+			FROM #outcomes
 }}	
-		) 
+			) outcomes
+		ON observation_period.observation_period_id = outcomes.observation_period_id
 	) observation_period
 {@use_nesting_cohort} ? {
 	) temp
 	INNER JOIN @nesting_cohort_database_schema.@nesting_cohort_table nesting
 		ON temp.person_id = nesting.subject_id
+			AND temp.nesting_cohort_start_date = nesting.cohort_start_date
+			AND temp.observation_period_start_date <= nesting.cohort_start_date
+			AND temp.observation_period_end_date >= nesting.cohort_start_date
 	WHERE nesting.cohort_definition_id = @nesting_cohort_id
 }
 ) observation_period

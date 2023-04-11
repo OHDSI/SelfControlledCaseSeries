@@ -89,7 +89,8 @@ SELECT outcome_id,
 	observation_period_id,
 	observed_days,
 	person_id,
-	outcome_date
+	outcome_date,
+	cohort_start_date AS nesting_cohort_start_date
 INTO #outcomes_in_nesting
 	{@study_start_date != '' & @study_end_date != ''} ? {
 FROM #outcomes_in_period outcomes

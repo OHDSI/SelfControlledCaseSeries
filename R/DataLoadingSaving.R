@@ -287,6 +287,7 @@ getDbSccsData <- function(connectionDetails,
         max_cases_per_outcome = maxCasesPerOutcome
       )
       DatabaseConnector::executeSql(conn, sql)
+
     }
   }
 
@@ -316,12 +317,13 @@ getDbSccsData <- function(connectionDetails,
 
   message("Fetching data from server")
   sccsData <- Andromeda::andromeda()
-  sql <- SqlRender::loadRenderTranslateSql("QueryCases.sql",
-    packageName = "SelfControlledCaseSeries",
-    dbms = connectionDetails$dbms,
-    tempEmulationSchema = tempEmulationSchema,
-    sampled_cases = sampledCases
-  )
+  sql <- SqlRender::loadRenderTranslateSql(
+      "QueryCases.sql",
+      packageName = "SelfControlledCaseSeries",
+      dbms = connectionDetails$dbms,
+      tempEmulationSchema = tempEmulationSchema,
+      sampled_cases = sampledCases
+    )
   DatabaseConnector::querySqlToAndromeda(
     connection = conn,
     sql = sql,
