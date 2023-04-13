@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.2.0</span>
       </span>
     </div>
 
@@ -66,6 +66,16 @@
       <small>Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="4.2.0" id="selfcontrolledcaseseries-420">SelfControlledCaseSeries 4.2.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-420"></a></h2>
+<p>Changes</p>
+<ol style="list-style-type: decimal"><li><p>Adding the <code>genderConceptIds</code> argument to <code><a href="../reference/createStudyPopulation.html">createStudyPopulation()</a></code>.</p></li>
+<li><p>Dropping dependency on <code>survival</code>.</p></li>
+</ol><p>Bugfix</p>
+<ol style="list-style-type: decimal"><li><p>Handling edge case in <code><a href="../reference/computeMdrr.html">computeMdrr()</a></code> when all observed time is exposed. (Returning <code>Inf</code> instead of throwing an error.)</p></li>
+<li><p>Not ignoring <code>allowRegularization</code> in calendar time settings.</p></li>
+<li><p>When person has multiple nesting cohort entries, prevent double-counting of cases in attrition table if nesting cohort entries have no outcome.</p></li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="4.1.0" id="selfcontrolledcaseseries-410">SelfControlledCaseSeries 4.1.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-410"></a></h2>
 <p>Changes</p>
