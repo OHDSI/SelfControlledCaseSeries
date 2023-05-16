@@ -44,7 +44,7 @@ LEFT JOIN (
 		COUNT(DISTINCT person_id) AS outcome_subjects,
 		COUNT(*) AS outcome_events,
 		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods,
-		SUM(observed_days) AS observed_days
+		SUM(CAST(observed_days AS BIGINT)) AS observed_days
 	FROM #outcomes
 	GROUP BY outcome_id
 	) counts
@@ -64,7 +64,7 @@ LEFT JOIN (
 		COUNT(DISTINCT person_id) AS outcome_subjects,
 		COUNT(*) AS outcome_events,
 		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods,
-		SUM(observed_days) AS observed_days
+		SUM(CAST(observed_days AS BIGINT)) AS observed_days
 	FROM #outcomes_in_period
 	GROUP BY outcome_id
 	) counts
@@ -85,7 +85,7 @@ LEFT JOIN (
 		COUNT(DISTINCT person_id) AS outcome_subjects,
 		COUNT(*) AS outcome_events,
 		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods,
-		SUM(observed_days) AS observed_days
+		SUM(CAST(observed_days AS BIGINT)) AS observed_days
 	FROM #outcomes_in_nesting
 	GROUP BY outcome_id
 	) counts
