@@ -29,8 +29,8 @@ limitations under the License.
 {DEFAULT @study_start_date = '' }
 {DEFAULT @study_end_date = '' }
 
-DROP TABLE IF EXISTS #outcomes;
-	
+IF OBJECT_ID('tempdb..#outcomes', 'U') IS NOT NULL DROP TABLE #outcomes;
+
 SELECT outcome_id,
 	observation_period_id,
 	DATEDIFF(DAY, observation_period_start_date, observation_period_end_date) + 1 AS observed_days,
@@ -66,7 +66,7 @@ INNER JOIN (
 		AND outcome_date <= observation_period_end_date;
 
 {@study_start_date != '' & @study_end_date != ''} ? {
-DROP TABLE IF EXISTS #outcomes_in_period;
+IF OBJECT_ID('tempdb..#outcomes_in_period', 'U') IS NOT NULL DROP TABLE #outcomes_in_period;
 
 SELECT outcome_id,
 	observation_period_id,
@@ -78,12 +78,12 @@ FROM #outcomes outcomes
 WHERE
 {@study_start_date != '' } ? {		outcome_date >= CAST('@study_start_date' AS DATE) }
 {@study_start_date != '' | @study_end_date != ''} ? {		AND}
-{@study_end_date != '' } ? {		outcome_date <= CAST('@study_end_date' AS DATE) }	
-;	
-}	
-	
+{@study_end_date != '' } ? {		outcome_date <= CAST('@study_end_date' AS DATE) }
+;
+}
+
 {@use_nesting_cohort} ? {
-DROP TABLE IF EXISTS #outcomes_in_nesting;
+IF OBJECT_ID('tempdb..#outcomes_in_nesting', 'U') IS NOT NULL DROP TABLE #outcomes_in_nesting;
 
 SELECT outcome_id,
 	observation_period_id,
@@ -102,4 +102,4 @@ INNER JOIN @nesting_cohort_database_schema.@nesting_cohort_table nesting
 		AND outcome_date >= cohort_start_date
 		AND outcome_date <= cohort_end_date
 WHERE nesting.cohort_definition_id = @nesting_cohort_id;
-}	
+}

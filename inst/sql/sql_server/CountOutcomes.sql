@@ -21,7 +21,7 @@ limitations under the License.
 {DEFAULT @study_start_date = ''}
 {DEFAULT @study_end_date = ''}
 
-DROP TABLE IF EXISTS #counts;
+IF OBJECT_ID('tempdb..#counts', 'U') IS NOT NULL DROP TABLE #counts;
 
 CREATE TABLE #counts (
 	outcome_id INT,

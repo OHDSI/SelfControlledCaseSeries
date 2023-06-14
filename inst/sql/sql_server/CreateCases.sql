@@ -26,8 +26,8 @@ limitations under the License.
 {DEFAULT @study_start_date = '' }
 {DEFAULT @study_end_date = '' }
 
-DROP TABLE IF EXISTS #cases;
-	
+IF OBJECT_ID('tempdb..#cases', 'U') IS NOT NULL DROP TABLE #cases;
+
 SELECT observation_period_id,
 	ROW_NUMBER() OVER (ORDER BY observation_period_id) AS case_id,
 	person.person_id,
@@ -74,8 +74,8 @@ FROM (
 				THEN CAST('@study_end_date' AS DATE)
 			ELSE observation_period_end_date
 		END AS end_date,
-		CASE WHEN CAST('@study_end_date' AS DATE) < observation_period_end_date 
-			THEN CAST(1 AS INT) 
+		CASE WHEN CAST('@study_end_date' AS DATE) < observation_period_end_date
+			THEN CAST(1 AS INT)
 			ELSE noninformative_end_censor
 		END AS noninformative_end_censor
 }
@@ -94,7 +94,7 @@ FROM (
 			END AS noninformative_end_censor
 		FROM @cdm_database_schema.observation_period
 		INNER JOIN (
-			SELECT DISTINCT observation_period_id 
+			SELECT DISTINCT observation_period_id
 {@use_nesting_cohort} ? {
 				, nesting_cohort_start_date
 			FROM #outcomes_in_nesting
@@ -102,7 +102,7 @@ FROM (
 			FROM #outcomes_in_period
 } : {
 			FROM #outcomes
-}}	
+}}
 			) outcomes
 		ON observation_period.observation_period_id = outcomes.observation_period_id
 	) observation_period
@@ -119,4 +119,4 @@ FROM (
 INNER JOIN @cdm_database_schema.person
 	ON observation_period.person_id = person.person_id
 ;
-	
+

@@ -34,9 +34,8 @@ limitations under the License.
 {DEFAULT @study_end_date = '' }
 {DEFAULT @sampled_cases = FALSE}
 
-DROP TABLE IF EXISTS #eras;
-
-DROP TABLE IF EXISTS #era_ref;
+IF OBJECT_ID('tempdb..#eras', 'U') IS NOT NULL DROP TABLE #eras;
+IF OBJECT_ID('tempdb..#era_ref', 'U') IS NOT NULL DROP TABLE #era_ref;
 
 CREATE TABLE #eras (
 	era_type VARCHAR(3),
@@ -137,7 +136,7 @@ FROM #outcomes_in_nesting outcomes
 FROM #outcomes_in_period outcomes
 } : {
 FROM #outcomes outcomes
-}}	 
+}}
 {@sampled_cases} ? {
 INNER JOIN #sampled_cases cases
 } : {
@@ -157,7 +156,7 @@ INNER JOIN (
 	WHERE era_type = 'hoi'
 	) eras
 ON eras.era_id = concept.concept_id;
-} : {	
+} : {
 INSERT INTO #era_ref (era_type, era_id, era_name)
 SELECT 'hoi',
 	era_id,
@@ -166,7 +165,7 @@ FROM (
 	SELECT DISTINCT era_id
 	FROM #eras
 	WHERE era_type = 'hoi'
-	) eras;		
+	) eras;
 }
 
 /* Create custom eras */
@@ -237,7 +236,7 @@ FROM (
 	SELECT DISTINCT era_id
 	FROM #eras
 	WHERE era_type = 'cst'
-	) eras;	
+	) eras;
 
 }
 }
