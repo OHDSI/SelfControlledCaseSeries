@@ -149,6 +149,9 @@ test_that("Running multiple analyses against Eunomia", {
 
   expect_equal(nrow(analysisSum), 6)
 
+  # sccsData <- loadSccsData(file.path(outputFolder, ref$sccsDataFile[5]))
+  # sccsData$eraRef
+
   # Assert appropriate designs:
   sccsIntervalData <- loadSccsIntervalData(file.path(outputFolder, pull(filter(ref, analysisId == 1), sccsIntervalDataFile)[1]))
   expect_equal(attr(sccsIntervalData, "metaData")$design, "SCCS")

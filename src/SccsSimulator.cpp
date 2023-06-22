@@ -31,24 +31,21 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace sccs {
 
-SccsSimulator::SccsSimulator(const List& _cases, const List& _eras,  const std::vector<double> _baselineRates, const List& _eraRrs,
+SccsSimulator::SccsSimulator(const DataFrame& _cases, const DataFrame& _eras,  const std::vector<double> _baselineRates, const DataFrame& _eraRrs,
                              const bool _includeAge, const int _ageOffset, const std::vector<double> _ageRrs, const bool _includeSeasonality,
-                             const std::vector<double> _seasonRrs, const bool _includeCalendarTimeEffect, const int _calendarTimeOffset,
-                             const std::vector<double> _calendarTimeRrs) : baselineRates(_baselineRates), includeAge(_includeAge),
+                             const std::vector<double> _seasonRrs, const bool _includeCalendarTimeEffect, const Date& _minCalendarTime,
+                             const std::vector<double> _calendarTimeRrs) : casesObservationPeriodStartDate(0), baselineRates(_baselineRates), includeAge(_includeAge),
                              ageOffset(_ageOffset), ageRrs(_ageRrs), includeSeasonality(_includeSeasonality), seasonRrs(_seasonRrs),
-                             includeCalendarTimeEffect(_includeCalendarTimeEffect), calendarTimeOffset(_calendarTimeOffset),
+                             includeCalendarTimeEffect(_includeCalendarTimeEffect), minCalendarTime(_minCalendarTime),
                              calendarTimeRrs(_calendarTimeRrs) {
   casesCaseId = _cases["caseId"];
-  casesObservationDays = _cases["observationDays"];
-  casesAgeInDays = _cases["ageInDays"];
-  casesStartYear = _cases["startYear"];
-  casesStartMonth = _cases["startMonth"];
-  casesStartDay = _cases["startDay"];
-  casesStartDate = _cases["startDate"];
+  casesEndDay = _cases["endDay"];
+  casesAgeAtObsStart = _cases["ageAtObsStart"];
+  casesObservationPeriodStartDate = _cases["observationPeriodStartDate"];
   erasCaseId = _eras["caseId"];
   erasEraId = _eras["eraId"];
-  erasStartDay = _eras["startDay"];
-  erasEndDay = _eras["endDay"];
+  erasStartDay = _eras["eraStartDay"];
+  erasEndDay = _eras["eraEndDay"];
   NumericVector eraId = _eraRrs["eraId"];
   NumericVector rr = _eraRrs["rr"];
   for (int i = 0; i < eraId.size(); i++){
@@ -58,20 +55,12 @@ SccsSimulator::SccsSimulator(const List& _cases, const List& _eras,  const std::
 
 void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, const int eraEndIndex){
   double baselineRate = baselineRates[caseIndex];
-  int ageAtStart = casesAgeInDays[caseIndex];
-  struct tm startDate = {0, 0, 12};
-  startDate.tm_year = casesStartYear[caseIndex] - 1900;
-  startDate.tm_mon = casesStartMonth[caseIndex] - 1;
-  startDate.tm_mday = casesStartDay[caseIndex];
-  struct tm startOfYear(startDate);
-  startOfYear.tm_mon = 0;
-  startOfYear.tm_mday = 1;
-  std::time_t time1 = std::mktime(&startDate);
-  std::time_t time2 = std::mktime(&startOfYear);
-  int startDayOfYear = std::difftime(time1, time2) / (60 * 60 * 24);
-  int calendarTimeAtStart = casesStartDate[caseIndex];
+  int ageAtObsStart = casesAgeAtObsStart[caseIndex];
+  Date startDate = casesObservationPeriodStartDate[caseIndex];
+  int startDayOfYear = startDate.getYearday() - 1;
+  int calendarIndexAtStart = startDate - (Date)minCalendarTime;
 
-  for (int day = 0; day < casesObservationDays[caseIndex]; day++){
+  for (int day = 0; day < casesEndDay[caseIndex]; day++){
     // Start with baseline rate:
     double dailyRate = baselineRate;
 
@@ -88,7 +77,7 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
 
     // Multiply by age RR:
     if (includeAge){
-      int age = ageAtStart + day;
+      int age = ageAtObsStart + day;
       dailyRate *= ageRrs[age - ageOffset];
     }
 
@@ -101,8 +90,7 @@ void SccsSimulator::processPerson(const int caseIndex, const int eraStartIndex, 
 
     // Multiply by calendar time RR:
     if (includeCalendarTimeEffect){
-      int calendarTime = calendarTimeAtStart + day;
-      dailyRate *= calendarTimeRrs[calendarTime - calendarTimeOffset];
+      dailyRate *= calendarTimeRrs[calendarIndexAtStart + day];
     }
 
     // Sample outcomes:

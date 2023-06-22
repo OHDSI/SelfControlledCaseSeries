@@ -88,9 +88,7 @@ test_that("getDbSccsData correctly handles nesting", {
   expect_equal(cases$observationPeriodId, c("1.0", "1.0", "2.0", "4.0"))
   expect_equal(cases$personId, c("1.0", "1.0", "2.0", "3.0"))
   expect_equal(cases$caseId, c(1, 2, 3, 4))
-  expect_equal(cases$startYear, c(2000, 2000, 2000, 2002))
-  expect_equal(cases$startMonth , c(7, 11, 7, 7))
-  expect_equal(cases$startDay , c(1, 1, 1, 1))
+  expect_equal(cases$startDate, as.Date(c("2000-7-1", "2000-11-1", "2000-7-1", "2002-7-1")))
 
   hois <- sccsData$eras %>%
     filter(eraType == "hoi") %>%

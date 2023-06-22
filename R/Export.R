@@ -305,6 +305,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
 
       # sccsEra table
       eraRef <- sccsData$eraRef %>%
+        select("eraType", "eraId", "eraName") %>%
         collect()
       rows <- reference %>%
         filter(.data$sccsDataFile == !!sccsDataFile) %>%

@@ -335,16 +335,16 @@ getDbSccsData <- function(connectionDetails,
   ParallelLogger::logDebug("Fetched ", sccsData$cases %>% count() %>% pull(), " cases from server")
 
   countNegativeAges <- sccsData$cases %>%
-    filter(.data$ageInDays < 0) %>%
+    filter(.data$ageAtObsStart < 0) %>%
     count() %>%
     pull()
 
   if (countNegativeAges > 0) {
-    warning("There are ", countNegativeAges, " cases with negative ages. Setting their starting age to 0. Please review your data.")
+    warning("There are ", countNegativeAges, " cases with negative ages at observation start. Setting their starting age to 0. Please review your data.")
     sccsData$cases <- sccsData$cases %>%
-      mutate(ageInDays = case_when(
-        .data$ageInDays < 0 ~ 0,
-        TRUE ~ .data$ageInDays
+      mutate(ageAtObsStart = case_when(
+        .data$ageAtObsStart < 0 ~ 0,
+        TRUE ~ .data$ageAtObsStart
       ))
   }
 
@@ -361,7 +361,7 @@ getDbSccsData <- function(connectionDetails,
     snakeCaseToCamelCase = TRUE
   )
 
-  sql <- "SELECT era_type, era_id, era_name FROM #era_ref"
+  sql <- "SELECT * FROM #era_ref"
   sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, tempEmulationSchema = tempEmulationSchema)
   DatabaseConnector::querySqlToAndromeda(
     connection = conn,

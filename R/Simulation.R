@@ -174,26 +174,20 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
   maxCalendarDays <- as.numeric(settings$maxCalendarTime) - as.numeric(settings$minCalendarTime)
   observationDays[observationDays > maxCalendarDays] <- maxCalendarDays
   ageInDays <- round(runif(n, settings$minAge, settings$maxAge - observationDays))
-  startDate <- round(runif(
+  observationPeriodStartDate <- round(runif(
     n,
     rep(as.numeric(settings$minCalendarTime), n),
     as.numeric(settings$maxCalendarTime) - observationDays
   ))
-  startDate <- as.Date(startDate, origin = "1970-01-01")
-  startYear <- as.numeric(format(startDate, format = "%Y"))
-  startMonth <- as.numeric(format(startDate, format = "%m"))
-  startDay <- as.numeric(format(startDate, format = "%d"))
+  observationPeriodStartDate <- as.Date(observationPeriodStartDate, origin = "1970-01-01")
   cases <- tibble(
     observationPeriodId = 1:n,
     caseId = 1:n,
     personId = 1:n,
-    observationDays = observationDays,
-    ageInDays = ageInDays,
-    startYear = startYear,
-    startMonth = startMonth,
-    startDay = startDay,
-    startDate = as.numeric(startDate),
-    censoredDays = 0,
+    observationPeriodStartDate = observationPeriodStartDate,
+    startDay = 0,
+    endDay = observationDays,
+    ageAtObsStart = ageInDays,
     noninformativeEndCensor = 0
   )
 
@@ -209,7 +203,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
     count <- rpois(length(patientsOnDrug), observationDays[patientsOnDrug] * settings$usageRate[i])
     observationPeriodId <- rep(patientsOnDrug, count)
     patientsOnDrug <- patientsOnDrug[count != 0]
-    startDay <- round(runif(sum(count), 0, cases$observationDays[observationPeriodId]))
+    startDay <- round(runif(sum(count), 0, cases$endDay[observationPeriodId]))
     duration <- round(rnorm(
       sum(count),
       settings$meanPrescriptionDurations[i],
@@ -217,15 +211,15 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
     ))
     duration[duration < 1] <- 1
     endDay <- startDay + duration
-    endDay[endDay > cases$observationDays[observationPeriodId]] <- cases$observationDays[observationPeriodId][endDay >
-      cases$observationDays[observationPeriodId]]
+    endDay[endDay > cases$endDay[observationPeriodId]] <- cases$endDay[observationPeriodId][endDay >
+      cases$endDay[observationPeriodId]]
     newEras <- tibble(
       eraType = "rx",
       caseId = observationPeriodId,
       eraId = settings$eraIds[i],
-      value = 1,
-      startDay = startDay,
-      endDay = endDay
+      eraValue = 1,
+      eraStartDay = startDay,
+      eraEndDay = endDay
     )
     eras <- rbind(eras, newEras)
   }
@@ -258,7 +252,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
     sourceEras <- eras[eras$eraId == settings$eraIds[i], ]
     riskEnds <- rep(simulationRiskWindow$end, nrow(sourceEras))
     if (simulationRiskWindow$endAnchor == "era end") {
-      riskEnds <- riskEnds + sourceEras$endDay - sourceEras$startDay
+      riskEnds <- riskEnds + sourceEras$eraEndDay - sourceEras$eraStartDay
     }
     start <- simulationRiskWindow$start
     for (j in 1:(length(simulationRiskWindow$splitPoints) + 1)) {
@@ -274,9 +268,9 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
         eraType = "rx",
         caseId = sourceEras$caseId[filteredIndex],
         eraId = eraId,
-        value = 1,
-        startDay = sourceEras$startDay[filteredIndex] + start,
-        endDay = sourceEras$startDay[filteredIndex] + truncatedEnds[filteredIndex]
+        eraValue = 1,
+        eraStartDay = sourceEras$eraStartDay[filteredIndex] + start,
+        eraEndDay = sourceEras$eraStartDay[filteredIndex] + truncatedEnds[filteredIndex]
       )
       newEras <- rbind(newEras, riskEras)
       eraIds <- c(eraIds, eraId)
@@ -298,16 +292,16 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
     settings$includeSeasonality,
     seasonRrs,
     settings$includeCalendarTimeEffect,
-    as.numeric(settings$minCalendarTime),
+    settings$minCalendarTime,
     calendarTimeRrs
   )
   outcomes <- tibble(
     eraType = "hoi",
     caseId = outcomes$caseId,
     eraId = settings$outcomeId,
-    value = 1,
-    startDay = outcomes$startDay,
-    endDay = outcomes$startDay
+    eraValue = 1,
+    eraStartDay = outcomes$startDay,
+    eraEndDay = outcomes$startDay
   )
 
   # ** Remove non-cases ***
@@ -320,7 +314,6 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
   cases$caseId <- cases$caseId + caseIdOffset
   cases$observationPeriodId <- cases$observationPeriodId + caseIdOffset
   cases$personId <- cases$personId + caseIdOffset
-  cases$startDate <- NULL
   eras$caseId <- eras$caseId + caseIdOffset
   result <- list(cases = cases, eras = eras)
   return(result)

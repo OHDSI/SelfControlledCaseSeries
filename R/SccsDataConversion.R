@@ -212,7 +212,7 @@ addAgeSettings <- function(settings,
     if (length(ageCovariateSettings$ageKnots) == 1) {
       ageKnots <- studyPopulation$outcomes %>%
         inner_join(studyPopulation$cases, by = "caseId") %>%
-        transmute(outcomeAge = .data$outcomeDay + .data$ageInDays) %>%
+        transmute(outcomeAge = .data$outcomeDay + .data$ageAtObsStart) %>%
         pull() %>%
         quantile(seq(0.01, 0.99, length.out = ageCovariateSettings$ageKnots))
     } else {
@@ -379,7 +379,10 @@ convertMonthToEndDate <- function(month) {
 
 computeObservedPerMonth <- function(studyPopulation) {
   observationPeriods <- studyPopulation$cases %>%
-    mutate(endDate = .data$startDate + .data$endDay) %>%
+    mutate(
+      startDate = .data$observationPeriodStartDate + .data$startDay,
+      endDate = .data$observationPeriodStartDate + .data$endDay
+    ) %>%
     mutate(
       startMonth = convertDateToMonth(.data$startDate),
       endMonth = convertDateToMonth(.data$endDate) + 1
@@ -435,12 +438,11 @@ addEventDependentObservationSettings <- function(settings,
       summarise(outcomeDay = min(.data$outcomeDay)) %>%
       inner_join(studyPopulation$cases, by = "caseId") %>%
       transmute(
-        astart = .data$ageInDays,
-        aend = .data$ageInDays + .data$endDay + 1,
-        aevent = .data$ageInDays + .data$outcomeDay + 1,
+        astart = .data$ageAtObsStart + .data$startDay,
+        aend = .data$ageAtObsStart + .data$endDay + 1,
+        aevent = .data$ageAtObsStart + .data$outcomeDay + 1,
         present = .data$noninformativeEndCensor == 1
       )
-
     settings$censorModel <- fitModelsAndPickBest(data)
     settings$metaData$censorModel <- settings$censorModel
   }

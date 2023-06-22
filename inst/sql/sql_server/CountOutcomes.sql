@@ -44,13 +44,13 @@ LEFT JOIN (
 		COUNT(DISTINCT person_id) AS outcome_subjects,
 		COUNT(*) AS outcome_events,
 		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods,
-		SUM(CAST(observed_days AS BIGINT)) AS observed_days
+		SUM(CAST(DATEDIFF(DAY, start_date, end_date) AS BIGINT) + 1) AS observed_days
 	FROM #outcomes
 	GROUP BY outcome_id
 	) counts
 ON outcome_ids.outcome_id = counts.outcome_id;
 
-{@study_start_date != '' & @study_end_date != ''} ? {
+{@study_start_date != '' | @study_end_date != ''} ? {
 INSERT INTO #counts (outcome_id, description, outcome_subjects, outcome_events, outcome_obs_periods, observed_days)
 SELECT outcome_ids.outcome_id,
 	'Outcomes in study period',
@@ -64,7 +64,7 @@ LEFT JOIN (
 		COUNT(DISTINCT person_id) AS outcome_subjects,
 		COUNT(*) AS outcome_events,
 		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods,
-		SUM(CAST(observed_days AS BIGINT)) AS observed_days
+		SUM(CAST(DATEDIFF(DAY, start_date, end_date) AS BIGINT) + 1) AS observed_days
 	FROM #outcomes_in_period
 	GROUP BY outcome_id
 	) counts
@@ -85,7 +85,7 @@ LEFT JOIN (
 		COUNT(DISTINCT person_id) AS outcome_subjects,
 		COUNT(*) AS outcome_events,
 		COUNT(DISTINCT observation_period_id) AS outcome_obs_periods,
-		SUM(CAST(observed_days AS BIGINT)) AS observed_days
+		SUM(CAST(DATEDIFF(DAY, start_date, end_date) AS BIGINT) + 1) AS observed_days
 	FROM #outcomes_in_nesting
 	GROUP BY outcome_id
 	) counts

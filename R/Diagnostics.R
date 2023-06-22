@@ -18,7 +18,7 @@ computeOutcomeRatePerMonth <- function(studyPopulation) {
   observationPeriodCounts <- computeObservedPerMonth(studyPopulation)
   outcomeCounts <- studyPopulation$outcomes %>%
     inner_join(studyPopulation$cases, by = "caseId") %>%
-    transmute(month = convertDateToMonth(.data$startDate + .data$outcomeDay)) %>%
+    transmute(month = convertDateToMonth(.data$observationPeriodStartDate + .data$outcomeDay)) %>%
     group_by(.data$month) %>%
     summarise(outcomeCount = n())
   data <- observationPeriodCounts %>%
@@ -176,16 +176,12 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   }
 
   cases <- studyPopulation$cases %>%
-    select("caseId", caseEndDay = "endDay", "offset")
+    select("caseId", "startDay", "endDay")
 
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
     inner_join(cases, by = "caseId", copy = TRUE) %>%
-    mutate(
-      startDay = .data$startDay - .data$offset,
-      endDay = .data$endDay - .data$offset
-    ) %>%
-    filter(.data$startDay >= 0, .data$startDay < .data$caseEndDay) %>%
+    filter(.data$eraStartDay >= .data$startDay, .data$eraStartDay < .data$endDay) %>%
     collect()
 
   if (nrow(exposures) == 0) {
@@ -193,16 +189,16 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
     return(NA)
   }
   firstExposures <- exposures %>%
-    group_by(.data$caseId, .data$caseEndDay) %>%
+    group_by(.data$caseId, .data$startDay, .data$endDay) %>%
     summarise(
-      startDay = min(.data$startDay, na.rm = TRUE),
-      endDay = min(.data$endDay, na.rm = TRUE),
+      eraStartDay = min(.data$eraStartDay, na.rm = TRUE),
+      eraEndDay = min(.data$eraEndDay, na.rm = TRUE),
       .groups = "drop"
     )
 
   outcomes <- studyPopulation$outcomes %>%
     inner_join(firstExposures, by = "caseId") %>%
-    mutate(delta = .data$outcomeDay - .data$startDay) %>%
+    mutate(delta = .data$outcomeDay - .data$eraStartDay) %>%
     select("caseId", "outcomeDay", "delta")
 
   # Restrict to 30 days before and after exposure start:
@@ -220,13 +216,14 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
 
   observed <- bind_rows(
     firstExposures %>%
+      mutate(daysBeforeExposure = .data$eraStartDay - .data$startDay) %>%
       mutate(
-        daysObserved = if_else(.data$startDay > 30, 30, .data$startDay),
+        daysObserved = if_else(.data$daysBeforeExposure > 30, 30, .data$daysBeforeExposure),
         beforeExposure = TRUE
       ) %>%
       select("caseId", "daysObserved", "beforeExposure"),
     firstExposures %>%
-      mutate(daysAfterExposure = .data$caseEndDay - .data$startDay) %>%
+      mutate(daysAfterExposure = .data$endDay - .data$eraStartDay) %>%
       mutate(
         daysObserved = if_else(.data$daysAfterExposure > 30, 30, .data$daysAfterExposure),
         beforeExposure = FALSE

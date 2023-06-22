@@ -32,19 +32,19 @@ namespace sccs {
 
 
 PersonDataIterator::PersonDataIterator(const DataFrame& _cases, const DataFrame& _outcomes, const List& _eras) :
- erasIterator(_eras, true), casesStartDate(0), casesCursor(0), outcomesCursor(0), erasCursor(0) {
+ erasIterator(_eras, true), casesObservationPeriodStartDate(0), casesCursor(0), outcomesCursor(0), erasCursor(0) {
 
   outcomesCaseId = _outcomes["caseId"];
   outcomesOutcomeDay = _outcomes["outcomeDay"];
 
-  casesPersonId = _cases["personId"];
   casesObservationPeriodId = _cases["observationPeriodId"];
+  casesPersonId = _cases["personId"];
   casesCaseId = _cases["caseId"];
+  casesObservationPeriodStartDate = _cases["observationPeriodStartDate"];
+  casesAgeAtObsStart = _cases["ageAtObsStart"];
+  casesStartDay = _cases["startDay"];
   casesEndDay = _cases["endDay"];
-  casesAgeInDays = _cases["ageInDays"];
-  casesOffset = _cases["offset"];
   casesNoninformativeEndCensor = _cases["noninformativeEndCensor"];
-  casesStartDate = _cases["startDate"];
 
   loadNextEras();
 }
@@ -53,10 +53,10 @@ PersonDataIterator::PersonDataIterator(const DataFrame& _cases, const DataFrame&
 void PersonDataIterator::loadNextEras() {
   List eras = erasIterator.next();
   erasCaseId = eras["caseId"];
-  erasStartDay = eras["startDay"];
-  erasEndDay = eras["endDay"];
+  erasStartDay = eras["eraStartDay"];
+  erasEndDay = eras["eraEndDay"];
   erasEraId = eras["eraId"];
-  erasValue = eras["value"];
+  erasValue = eras["eraValue"];
   erasEraType = eras["eraType"];
  }
 
@@ -66,21 +66,24 @@ bool PersonDataIterator::hasNext() {
 
 PersonData PersonDataIterator::next() {
   int caseId = casesCaseId[casesCursor];
-  int offset = casesOffset[casesCursor];
+  int startDay = casesStartDay[casesCursor];
   PersonData nextPerson(casesPersonId[casesCursor],
                         casesObservationPeriodId[casesCursor],
                         caseId,
-                        casesStartDate[casesCursor],
-                        casesAgeInDays[casesCursor],
-                        casesEndDay[casesCursor],
-                        offset,
+                        casesObservationPeriodStartDate[casesCursor],
+                        casesAgeAtObsStart[casesCursor] + startDay,
+                        casesEndDay[casesCursor] - startDay,
+                        startDay,
                         casesNoninformativeEndCensor[casesCursor]);
   casesCursor++;
 
   // Rcpp::Rcout << outcomesCaseId[erasCursor] << " (outcomesCaseId[erasCursor])\n";
   // Rcpp::Rcout << observationPeriodId << " (observationPeriodId)\n";
   while (outcomesCursor < outcomesCaseId.length() && outcomesCaseId[outcomesCursor] == caseId) {
-    Era outcome(outcomesOutcomeDay[outcomesCursor], outcomesOutcomeDay[outcomesCursor], 0, 1.0);
+    Era outcome(outcomesOutcomeDay[outcomesCursor] - startDay,
+                outcomesOutcomeDay[outcomesCursor] - startDay,
+                0,
+                1.0);
     nextPerson.outcomes -> push_back(outcome);
     outcomesCursor++;
   }
@@ -97,7 +100,10 @@ PersonData PersonDataIterator::next() {
   }
   while (erasCursor < erasCaseId.length() && erasCaseId[erasCursor] == caseId) {
     if (erasEraType[erasCursor] != "hoi") {
-      Era era(erasStartDay[erasCursor] - offset, erasEndDay[erasCursor] - offset, erasEraId[erasCursor], erasValue[erasCursor]);
+      Era era(erasStartDay[erasCursor] - startDay,
+              erasEndDay[erasCursor] - startDay,
+              erasEraId[erasCursor],
+                       erasValue[erasCursor]);
       nextPerson.eras -> push_back(era);
     }
     erasCursor++;

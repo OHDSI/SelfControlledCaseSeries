@@ -38,24 +38,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // simulateSccsOutcomes
-List simulateSccsOutcomes(const List& cases, const List& eras, const std::vector<double> baselineRates, const List& eraRrs, const bool includeAgeEffect, const int ageOffset, const std::vector<double> ageRrs, const bool includeSeasonality, const std::vector<double> seasonRrs, const bool includeCalendarTimeEffect, const int calendarTimeOffset, const std::vector<double> calendarTimeRrs);
-RcppExport SEXP _SelfControlledCaseSeries_simulateSccsOutcomes(SEXP casesSEXP, SEXP erasSEXP, SEXP baselineRatesSEXP, SEXP eraRrsSEXP, SEXP includeAgeEffectSEXP, SEXP ageOffsetSEXP, SEXP ageRrsSEXP, SEXP includeSeasonalitySEXP, SEXP seasonRrsSEXP, SEXP includeCalendarTimeEffectSEXP, SEXP calendarTimeOffsetSEXP, SEXP calendarTimeRrsSEXP) {
+List simulateSccsOutcomes(const DataFrame& cases, const DataFrame& eras, const std::vector<double> baselineRates, const DataFrame& eraRrs, const bool includeAgeEffect, const int ageOffset, const std::vector<double> ageRrs, const bool includeSeasonality, const std::vector<double> seasonRrs, const bool includeCalendarTimeEffect, const Date& minCalendarTime, const std::vector<double> calendarTimeRrs);
+RcppExport SEXP _SelfControlledCaseSeries_simulateSccsOutcomes(SEXP casesSEXP, SEXP erasSEXP, SEXP baselineRatesSEXP, SEXP eraRrsSEXP, SEXP includeAgeEffectSEXP, SEXP ageOffsetSEXP, SEXP ageRrsSEXP, SEXP includeSeasonalitySEXP, SEXP seasonRrsSEXP, SEXP includeCalendarTimeEffectSEXP, SEXP minCalendarTimeSEXP, SEXP calendarTimeRrsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type cases(casesSEXP);
-    Rcpp::traits::input_parameter< const List& >::type eras(erasSEXP);
+    Rcpp::traits::input_parameter< const DataFrame& >::type cases(casesSEXP);
+    Rcpp::traits::input_parameter< const DataFrame& >::type eras(erasSEXP);
     Rcpp::traits::input_parameter< const std::vector<double> >::type baselineRates(baselineRatesSEXP);
-    Rcpp::traits::input_parameter< const List& >::type eraRrs(eraRrsSEXP);
+    Rcpp::traits::input_parameter< const DataFrame& >::type eraRrs(eraRrsSEXP);
     Rcpp::traits::input_parameter< const bool >::type includeAgeEffect(includeAgeEffectSEXP);
     Rcpp::traits::input_parameter< const int >::type ageOffset(ageOffsetSEXP);
     Rcpp::traits::input_parameter< const std::vector<double> >::type ageRrs(ageRrsSEXP);
     Rcpp::traits::input_parameter< const bool >::type includeSeasonality(includeSeasonalitySEXP);
     Rcpp::traits::input_parameter< const std::vector<double> >::type seasonRrs(seasonRrsSEXP);
     Rcpp::traits::input_parameter< const bool >::type includeCalendarTimeEffect(includeCalendarTimeEffectSEXP);
-    Rcpp::traits::input_parameter< const int >::type calendarTimeOffset(calendarTimeOffsetSEXP);
+    Rcpp::traits::input_parameter< const Date& >::type minCalendarTime(minCalendarTimeSEXP);
     Rcpp::traits::input_parameter< const std::vector<double> >::type calendarTimeRrs(calendarTimeRrsSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulateSccsOutcomes(cases, eras, baselineRates, eraRrs, includeAgeEffect, ageOffset, ageRrs, includeSeasonality, seasonRrs, includeCalendarTimeEffect, calendarTimeOffset, calendarTimeRrs));
+    rcpp_result_gen = Rcpp::wrap(simulateSccsOutcomes(cases, eras, baselineRates, eraRrs, includeAgeEffect, ageOffset, ageRrs, includeSeasonality, seasonRrs, includeCalendarTimeEffect, minCalendarTime, calendarTimeRrs));
     return rcpp_result_gen;
 END_RCPP
 }

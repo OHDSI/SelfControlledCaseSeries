@@ -31,19 +31,16 @@ namespace sccs {
 
 class SccsSimulator {
 public:
-  SccsSimulator(const List& _cases, const List& _eras, const std::vector<double> _baselineRates, const List& _eraRrs, const bool _includeAge,
+  SccsSimulator(const DataFrame& _cases, const DataFrame& _eras, const std::vector<double> _baselineRates, const DataFrame& _eraRrs, const bool _includeAge,
                 const int _ageOffset, const std::vector<double> _ageRrs, const bool _includeSeasonality, const std::vector<double> _seasonRrs,
-                const bool _includeCalendarTimeEffect, const int _calendarTimeOffset, const std::vector<double> _calendarTimeRrs);
+                const bool _includeCalendarTimeEffect, const Date& _minCalendarTime, const std::vector<double> _calendarTimeRrs);
   List simulateOutcomes();
 private:
   void processPerson(const int caseIndex, const int eraStartIndex, const int eraEndIndex);
   NumericVector casesCaseId;
-  NumericVector casesObservationDays;
-  NumericVector casesAgeInDays;
-  NumericVector casesStartYear;
-  NumericVector casesStartMonth;
-  NumericVector casesStartDay;
-  NumericVector casesStartDate;
+  NumericVector casesEndDay;
+  NumericVector casesAgeAtObsStart;
+  DateVector casesObservationPeriodStartDate;
   NumericVector erasCaseId;
   NumericVector erasEraId;
   NumericVector erasStartDay;
@@ -58,7 +55,7 @@ private:
   bool includeSeasonality;
   std::vector<double> seasonRrs;
   bool includeCalendarTimeEffect;
-  int calendarTimeOffset;
+  int minCalendarTime;
   std::vector<double> calendarTimeRrs;
   std::default_random_engine generator;
 };

@@ -41,7 +41,7 @@ FROM (
 			observation_period_id
 {@use_nesting_cohort} ? {
 		FROM #outcomes_in_nesting
-} : { {@study_start_date != '' & @study_end_date != ''} ? {
+} : { {@study_start_date != '' | @study_end_date != ''} ? {
 		FROM #outcomes_in_period
 } : {
 		FROM #outcomes
@@ -58,7 +58,7 @@ SELECT cases.observation_period_id,
 	cases.observation_period_start_date,
 	cases.start_date,
 	cases.end_date,
-	cases.age_in_days,
+	cases.date_of_birth,
 	cases.noninformative_end_censor,
 	cases.gender_concept_id
 INTO #sampled_cases

@@ -36,12 +36,14 @@ options(sqlRenderTempEmulationSchema = NULL)
 # Create cohorts ---------------------------------------------------------------
 connection <- DatabaseConnector::connect(connectionDetails)
 
-sql <- loadRenderTranslateSql("vignette.sql",
-                              packageName = "SelfControlledCaseSeries",
-                              dbms = connectionDetails$dbms,
-                              cdmDatabaseSchema = cdmDatabaseSchema,
-                              cohortDatabaseSchema = cohortDatabaseSchema,
-                              outcomeTable = outcomeTable)
+sql <- SqlRender::loadRenderTranslateSql(
+  "vignette.sql",
+  packageName = "SelfControlledCaseSeries",
+  dbms = connectionDetails$dbms,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  cohortDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = outcomeTable
+)
 
 DatabaseConnector::executeSql(connection, sql)
 
@@ -81,13 +83,14 @@ summary(sccsData)
 studyPop <- createStudyPopulation(sccsData = sccsData,
                                   outcomeId = 1,
                                   firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+                                  naivePeriod = 180,
+                                  restrictTimeToEraId = diclofenac)
 
 saveRDS(studyPop, file.path(folder, "studyPop.rds"))
 
-plotAgeSpans(studyPop)
+plotAgeSpans(studyPop, maxPersons = 10)
 
-plotCalendarTimeSpans(studyPop)
+plotCalendarTimeSpans(studyPop, maxPersons = 10)
 
 plotEventObservationDependence(studyPop)
 
@@ -97,6 +100,9 @@ plotEventToCalendarTime(studyPop)
 
 getAttritionTable(studyPop)
 
+computePreExposureGainP(sccsData = sccsData,
+                        studyPopulation = studyPop,
+                        exposureEraId = diclofenac)
 
 covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
                                               includeEraIds = diclofenac,

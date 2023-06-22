@@ -35,7 +35,8 @@ convertToSccsDataWrapper <- function(cases,
     mutate(eraName = "")
 
   data <- Andromeda::andromeda(
-    cases = cases,
+    cases = cases %>%
+      mutate(observationPeriodStartDate = as.numeric(observationPeriodStartDate)),
     eras = eras,
     eraRef = eraRef
   )
@@ -70,21 +71,19 @@ test_that("Simple era construction", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(50, 25),
-    endDay = c(50, 75)
+    eraValue = c(1, 1),
+    eraStartDay = c(50, 25),
+    eraEndDay = c(50, 75)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = 11)
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -101,21 +100,19 @@ test_that("Age restriction", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 10000,
-    ageInDays = 365,
-    startYear = 2000,
-    startMonth = 5,
-    startDay = 1,
-    censoredDays = 0,
+    ageAtObsStart = 365,
+    observationPeriodStartDate = as.Date("2000-5-1"),
+    startDay = 0,
+    endDay = 10000,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(500, 525),
-    endDay = c(500, 575)
+    eraValue = c(1, 1),
+    eraStartDay = c(500, 525),
+    eraEndDay = c(500, 575)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = 11, minAge = 2, maxAge = 3)
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -132,21 +129,19 @@ test_that("Outcome on boundary", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(25, 25),
-    endDay = c(25, 75)
+    eraValue = c(1, 1),
+    eraStartDay = c(25, 25),
+    eraEndDay = c(25, 75)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -163,21 +158,19 @@ test_that("Outcome on boundary", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(24, 25),
-    endDay = c(24, 75)
+    eraValue = c(1, 1),
+    eraStartDay = c(24, 25),
+    eraEndDay = c(24, 75)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -194,21 +187,19 @@ test_that("Outcome on boundary", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(75, 25),
-    endDay = c(75, 75)
+    eraValue = c(1, 1),
+    eraStartDay = c(75, 25),
+    eraEndDay = c(75, 75)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -225,21 +216,19 @@ test_that("Outcome on boundary", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(76, 25),
-    endDay = c(76, 75)
+    eraValue = c(1, 1),
+    eraStartDay = c(76, 25),
+    eraEndDay = c(76, 75)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -256,21 +245,19 @@ test_that("One day era", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(50, 25),
-    endDay = c(50, 25)
+    eraValue = c(1, 1),
+    eraStartDay = c(50, 25),
+    eraEndDay = c(50, 25)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -287,21 +274,19 @@ test_that("Merging overlapping eras", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx", "rx"),
     caseId = c(1, 1, 1),
     eraId = c(10, 11, 11),
-    value = c(1, 1, 1),
-    startDay = c(50, 25, 70),
-    endDay = c(50, 75, 80)
+    eraValue = c(1, 1, 1),
+    eraStartDay = c(50, 25, 70),
+    eraEndDay = c(50, 75, 80)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -318,21 +303,19 @@ test_that("Merging overlapping eras with same start date", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx", "rx"),
     caseId = c(1, 1, 1),
     eraId = c(10, 11, 11),
-    value = c(1, 1, 1),
-    startDay = c(50, 25, 25),
-    endDay = c(50, 75, 50)
+    eraValue = c(1, 1, 1),
+    eraStartDay = c(50, 25, 25),
+    eraEndDay = c(50, 75, 50)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -350,21 +333,19 @@ test_that("Concomitant drug use", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx", "rx"),
     caseId = c(1, 1, 1),
     eraId = c(10, 11, 12),
-    value = c(1, 1, 1),
-    startDay = c(50, 25, 60),
-    endDay = c(50, 75, 70)
+    eraValue = c(1, 1, 1),
+    eraStartDay = c(50, 25, 60),
+    eraEndDay = c(50, 75, 70)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11, 12))
   expect_equal(result$outcomes$rowId, c(0, 1, 2))
@@ -381,21 +362,19 @@ test_that("Concomitant drug use (3 drugs)", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "hoi", "rx", "rx", "rx"),
     caseId = c(1, 1, 1, 1, 1),
     eraId = c(10, 10, 11, 12, 13),
-    value = c(1, 1, 1, 1, 1),
-    startDay = c(50, 85, 25, 70, 70),
-    endDay = c(NA, NA, 75, 80, 77)
+    eraValue = c(1, 1, 1, 1, 1),
+    eraStartDay = c(50, 85, 25, 70, 70),
+    eraEndDay = c(NA, NA, 75, 80, 77)
   )
   result <- convertToSccsDataWrapper(cases, eras, exposureId = c(11, 12, 13))
   expect_equal(result$outcomes$rowId, c(0, 1, 2, 3, 4))
@@ -412,21 +391,19 @@ test_that("Start risk window at day 1 not 0", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(50, 50),
-    endDay = c(50, 75)
+    eraValue = c(1, 1),
+    eraStartDay = c(50, 50),
+    eraEndDay = c(50, 75)
   )
   result <- convertToSccsDataWrapper(cases,
     eras,
@@ -451,21 +428,19 @@ test_that("Two HOIs, keeping both", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "hoi", "rx"),
     caseId = c(1, 1, 1),
     eraId = c(10, 10, 11),
-    value = c(1, 1, 1),
-    startDay = c(25, 50, 30),
-    endDay = c(25, 50, 60)
+    eraValue = c(1, 1, 1),
+    eraStartDay = c(25, 50, 30),
+    eraEndDay = c(25, 50, 60)
   )
   result <- convertToSccsDataWrapper(cases, eras, firstOutcomeOnly = FALSE, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -482,21 +457,19 @@ test_that("Two HOIs, keeping first", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "hoi", "rx"),
     caseId = c(1, 1, 1),
     eraId = c(10, 10, 11),
-    value = c(1, 1, 1),
-    startDay = c(25, 50, 30),
-    endDay = c(25, 50, 60)
+    eraValue = c(1, 1, 1),
+    eraStartDay = c(25, 50, 30),
+    eraEndDay = c(25, 50, 60)
   )
   result <- convertToSccsDataWrapper(cases, eras, firstOutcomeOnly = TRUE, exposureId = c(11))
   expect_equal(result$outcomes$rowId, c(0, 1))
@@ -513,21 +486,19 @@ test_that("Removal of risk windows where end before start", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
     startDay = 1,
-    censoredDays = 0,
+    endDay = 100,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(50, 50),
-    endDay = c(50, 75)
+    eraValue = c(1, 1),
+    eraStartDay = c(50, 50),
+    eraEndDay = c(50, 75)
   )
   expect_warning({
     result <- convertToSccsDataWrapper(cases,
@@ -568,8 +539,8 @@ test_that("Aggregates on large set", {
   y <- sccsData$eras %>%
     filter(.data$eraId == 10) %>%
     collect()
-  z <- inner_join(x, y, by = c("caseId")) %>%
-    filter(.data$startDay.y >= .data$startDay.x & .data$startDay.y <= .data$endDay.x) %>%
+  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") %>%
+    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) %>%
     distinct(.data$caseId) %>%
     pull()
 
@@ -592,8 +563,8 @@ test_that("Aggregates on large set", {
   y <- sccsData$eras %>%
     filter(.data$eraId == 10) %>%
     collect()
-  z <- inner_join(x, y, by = c("caseId")) %>%
-    filter(.data$startDay.y >= .data$startDay.x & .data$startDay.y <= .data$endDay.x) %>%
+  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") %>%
+    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) %>%
     distinct(.data$caseId) %>%
     pull()
 
@@ -617,12 +588,12 @@ test_that("Aggregates on large set", {
     collect()
 
   z3 <- sccsData$cases %>%
-    select(stratumId = "caseId", "observationDays") %>%
+    select(stratumId = "caseId", "endDay") %>%
     inner_join(outcomes, by = "stratumId", copy = TRUE) %>%
     collect()
 
-  # Same amount of times before and after convertion to concomittant eras:
-  expect_equal(z3$observationDays, z3$time)
+  # Same amount of times before and after conversion to concomitant eras:
+  expect_equal(z3$endDay + 1, z3$time)
 })
 
 test_that("Merging exposures (stratifyById=FALSE)", {
@@ -630,21 +601,19 @@ test_that("Merging exposures (stratifyById=FALSE)", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
-    startDay = 1,
-    censoredDays = 0,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
+    startDay = 0,
+    endDay = 99,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx", "rx"),
     caseId = c(1, 1, 1),
     eraId = c(10, 11, 12),
-    value = c(1, 1, 1),
-    startDay = c(50, 25, 70),
-    endDay = c(50, 75, 100)
+    eraValue = c(1, 1, 1),
+    eraStartDay = c(50, 25, 70),
+    eraEndDay = c(50, 75, 100)
   )
   result <- convertToSccsDataWrapper(cases,
     eras,
@@ -670,21 +639,19 @@ test_that("Pre-exposure window", {
     observationPeriodId = "1000",
     caseId = 1,
     personId = "1",
-    observationDays = 100,
-    ageInDays = 0,
-    startYear = 2000,
-    startMonth = 5,
-    startDay = 1,
-    censoredDays = 0,
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
+    startDay = 0,
+    endDay = 99,
     noninformativeEndCensor = 0
   )
   eras <- tibble(
     eraType = c("hoi", "rx"),
     caseId = c(1, 1),
     eraId = c(10, 11),
-    value = c(1, 1),
-    startDay = c(50, 25),
-    endDay = c(50, 75)
+    eraValue = c(1, 1),
+    eraStartDay = c(50, 25),
+    eraEndDay = c(50, 75)
   )
   result <- convertToSccsDataWrapper(cases, eras, covariateSettings = list(
     createEraCovariateSettings(

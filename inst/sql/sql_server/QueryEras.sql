@@ -20,8 +20,8 @@ limitations under the License.
 SELECT era_type,
 	case_id,
 	era_id,
-	era_value AS value,
-	start_day,
-	end_day
+	era_value,
+	era_start_day,
+	era_end_day
 FROM #eras
 ORDER BY case_id;

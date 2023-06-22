@@ -65,16 +65,16 @@ void convertToSccs(const DataFrame& cases,
 }
 
 // [[Rcpp::export]]
-List simulateSccsOutcomes(const List& cases, const List& eras,  const std::vector<double> baselineRates,
-                          const List& eraRrs, const bool includeAgeEffect, const int ageOffset, const std::vector<double> ageRrs,
+List simulateSccsOutcomes(const DataFrame& cases, const DataFrame& eras,  const std::vector<double> baselineRates,
+                          const DataFrame& eraRrs, const bool includeAgeEffect, const int ageOffset, const std::vector<double> ageRrs,
                           const bool includeSeasonality, const std::vector<double> seasonRrs, const bool includeCalendarTimeEffect,
-                          const int calendarTimeOffset, const std::vector<double> calendarTimeRrs) {
+                          const Date& minCalendarTime, const std::vector<double> calendarTimeRrs) {
 
   using namespace ohdsi::sccs;
 
   try {
     SccsSimulator sccsSimulator(cases, eras, baselineRates, eraRrs, includeAgeEffect, ageOffset, ageRrs, includeSeasonality, seasonRrs,
-                                includeCalendarTimeEffect, calendarTimeOffset, calendarTimeRrs);
+                                includeCalendarTimeEffect, minCalendarTime, calendarTimeRrs);
     return (sccsSimulator.simulateOutcomes());
   } catch (std::exception &e) {
     forward_exception_to_r(e);

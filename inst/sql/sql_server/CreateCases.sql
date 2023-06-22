@@ -34,7 +34,7 @@ SELECT observation_period_id,
 	observation_period_start_date,
 	start_date,
 	end_date,
-	DATEDIFF(DAY, DATEFROMPARTS(year_of_birth, ISNULL(month_of_birth, 1), ISNULL(day_of_birth, 1)), start_date) AS age_in_days,
+	DATEFROMPARTS(year_of_birth, ISNULL(month_of_birth, 1), ISNULL(day_of_birth, 1)) AS date_of_birth,
 	noninformative_end_censor,
 	NEWID() AS random_id,
 	person.gender_concept_id
@@ -98,7 +98,7 @@ FROM (
 {@use_nesting_cohort} ? {
 				, nesting_cohort_start_date
 			FROM #outcomes_in_nesting
-} : { {@study_start_date != '' & @study_end_date != ''} ? {
+} : { {@study_start_date != '' | @study_end_date != ''} ? {
 			FROM #outcomes_in_period
 } : {
 			FROM #outcomes

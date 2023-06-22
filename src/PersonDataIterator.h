@@ -50,6 +50,9 @@ struct Era {
 };
 
 struct PersonData {
+  // Important: PersonData object uses start date of final period to include as
+  // reference point, whereas up to now the reference point was the observation
+  // period start date (in the database)
   PersonData(String _personId,
              String _observationPeriodId,
              int _caseId,
@@ -101,10 +104,10 @@ private:
   CharacterVector casesPersonId;
   CharacterVector casesObservationPeriodId;
   NumericVector casesCaseId;
-  DateVector casesStartDate;
+  DateVector casesObservationPeriodStartDate;
+  NumericVector casesAgeAtObsStart;
+  NumericVector casesStartDay;
   NumericVector casesEndDay;
-  NumericVector casesAgeInDays;
-  NumericVector casesOffset;
   LogicalVector casesNoninformativeEndCensor;
 
   NumericVector outcomesCaseId;

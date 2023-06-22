@@ -33,7 +33,8 @@ DROP TABLE IF EXISTS #outcomes;
 	
 SELECT outcome_id,
 	observation_period_id,
-	DATEDIFF(DAY, observation_period_start_date, observation_period_end_date) + 1 AS observed_days,
+	observation_period_start_date AS start_date,
+	observation_period_end_date AS end_date,
 	outcome.person_id,
 	outcome_date
 INTO #outcomes
@@ -65,12 +66,27 @@ INNER JOIN (
 		AND outcome_date >= observation_period_start_date
 		AND outcome_date <= observation_period_end_date;
 
-{@study_start_date != '' & @study_end_date != ''} ? {
+{@study_start_date != '' | @study_end_date != ''} ? {
 DROP TABLE IF EXISTS #outcomes_in_period;
 
 SELECT outcome_id,
 	observation_period_id,
-	observed_days,
+{@study_start_date == '' } ? {	
+	start_date,
+} : {
+	CASE 
+		WHEN CAST('@study_start_date' AS DATE) > start_date THEN CAST('@study_start_date' AS DATE) 
+		ELSE start_date
+	END AS start_date,
+}
+{@study_end_date == '' } ? {	
+	end_date,
+} : {
+	CASE 
+		WHEN CAST('@study_end_date' AS DATE) < end_date THEN CAST('@study_end_date' AS DATE) 
+		ELSE end_date
+	END AS end_date,
+}
 	person_id,
 	outcome_date
 INTO #outcomes_in_period
@@ -87,12 +103,19 @@ DROP TABLE IF EXISTS #outcomes_in_nesting;
 
 SELECT outcome_id,
 	observation_period_id,
-	observed_days,
+	CASE 
+		WHEN cohort_start_date > start_date THEN cohort_start_date
+		ELSE start_date
+	END AS start_date,
+	CASE 
+		WHEN cohort_start_date < end_date THEN cohort_start_date
+		ELSE end_date
+	END AS end_date,
 	person_id,
 	outcome_date,
 	cohort_start_date AS nesting_cohort_start_date
 INTO #outcomes_in_nesting
-	{@study_start_date != '' & @study_end_date != ''} ? {
+	{@study_start_date != '' | @study_end_date != ''} ? {
 FROM #outcomes_in_period outcomes
 	} : {
 FROM #outcomes outcomes

@@ -43,7 +43,8 @@ plotAgeSpans <- function(studyPopulation,
   checkmate::reportAssertions(collection = errorMessages)
 
   cases <- studyPopulation$cases %>%
-    transmute(startAge = .data$ageInDays, endAge = .data$ageInDays + .data$endDay) %>%
+    transmute(startAge = .data$ageAtObsStart + .data$startDay,
+              endAge = .data$ageAtObsStart + .data$endDay) %>%
     arrange(.data$startAge, .data$endAge) %>%
     mutate(rank = row_number())
 
@@ -175,17 +176,13 @@ computeTimeToEvent <- function(studyPopulation,
                                sccsData,
                                exposureEraId) {
   cases <- studyPopulation$cases %>%
-    select("caseId", caseEndDay = "endDay", "offset")
+    select("caseId", "startDay", "endDay")
 
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
     group_by(.data$caseId) %>%
-    inner_join(cases, by = "caseId", copy = TRUE) %>%
-    mutate(
-      startDay = .data$startDay - .data$offset,
-      endDay = .data$endDay - .data$offset
-    ) %>%
-    filter(.data$startDay >= 0, .data$startDay < .data$caseEndDay) %>%
+    inner_join(cases, by = join_by("caseId"), copy = TRUE) %>%
+    filter(.data$eraStartDay >= .data$startDay, .data$eraStartDay < .data$endDay) %>%
     collect()
 
   if (nrow(exposures) == 0) {
@@ -202,29 +199,29 @@ computeTimeToEvent <- function(studyPopulation,
       return()
   }
   firstExposures <- exposures %>%
-    group_by(.data$caseId, .data$caseEndDay) %>%
+    group_by(.data$caseId, .data$startDay, .data$endDay) %>%
     summarise(
-      startDay = min(.data$startDay, na.rm = TRUE),
-      endDay = min(.data$endDay, na.rm = TRUE),
+      eraStartDay = min(.data$eraStartDay, na.rm = TRUE),
+      eraEndDay = min(.data$eraEndDay, na.rm = TRUE),
       .groups = "drop_last"
     )
 
   outcomes <- studyPopulation$outcomes %>%
-    inner_join(firstExposures, by = "caseId") %>%
-    mutate(delta = .data$outcomeDay - .data$startDay) %>%
+    inner_join(firstExposures, by = join_by("caseId")) %>%
+    mutate(delta = .data$outcomeDay - .data$eraStartDay) %>%
     select("caseId", "outcomeDay", "delta")
 
   exposedoutcomes <- exposures %>%
-    inner_join(outcomes, by = "caseId") %>%
+    inner_join(outcomes, by = join_by("caseId"), relationship = "many-to-many") %>%
     filter(
-      .data$outcomeDay >= .data$startDay,
-      .data$outcomeDay <= .data$endDay
+      .data$outcomeDay >= .data$eraStartDay,
+      .data$outcomeDay <= .data$eraEndDay
     ) %>%
     select("caseId", "delta") %>%
     mutate(exposed = 1)
 
   outcomes <- outcomes %>%
-    left_join(exposedoutcomes, by = c("caseId", "delta")) %>%
+    left_join(exposedoutcomes, by = join_by("caseId", "delta"), relationship = "many-to-many") %>%
     mutate(exposed = coalesce(.data$exposed, 0))
 
   weeks <- dplyr::tibble(number = -26:25) %>%
@@ -234,7 +231,7 @@ computeTimeToEvent <- function(studyPopulation,
     )
 
   events <- weeks %>%
-    full_join(select(outcomes, "delta", "exposed"), by = character()) %>%
+    cross_join(select(outcomes, "delta", "exposed")) %>%
     filter(.data$delta >= .data$start, .data$delta < .data$end) %>%
     group_by(.data$number, .data$start, .data$end) %>%
     summarise(
@@ -244,7 +241,7 @@ computeTimeToEvent <- function(studyPopulation,
     )
 
   observed <- weeks %>%
-    full_join(transmute(firstExposures, startDelta = -.data$startDay, endDelta = .data$caseEndDay - .data$startDay), by = character()) %>%
+    cross_join(transmute(firstExposures, startDelta = .data$startDay -.data$eraStartDay , endDelta = .data$endDay - .data$eraStartDay)) %>%
     filter(.data$endDelta >= .data$start, .data$startDelta < .data$end) %>%
     group_by(.data$number, .data$start, .data$end) %>%
     summarise(
@@ -634,7 +631,8 @@ plotCalendarTimeSpans <- function(studyPopulation,
   checkmate::reportAssertions(collection = errorMessages)
 
   cases <- studyPopulation$cases %>%
-    mutate(endDate = .data$startDate + .data$endDay) %>%
+    mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
+           endDate = .data$observationPeriodStartDate + .data$endDay) %>%
     select("startDate", "endDate") %>%
     arrange(.data$startDate, .data$endDate) %>%
     mutate(rank = row_number())

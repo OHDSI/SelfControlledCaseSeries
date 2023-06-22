@@ -1,3 +1,10 @@
+SelfControlledCaseSeries 4.3.0
+==============================
+
+Bugfix
+
+1. Using BIGINT when summing patient days to avoid errors when populations are large.
+
 SelfControlledCaseSeries 4.2.0
 ==============================
 
