@@ -43,7 +43,7 @@ convertToScriDataWrapper <- function(cases,
 
   data <- Andromeda::andromeda(
     cases = cases %>%
-      mutate(observationPeriodStartDate = as.numeric(observationPeriodStartDate)),
+      mutate(observationPeriodStartDate = observationPeriodStartDate),
     eras = eras,
     eraRef = eraRef
   )

@@ -296,6 +296,9 @@ runSccsAnalyses <- function(connectionDetails,
     )[[1]]
     args <- analysisRow$createStudyPopulationArgs
     args$outcomeId <- refRow$outcomeId
+    if ("restrictTimeToEraId" %in% names(args) && is.character(args$restrictTimeToEraId)) {
+      args$restrictTimeToEraId <- pull(refRow[, args$restrictTimeToEraId])
+    }
     studyPopFilesToCreate[[length(studyPopFilesToCreate) + 1]] <- list(
       args = args,
       sccsDataFile = file.path(outputFolder, refRow$sccsDataFile),
@@ -482,7 +485,7 @@ createReferenceTable <- function(sccsAnalysisList,
   eos <- bind_rows(lapply(seq_along(exposuresOutcomeList), convertExposuresOutcomeToTable))
 
   referenceTable <- eos %>%
-    inner_join(analyses, by = character())
+    cross_join(analyses)
 
   # Determine if loading calls can be combined for efficiency ----------------------------
 
@@ -614,6 +617,7 @@ createReferenceTable <- function(sccsAnalysisList,
   uniqueStudyPopArgs <- lapply(uniqueStudyPopArgs, function(x) {
     return(x[[1]])
   })
+
   studyPopId <- sapply(
     sccsAnalysisList,
     function(sccsAnalysis, uniqueStudyPopArgs) {
@@ -624,12 +628,33 @@ createReferenceTable <- function(sccsAnalysisList,
     },
     uniqueStudyPopArgs
   )
-  analysisIdToStudyPopId <- tibble(analysisId = analysisIds, studyPopId = studyPopId)
-  referenceTable <- inner_join(referenceTable, analysisIdToStudyPopId, by = "analysisId")
+  restrictTimeToEraId <- sapply(
+    sccsAnalysisList,
+    function(sccsAnalysis) {
+      if (("restrictTimeToEraId" %in% names(sccsAnalysis$createStudyPopulationArgs)) &&
+          (is.character(sccsAnalysis$createStudyPopulationArgs$restrictTimeToEraId)))
+        return(sccsAnalysis$createStudyPopulationArgs$restrictTimeToEraId)
+      else  {
+        return("")
+      }
+    }
+  )
+  analysisIdToStudyPopId <- tibble(analysisId = analysisIds, studyPopId = studyPopId, restrictTimeToEraId = restrictTimeToEraId)
+  referenceTable <- inner_join(referenceTable, analysisIdToStudyPopId, by = join_by("analysisId"))
+  referenceTable$restrictTimeToEraId <- sapply(seq_along(referenceTable$restrictTimeToEraId),
+                                function(i) {
+                                  id <- referenceTable$restrictTimeToEraId[i]
+                                  if (id =="") {
+                                    return(NA)
+                                  } else {
+                                    return(pull(referenceTable[i, id]))
+                                  }
+                                })
   referenceTable$studyPopFile <- .createStudyPopulationFileName(
     loadId = referenceTable$loadId,
     studyPopId = referenceTable$studyPopId,
-    outcomeId = referenceTable$outcomeId
+    outcomeId = referenceTable$outcomeId,
+    exposureId = referenceTable$restrictTimeToEraId
   )
 
   # Add interval data and model filenames -----------------------------------------------------
@@ -756,8 +781,11 @@ createSccsModelObject <- function(params) {
 
 .createStudyPopulationFileName <- function(loadId,
                                            studyPopId,
-                                           outcomeId) {
-  name <- sprintf("StudyPop_l%s_s%s_o%s.rds", loadId, studyPopId, .f(outcomeId))
+                                           outcomeId,
+                                           exposureId) {
+  name <- ifelse(is.na(exposureId),
+                 sprintf("StudyPop_l%s_s%s_o%s.rds", loadId, studyPopId, .f(outcomeId)),
+                 sprintf("StudyPop_l%s_s%s_o%s_e%s.rds", loadId, studyPopId, .f(outcomeId), .f(exposureId)))
   return(name)
 }
 

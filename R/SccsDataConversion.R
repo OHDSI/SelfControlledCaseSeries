@@ -211,7 +211,7 @@ addAgeSettings <- function(settings,
   } else {
     if (length(ageCovariateSettings$ageKnots) == 1) {
       ageKnots <- studyPopulation$outcomes %>%
-        inner_join(studyPopulation$cases, by = "caseId") %>%
+        inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
         transmute(outcomeAge = .data$outcomeDay + .data$ageAtObsStart) %>%
         pull() %>%
         quantile(seq(0.01, 0.99, length.out = ageCovariateSettings$ageKnots))
@@ -436,7 +436,7 @@ addEventDependentObservationSettings <- function(settings,
     data <- studyPopulation$outcomes %>%
       group_by(.data$caseId) %>%
       summarise(outcomeDay = min(.data$outcomeDay)) %>%
-      inner_join(studyPopulation$cases, by = "caseId") %>%
+      inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
       transmute(
         astart = .data$ageAtObsStart + .data$startDay,
         aend = .data$ageAtObsStart + .data$endDay + 1,
@@ -528,7 +528,7 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
           covariateAnalysisId = i,
           originalEraId = covariateSettings$eraIds
         ) %>%
-          left_join(varNames, by = "originalEraId")
+          left_join(varNames, by = join_by("originalEraId"))
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
       }
     }
@@ -580,7 +580,7 @@ cyclicSplineDesign <- function(x, knots, ord = 4) {
 
 countOutcomesIntervalData <- function(data, sccsData, outcomeId) {
   data$outcomes %>%
-    inner_join(select(sccsData$cases, stratumId = "caseId", "personId"), by = "stratumId", copy = TRUE) %>%
+    inner_join(select(sccsData$cases, stratumId = "caseId", "personId"), by = join_by("stratumId"), copy = TRUE) %>%
     summarize(
       outcomeSubjects = n_distinct(.data$personId),
       outcomeEvents = sum(.data$y, na.rm = TRUE),

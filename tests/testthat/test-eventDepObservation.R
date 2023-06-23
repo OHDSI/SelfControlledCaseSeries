@@ -95,32 +95,31 @@ test_that("Produces same results as SCCS package when using event-dependent obse
     observationPeriodId = as.numeric(data$personId),
     caseId = as.numeric(data$personId),
     personId = data$personId,
-    observationDays = data$censorDate - data$observationStartDate + 1,
-    ageInDays = data$ageInDays,
-    startDate = as.Date("2000-5-1"),
-    censoredDays = 0
+    startDay = 0,
+    endDay = data$censorDate - data$observationStartDate,
+    ageAtObsStart = data$ageInDays,
+    observationPeriodStartDate = as.Date("2000-5-1")
   )
 
-  cases$noninformativeEndCensor <- cases$observationDays == max(cases$observationDays)
+  cases$noninformativeEndCensor <- cases$endDay == max(cases$endDay)
   heiEras <- tibble(
     eraType = "rx",
     caseId = as.numeric(data$personId),
     eraId = 1,
-    value = 1,
-    startDay = data$exposureStartDate - data$observationStartDate,
-    endDay = data$exposureEndDate - data$observationStartDate
+    eraValue = 1,
+    eraStartDay = data$exposureStartDate - data$observationStartDate,
+    eraEndDay = data$exposureEndDate - data$observationStartDate
   )
   hoiEras <- tibble(
     eraType = "hoi",
     caseId = as.numeric(data$personId),
     eraId = 2,
-    value = 1,
-    startDay = data$eventDate - data$observationStartDate,
-    endDay = data$eventDate - data$observationStartDate
+    eraValue = 1,
+    eraStartDay = data$eventDate - data$observationStartDate,
+    eraEndDay = data$eventDate - data$observationStartDate
   )
   eras <- rbind(heiEras, hoiEras)
   eras <- eras[order(eras$caseId), ]
-
 
   eraRef <- eras %>%
     distinct(.data$eraId, .data$eraType) %>%

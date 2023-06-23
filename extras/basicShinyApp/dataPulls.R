@@ -12,22 +12,22 @@ getExposuresOutcomes <- function(connectionPool, resultsDatabaseSchema, includeC
   exposureOutcomes <- sccsExposuresOutcomeSet %>%
     inner_join(sccsExposure %>%
                  rename(exposure_id = "era_id"),
-               by = "exposures_outcome_set_id") %>%
+               by = join_by("exposures_outcome_set_id")) %>%
     inner_join(cohortDefinition %>%
                  select(outcome_id = "cohort_definition_id",
                         outcome_name = "cohort_name"),
-               by = "outcome_id") %>%
+               by = join_by("outcome_id")) %>%
     left_join(
       sccsEra %>%
         rename(exposure_id = "era_id",
                exposure_name = "era_name") %>%
         distinct(exposures_outcome_set_id, exposure_id, exposure_name),
-      by = c("exposures_outcome_set_id","exposure_id")) %>%
+      by = join_by("exposures_outcome_set_id","exposure_id")) %>%
     left_join(cohortDefinition %>%
                 select(exposure_id = "cohort_definition_id",
                        exposure_name_2 = "cohort_name"),
 
-              by = "exposure_id") %>%
+              by = join_by("exposure_id")) %>%
     mutate(exposure_name = if_else(is.na(exposure_name), exposure_name_2, exposure_name)) %>%
     select(-"exposure_name_2")
 
@@ -61,8 +61,10 @@ getSccsResults <- function(connectionPool,
   covariate <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_covariate"))
 
   sccsResult %>%
-    inner_join(diagnosticsSummary, by = c("exposures_outcome_set_id", "database_id", "analysis_id", "covariate_id")) %>%
-    inner_join(covariate, by = c("exposures_outcome_set_id", "database_id", "analysis_id", "covariate_id")) %>%
+    inner_join(diagnosticsSummary,
+               by = join_by("exposures_outcome_set_id", "database_id", "analysis_id", "covariate_id")) %>%
+    inner_join(covariate,
+               by = join_by("exposures_outcome_set_id", "database_id", "analysis_id", "covariate_id")) %>%
     filter(
       exposures_outcome_set_id == exposuresOutcomeSetId,
       database_id %in% databaseIds,
@@ -87,18 +89,19 @@ getModel <- function(connectionPool,
   cohortDefinition <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "cg_cohort_definition"))
 
   covariateResult %>%
-    inner_join(covariate, by = c("analysis_id", "exposures_outcome_set_id", "database_id", "covariate_id")) %>%
+    inner_join(covariate,
+               by = join_by("analysis_id", "exposures_outcome_set_id", "database_id", "covariate_id")) %>%
     filter(
       exposures_outcome_set_id == exposuresOutcomeSetId,
       database_id == !!databaseId,
       analysis_id == !!analysisId,
       !is.na(rr)
     ) %>%
-    left_join(era, by = c("exposures_outcome_set_id","analysis_id", "era_id", "database_id")) %>%
+    left_join(era, by = join_by("exposures_outcome_set_id","analysis_id", "era_id", "database_id")) %>%
     left_join(cohortDefinition %>%
                 select(era_id = "cohort_definition_id",
                        era_name_2 = "cohort_name"),
-              by = "era_id") %>%
+              by = join_by("era_id")) %>%
     mutate(exposure_name = if_else(is.na(era_name), era_name_2, era_name)) %>%
     mutate(covariate_name = if_else(is.na(era_name), covariate_name, paste(covariate_name, era_name, sep = ": "))) %>%
     select(
@@ -265,8 +268,8 @@ getControlEstimates <- function(connectionPool,
   sccsCovariate <- tbl(connection, inDatabaseSchema(resultsDatabaseSchema, "sccs_covariate"))
 
   sccsResult %>%
-    inner_join(sccsCovariate, by = c("analysis_id", "exposures_outcome_set_id", "covariate_id", "database_id")) %>%
-    inner_join(sccsExposure, by = c("exposures_outcome_set_id", "era_id")) %>%
+    inner_join(sccsCovariate, by = join_by("analysis_id", "exposures_outcome_set_id", "covariate_id", "database_id")) %>%
+    inner_join(sccsExposure, by = join_by("exposures_outcome_set_id", "era_id")) %>%
     filter (
       database_id == !!databaseId,
       analysis_id == !!analysisId,

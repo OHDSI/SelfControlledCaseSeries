@@ -9,7 +9,8 @@ createCreateStudyPopulationArgs(
   naivePeriod = 0,
   minAge = NULL,
   maxAge = NULL,
-  genderConceptIds = NULL
+  genderConceptIds = NULL,
+  restrictTimeToEraId = NULL
 )
 }
 \arguments{
@@ -21,8 +22,9 @@ createCreateStudyPopulationArgs(
 
 \item{maxAge}{Maximum age at which patient time will be included in the analysis. Age should be specified in years, but non-integer values are allowed. If not specified, no age restriction will be applied.}
 
-\item{genderConceptIds}{Set of gender concept IDs to restrict the population to. If not specified,
-no restriction on gender will be applied.}
+\item{genderConceptIds}{Set of gender concept IDs to restrict the population to. If not specified, no restriction on gender will be applied.}
+
+\item{restrictTimeToEraId}{If provided, study time (for all patients) will be restricted to the calender time when that era was observed in the data. For example, if the era ID refers to a drug, study time will be restricted to when the drug was on the market.}
 }
 \description{
 Create a parameter object for the function createStudyPopulation

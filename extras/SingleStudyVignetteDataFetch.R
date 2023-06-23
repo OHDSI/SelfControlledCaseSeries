@@ -83,8 +83,7 @@ summary(sccsData)
 studyPop <- createStudyPopulation(sccsData = sccsData,
                                   outcomeId = 1,
                                   firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180,
-                                  restrictTimeToEraId = diclofenac)
+                                  naivePeriod = 180)
 
 saveRDS(studyPop, file.path(folder, "studyPop.rds"))
 
@@ -182,6 +181,10 @@ model
 plotSeasonality(model)
 
 plotCalendarTimeEffect(model)
+
+plotEventToCalendarTime(studyPopulation = studyPop,
+                        sccsModel = model)
+# model$metaData$covariateSettingsList
 
 # Adding time-dependent observation periods ----------------------------------------------
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,

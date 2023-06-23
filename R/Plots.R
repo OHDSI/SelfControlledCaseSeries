@@ -91,7 +91,7 @@ computeTimeToObsEnd <- function(studyPopulation) {
   outcomes <- studyPopulation$outcomes %>%
     group_by(.data$caseId) %>%
     summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
-    inner_join(studyPopulation$cases, by = "caseId") %>%
+    inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
     transmute(
       daysFromEvent = .data$endDay - .data$outcomeDay,
       censoring = case_when(
@@ -181,8 +181,9 @@ computeTimeToEvent <- function(studyPopulation,
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
     group_by(.data$caseId) %>%
-    inner_join(cases, by = join_by("caseId"), copy = TRUE) %>%
-    filter(.data$eraStartDay >= .data$startDay, .data$eraStartDay < .data$endDay) %>%
+    inner_join(cases,
+               by = join_by("caseId", "eraStartDay" >= "startDay", "eraStartDay" < "endDay"),
+               copy = TRUE) %>%
     collect()
 
   if (nrow(exposures) == 0) {
@@ -250,7 +251,7 @@ computeTimeToEvent <- function(studyPopulation,
     )
 
   result <- observed %>%
-    left_join(events, by = c("number", "start", "end")) %>%
+    left_join(events, by = join_by("number", "start", "end")) %>%
     mutate(
       eventsExposed = if_else(is.na(.data$eventsExposed), 0, .data$eventsExposed),
       eventsUnexposed = if_else(is.na(.data$eventsUnexposed), 0, .data$eventsUnexposed)
@@ -559,12 +560,16 @@ plotSeasonality <- function(sccsModel,
   estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, ]
   splineCoefs <- c(0, estimates$logRr)
   seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
-  season <- seq(min(seasonKnots), max(seasonKnots), length.out = 100)
+  season <- unique(c(seq(min(seasonKnots), max(seasonKnots), length.out = 100),
+                     seasonKnots))
   seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
   logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
-  data <- data.frame(season = season, rr = rr)
+  data <- tibble(season = season, rr = rr)
+  knotData <- data %>%
+    filter(.data$season %in% seasonKnots)
+
 
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   seasonBreaks <- 1:12
@@ -573,6 +578,7 @@ plotSeasonality <- function(sccsModel,
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = season, y = rr)) +
     ggplot2::geom_hline(yintercept = breaks, colour = "#AAAAAA", lty = 1, linewidth = 0.2) +
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
+    ggplot2::geom_point(data = knotData) +
     ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
     ggplot2::scale_y_continuous("Relative risk",
       limits = rrLim,
@@ -705,7 +711,8 @@ plotCalendarTimeEffect <- function(sccsModel,
   estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
   splineCoefs <- c(0, estimates$logRr)
   calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
-  calendarTime <- seq(min(calendarTimeKnots), max(calendarTimeKnots), length.out = 100)
+  calendarTime <- unique(c(seq(min(calendarTimeKnots), max(calendarTimeKnots), length.out = 100),
+                           calendarTimeKnots))
   calendarTimeDesignMatrix <- splines::bs(calendarTime,
     knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
     Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
@@ -713,13 +720,17 @@ plotCalendarTimeEffect <- function(sccsModel,
   logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
-  data <- data.frame(calendarTime = convertMonthToStartDate(calendarTime) + 14, rr = rr)
-
+  data <- tibble(date = convertMonthToStartDate(calendarTime) + 14,
+                 calendarTime = calendarTime,
+                 rr = rr)
+  knotData <- data %>%
+    filter(.data$calendarTime %in% calendarTimeKnots)
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(data, ggplot2::aes(x = calendarTime, y = rr)) +
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = date, y = rr)) +
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
+    ggplot2::geom_point(data = knotData) +
     ggplot2::scale_x_date("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",
       limits = rrLim,

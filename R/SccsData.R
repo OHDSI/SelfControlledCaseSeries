@@ -125,7 +125,7 @@ setMethod("summary", "SccsData", function(object) {
 
   outcomeCounts <- object$eras %>%
     filter(.data$eraType == "hoi") %>%
-    inner_join(object$cases, by = "caseId") %>%
+    inner_join(object$cases, by = join_by("caseId")) %>%
     group_by(.data$eraId) %>%
     summarise(
       outcomeSubjects = n_distinct(.data$personId),

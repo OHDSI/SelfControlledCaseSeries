@@ -16,7 +16,7 @@ person <- data.frame(
 observationPeriods <- data.frame(
   observationPeriodId = c(1, 2, 3 ,4),
   personId = c(1, 2, 3, 3),
-  observationPeriodStartDate = as.Date(c("2000-01-01", "2000-01-01", "2000-01-01", "2002-01-01")),
+  observationPeriodStartDate = as.Date(c("2000-01-01", "2000-01-05", "2000-01-09", "2002-01-01")),
   observationPeriodEndDate = as.Date(c("2000-12-31", "2000-12-31", "2000-12-31", "2002-12-31"))
 )
 nestingCohort <- data.frame(
@@ -29,7 +29,7 @@ outcomeCohort <- data.frame(
   cohortDefinitionId = c(2, 2, 2, 2),
   subjectId = c(1, 1, 2, 3),
   cohortStartDate = as.Date(c("2000-08-01", "2000-12-01", "2000-08-01", "2002-08-01")),
-  cohortEndDate = as.Date(c("2000-08-01", "2000-128-01", "2000-08-01", "2002-08-01"))
+  cohortEndDate = as.Date(c("2000-08-01", "2000-12-01", "2000-08-01", "2002-08-01"))
 )
 exposureCohort <- data.frame(
   cohortDefinitionId = c(3, 3, 3, 3),
@@ -85,17 +85,31 @@ sccsData <- getDbSccsData(
 test_that("getDbSccsData correctly handles nesting", {
   cases <- sccsData$cases %>%
     collect()
-  expect_equal(cases$observationPeriodId, c("1.0", "1.0", "2.0", "4.0"))
-  expect_equal(cases$personId, c("1.0", "1.0", "2.0", "3.0"))
+  expectedCases <- observationPeriods %>%
+    inner_join(nestingCohort %>%
+                 select("subjectId", nestingStartDate = "cohortStartDate", nestingEndDate = "cohortEndDate"),
+               # by = join_by("subjectId"),
+               by = join_by("personId" == "subjectId", "observationPeriodStartDate" <= "nestingStartDate", "observationPeriodEndDate" >= "nestingEndDate"),
+               relationship = "many-to-many")
+  expect_equal(as.numeric(cases$observationPeriodId), expectedCases$observationPeriodId)
+  expect_equal(as.numeric(cases$personId), expectedCases$personId)
   expect_equal(cases$caseId, c(1, 2, 3, 4))
-  expect_equal(cases$startDate, as.Date(c("2000-7-1", "2000-11-1", "2000-7-1", "2002-7-1")))
+  expect_equal(cases$observationPeriodStartDate, expectedCases$observationPeriodStartDate)
+  expect_equal(cases$startDay, as.numeric(expectedCases$nestingStartDate - expectedCases$observationPeriodStartDate))
 
   hois <- sccsData$eras %>%
     filter(eraType == "hoi") %>%
-    arrange(caseId, startDay) %>%
+    arrange(caseId, eraStartDay) %>%
     collect()
+  expectedHois <- outcomeCohort %>%
+    select("subjectId", outcomeDate = "cohortStartDate") %>%
+    inner_join(expectedCases,
+               by = join_by("subjectId" == "personId"),
+               relationship = "many-to-many") %>%
+    mutate(startDay = as.numeric(.data$outcomeDate - .data$observationPeriodStartDate)) %>%
+    arrange(.data$subjectId, .data$observationPeriodStartDate, .data$nestingStartDate )
   expect_equal(hois$caseId, c(1, 1, 2, 2, 3, 4))
-  expect_equal(hois$startDay , c(31, 153, -92, 30, 31, 31))
+  expect_equal(hois$eraStartDay , expectedHois$startDay)
 })
 
 studyPop <- createStudyPopulation(
@@ -115,4 +129,34 @@ test_that("sccsIntervalData correctly handles nesting", {
   expect_equal(outcomes$stratumId, c(1, 1, 3, 3, 4, 4))
   expect_equal(outcomes$time, c(77,15, 121, 32, 169, 15))
   expect_equal(outcomes$y, c(0, 1, 0, 1, 0 ,1))
+})
+
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = "main",
+  outcomeDatabaseSchema = "main",
+  outcomeTable = "cohort",
+  outcomeIds = 2,
+  exposureDatabaseSchema = "main",
+  exposureTable = "cohort",
+  exposureIds = 3
+)
+
+test_that("Nesting in the period when the drug was on the market", {
+  studyPop <- createStudyPopulation(
+    sccsData = sccsData,
+    outcomeId = 2,
+    firstOutcomeOnly = FALSE,
+    restrictTimeToEraId = 3
+  )
+  expectedMinMax <- exposureCohort %>%
+    summarise(minDate = min(.data$cohortStartDate),
+              maxDate = max(.data$cohortEndDate))
+  expect_equal(studyPop$metaData$restrictedTimeToEra$minObservedDate, expectedMinMax$minDate)
+  expect_equal(studyPop$metaData$restrictedTimeToEra$maxObservedDate, expectedMinMax$maxDate)
+  observedMinMax <- studyPop$cases %>%
+    summarise(minDate = min(.data$observationPeriodStartDate + .data$startDay),
+              maxDate = max(.data$observationPeriodStartDate + .data$endDay))
+  expect_equal(observedMinMax$minDate, expectedMinMax$minDate)
+  expect_equal(observedMinMax$maxDate, expectedMinMax$maxDate)
 })

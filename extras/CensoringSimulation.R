@@ -252,7 +252,7 @@ sccsData$cases <- sccsData$cases %>%
       filter(eraType == "hoi") %>%
       mutate(censorDay = round(startDay + censoringDays)) %>%
       select("caseId", "censorDay"),
-    by = "caseId",
+    by = join_by("caseId"),
     copy = TRUE) %>%
   mutate(noninformativeEndCensor = ifelse(censorDay < observationDays, 0, 1)) %>%
   mutate(observationDays = ifelse(censorDay < observationDays, censorDay, observationDays)) %>%

@@ -36,7 +36,7 @@ convertToSccsDataWrapper <- function(cases,
 
   data <- Andromeda::andromeda(
     cases = cases %>%
-      mutate(observationPeriodStartDate = as.numeric(observationPeriodStartDate)),
+      mutate(observationPeriodStartDate = observationPeriodStartDate),
     eras = eras,
     eraRef = eraRef
   )
@@ -550,7 +550,7 @@ test_that("Aggregates on large set", {
   y <- sccsIntervalData$outcomes %>%
     filter(.data$y != 0) %>%
     collect()
-  z2 <- inner_join(x, y, by = c("rowId")) %>%
+  z2 <- inner_join(x, y, by = join_by("rowId")) %>%
     distinct(.data$stratumId.x) %>%
     pull()
 
@@ -574,7 +574,7 @@ test_that("Aggregates on large set", {
   y <- sccsIntervalData$outcomes %>%
     filter(.data$y != 0) %>%
     collect()
-  z2 <- inner_join(x, y, by = c("rowId")) %>%
+  z2 <- inner_join(x, y, by = join_by("rowId")) %>%
     distinct(.data$stratumId.x) %>%
     pull()
 
@@ -589,7 +589,7 @@ test_that("Aggregates on large set", {
 
   z3 <- sccsData$cases %>%
     select(stratumId = "caseId", "endDay") %>%
-    inner_join(outcomes, by = "stratumId", copy = TRUE) %>%
+    inner_join(outcomes, by = join_by("stratumId"), copy = TRUE) %>%
     collect()
 
   # Same amount of times before and after conversion to concomitant eras:

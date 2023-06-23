@@ -17,12 +17,12 @@
 computeOutcomeRatePerMonth <- function(studyPopulation) {
   observationPeriodCounts <- computeObservedPerMonth(studyPopulation)
   outcomeCounts <- studyPopulation$outcomes %>%
-    inner_join(studyPopulation$cases, by = "caseId") %>%
+    inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
     transmute(month = convertDateToMonth(.data$observationPeriodStartDate + .data$outcomeDay)) %>%
     group_by(.data$month) %>%
     summarise(outcomeCount = n())
   data <- observationPeriodCounts %>%
-    inner_join(outcomeCounts, by = "month") %>%
+    inner_join(outcomeCounts, by = join_by("month")) %>%
     mutate(rate = .data$outcomeCount / .data$observationPeriodCount) %>%
     mutate(
       monthStartDate = convertMonthToStartDate(.data$month),
@@ -70,7 +70,7 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
           monthOfYear = season,
           seasonRr = exp(logRr)
         ),
-        by = "monthOfYear"
+        by = join_by("monthOfYear")
       )
 
     data <- data %>%
@@ -180,8 +180,9 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
 
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
-    inner_join(cases, by = "caseId", copy = TRUE) %>%
-    filter(.data$eraStartDay >= .data$startDay, .data$eraStartDay < .data$endDay) %>%
+    inner_join(cases,
+               by = join_by("caseId", "eraStartDay" >= "startDay", "eraStartDay" < "endDay"),
+               copy = TRUE) %>%
     collect()
 
   if (nrow(exposures) == 0) {
@@ -197,7 +198,7 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
     )
 
   outcomes <- studyPopulation$outcomes %>%
-    inner_join(firstExposures, by = "caseId") %>%
+    inner_join(firstExposures, by = join_by("caseId")) %>%
     mutate(delta = .data$outcomeDay - .data$eraStartDay) %>%
     select("caseId", "outcomeDay", "delta")
 
@@ -233,7 +234,7 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
     filter(.data$daysObserved > 0)
 
   poissonData <- observed %>%
-    left_join(outcomes, by = c("caseId", "beforeExposure")) %>%
+    left_join(outcomes, by = join_by("caseId", "beforeExposure")) %>%
     mutate(
       rowId = row_number(),
       y = if_else(is.na(.data$y), 0, .data$y),

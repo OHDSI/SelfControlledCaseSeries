@@ -388,13 +388,13 @@ getDbSccsData <- function(connectionDetails,
   if (sampledCases) {
     sampledCounts <- sccsData$eras %>%
       filter(.data$eraType == "hoi") %>%
-      inner_join(sccsData$cases, by = "caseId") %>%
+      inner_join(sccsData$cases, by = join_by("caseId")) %>%
       group_by(.data$eraId) %>%
       summarise(
         outcomeSubjects = n_distinct(.data$personId),
         outcomeEvents = count(),
         outcomeObsPeriods = n_distinct(.data$observationPeriodId),
-        observedDays = sum(.data$observationDays),
+        observedDays = sum(.data$endDay - .data$startDay + 1, na.rm = TRUE),
         .groups = "drop_last"
       ) %>%
       rename(outcomeId = "eraId") %>%

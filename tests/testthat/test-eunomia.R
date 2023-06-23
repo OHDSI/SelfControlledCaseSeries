@@ -34,10 +34,16 @@ test_that("Running multiple analyses against Eunomia", {
 
   getDbSccsDataArgs <- createGetDbSccsDataArgs(deleteCovariatesSmallCount = 1)
 
-  createStudyPopulationArgs <- createCreateStudyPopulationArgs(
+  createStudyPopulationArgs1 <- createCreateStudyPopulationArgs(
     naivePeriod = 180,
     firstOutcomeOnly = FALSE,
-    genderConceptIds = 8507
+    genderConceptIds = 8507,
+    restrictTimeToEraId = "exposureId"
+  )
+
+  createStudyPopulationArgs2 <- createCreateStudyPopulationArgs(
+    naivePeriod = 180,
+    firstOutcomeOnly = FALSE
   )
 
   covarExposureOfInt <- createEraCovariateSettings(
@@ -86,7 +92,7 @@ test_that("Running multiple analyses against Eunomia", {
     analysisId = 1,
     description = "SCCS",
     getDbSccsDataArgs = getDbSccsDataArgs,
-    createStudyPopulationArgs = createStudyPopulationArgs,
+    createStudyPopulationArgs = createStudyPopulationArgs1,
     createIntervalDataArgs = createSccsIntervalDataArgs,
     fitSccsModelArgs = fitSccsModelArgs
   )
@@ -106,7 +112,7 @@ test_that("Running multiple analyses against Eunomia", {
     analysisId = 2,
     description = "SCRI",
     getDbSccsDataArgs = getDbSccsDataArgs,
-    createStudyPopulationArgs = createStudyPopulationArgs,
+    createStudyPopulationArgs = createStudyPopulationArgs2,
     createIntervalDataArgs = createScriIntervalDataArgs,
     fitSccsModelArgs = fitSccsModelArgs
   )

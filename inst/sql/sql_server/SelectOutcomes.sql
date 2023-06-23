@@ -108,7 +108,7 @@ SELECT outcome_id,
 		ELSE start_date
 	END AS start_date,
 	CASE 
-		WHEN cohort_start_date < end_date THEN cohort_start_date
+		WHEN cohort_end_date < end_date THEN cohort_end_date
 		ELSE end_date
 	END AS end_date,
 	person_id,

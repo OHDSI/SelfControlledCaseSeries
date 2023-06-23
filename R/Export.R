@@ -310,7 +310,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
       rows <- reference %>%
         filter(.data$sccsDataFile == !!sccsDataFile) %>%
         select("exposuresOutcomeSetId", "analysisId") %>%
-        inner_join(eraRef, by = character()) %>%
+        cross_join(eraRef) %>%
         mutate(databaseId = !!databaseId)
       sccsEra[[length(sccsEra) + 1]] <- rows
     }
@@ -325,7 +325,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         filter(.data$studyPopFile == !!studyPopFile)
       sccsAgeSpanning[[length(sccsAgeSpanning) + 1]] <- refRows %>%
         select("analysisId", "exposuresOutcomeSetId") %>%
-        inner_join(ageSpans, by = character())
+        cross_join(ageSpans)
 
       # sccs_calendar_time_spanning table
       timeSpans <- computeSpans(studyPop, variable = "time") %>%
@@ -334,7 +334,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         filter(.data$studyPopFile == !!studyPopFile)
       sccsCalendarTimeSpanning[[length(sccsCalendarTimeSpanning) + 1]] <- refRows %>%
         select("analysisId", "exposuresOutcomeSetId") %>%
-        inner_join(timeSpans, by = character())
+        cross_join(timeSpans)
 
       # sccsEventDepObservation table
       data <- computeTimeToObsEnd(studyPop) %>%
@@ -348,7 +348,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         filter(.data$studyPopFile == !!studyPopFile)
       sccsEventDepObservation[[length(sccsEventDepObservation) + 1]] <- refRows %>%
         select("analysisId", "exposuresOutcomeSetId") %>%
-        inner_join(data, by = character())
+        cross_join(data)
     }
     sccsModel <- readRDS(file.path(outputFolder, as.character(refRow$sccsModelFile)))
     if (is.null(sccsModel$estimates)) {
@@ -456,7 +456,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
           left_join(
             estimates %>%
               select("covariateId", "rr", "ci95Lb", "ci95Ub"),
-            by = "covariateId"
+            by = join_by("covariateId")
           )
       ) %>%
       mutate(databaseId = !!databaseId)
@@ -490,7 +490,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
               estimates %>%
                 filter(.data$covariateId >= 99 & .data$covariateId < 200) %>%
                 select("covariateId", "rr"),
-              by = "covariateId"
+              by = join_by("covariateId")
             ) %>%
             select("knotMonth", "rr")
         ) %>%
@@ -514,7 +514,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
               estimates %>%
                 filter(.data$covariateId >= 200 & .data$covariateId < 300) %>%
                 select("covariateId", "rr"),
-              by = "covariateId"
+              by = join_by("covariateId")
             ) %>%
             select("knotMonth", "rr") %>%
             bind_rows(tibble(knotMonth = 1, rr = 1))
@@ -538,7 +538,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
               estimates %>%
                 filter(.data$covariateId >= 299 & .data$covariateId < 400) %>%
                 select("covariateId", "rr"),
-              by = "covariateId"
+              by = join_by("covariateId")
             ) %>%
             select("knotMonth", "rr")
         ) %>%
@@ -732,15 +732,15 @@ computeSpans <- function(studyPopulation, variable = "age") {
   if (variable == "age") {
     ages <- studyPopulation$cases %>%
       transmute(
-        start = ceiling(.data$ageInDays / (365.25 / 4)) + 1,
-        end = floor((.data$ageInDays + .data$endDay) / (365.25 / 4)) - 1,
+        start = ceiling(.data$ageAtObsStart + .data$startDay / (365.25 / 12)) + 1,
+        end = floor((.data$ageAtObsStart + .data$endDay) / (365.25 / 12)) - 1,
         count = 1
       )
   } else {
     ages <- studyPopulation$cases %>%
       transmute(
-        start = convertDateToMonth(.data$startDate) + 1,
-        end = convertDateToMonth(.data$startDate + .data$endDay) - 1,
+        start = convertDateToMonth(.data$observationPeriodStartDate + .data$startDay) + 1,
+        end = convertDateToMonth(.data$observationPeriodStartDate + .data$endDay) - 1,
         count = 1
       )
   }
@@ -754,7 +754,7 @@ computeSpans <- function(studyPopulation, variable = "age") {
     group_by(.data$month) %>%
     summarise(removedCount = sum(.data$count), .groups = "drop")
   counts <- addedCounts %>%
-    full_join(removedCounts, by = "month") %>%
+    full_join(removedCounts, by = join_by("month")) %>%
     mutate(
       addedCount = if_else(is.na(.data$addedCount), 0, .data$addedCount),
       removedCount = if_else(is.na(.data$removedCount), 0, .data$removedCount)
@@ -768,7 +768,7 @@ computeSpans <- function(studyPopulation, variable = "age") {
     counts <- counts %>%
       full_join(
         tibble(month = seq(min(counts$month), max(counts$month))),
-        by = "month"
+        by = join_by("month")
       ) %>%
       arrange(.data$month)
   }
