@@ -1,5 +1,9 @@
-SelfControlledCaseSeries 4.3.0
+SelfControlledCaseSeries 5.0.0
 ==============================
+
+Changes
+
+1. Added the `restrictTimeToEraId` argument to the `createStudyPopulation()` and `createCreateStudyPopulationArgs()` functions to allow automatically restricting study time to when the exposure was observed (e.g. when the drug was on the market).
 
 Bugfix
 

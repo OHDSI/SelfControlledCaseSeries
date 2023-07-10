@@ -17,22 +17,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ***********************************************************************/
-
 {DEFAULT @sampled_cases = FALSE}
+{DEFAULT @use_nesting_cohort = FALSE}
+{DEFAULT @cases_in_periods = FALSE}
 
 SELECT
 	CAST(observation_period_id AS VARCHAR(30)) AS observation_period_id,
 	case_id,
 	CAST(person_id AS VARCHAR(30)) AS person_id,
+	noninformative_end_censor,
 	observation_period_start_date,
-	DATEDIFF(DAY, date_of_birth, observation_period_start_date) AS age_at_obs_start,
 	DATEDIFF(DAY, observation_period_start_date, start_date) AS start_day,
 	DATEDIFF(DAY, observation_period_start_date, end_date) AS end_day,
-	noninformative_end_censor,
+	DATEDIFF(DAY, date_of_birth, observation_period_start_date) AS age_at_obs_start,	
 	gender_concept_id
 {@sampled_cases} ? {
 FROM #sampled_cases
+} : { {@use_nesting_cohort} ? {
+FROM #cases_in_nesting cases
+} : { {@has_study_periods} ? {
+FROM #cases_in_periods cases
 } : {
-FROM #cases
-}
+FROM #cases cases
+}}}		
 ORDER BY case_id;

@@ -42,6 +42,11 @@
 #' Cohort tables are assumed to have the following fields: `cohort_definition_id`, `subject_id`,
 #' `cohort_start_date`, and `cohort_end_date.`
 #'
+#' @section Study period start and end dates:
+#' A study start and end date define a period when patient data will be included in the
+#' analysis. Multiple non-overlapping periods can be defined, which for example will allow
+#' for excluding the time of the COVID pandemic, when most outcome rates were unstable.
+#'
 #' @return
 #' An [SccsData] object.
 #'
@@ -97,10 +102,14 @@
 #'                                        `nestingCohortTable` to use as nesting cohort.
 #' @param deleteCovariatesSmallCount      The minimum count for a covariate to appear in the data to be
 #'                                        kept.
-#' @param studyStartDate                  A character object specifying the minimum date where data is
-#'                                        used. Date format is 'yyyymmdd'.
-#' @param studyEndDate                    A character object specifying the maximum date where data is
-#'                                        used. Date format is 'yyyymmdd'.
+#' @param studyStartDate                  DEPRECATED. Use `studyStartDates` instead.
+#' @param studyEndDate                    DEPRECATED. Use `studyEndDates` instead.
+#' @param studyStartDates                 A character object specifying the minimum dates where data is
+#'                                        used. Date format is 'yyyymmdd'. Use "" to indicate all time
+#'                                        prior. See section for more information.
+#' @param studyEndDates                   A character object specifying the maximum dates where data is
+#'                                        used. Date format is 'yyyymmdd'. Use "" to indicate to the end
+#'                                        of observation. See section for more information.
 #' @param cdmVersion                      Define the OMOP CDM version used: currently supports "5".
 #' @param maxCasesPerOutcome              If there are more than this number of cases for a single
 #'                                        outcome cases will be sampled to this size. `maxCasesPerOutcome = 0`
@@ -127,6 +136,8 @@ getDbSccsData <- function(connectionDetails,
                           deleteCovariatesSmallCount = 0,
                           studyStartDate = "",
                           studyEndDate = "",
+                          studyStartDates = c(),
+                          studyEndDates = c(),
                           cdmVersion = "5",
                           maxCasesPerOutcome = 0) {
   errorMessages <- checkmate::makeAssertCollection()
@@ -152,34 +163,39 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertCharacter(nestingCohortTable, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(nestingCohortId, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(deleteCovariatesSmallCount, lower = 0, add = errorMessages)
-  checkmate::assertCharacter(studyStartDate, len = 1, add = errorMessages)
-  checkmate::assertCharacter(studyEndDate, len = 1, add = errorMessages)
+  checkmate::assertCharacter(studyStartDate, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(studyEndDate, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(studyStartDates, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(studyEndDates, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
   checkmate::assertInt(maxCasesPerOutcome, lower = 0, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (studyStartDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
-    stop("Study start date must have format YYYYMMDD")
+  if (!is.null(studyStartDate) && studyStartDate != "") {
+    warning("The studyStartDate argument is deprecated. Use studyStartDates instead.")
+    studyStartDates <- studyStartDate
   }
-  if (studyEndDate != "" && regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyEndDate) == -1) {
-    stop("Study end date must have format YYYYMMDD")
+  if (!is.null(studyEndDate) && studyEndDate != "") {
+    warning("The studyEndDate argument is deprecated. Use studyEndDates instead.")
+    studyEndDates <- studyEndDate
+  }
+  if (length(studyStartDates) != length(studyEndDates)) {
+    stop("The studyStartDates and studyEndDates arguments must be of equal length")
+  }
+  for (studyStartDate in studyStartDates) {
+    if (regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
+      stop("Study start date must have format YYYYMMDD")
+    }
+  }
+  for (studyEndDate in studyEndDates) {
+    if (regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyEndDate) == -1) {
+      stop("Study end date must have format YYYYMMDD")
+    }
   }
   if (cdmVersion == "4") {
     stop("CDM version 4 is no longer supported")
   }
-  if (packageVersion("DatabaseConnector") >= "6.0.0") {
-    # Avoids warning about missing or unexported object:
-    do.call(
-      getExportedValue("DatabaseConnector", "assertTempEmulationSchemaSet"),
-      list(
-        dbms = connectionDetails$dbms,
-        tempEmulationSchema = tempEmulationSchema
-      )
-    )
-    # DatabaseConnector::assertTempEmulationSchemaSet(
-    #   dbms = connectionDetails$dbms,
-    #   tempEmulationSchema = tempEmulationSchema
-    # )
-  }
+  DatabaseConnector::assertTempEmulationSchemaSet(dbms = connectionDetails$dbms,
+                                                  tempEmulationSchema = tempEmulationSchema)
 
   start <- Sys.time()
   conn <- DatabaseConnector::connect(connectionDetails)
@@ -190,85 +206,89 @@ getDbSccsData <- function(connectionDetails,
   } else {
     hasExposureIds <- TRUE
     DatabaseConnector::insertTable(conn,
-      tableName = "#exposure_ids",
-      data = data.frame(concept_id = as.integer(exposureIds)),
-      dropTableIfExists = TRUE,
-      createTable = TRUE,
-      tempTable = TRUE,
-      tempEmulationSchema = tempEmulationSchema
+                                   tableName = "#exposure_ids",
+                                   data = data.frame(concept_id = as.integer(exposureIds)),
+                                   dropTableIfExists = TRUE,
+                                   createTable = TRUE,
+                                   tempTable = TRUE,
+                                   tempEmulationSchema = tempEmulationSchema
     )
   }
+  DatabaseConnector::insertTable(conn,
+                                 tableName = "#outcome_ids",
+                                 data = data.frame(outcome_id = as.integer(outcomeIds)),
+                                 dropTableIfExists = TRUE,
+                                 createTable = TRUE,
+                                 tempTable = TRUE,
+                                 tempEmulationSchema = tempEmulationSchema
+  )
 
   if (!useCustomCovariates || is.null(customCovariateIds) || length(customCovariateIds) == 0) {
     hasCustomCovariateIds <- FALSE
   } else {
     hasCustomCovariateIds <- TRUE
     DatabaseConnector::insertTable(conn,
-      tableName = "#custom_cov_ids",
-      data = data.frame(concept_id = as.integer(customCovariateIds)),
-      dropTableIfExists = TRUE,
-      createTable = TRUE,
-      tempTable = TRUE,
-      tempEmulationSchema = tempEmulationSchema
+                                   tableName = "#custom_cov_ids",
+                                   data = data.frame(concept_id = as.integer(customCovariateIds)),
+                                   dropTableIfExists = TRUE,
+                                   createTable = TRUE,
+                                   tempTable = TRUE,
+                                   tempEmulationSchema = tempEmulationSchema,
+                                   camelCaseToSnakeCase = TRUE
+    )
+  }
+
+  if (length(studyStartDates) == 0 || (studyStartDates == c("") && studyEndDates == c(""))) {
+    hasStudyPeriods <- FALSE
+    studyPeriods <- NULL
+  } else {
+    hasStudyPeriods <- TRUE
+    studyPeriods <- tibble(studyStartDate = studyStartDates,
+                           studyEndDate = studyEndDates) %>%
+      mutate(studyStartDate = if_else(.data$studyStartDate == "", "18000101", .data$studyStartDate),
+             studyEndDate = if_else(.data$studyEndDate == "", "220000101", .data$studyEndDate)) %>%
+      mutate(studyStartDate = as.Date(.data$studyStartDate, format = "%Y%m%d"),
+             studyEndDate = as.Date(.data$studyEndDate, format = "%Y%m%d"))
+    DatabaseConnector::insertTable(conn,
+                                   tableName = "#study_periods",
+                                   data = studyPeriods,
+                                   dropTableIfExists = TRUE,
+                                   createTable = TRUE,
+                                   tempTable = TRUE,
+                                   tempEmulationSchema = tempEmulationSchema
     )
   }
 
   message("Selecting outcomes")
   sql <- SqlRender::loadRenderTranslateSql("SelectOutcomes.sql",
-    packageName = "SelfControlledCaseSeries",
-    dbms = connectionDetails$dbms,
-    tempEmulationSchema = tempEmulationSchema,
-    cdm_database_schema = cdmDatabaseSchema,
-    outcome_database_schema = outcomeDatabaseSchema,
-    outcome_table = outcomeTable,
-    outcome_concept_ids = outcomeIds,
-    use_nesting_cohort = useNestingCohort,
-    nesting_cohort_database_schema = nestingCohortDatabaseSchema,
-    nesting_cohort_table = nestingCohortTable,
-    nesting_cohort_id = nestingCohortId,
-    study_start_date = studyStartDate,
-    study_end_date = studyEndDate
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           tempEmulationSchema = tempEmulationSchema,
+                                           outcome_database_schema = outcomeDatabaseSchema,
+                                           outcome_table = outcomeTable
   )
   DatabaseConnector::executeSql(conn, sql)
 
   message("Creating cases")
   sql <- SqlRender::loadRenderTranslateSql("CreateCases.sql",
-    packageName = "SelfControlledCaseSeries",
-    dbms = connectionDetails$dbms,
-    tempEmulationSchema = tempEmulationSchema,
-    cdm_database_schema = cdmDatabaseSchema,
-    use_nesting_cohort = useNestingCohort,
-    nesting_cohort_database_schema = nestingCohortDatabaseSchema,
-    nesting_cohort_table = nestingCohortTable,
-    nesting_cohort_id = nestingCohortId,
-    study_start_date = studyStartDate,
-    study_end_date = studyEndDate
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           tempEmulationSchema = tempEmulationSchema,
+                                           cdm_database_schema = cdmDatabaseSchema,
+                                           use_nesting_cohort = useNestingCohort,
+                                           nesting_cohort_database_schema = nestingCohortDatabaseSchema,
+                                           nesting_cohort_table = nestingCohortTable,
+                                           nesting_cohort_id = nestingCohortId,
+                                           has_study_periods = hasStudyPeriods
   )
   DatabaseConnector::executeSql(conn, sql)
-
-  DatabaseConnector::insertTable(conn,
-    tableName = "#outcome_ids",
-    data = data.frame(outcome_id = as.integer(outcomeIds)),
-    dropTableIfExists = TRUE,
-    createTable = TRUE,
-    tempTable = TRUE,
-    tempEmulationSchema = tempEmulationSchema
-  )
 
   message("Counting outcomes")
-  sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
-    packageName = "SelfControlledCaseSeries",
-    dbms = connectionDetails$dbms,
-    tempEmulationSchema = tempEmulationSchema,
-    use_nesting_cohort = useNestingCohort,
-    study_start_date = studyStartDate,
-    study_end_date = studyEndDate
-  )
-  DatabaseConnector::executeSql(conn, sql)
-
-  sql <- "SELECT * FROM #counts;"
-  sql <- SqlRender::translate(sql = sql, targetDialect = connectionDetails$dbms, tempEmulationSchema = tempEmulationSchema)
-  outcomeCounts <- as_tibble(DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE))
+  outcomeCounts <- countOutcomesInDb(
+    connection = conn,
+    hasStudyPeriods = hasStudyPeriods,
+    useNestingCohort = useNestingCohort,
+    tempEmulationSchema = tempEmulationSchema)
 
   sampledCases <- FALSE
   if (maxCasesPerOutcome != 0) {
@@ -281,11 +301,12 @@ getDbSccsData <- function(connectionDetails,
     }
     if (sampledCases) {
       sql <- SqlRender::loadRenderTranslateSql("SampleCases.sql",
-        packageName = "SelfControlledCaseSeries",
-        dbms = connectionDetails$dbms,
-        tempEmulationSchema = tempEmulationSchema,
-        max_cases_per_outcome = maxCasesPerOutcome
-      )
+                                               packageName = "SelfControlledCaseSeries",
+                                               dbms = connectionDetails$dbms,
+                                               tempEmulationSchema = tempEmulationSchema,
+                                               max_cases_per_outcome = maxCasesPerOutcome,
+                                               use_nesting_cohort = useNestingCohort,
+                                               has_study_periods = hasStudyPeriods)
       DatabaseConnector::executeSql(conn, sql)
 
     }
@@ -293,37 +314,37 @@ getDbSccsData <- function(connectionDetails,
 
   message("Creating eras")
   sql <- SqlRender::loadRenderTranslateSql("CreateEras.sql",
-    packageName = "SelfControlledCaseSeries",
-    dbms = connectionDetails$dbms,
-    tempEmulationSchema = tempEmulationSchema,
-    cdm_database_schema = cdmDatabaseSchema,
-    outcome_database_schema = outcomeDatabaseSchema,
-    outcome_table = outcomeTable,
-    outcome_concept_ids = outcomeIds,
-    exposure_database_schema = exposureDatabaseSchema,
-    exposure_table = exposureTable,
-    use_nesting_cohort = useNestingCohort,
-    use_custom_covariates = useCustomCovariates,
-    custom_covariate_database_schema = customCovariateDatabaseSchema,
-    custom_covariate_table = customCovariateTable,
-    has_exposure_ids = hasExposureIds,
-    has_custom_covariate_ids = hasCustomCovariateIds,
-    delete_covariates_small_count = deleteCovariatesSmallCount,
-    study_start_date = studyStartDate,
-    study_end_date = studyEndDate,
-    sampled_cases = sampledCases
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           tempEmulationSchema = tempEmulationSchema,
+                                           cdm_database_schema = cdmDatabaseSchema,
+                                           outcome_database_schema = outcomeDatabaseSchema,
+                                           outcome_table = outcomeTable,
+                                           outcome_concept_ids = outcomeIds,
+                                           exposure_database_schema = exposureDatabaseSchema,
+                                           exposure_table = exposureTable,
+                                           use_custom_covariates = useCustomCovariates,
+                                           custom_covariate_database_schema = customCovariateDatabaseSchema,
+                                           custom_covariate_table = customCovariateTable,
+                                           has_exposure_ids = hasExposureIds,
+                                           has_custom_covariate_ids = hasCustomCovariateIds,
+                                           delete_covariates_small_count = deleteCovariatesSmallCount,
+                                           has_study_periods = hasStudyPeriods,
+                                           sampled_cases = sampledCases
   )
   DatabaseConnector::executeSql(conn, sql)
 
   message("Fetching data from server")
   sccsData <- Andromeda::andromeda()
   sql <- SqlRender::loadRenderTranslateSql(
-      "QueryCases.sql",
-      packageName = "SelfControlledCaseSeries",
-      dbms = connectionDetails$dbms,
-      tempEmulationSchema = tempEmulationSchema,
-      sampled_cases = sampledCases
-    )
+    "QueryCases.sql",
+    packageName = "SelfControlledCaseSeries",
+    dbms = connectionDetails$dbms,
+    tempEmulationSchema = tempEmulationSchema,
+    sampled_cases = sampledCases,
+    use_nesting_cohort = useNestingCohort,
+    has_study_periods = hasStudyPeriods
+  )
   DatabaseConnector::querySqlToAndromeda(
     connection = conn,
     sql = sql,
@@ -331,27 +352,13 @@ getDbSccsData <- function(connectionDetails,
     andromedaTableName = "cases",
     snakeCaseToCamelCase = TRUE
   )
-
   ParallelLogger::logDebug("Fetched ", sccsData$cases %>% count() %>% pull(), " cases from server")
-
-  countNegativeAges <- sccsData$cases %>%
-    filter(.data$ageAtObsStart < 0) %>%
-    count() %>%
-    pull()
-
-  if (countNegativeAges > 0) {
-    warning("There are ", countNegativeAges, " cases with negative ages at observation start. Setting their starting age to 0. Please review your data.")
-    sccsData$cases <- sccsData$cases %>%
-      mutate(ageAtObsStart = case_when(
-        .data$ageAtObsStart < 0 ~ 0,
-        TRUE ~ .data$ageAtObsStart
-      ))
-  }
+  sccsData <- ensureAgePositive(sccsData)
 
   sql <- SqlRender::loadRenderTranslateSql("QueryEras.sql",
-    packageName = "SelfControlledCaseSeries",
-    dbms = connectionDetails$dbms,
-    tempEmulationSchema = tempEmulationSchema
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           tempEmulationSchema = tempEmulationSchema
   )
   DatabaseConnector::querySqlToAndromeda(
     connection = conn,
@@ -373,15 +380,14 @@ getDbSccsData <- function(connectionDetails,
 
   # Delete temp tables
   sql <- SqlRender::loadRenderTranslateSql("RemoveTempTables.sql",
-    packageName = "SelfControlledCaseSeries",
-    dbms = connectionDetails$dbms,
-    tempEmulationSchema = tempEmulationSchema,
-    study_start_date = studyStartDate,
-    study_end_date = studyEndDate,
-    sampled_cases = sampledCases,
-    has_exposure_ids = hasExposureIds,
-    use_nesting_cohort = useNestingCohort,
-    has_custom_covariate_ids = hasCustomCovariateIds
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           tempEmulationSchema = tempEmulationSchema,
+                                           has_study_periods = hasStudyPeriods,
+                                           sampled_cases = sampledCases,
+                                           has_exposure_ids = hasExposureIds,
+                                           use_nesting_cohort = useNestingCohort,
+                                           has_custom_covariate_ids = hasCustomCovariateIds
   )
   DatabaseConnector::executeSql(conn, sql, progressBar = FALSE, reportOverallTime = FALSE)
 
@@ -409,12 +415,65 @@ getDbSccsData <- function(connectionDetails,
   attr(sccsData, "metaData") <- list(
     exposureIds = exposureIds,
     outcomeIds = outcomeIds,
-    attrition = outcomeCounts
+    attrition = outcomeCounts,
+    studyPeriods = studyPeriods
   )
   class(sccsData) <- "SccsData"
   attr(class(sccsData), "package") <- "SelfControlledCaseSeries"
 
   delta <- Sys.time() - start
   message("Getting SCCS data from server took ", signif(delta, 3), " ", attr(delta, "units"))
+  return(sccsData)
+}
+
+countOutcomesInDb <- function(connection, hasStudyPeriods, useNestingCohort, tempEmulationSchema) {
+  sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = DatabaseConnector::dbms(connection),
+                                           tempEmulationSchema = tempEmulationSchema,
+                                           case_table = "#cases")
+  outcomeCounts <- DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE) %>%
+    mutate(description = "All outcome occurrences")
+  if (hasStudyPeriods) {
+    sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
+                                             packageName = "SelfControlledCaseSeries",
+                                             dbms = DatabaseConnector::dbms(connection),
+                                             tempEmulationSchema = tempEmulationSchema,
+                                             case_table = "#cases_in_periods")
+    outcomeCounts <- outcomeCounts %>%
+      bind_rows(
+        DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE) %>%
+          mutate(description = "Outcomes in study period(s)")
+      )
+  }
+  if (useNestingCohort) {
+    sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
+                                             packageName = "SelfControlledCaseSeries",
+                                             dbms = DatabaseConnector::dbms(connection),
+                                             tempEmulationSchema = tempEmulationSchema,
+                                             case_table = "#cases_in_nesting")
+    outcomeCounts <- outcomeCounts %>%
+      bind_rows(
+        DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE) %>%
+          mutate(description = "Outcomes in nesting cohort")
+      )
+  }
+  return(outcomeCounts)
+}
+
+ensureAgePositive <- function(sccsData) {
+  countNegativeAges <- sccsData$cases %>%
+    filter(.data$ageAtObsStart < 0) %>%
+    count() %>%
+    pull()
+
+  if (countNegativeAges > 0) {
+    warning("There are ", countNegativeAges, " cases with negative ages at observation start. Setting their starting age to 0. Please review your data.")
+    sccsData$cases <- sccsData$cases %>%
+      mutate(ageAtObsStart = case_when(
+        .data$ageAtObsStart < 0 ~ 0,
+        TRUE ~ .data$ageAtObsStart
+      ))
+  }
   return(sccsData)
 }

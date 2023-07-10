@@ -1,6 +1,4 @@
 /**********************************************************************
-@file CreateEras.sql
-
 Copyright 2023 Observational Health Data Sciences and Informatics
 
 This file is part of SelfControlledCaseSeries
@@ -30,8 +28,7 @@ limitations under the License.
 {DEFAULT @has_exposure_ids = FALSE}
 {DEFAULT @has_custom_covariate_ids = FALSE}
 {DEFAULT @delete_covariates_small_count = 100}
-{DEFAULT @study_start_date = '' }
-{DEFAULT @study_end_date = '' }
+{DEFAULT @has_study_periods = FALSE}
 {DEFAULT @sampled_cases = FALSE}
 
 DROP TABLE IF EXISTS #eras;
@@ -58,7 +55,7 @@ CREATE TABLE #era_ref (
 /* Create exposure eras */
 {@exposure_table == 'drug_era'} ? {
 INSERT INTO #eras (era_type, case_id, era_id, era_value, era_start_day, era_end_day)
-SELECT 'rx',
+SELECT DISTINCT 'rx',
 	cases.case_id,
 	drug_concept_id,
 	1,
@@ -103,7 +100,7 @@ INNER JOIN (
 
 } : { /* exposure table has same structure as cohort table */
 INSERT INTO #eras (era_type, case_id, era_id, era_value, era_start_day, era_end_day)
-SELECT 'rx',
+SELECT DISTINCT 'rx',
 	cases.case_id,
 	cohort_definition_id,
 	1,
@@ -146,25 +143,21 @@ INNER JOIN (
 }
 /* Create outcome eras */
 INSERT INTO #eras (era_type, case_id, era_id, era_value, era_start_day, era_end_day)
-SELECT 'hoi',
+SELECT DISTINCT 'hoi',
 	cases.case_id,
 	outcome_id,
 	1,
 	DATEDIFF(dd, observation_period_start_date, outcome_date),
 	DATEDIFF(dd, observation_period_start_date, outcome_date)
-{@use_nesting_cohort} ? {
-FROM #outcomes_in_nesting outcomes
-} : { {@study_start_date != '' | @study_end_date != ''} ? {
-FROM #outcomes_in_period outcomes
-} : {
 FROM #outcomes outcomes
-}}	 
 {@sampled_cases} ? {
 INNER JOIN #sampled_cases cases
 } : {
 INNER JOIN #cases cases
 }
-	ON outcomes.observation_period_id = cases.observation_period_id;
+	ON outcomes.person_id = cases.person_id
+		AND outcome_date <= end_date
+		AND outcome_date >= observation_period_start_date;
 
 {@outcome_table == 'condition_occurrence' | @outcome_table == 'condition_era'} ? {
 INSERT INTO #era_ref (era_type, era_id, era_name, min_observed_date, max_observed_date)
@@ -221,7 +214,7 @@ INNER JOIN (
 {@custom_covariate_table == 'condition_era'} ? {
 
 INSERT INTO #eras (era_type, case_id, era_id, era_value, era_start_day, era_end_day)
-SELECT 'dx',
+SELECT DISTINCT 'dx',
 	cases.case_id,
 	condition_concept_id,
 	1,
@@ -266,7 +259,7 @@ INNER JOIN (
 } : {
 
 INSERT INTO #eras (era_type, case_id, era_id, era_value, era_start_day, era_end_day)
-SELECT 'cst',
+SELECT DISTINCT 'cst',
 	cases.case_id,
 	cohort_definition_id,
 	1,
@@ -305,7 +298,6 @@ INNER JOIN (
 	GROUP BY cohort_definition_id
 	) min_max_date
 	ON eras.era_id = min_max_date.cohort_definition_id;	
-
 }
 }
 

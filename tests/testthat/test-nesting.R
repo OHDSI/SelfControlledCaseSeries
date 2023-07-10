@@ -89,11 +89,10 @@ test_that("getDbSccsData correctly handles nesting", {
     inner_join(nestingCohort %>%
                  select("subjectId", nestingStartDate = "cohortStartDate", nestingEndDate = "cohortEndDate"),
                # by = join_by("subjectId"),
-               by = join_by("personId" == "subjectId", "observationPeriodStartDate" <= "nestingStartDate", "observationPeriodEndDate" >= "nestingEndDate"),
+               by = join_by("personId" == "subjectId", "observationPeriodEndDate" >= "nestingStartDate", "observationPeriodStartDate" <= "nestingEndDate"),
                relationship = "many-to-many")
   expect_equal(as.numeric(cases$observationPeriodId), expectedCases$observationPeriodId)
   expect_equal(as.numeric(cases$personId), expectedCases$personId)
-  expect_equal(cases$caseId, c(1, 2, 3, 4))
   expect_equal(cases$observationPeriodStartDate, expectedCases$observationPeriodStartDate)
   expect_equal(cases$startDay, as.numeric(expectedCases$nestingStartDate - expectedCases$observationPeriodStartDate))
 
@@ -107,6 +106,7 @@ test_that("getDbSccsData correctly handles nesting", {
                by = join_by("subjectId" == "personId"),
                relationship = "many-to-many") %>%
     mutate(startDay = as.numeric(.data$outcomeDate - .data$observationPeriodStartDate)) %>%
+    distinct() %>%
     arrange(.data$subjectId, .data$observationPeriodStartDate, .data$nestingStartDate )
   expect_equal(hois$caseId, c(1, 1, 2, 2, 3, 4))
   expect_equal(hois$eraStartDay , expectedHois$startDay)

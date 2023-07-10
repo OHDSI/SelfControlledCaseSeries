@@ -1,6 +1,4 @@
 /**********************************************************************
-@file SampleCases.sql
-
 Copyright 2023 Observational Health Data Sciences and Informatics
 
 This file is part of SelfControlledCaseSeries
@@ -20,51 +18,61 @@ limitations under the License.
 
 {DEFAULT @max_cases_per_outcome = 1000000}
 {DEFAULT @use_nesting_cohort = FALSE}
-{DEFAULT @study_start_date = '' }
-{DEFAULT @study_end_date = '' }
+{DEFAULT @has_study_periods}
 
 DROP TABLE IF EXISTS #sampled_cases_per_o;
 
 DROP TABLE IF EXISTS #sampled_cases;
 
-SELECT observation_period_id,
-	case_id,
+SELECT case_id,
+	start_date,
+	end_date,
 	outcome_id
 INTO #sampled_cases_per_o
 FROM (
-	SELECT outcomes.observation_period_id,
+	SELECT case_id,
+		start_date,
+		end_date,
 		outcome_id,
-		case_id,
-		ROW_NUMBER() OVER (PARTITION BY outcome_id ORDER BY random_id) AS rn 
+		ROW_NUMBER() OVER (PARTITION BY outcome_id ORDER BY random_id) AS rn
 	FROM (
-		SELECT DISTINCT outcome_id,
-			observation_period_id
+		SELECT DISTINCT case_id,
+			start_date,
+			end_date,
+			outcome_id,
+			random_id
 {@use_nesting_cohort} ? {
-		FROM #outcomes_in_nesting
-} : { {@study_start_date != '' | @study_end_date != ''} ? {
-		FROM #outcomes_in_period
+		FROM #cases_in_nesting cases
+} : { {@has_study_periods} ? {
+		FROM #cases_in_periods cases
 } : {
-		FROM #outcomes
-}}			
-	) outcomes
-	INNER JOIN #cases cases
-		ON outcomes.observation_period_id = cases.observation_period_id
+		FROM #cases cases
+}}
+		INNER JOIN #outcomes outcomes
+			ON outcomes.person_id = cases.person_id
+				AND outcome_date >= start_date
+				AND outcome_date <= end_date
+	) cases
 ) temp
 WHERE rn <= @max_cases_per_outcome;
-	
-SELECT cases.observation_period_id,
-	cases.case_id,
-	cases.person_id,
-	cases.observation_period_start_date,
-	cases.start_date,
-	cases.end_date,
-	cases.date_of_birth,
-	cases.noninformative_end_censor,
-	cases.gender_concept_id
+
+SELECT cases.*
 INTO #sampled_cases
 FROM (
-	SELECT DISTINCT observation_period_id
+	SELECT DISTINCT case_id,
+		start_date,
+		end_date
 	FROM #sampled_cases_per_o
 	) sampled_ids
+{@use_nesting_cohort} ? {
+INNER JOIN #cases_in_nesting cases
+} : { {@has_study_periods} ? {
+INNER JOIN #cases_in_periods cases
+} : {
 INNER JOIN #cases cases
-	ON cases.observation_period_id = sampled_ids.observation_period_id;
+}}
+	ON cases.case_id = sampled_ids.case_id
+		AND cases.start_date = sampled_ids.start_date
+		AND cases.end_date = sampled_ids.end_date;
+
+

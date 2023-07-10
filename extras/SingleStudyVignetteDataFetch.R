@@ -18,9 +18,9 @@
 
 # This code should be used to fetch the data that is used in the vignettes.
 library(SelfControlledCaseSeries)
-options(andromedaTempFolder = "d:/andromedaTemp")
+options(andromedaTempFolder = "c:/andromedaTemp")
 
-folder <- "d:/temp/vignetteSccs"
+folder <- "c:/temp/vignetteSccs"
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "redshift",
   connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcd"),
@@ -74,6 +74,7 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
                           exposureIds = diclofenac,
+                          maxCasesPerOutcome = 1000,
                           cdmVersion = cdmVersion)
 saveSccsData(sccsData, file.path(folder, "data1.zip"))
 sccsData <- loadSccsData(file.path(folder, "data1.zip"))

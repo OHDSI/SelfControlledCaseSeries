@@ -1,7 +1,7 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 4.3.0
+Version: 5.0.0
 Date: 2023-06-21
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
@@ -24,10 +24,10 @@ BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
 	R (>= 4.0.0),
 	Cyclops (>= 3.2.0),
-	DatabaseConnector (>= 5.1.0),
+	DatabaseConnector (>= 6.0.0),
 	Andromeda
 Imports:
-	SqlRender (>= 1.11.0),
+	SqlRender (>= 1.12.0),
 	dplyr (>= 1.0.0),
 	Rcpp (>= 1.0.9),
 	ParallelLogger (>= 3.1.0),

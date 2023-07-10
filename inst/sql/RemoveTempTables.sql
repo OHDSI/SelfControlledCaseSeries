@@ -10,17 +10,17 @@ DROP TABLE #era_ref;
 TRUNCATE TABLE #outcome_ids;
 DROP TABLE #outcome_ids;
 
-TRUNCATE TABLE #counts;
-DROP TABLE #counts;
-
 {@use_nesting_cohort} ? {
-TRUNCATE TABLE #outcomes_in_nesting;
-DROP TABLE #outcomes_in_nesting;
+TRUNCATE TABLE #cases_in_nesting;
+DROP TABLE #cases_in_nesting;
 } 
 
-{@study_start_date != '' & @study_end_date != ''} ? {
-TRUNCATE TABLE #outcomes_in_period;
-DROP TABLE #outcomes_in_period;
+{@has_study_periods} ? {
+TRUNCATE TABLE #study_periods;
+DROP TABLE #study_periods;
+
+TRUNCATE TABLE #cases_in_periods;
+DROP TABLE #cases_in_periods;
 }
 
 TRUNCATE TABLE #outcomes;
