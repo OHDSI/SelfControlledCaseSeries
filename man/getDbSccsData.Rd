@@ -25,6 +25,8 @@ getDbSccsData(
   deleteCovariatesSmallCount = 0,
   studyStartDate = "",
   studyEndDate = "",
+  studyStartDates = c(),
+  studyEndDates = c(),
   cdmVersion = "5",
   maxCasesPerOutcome = 0
 )
@@ -100,11 +102,17 @@ should have the same structure as the cohort table (see details).}
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be
 kept.}
 
-\item{studyStartDate}{A character object specifying the minimum date where data is
-used. Date format is 'yyyymmdd'.}
+\item{studyStartDate}{DEPRECATED. Use \code{studyStartDates} instead.}
 
-\item{studyEndDate}{A character object specifying the maximum date where data is
-used. Date format is 'yyyymmdd'.}
+\item{studyEndDate}{DEPRECATED. Use \code{studyEndDates} instead.}
+
+\item{studyStartDates}{A character object specifying the minimum dates where data is
+used. Date format is 'yyyymmdd'. Use "" to indicate all time
+prior. See section for more information.}
+
+\item{studyEndDates}{A character object specifying the maximum dates where data is
+used. Date format is 'yyyymmdd'. Use "" to indicate to the end
+of observation. See section for more information.}
 
 \item{cdmVersion}{Define the OMOP CDM version used: currently supports "5".}
 
@@ -144,3 +152,10 @@ All five locations could point to the same database schema.
 Cohort tables are assumed to have the following fields: \code{cohort_definition_id}, \code{subject_id},
 \code{cohort_start_date}, and \code{cohort_end_date.}
 }
+\section{Study period start and end dates}{
+
+A study start and end date define a period when patient data will be included in the
+analysis. Multiple non-overlapping periods can be defined, which for example will allow
+for excluding the time of the COVID pandemic, when most outcome rates were unstable.
+}
+

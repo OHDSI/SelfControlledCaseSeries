@@ -281,6 +281,13 @@ getDbSccsData <- function(connectionDetails,
                                            nesting_cohort_id = nestingCohortId,
                                            has_study_periods = hasStudyPeriods
   )
+  if (useNestingCohort) {
+    caseTable <- "#cases_in_nesting"
+  } else if (hasStudyPeriods) {
+    caseTable <- "#cases_in_periods"
+  } else {
+    caseTable <- "#cases"
+  }
   DatabaseConnector::executeSql(conn, sql)
 
   message("Counting outcomes")
@@ -305,10 +312,9 @@ getDbSccsData <- function(connectionDetails,
                                                dbms = connectionDetails$dbms,
                                                tempEmulationSchema = tempEmulationSchema,
                                                max_cases_per_outcome = maxCasesPerOutcome,
-                                               use_nesting_cohort = useNestingCohort,
-                                               has_study_periods = hasStudyPeriods)
+                                               case_table = caseTable)
       DatabaseConnector::executeSql(conn, sql)
-
+      caseTable <- "#sampled_cases"
     }
   }
 
@@ -329,8 +335,7 @@ getDbSccsData <- function(connectionDetails,
                                            has_exposure_ids = hasExposureIds,
                                            has_custom_covariate_ids = hasCustomCovariateIds,
                                            delete_covariates_small_count = deleteCovariatesSmallCount,
-                                           has_study_periods = hasStudyPeriods,
-                                           sampled_cases = sampledCases
+                                           case_table = caseTable
   )
   DatabaseConnector::executeSql(conn, sql)
 
@@ -341,9 +346,7 @@ getDbSccsData <- function(connectionDetails,
     packageName = "SelfControlledCaseSeries",
     dbms = connectionDetails$dbms,
     tempEmulationSchema = tempEmulationSchema,
-    sampled_cases = sampledCases,
-    use_nesting_cohort = useNestingCohort,
-    has_study_periods = hasStudyPeriods
+    case_table = caseTable
   )
   DatabaseConnector::querySqlToAndromeda(
     connection = conn,

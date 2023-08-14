@@ -28,8 +28,7 @@ limitations under the License.
 {DEFAULT @has_exposure_ids = FALSE}
 {DEFAULT @has_custom_covariate_ids = FALSE}
 {DEFAULT @delete_covariates_small_count = 100}
-{DEFAULT @has_study_periods = FALSE}
-{DEFAULT @sampled_cases = FALSE}
+{DEFAULT @case_table = "#cases"}
 
 DROP TABLE IF EXISTS #eras;
 
@@ -62,11 +61,7 @@ SELECT DISTINCT 'rx',
 	DATEDIFF(dd, observation_period_start_date, drug_era_start_date),
 	DATEDIFF(dd, observation_period_start_date, drug_era_end_date)
 FROM @exposure_database_schema.drug_era
-{@sampled_cases} ? {
-INNER JOIN #sampled_cases cases
-} : {
-INNER JOIN #cases cases
-}
+INNER JOIN @case_table cases
 	ON drug_era.person_id = cases.person_id
 		AND drug_era_start_date <= end_date
 		AND drug_era_end_date >= observation_period_start_date
@@ -107,11 +102,7 @@ SELECT DISTINCT 'rx',
 	DATEDIFF(dd, observation_period_start_date, cohort_start_date),
 	DATEDIFF(dd, observation_period_start_date, cohort_end_date)
 FROM @exposure_database_schema.@exposure_table exposure
-{@sampled_cases} ? {
-INNER JOIN #sampled_cases cases
-} : {
-INNER JOIN #cases cases
-}
+INNER JOIN @case_table cases
 	ON exposure.subject_id = cases.person_id
 		AND cohort_start_date <= end_date
 		AND cohort_end_date >= observation_period_start_date
@@ -150,11 +141,7 @@ SELECT DISTINCT 'hoi',
 	DATEDIFF(dd, observation_period_start_date, outcome_date),
 	DATEDIFF(dd, observation_period_start_date, outcome_date)
 FROM #outcomes outcomes
-{@sampled_cases} ? {
-INNER JOIN #sampled_cases cases
-} : {
-INNER JOIN #cases cases
-}
+INNER JOIN @case_table cases
 	ON outcomes.person_id = cases.person_id
 		AND outcome_date <= end_date
 		AND outcome_date >= observation_period_start_date;
@@ -221,11 +208,7 @@ SELECT DISTINCT 'dx',
 	DATEDIFF(dd, observation_period_start_date, condition_era_start_date),
 	DATEDIFF(dd, observation_period_start_date, condition_era_end_date)
 FROM @custom_covariate_database_schema.@custom_covariate_table covars
-{@sampled_cases} ? {
-INNER JOIN #sampled_cases cases
-} : {
-INNER JOIN #cases cases
-}
+INNER JOIN @case_table cases
 	ON covars.person_id = cases.person_id
 WHERE condition_era_start_date <= end_date
 	AND condition_era_start_date >= observation_period_start_date
@@ -266,11 +249,7 @@ SELECT DISTINCT 'cst',
 	DATEDIFF(dd, observation_period_start_date, cohort_start_date),
 	DATEDIFF(dd, observation_period_start_date, cohort_end_date)
 FROM @custom_covariate_database_schema.@custom_covariate_table covars
-{@sampled_cases} ? {
-INNER JOIN #sampled_cases cases
-} : {
-INNER JOIN #cases cases
-}
+INNER JOIN @case_table cases
 	ON covars.subject_id = cases.person_id
 WHERE cohort_start_date <= end_date
 	AND cohort_start_date >= observation_period_start_date

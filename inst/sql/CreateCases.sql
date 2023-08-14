@@ -58,7 +58,7 @@ INNER JOIN @cdm_database_schema.person
 DROP TABLE IF EXISTS #cases_in_periods;
 
 SELECT observation_period_id,
-	case_id
+	ROW_NUMBER() OVER (ORDER BY observation_period_id) AS case_id,
 	person_id,
 	random_id,
 	CASE 
@@ -87,7 +87,7 @@ INNER JOIN #study_periods
 DROP TABLE IF EXISTS #cases_in_nesting;
 
 SELECT observation_period_id,
-	case_id,
+	ROW_NUMBER() OVER (ORDER BY observation_period_id) AS case_id,
 	person_id,
 	random_id,
 	CASE 

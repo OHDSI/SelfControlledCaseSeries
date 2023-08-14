@@ -17,8 +17,7 @@ limitations under the License.
 ***********************************************************************/
 
 {DEFAULT @max_cases_per_outcome = 1000000}
-{DEFAULT @use_nesting_cohort = FALSE}
-{DEFAULT @has_study_periods}
+{DEFAULT @case_table = "#cases"}
 
 DROP TABLE IF EXISTS #sampled_cases_per_o;
 
@@ -41,13 +40,7 @@ FROM (
 			end_date,
 			outcome_id,
 			random_id
-{@use_nesting_cohort} ? {
-		FROM #cases_in_nesting cases
-} : { {@has_study_periods} ? {
-		FROM #cases_in_periods cases
-} : {
-		FROM #cases cases
-}}
+		FROM @case_table cases
 		INNER JOIN #outcomes outcomes
 			ON outcomes.person_id = cases.person_id
 				AND outcome_date >= start_date
@@ -64,13 +57,7 @@ FROM (
 		end_date
 	FROM #sampled_cases_per_o
 	) sampled_ids
-{@use_nesting_cohort} ? {
-INNER JOIN #cases_in_nesting cases
-} : { {@has_study_periods} ? {
-INNER JOIN #cases_in_periods cases
-} : {
-INNER JOIN #cases cases
-}}
+INNER JOIN @case_table cases
 	ON cases.case_id = sampled_ids.case_id
 		AND cases.start_date = sampled_ids.start_date
 		AND cases.end_date = sampled_ids.end_date;

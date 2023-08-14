@@ -101,15 +101,16 @@ test_that("getDbSccsData correctly handles nesting", {
     arrange(caseId, eraStartDay) %>%
     collect()
   expectedHois <- outcomeCohort %>%
-    select("subjectId", outcomeDate = "cohortStartDate") %>%
-    inner_join(expectedCases,
-               by = join_by("subjectId" == "personId"),
+    select(personId = "subjectId",  outcomeDate = "cohortStartDate") %>%
+    inner_join(cases %>%
+                 mutate(personId = as.numeric(.data$personId)),
+               by = join_by("personId"),
                relationship = "many-to-many") %>%
-    mutate(startDay = as.numeric(.data$outcomeDate - .data$observationPeriodStartDate)) %>%
-    distinct() %>%
-    arrange(.data$subjectId, .data$observationPeriodStartDate, .data$nestingStartDate )
-  expect_equal(hois$caseId, c(1, 1, 2, 2, 3, 4))
-  expect_equal(hois$eraStartDay , expectedHois$startDay)
+    mutate(outcomeDay = as.numeric(.data$outcomeDate - .data$observationPeriodStartDate)) %>%
+    filter(.data$outcomeDay  >= 0, .data$outcomeDay <= endDay) %>%
+    arrange(.data$caseId, .data$startDay)
+  expect_equal(hois$caseId, expectedHois$caseId)
+  expect_equal(hois$eraStartDay , expectedHois$outcomeDay)
 })
 
 studyPop <- createStudyPopulation(
