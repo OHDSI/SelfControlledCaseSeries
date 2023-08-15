@@ -15,19 +15,38 @@
 # limitations under the License.
 
 computeOutcomeRatePerMonth <- function(studyPopulation) {
-  observationPeriodCounts <- computeObservedPerMonth(studyPopulation)
-  outcomeCounts <- studyPopulation$outcomes %>%
+  cases <- studyPopulation$cases %>%
+    mutate(startMonth = convertDateToMonth(.data$observationPeriodStartDate + .data$startDay),
+           endMonth = convertDateToMonth(.data$observationPeriodStartDate + .data$endDay))  %>%
+    select("caseId", "startMonth", "endMonth") %>%
+    left_join(
+      studyPopulation$outcomes %>%
+        group_by(.data$caseId) %>%
+        summarize(outcomeCount = n()),
+      by = join_by("caseId")
+    ) %>%
+    mutate(outcomeCount = if_else(is.na(.data$outcomeCount), 0, .data$outcomeCount)) %>%
+    mutate(rate = .data$outcomeCount / (.data$endMonth - .data$startMonth + 1))
+  months <- seq(min(cases$startMonth), max(cases$endMonth))
+  observedCounts <- studyPopulation$outcomes %>%
     inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
     transmute(month = convertDateToMonth(.data$observationPeriodStartDate + .data$outcomeDay)) %>%
     group_by(.data$month) %>%
-    summarise(outcomeCount = n())
-  data <- observationPeriodCounts %>%
-    inner_join(outcomeCounts, by = join_by("month")) %>%
-    mutate(rate = .data$outcomeCount / .data$observationPeriodCount) %>%
-    mutate(
-      monthStartDate = convertMonthToStartDate(.data$month),
-      monthEndDate = convertMonthToEndDate(.data$month)
-    )
+    summarise(observedCount = n())
+  computeExpected <- function(month) {
+    cases %>%
+      filter(month >= .data$startMonth & month <= .data$endMonth) %>%
+      summarize(expectedCount = sum(.data$rate)) %>%
+      pull() %>%
+      return()
+  }
+  expectedCounts <- tibble(month = months,
+                           expectedCount = sapply(months, computeExpected))
+  data <- observedCounts %>%
+    inner_join(expectedCounts, by = join_by("month")) %>%
+    mutate(rate = .data$observedCount / .data$expectedCount)  %>%
+    mutate(monthStartDate = convertMonthToStartDate(.data$month),
+           monthEndDate = convertMonthToEndDate(.data$month))
   return(data)
 }
 
@@ -36,19 +55,27 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
 
   if (hasCalendarTimeEffect(sccsModel)) {
     estimates <- sccsModel$estimates
-    estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
-    splineCoefs <- c(0, estimates$logRr)
-    calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
-    calendarTime <- data$month
-    calendarTime[calendarTime < calendarTimeKnots[1]] <- calendarTimeKnots[1]
-    calendarTime[calendarTime > calendarTimeKnots[length(calendarTimeKnots)]] <- calendarTimeKnots[length(calendarTimeKnots)]
-    calendarTimeDesignMatrix <- splines::bs(calendarTime,
-      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
-    )
-    logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
-    logRr <- logRr - mean(logRr)
-    data$calendarTimeRr <- exp(logRr)
+    splineCoefs <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, "logRr"]
+    calendarTimeKnotsInPeriods <- sccsModel$metaData$calendarTime$calendarTimeKnotsInPeriods
+    designMatrix <- createMultiSegmentDesignMatrix(x = data$month,
+                                                   knotsPerSegment = calendarTimeKnotsInPeriods)
+    data$logRr <- apply(designMatrix %*% splineCoefs, 1, sum)
+    # Each segment can be thought of having its own intercept, so adjust logRr by mean in segment:
+    data <- data %>%
+      mutate(gap = .data$month - lag(.data$month) > 1) %>%
+      mutate(gap = if_else(is.na(.data$gap), 0, .data$gap)) %>%
+      mutate(segment = cumsum(gap))
+    data <- data %>%
+      inner_join(
+        data %>%
+          group_by(.data$segment) %>%
+          summarize(meanLogRr = mean(logRr)),
+        by = join_by("segment")
+      ) %>%
+      mutate(logRr = .data$logRr - .data$meanLogRr) %>%
+      mutate(calendarTimeRr = exp(.data$logRr))
+    # logRr <- logRr - mean(logRr)
+    # data$calendarTimeRr <- exp(logRr)
     data <- data %>%
       mutate(adjustedRate = .data$adjustedRate / .data$calendarTimeRr)
   }
@@ -122,19 +149,20 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
     pLowerBound <- 1 - ppois(observed, expected / maxRatio, lower.tail = FALSE)
     return(pmin(1, 2 * pmin(pUpperBound, pLowerBound)))
   }
-
-  # Season and calendar time splines lack intercept, so need to compute expected count in indirect way:
-  meanAdjustedRate <- sum(data$adjustedRate * data$observationPeriodCount) / sum(data$observationPeriodCount)
+  # data <- data %>%
+  #   mutate(expected = .data$observedCount / .data$adjustedRate) %>%
+  #   summarise(
+  #     p = computeTwoSidedP(sum(.data$observedCount) , sum(.data$expected)),
+  #     alpha = !!alpha
+  #   ) %>%
+  #   mutate(stable = .data$p >= .data$alpha)
   data <- data %>%
-    mutate(expected = .data$outcomeCount * meanAdjustedRate / .data$adjustedRate) %>%
+    mutate(expected = .data$observedCount / .data$adjustedRate) %>%
     mutate(
-      p = computeTwoSidedP(.data$outcomeCount, .data$expected),
+      p = computeTwoSidedP(.data$observedCount , .data$expected),
       alpha = !!alpha / n()
     ) %>%
     mutate(stable = .data$p >= .data$alpha)
-  # print(data[50:100, ], n = 35)
-  # sum(!data$stable)
-
   return(data)
 }
 

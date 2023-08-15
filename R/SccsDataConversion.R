@@ -84,8 +84,8 @@ createSccsIntervalData <- function(studyPopulation,
 
   timeCovariateCases <- numeric(0)
   if (!is.null(ageCovariateSettings) ||
-    !is.null(seasonalityCovariateSettings) ||
-    !is.null(calendarTimeCovariateSettings)) {
+      !is.null(seasonalityCovariateSettings) ||
+      !is.null(calendarTimeCovariateSettings)) {
     if (nrow(studyPopulation$cases) > minCasesForTimeCovariates) {
       set.seed(0)
       timeCovariateCases <- sample(studyPopulation$cases$caseId, minCasesForTimeCovariates, replace = FALSE)
@@ -106,7 +106,7 @@ createSccsIntervalData <- function(studyPopulation,
   }
   settings <- addAgeSettings(settings, ageCovariateSettings, studyPopulation)
   settings <- addSeasonalitySettings(settings, seasonalityCovariateSettings, sccsData)
-  settings <- addCalendarTimeSettings(settings, calendarTimeCovariateSettings, studyPopulation)
+  settings <- addCalendarTimeSettings(settings, calendarTimeCovariateSettings, studyPopulation, sccsData)
 
   settings <- addEraCovariateSettings(settings, eraCovariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
@@ -226,8 +226,8 @@ addAgeSettings <- function(settings,
     }
     settings$ageOffset <- ageKnots[1]
     ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)],
-      knots = ageKnots[2:(length(ageKnots) - 1)],
-      Boundary.knots = ageKnots[c(1, length(ageKnots))]
+                                   knots = ageKnots[2:(length(ageKnots) - 1)],
+                                   Boundary.knots = ageKnots[c(1, length(ageKnots))]
     )
     # Fixing first beta to zero, so dropping first column of design matrix:
     settings$ageDesignMatrix <- ageDesignMatrix[, 2:ncol(ageDesignMatrix)]
@@ -290,48 +290,66 @@ addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsD
 
 addCalendarTimeSettings <- function(settings,
                                     calendarTimeCovariateSettings,
-                                    studyPopulation) {
+                                    studyPopulation,
+                                    sccsData) {
   if (is.null(calendarTimeCovariateSettings)) {
+    settings$calendarTimeOffset <- 0
+    settings$calendarTimeDesignMatrix <- matrix()
+    return(settings)
+  } else if ((length(calendarTimeCovariateSettings$calendarTimeKnots) == 1 &&
+              calendarTimeCovariateSettings$calendarTimeKnots > nrow(studyPopulation$outcomes)) ||
+             (length(calendarTimeCovariateSettings$calendarTimeKnots) > nrow(studyPopulation$outcomes))) {
+    warning("There are more calendar time knots than cases. Removing calendar time from model")
     settings$calendarTimeOffset <- 0
     settings$calendarTimeDesignMatrix <- matrix()
     return(settings)
   } else {
     if (length(calendarTimeCovariateSettings$calendarTimeKnots) == 1) {
       observationPeriodCounts <- computeObservedPerMonth(studyPopulation) %>%
-        arrange(.data$month) %>%
-        mutate(cumCount = cumsum(.data$observationPeriodCount))
-
-      total <- observationPeriodCounts %>%
-        tail(1) %>%
-        pull(.data$cumCount)
-
-      cutoffs <- total * seq(0.01, 0.99, length.out = calendarTimeCovariateSettings$calendarTimeKnots)
-      calendarTimeKnots <- rep(0, calendarTimeCovariateSettings$calendarTimeKnots)
-      for (i in 1:calendarTimeCovariateSettings$calendarTimeKnots) {
-        calendarTimeKnots[i] <- min(observationPeriodCounts$month[observationPeriodCounts$cumCount >= cutoffs[i]])
+        arrange(.data$month)
+      total <- sum(observationPeriodCounts$observationPeriodCount)
+      studyPeriods <- attr(sccsData, "metaData")$studyPeriods
+      if (is.null(studyPeriods)) {
+        studyPeriods <- tibble(studyStartMonth = -Inf, studyEndMonth = Inf)
+      } else {
+        studyPeriods <- studyPeriods %>%
+          transmute(studyStartMonth = convertDateToMonth(.data$studyStartDate),
+                    studyEndMonth =  convertDateToMonth(.data$studyEndDate)) %>%
+          arrange(.data$studyStartMonth)
+      }
+      calendarTimeKnotsInPeriods <- list()
+      for (i in seq_len(nrow(studyPeriods))) {
+        countsInPeriod <- observationPeriodCounts %>%
+          filter(.data$month >= studyPeriods$studyStartMonth[i],
+                 .data$month <= studyPeriods$studyEndMonth[i]) %>%
+          mutate(cumCount = cumsum(.data$observationPeriodCount))
+        totalInPeriod <- sum(countsInPeriod$observationPeriodCount)
+        # Evenly divide free knots (knots not at boundary) over periods:
+        freeKnotsInPeriod <- round((calendarTimeCovariateSettings$calendarTimeKnots - 2) * (totalInPeriod / total))
+        knotsInPeriod <- freeKnotsInPeriod + 2
+        cutoffs <- totalInPeriod * seq(0.01, 0.99, length.out = knotsInPeriod)
+        calendarTimeKnots <- rep(0, knotsInPeriod)
+        for (j in seq_len(knotsInPeriod)) {
+          calendarTimeKnots[j] <- min(countsInPeriod$month[countsInPeriod$cumCount >= cutoffs[j]])
+        }
+        calendarTimeKnotsInPeriods[[length(calendarTimeKnotsInPeriods) + 1]] <- calendarTimeKnots
       }
     } else {
       knotDates <- calendarTimeCovariateSettings$calendarTimeKnots
-      calendarTimeKnots <- convertDateToMonth(knotDates)
+      calendarTimeKnotsInPeriods <- list(sort(convertDateToMonth(knotDates)))
     }
-    if (length(calendarTimeKnots) > nrow(studyPopulation$outcomes)) {
-      warning("There are more calendar time knots than cases. Removing calendar time from model")
-      settings$calendarTimeOffset <- 0
-      settings$calendarTimeDesignMatrix <- matrix()
-      return(settings)
-    }
-    settings$calendarTimeOffset <- calendarTimeKnots[1]
-    calendarTimeDesignMatrix <- splines::bs(calendarTimeKnots[1]:calendarTimeKnots[length(calendarTimeKnots)],
-      knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-      Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
+    firstKnot <- calendarTimeKnotsInPeriods[[1]][1]
+    lastKnot <- last(calendarTimeKnotsInPeriods[[length(calendarTimeKnotsInPeriods)]])
+    settings$calendarTimeOffset <- firstKnot
+    settings$calendarTimeDesignMatrix <- createMultiSegmentDesignMatrix(
+      x = seq(firstKnot, lastKnot),
+      knotsPerSegment = calendarTimeKnotsInPeriods
     )
-    # Fixing first beta to zero, so dropping first column of design matrix:
-    settings$calendarTimeDesignMatrix <- calendarTimeDesignMatrix[, 2:ncol(calendarTimeDesignMatrix)]
     splineCovariateRef <- tibble(
-      covariateId = 300:(300 + length(calendarTimeKnots) - 1),
+      covariateId = 300 + seq_len(ncol(settings$calendarTimeDesignMatrix)) - 1,
       covariateName = paste(
         "Calendar time spline component",
-        1:(length(calendarTimeKnots))
+        seq_len(ncol(settings$calendarTimeDesignMatrix))
       ),
       originalEraId = 0,
       originalEraType = "",
@@ -339,7 +357,7 @@ addCalendarTimeSettings <- function(settings,
     )
     settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
     calendarTime <- list(
-      calendarTimeKnots = calendarTimeKnots,
+      calendarTimeKnotsInPeriods = calendarTimeKnotsInPeriods,
       covariateIds = splineCovariateRef$covariateId,
       allowRegularization = calendarTimeCovariateSettings$allowRegularization,
       computeConfidenceIntervals = calendarTimeCovariateSettings$computeConfidenceIntervals
@@ -347,6 +365,48 @@ addCalendarTimeSettings <- function(settings,
     settings$metaData$calendarTime <- calendarTime
     return(settings)
   }
+}
+
+createMultiSegmentDesignMatrix <- function(x, knotsPerSegment) {
+  for (i in seq_along(knotsPerSegment)) {
+    knots <- knotsPerSegment[[i]]
+    boundaryKnots <- knots[c(1, length(knots))]
+    innerKnots <- setdiff(knots, boundaryKnots)
+    designMatrix <- splines::bs(x = x[x >= boundaryKnots[1] & x <= boundaryKnots[2]],
+                                knots = innerKnots,
+                                Boundary.knots = boundaryKnots,
+                                degree = if(length(innerKnots) == 0) 1 else 2)
+    if (i == 1) {
+      rowsToFillWithNew <- sum(x < boundaryKnots[1])
+      if (rowsToFillWithNew == 0) {
+        fullDesignMatrix <- designMatrix
+      } else {
+        filler <- designMatrix[rep(1, rowsToFillWithNew), ]
+        fullDesignMatrix <- rbind(filler,
+                                  designMatrix)
+      }
+    } else {
+      priorMatrix <- cbind(fullDesignMatrix,
+                           matrix(0, nrow = nrow(fullDesignMatrix), ncol = ncol(designMatrix)))
+      newMatrix <- cbind(matrix(0, nrow = nrow(designMatrix), ncol = ncol(fullDesignMatrix)),
+                         designMatrix)
+      xToFill <- x[x > lastBoundary & x < boundaryKnots[1]]
+      rowsToFillWithPrior <- sum(xToFill - lastBoundary < boundaryKnots[1] - xToFill)
+      rowsToFillWithNew <- length(xToFill) - rowsToFillWithPrior
+      filler <- rbind(priorMatrix[rep(nrow(priorMatrix), rowsToFillWithPrior), ],
+                      newMatrix[rep(1, rowsToFillWithNew), ])
+      fullDesignMatrix <- rbind(priorMatrix,
+                                filler,
+                                newMatrix)
+    }
+    lastBoundary <- boundaryKnots[2]
+  }
+  rowsToFillWithPrior <- sum(x > lastBoundary)
+  if (rowsToFillWithPrior != 0) {
+    filler <- fullDesignMatrix[rep(now(fullDesignMatrix), rowsToFillWithPrior), ]
+    fullDesignMatrix <- rbind(fullDesignMatrix, filler)
+  }
+  return(fullDesignMatrix)
 }
 
 convertDateToMonth <- function(date) {
@@ -517,8 +577,8 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
             originalEraType = .data$eraType,
             originalEraName = .data$eraName,
             covariateName = paste(covariateSettings$label,
-              .data$eraName,
-              sep = ": "
+                                  .data$eraName,
+                                  sep = ": "
             ),
             isControlInterval = FALSE
           )

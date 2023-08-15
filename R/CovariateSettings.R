@@ -208,8 +208,7 @@ createSeasonalityCovariateSettings <- function(seasonKnots = 5,
 #' can model trends over years.
 #'
 #' @param calendarTimeKnots            If a single number is provided this is assumed to indicate the
-#'                                     number of knots to use for the spline, and the knots are
-#'                                     automatically spaced according to equal percentiles of the data.
+#'                                     number of knots to use for the spline. See details on how knots are placed.
 #'                                     If a series of dates is provided these are assumed to be the exact location of
 #'                                     the knots.
 #' @param allowRegularization          When fitting the model, should the covariates defined here be
@@ -218,6 +217,12 @@ createSeasonalityCovariateSettings <- function(seasonKnots = 5,
 #'                                     defined here? Setting this to FALSE might save computing time
 #'                                     when fitting the model. Will be turned to FALSE automatically
 #'                                     when `allowRegularization = TRUE`.
+#'
+#' @details
+#' If a number of knots is specified, knots are automatically spaced according to equal percentiles of the data (people
+#' observed). If more than one study period is provided, two more knots (start and end) are automatically added for each
+#' additional study period. So if `calendarTimeKnots = 5` and there are 3 study periods, the total number of knots will
+#' be 5 + 2 * (3 - 1) = 9.#'
 #'
 #' @return
 #' An object of type `seasonalitySettings`.

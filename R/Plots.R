@@ -393,22 +393,21 @@ plotEventToCalendarTime <- function(studyPopulation,
   checkmate::reportAssertions(collection = errorMessages)
 
   data <- computeOutcomeRatePerMonth(studyPopulation)
-  plotData <- bind_rows(
-    select(data, "month", "monthStartDate", "monthEndDate", value = "rate") %>%
-      mutate(type = "Outcomes per person"),
-    select(data, "month", "monthStartDate", "monthEndDate", value = "observationPeriodCount") %>%
-      mutate(type = "Observed persons"),
-  )
-  levels <- c("Observed persons", "Outcomes per person")
+  plotData <- data %>%
+    select("month", "monthStartDate", "monthEndDate", value = "rate") %>%
+      mutate(type = "Assuming constant rate")
+  levels <- c("Assuming constant rate")
 
-  if (!is.null(sccsModel)) {
+  if (!is.null(sccsModel) && hasCalendarTimeEffect(sccsModel) || hasSeasonality(sccsModel)) {
+    types <- c("cal. time", "season")[c(hasCalendarTimeEffect(sccsModel), hasSeasonality(sccsModel))]
+    type <- paste("Adj. for", paste(types, collapse = " and "))
     data <- adjustOutcomeRatePerMonth(data, sccsModel)
     plotData <- bind_rows(
       plotData,
       select(data, "month", "monthStartDate", "monthEndDate", value = "adjustedRate") %>%
-        mutate(type = "Adj. outcomes per person"),
+        mutate(type = !!type),
     )
-    levels <- c(levels, "Adj. outcomes per person")
+    levels <- c(levels, type)
   }
 
   plotData$type <- factor(plotData$type, levels = rev(levels))
@@ -417,7 +416,7 @@ plotEventToCalendarTime <- function(studyPopulation,
   plot <- ggplot2::ggplot(plotData, ggplot2::aes(xmin = .data$monthStartDate, xmax = .data$monthEndDate + 1)) +
     ggplot2::geom_rect(ggplot2::aes(ymax = .data$value), ymin = 0, fill = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 0) +
     ggplot2::scale_x_date("Calendar time") +
-    ggplot2::scale_y_continuous("Count", limits = c(0, NA)) +
+    ggplot2::scale_y_continuous("Observed / expected", limits = c(0, NA)) +
     ggplot2::facet_grid(.data$type ~ ., scales = "free_y") +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
@@ -708,28 +707,35 @@ plotCalendarTimeEffect <- function(sccsModel,
   }
 
   estimates <- sccsModel$estimates
-  estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
-  splineCoefs <- c(0, estimates$logRr)
-  calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
-  calendarTime <- unique(c(seq(min(calendarTimeKnots), max(calendarTimeKnots), length.out = 100),
-                           calendarTimeKnots))
-  calendarTimeDesignMatrix <- splines::bs(calendarTime,
-    knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-    Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))]
-  )
-  logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
-  logRr <- logRr - mean(logRr)
+  splineCoefs <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, "logRr"]
+  calendarTimeKnotsInPeriods <- sccsModel$metaData$calendarTime$calendarTimeKnotsInPeriods
+  allKnots <- do.call(c, calendarTimeKnotsInPeriods)
+  x <- sort(unique(c(seq(min(allKnots), max(allKnots), length.out = 200), allKnots)))
+  designMatrix <- createMultiSegmentDesignMatrix(x = x, knotsPerSegment = calendarTimeKnotsInPeriods)
+  logRr <- apply(designMatrix %*% splineCoefs, 1, sum)
+  # logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
-  data <- tibble(date = convertMonthToStartDate(calendarTime) + 14,
-                 calendarTime = calendarTime,
-                 rr = rr)
+  data <- tibble(date = convertMonthToStartDate(x) + 14,
+                 calendarTime = x,
+                 rr = rr,
+                 segment = 0)
+  for (i in seq_along(calendarTimeKnotsInPeriods)) {
+    knots <- calendarTimeKnotsInPeriods[[i]]
+    data <- data %>%
+      mutate(segment = if_else(.data$calendarTime >= min(knots) & .data$calendarTime <= max(knots),
+                               i,
+                               .data$segment))
+  }
+  data <- data %>%
+    filter(.data$segment > 0)
   knotData <- data %>%
-    filter(.data$calendarTime %in% calendarTimeKnots)
+    filter(.data$calendarTime %in% allKnots) %>%
+    arrange(.data$calendarTime)
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = date, y = rr)) +
-    ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
+    ggplot2::geom_line(ggplot2::aes(group = segment), color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
     ggplot2::geom_point(data = knotData) +
     ggplot2::scale_x_date("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",
@@ -751,6 +757,7 @@ plotCalendarTimeEffect <- function(sccsModel,
       legend.title = ggplot2::element_blank(),
       legend.position = "top"
     )
+  # plot
   if (!is.null(title)) {
     plot <- plot + ggplot2::ggtitle(title)
   }

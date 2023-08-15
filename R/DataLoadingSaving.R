@@ -238,7 +238,7 @@ getDbSccsData <- function(connectionDetails,
     )
   }
 
-  if (length(studyStartDates) == 0 || (studyStartDates == c("") && studyEndDates == c(""))) {
+  if (length(studyStartDates) == 0 || (length(studyStartDates) == 1 && (studyStartDates == c("") && studyEndDates == c("")))) {
     hasStudyPeriods <- FALSE
     studyPeriods <- NULL
   } else {
@@ -255,7 +255,8 @@ getDbSccsData <- function(connectionDetails,
                                    dropTableIfExists = TRUE,
                                    createTable = TRUE,
                                    tempTable = TRUE,
-                                   tempEmulationSchema = tempEmulationSchema
+                                   tempEmulationSchema = tempEmulationSchema,
+                                   camelCaseToSnakeCase = TRUE
     )
   }
 
