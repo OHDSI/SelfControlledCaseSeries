@@ -94,8 +94,7 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
 
   if (hasSeasonality(sccsModel)) {
     estimates <- sccsModel$estimates
-    estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, ]
-    splineCoefs <- c(0, estimates$logRr)
+    splineCoefs <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, "logRr"]
     seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
     season <- 1:12
     seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)

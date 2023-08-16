@@ -35,5 +35,5 @@ Create seasonality settings
 Create an object specifying whether and how seasonality should be included in the model.
 Seasonality can be included by splitting patient time into calendar months. During a month, the
 relative risk attributed to season is assumed to be constant, and the risk from month to month is
-modeled using a cyclic cubic spline.
+modeled using a cyclic quadratic spline.
 }

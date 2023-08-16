@@ -556,11 +556,10 @@ plotSeasonality <- function(sccsModel,
   }
 
   estimates <- sccsModel$estimates
-  estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, ]
-  splineCoefs <- c(0, estimates$logRr)
+  splineCoefs <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, "logRr"]
   seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
-  season <- unique(c(seq(min(seasonKnots), max(seasonKnots), length.out = 100),
-                     seasonKnots))
+  season <- sort(unique(c(seq(min(seasonKnots), max(seasonKnots), length.out = 100),
+                     seasonKnots)))
   seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
   logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)

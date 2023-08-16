@@ -5,7 +5,7 @@ Changes
 
 1. Added the `restrictTimeToEraId` argument to the `createStudyPopulation()` and `createCreateStudyPopulationArgs()` functions to allow automatically restricting study time to when the exposure was observed (e.g. when the drug was on the market).
 
-2. Switching from cubic to quadratic splines for age and calendar time to reduce degrees of freedom.
+2. Switching from cubic to quadratic splines for age, season, and calendar time to reduce degrees of freedom.
 
 3. Deprecating the `studyStartDate` and `studyEndDate` arguments of the `getDbSccsData()` function.
 

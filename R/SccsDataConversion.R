@@ -261,14 +261,12 @@ addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsD
     } else {
       seasonKnots <- seasonalityCovariateSettings$seasonKnots
     }
-    seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
-    # Fixing first beta to zero, so dropping first column of design matrix:
-    settings$seasonDesignMatrix <- seasonDesignMatrix[, 2:ncol(seasonDesignMatrix)]
+    settings$seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
     splineCovariateRef <- tibble(
-      covariateId = 200:(200 + length(seasonKnots) - 3),
+      covariateId = 200:(200 + length(seasonKnots) - 2),
       covariateName = paste(
         "Seasonality spline component",
-        1:(length(seasonKnots) - 2)
+        1:(length(seasonKnots) - 1)
       ),
       originalEraId = 0,
       originalEraType = "",
@@ -613,15 +611,17 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
 #'
 #' @param x       Vector of coordinates of the points to be interpolated.
 #' @param knots   Location of the knots.
-#' @param ord     Order of the spline function.
+#' @param ord     Order of the spline function. `ord = 3` implies quadratic.
 #'
 #' @export
-cyclicSplineDesign <- function(x, knots, ord = 4) {
+cyclicSplineDesign <- function(x, knots, ord = 3) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertNumeric(x, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(knots, min.len = 1, add = errorMessages)
   checkmate::assertInt(ord, lower = 2, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
+
+  # Borrowed from mgcv::cSplineDes
   nk <- length(knots)
   if (ord < 2) {
     stop("order too low")

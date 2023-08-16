@@ -4,14 +4,14 @@
 \alias{cyclicSplineDesign}
 \title{Create a design matrix for a cyclic spline}
 \usage{
-cyclicSplineDesign(x, knots, ord = 4)
+cyclicSplineDesign(x, knots, ord = 3)
 }
 \arguments{
 \item{x}{Vector of coordinates of the points to be interpolated.}
 
 \item{knots}{Location of the knots.}
 
-\item{ord}{Order of the spline function.}
+\item{ord}{Order of the spline function. \code{ord = 3} implies quadratic.}
 }
 \description{
 Create a design matrix for a cyclic spline

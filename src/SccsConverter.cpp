@@ -300,16 +300,21 @@ int SccsConverter::dateDifference(struct tm &date1, struct tm &date2) {
 }
 
 void SccsConverter::addMonthEras(std::vector<Era>& eras, const PersonData& personData){
+  struct tm obsStartDate = {0, 0, 12};
+  obsStartDate.tm_year = personData.obsStartYear - 1900;
+  obsStartDate.tm_mon = personData.obsStartMonth - 1;
+  obsStartDate.tm_mday = personData.obsStartDay;
+  mktime(&obsStartDate);
   struct tm startDate = {0, 0, 12};
-  startDate.tm_year = personData.startYear - 1900;
-  startDate.tm_mon = personData.startMonth - 1;
-  startDate.tm_mday = personData.startDay;
-  mktime(&startDate); //Normalize after adding days
+  startDate.tm_year = personData.obsStartYear - 1900;
+  startDate.tm_mon = personData.obsStartMonth - 1;
+  startDate.tm_mday = personData.obsStartDay + personData.startDay;
+  mktime(&startDate);
   struct tm startOfMonth(startDate);
   startOfMonth.tm_mday = 1;
   struct tm startOfNextMonth = addMonth(startOfMonth);
-  int eraStartDay = 0;
-  int nextEraStartDay = std::min(0 + dateDifference(startOfNextMonth, startDate), personData.endDay + 1);
+  int eraStartDay = personData.startDay;
+  int nextEraStartDay = std::min(dateDifference(startOfNextMonth, obsStartDate), personData.endDay + 1);
   int month = startOfMonth.tm_mon;
   while (eraStartDay <= personData.endDay) {
     if (includeAge){
@@ -346,7 +351,7 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const PersonData& perso
     startOfMonth = startOfNextMonth;
     month = startOfMonth.tm_mon;
     startOfNextMonth = addMonth(startOfMonth);
-    nextEraStartDay = std::min(dateDifference(startOfNextMonth, startDate), personData.endDay + 1);
+    nextEraStartDay = std::min(dateDifference(startOfNextMonth, obsStartDate), personData.endDay + 1);
   }
 }
 
@@ -461,7 +466,7 @@ void SccsConverter::processPerson(PersonData& personData) {
   for (CovariateSettings covariateSettings : covariateSettingsVector){
     addCovariateEras(outputEras, *eras, covariateSettings);
   }
-  clipEras(outputEras, 0, personData.endDay);
+  clipEras(outputEras, personData.startDay, personData.endDay);
   outputEras = mergeOverlapping(outputEras);
   if (includeAge || includeSeason || includeCalendarTime) {
     if (outputEras.size() == 0)  // No exposures: still use to fit age and/or season splines?
@@ -469,7 +474,7 @@ void SccsConverter::processPerson(PersonData& personData) {
         return;
     addMonthEras(outputEras, personData);
   }
-  std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, 0, personData.endDay);
+  std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, personData.startDay, personData.endDay);
   if (concomitantEras.size() == 1) { // Not informative
     return;
   }

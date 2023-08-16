@@ -56,19 +56,20 @@ struct PersonData {
   PersonData(String _personId,
              String _observationPeriodId,
              int _caseId,
-             Date _startDate,
+             Date _obsStartDate,
              int _ageInDays,
+             int _startDay,
              int _endDay,
-             int _offset,
              bool _noninformativeEndCensor) :
   personId(_personId),
   observationPeriodId(_observationPeriodId),
   caseId(_caseId),
+  startDay(_startDay),
   endDay(_endDay),
   ageInDays(_ageInDays),
-  startYear(_startDate.getYear()),
-  startMonth(_startDate.getMonth()),
-  startDay(_startDate.getDay()),
+  obsStartYear(_obsStartDate.getYear()),
+  obsStartMonth(_obsStartDate.getMonth()),
+  obsStartDay(_obsStartDate.getDay()),
   noninformativeEndCensor(_noninformativeEndCensor),
   eras(0),
   outcomes(0) {
@@ -84,11 +85,12 @@ struct PersonData {
   std::string personId;
   std::string observationPeriodId;
   int caseId;
+  int startDay;
   int endDay;
   int ageInDays;
-  int startYear;
-  int startMonth;
-  int startDay;
+  int obsStartYear;
+  int obsStartMonth;
+  int obsStartDay;
   bool noninformativeEndCensor;
   std::vector<Era>* eras;
   std::vector<Era>* outcomes;

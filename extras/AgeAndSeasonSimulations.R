@@ -3,13 +3,13 @@ options(andromedaTempFolder = "d:/andromedaTemp")
 settings <- createSccsSimulationSettings(includeAgeEffect = FALSE,
                                          includeCalendarTimeEffect = TRUE,
                                          includeSeasonality = TRUE)
-set.seed(123)
+set.seed(1234)
 sccsData <- simulateSccsData(5000, settings)
 # summary(sccsData)
 ageSettings <- createAgeCovariateSettings(ageKnots = 5,
                                           allowRegularization = TRUE)
 seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5,
-                                                          allowRegularization = TRUE)
+                                                          allowRegularization = F)
 calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5,
                                                             allowRegularization = TRUE)
 covarSettings <- createEraCovariateSettings(label = "Exposure of interest",
@@ -22,7 +22,7 @@ covarSettings <- createEraCovariateSettings(label = "Exposure of interest",
 studyPop <- createStudyPopulation(sccsData = sccsData,
                                   outcomeId = 10,
                                   firstOutcomeOnly = FALSE,
-                                  naivePeriod = 0)
+                                  naivePeriod = 180)
 
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
@@ -59,8 +59,7 @@ writeLines(sprintf("True RR: %0.2f, estimate: %0.2f (%0.2f-%0.2f)",
 
 ### Plot simulated seasonality ###
 estimates <- model$estimates
-estimates <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, ]
-splineCoefs <- c(0, estimates$logRr)
+splineCoefs <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, "logRr"]
 seasonKnots <- model$metaData$seasonality$seasonKnots
 season <- seq(min(seasonKnots), max(seasonKnots), length.out = 100)
 seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
@@ -165,7 +164,8 @@ calendarMonth <- as.numeric(format(calendarTime,'%Y')) * 12 + as.numeric(format(
 calendarTimeKnots <- model$metaData$calendarTime$calendarTimeKnotsInPeriods[[1]]
 calendarTimeDesignMatrix <- splines::bs(x = calendarMonth,
                                         knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
-                                        Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))])
+                                        Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))],
+                                        degree = 2)
 logRr <- apply(calendarTimeDesignMatrix %*% splineCoefs, 1, sum)
 logRr <- logRr - mean(logRr)
 rr <- exp(logRr)
