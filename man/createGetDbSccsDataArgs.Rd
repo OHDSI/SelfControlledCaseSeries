@@ -11,6 +11,8 @@ createGetDbSccsDataArgs(
   deleteCovariatesSmallCount = 0,
   studyStartDate = "",
   studyEndDate = "",
+  studyStartDates = c(),
+  studyEndDates = c(),
   maxCasesPerOutcome = 0,
   exposureIds = "exposureId",
   customCovariateIds = ""
@@ -25,9 +27,13 @@ createGetDbSccsDataArgs(
 
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be kept.}
 
-\item{studyStartDate}{A character object specifying the minimum date where data is used. Date format is 'yyyymmdd'.}
+\item{studyStartDate}{DEPRECATED. Use studyStartDates instead.}
 
-\item{studyEndDate}{A character object specifying the maximum date where data is used. Date format is 'yyyymmdd'.}
+\item{studyEndDate}{DEPRECATED. Use studyEndDates instead.}
+
+\item{studyStartDates}{A character object specifying the minimum dates where data is used. Date format is 'yyyymmdd'. Use "" to indicate all time prior. See section for more information.}
+
+\item{studyEndDates}{A character object specifying the maximum dates where data is used. Date format is 'yyyymmdd'. Use "" to indicate to the end of observation. See section for more information.}
 
 \item{maxCasesPerOutcome}{If there are more than this number of cases for a single outcome cases will be sampled to this size. maxCasesPerOutcome = 0 indicates no maximum size.}
 

@@ -114,7 +114,7 @@ createEraCovariateSettings <- function(includeEraIds = NULL,
 #' Create an object specifying whether and how age should be included in the model. Age can be
 #' included by splitting patient time into calendar months. During a month, the relative risk
 #' attributed to age is assumed to be constant, and the risk from month to month is modeled using a
-#' cubic spline.
+#' quadratic spline.
 #'
 #' @param ageKnots                     If a single number is provided this is assumed to indicate the
 #'                                     number of knots to use for the spline, and the knots are
@@ -202,7 +202,7 @@ createSeasonalityCovariateSettings <- function(seasonKnots = 5,
 #' Create an object specifying whether and how calendar time should be included in the model.
 #' Calendar time can be included by splitting patient time into calendar months. During a month, the
 #' relative risk attributed to calendar time is assumed to be constant, and the risk from month to month is
-#' modeled using a cubic spline.
+#' modeled using a quadratic spline.
 #'
 #' Whereas the seasonality covariate uses a cyclic spline, repeating every year, this calendar time covariate
 #' can model trends over years.

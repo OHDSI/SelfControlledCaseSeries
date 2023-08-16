@@ -5,9 +5,18 @@ Changes
 
 1. Added the `restrictTimeToEraId` argument to the `createStudyPopulation()` and `createCreateStudyPopulationArgs()` functions to allow automatically restricting study time to when the exposure was observed (e.g. when the drug was on the market).
 
+2. Switching from cubic to quadratic splines for age and calendar time to reduce degrees of freedom.
+
+3. Deprecating the `studyStartDate` and `studyEndDate` arguments of the `getDbSccsData()` function.
+
+4. Introducing the `studyStartDates` and `studyEndDates` arguments of the `getDbSccsData()` function. These allow specification of multiple (non-overlapping) study periods. This can for example be useful when one wishes to exclude the time of the COVID-19 pandemic to avoid temporal instability.
+
+5. The spline for calendar time effects can now be multi-segmented, for multiple study periods. Internal knots are evenly distributed over segments based on the amount of data per segment. Additional boundary knots are automatically added for additional segments.
+
 Bugfix
 
 1. Using BIGINT when summing patient days to avoid errors when populations are large.
+
 
 SelfControlledCaseSeries 4.2.0
 ==============================

@@ -275,6 +275,8 @@ runSccsAnalyses <- function(connectionDetails,
         deleteCovariatesSmallCount = loadConcepts$deleteCovariatesSmallCount,
         studyStartDate = loadConcepts$studyStartDate,
         studyEndDate = loadConcepts$studyEndDate,
+        studyStartDates = loadConcepts$studyStartDates,
+        studyEndDates = loadConcepts$studyEndDates,
         maxCasesPerOutcome = loadConcepts$maxCasesPerOutcome
       )
       sccsDataObjectsToCreate[[length(sccsDataObjectsToCreate) + 1]] <- list(
@@ -549,6 +551,8 @@ createReferenceTable <- function(sccsAnalysisList,
         "deleteCovariatesSmallCount",
         "studyStartDate",
         "studyEndDate",
+        "studyStartDates",
+        "studyEndDates",
         "maxCasesPerOutcome"
       )
     ))
@@ -560,6 +564,8 @@ createReferenceTable <- function(sccsAnalysisList,
         "deleteCovariatesSmallCount",
         "studyStartDate",
         "studyEndDate",
+        "studyStartDates",
+        "studyEndDates",
         "maxCasesPerOutcome",
         "outcomeId"
       )
@@ -603,6 +609,8 @@ createReferenceTable <- function(sccsAnalysisList,
       deleteCovariatesSmallCount = groupables[[1]]$deleteCovariatesSmallCount,
       studyStartDate = groupables[[1]]$studyStartDate,
       studyEndDate = groupables[[1]]$studyEndDate,
+      studyStartDates = groupables[[1]]$studyStartDates,
+      studyEndDatse = groupables[[1]]$studyEndDates,
       maxCasesPerOutcome = groupables[[1]]$maxCasesPerOutcome
     )
     sccsDataFileName <- .createSccsDataFileName(loadId)

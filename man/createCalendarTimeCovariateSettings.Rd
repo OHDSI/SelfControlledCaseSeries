@@ -12,8 +12,7 @@ createCalendarTimeCovariateSettings(
 }
 \arguments{
 \item{calendarTimeKnots}{If a single number is provided this is assumed to indicate the
-number of knots to use for the spline, and the knots are
-automatically spaced according to equal percentiles of the data.
+number of knots to use for the spline. See details on how knots are placed.
 If a series of dates is provided these are assumed to be the exact location of
 the knots.}
 
@@ -35,8 +34,13 @@ Create calendar time settings
 Create an object specifying whether and how calendar time should be included in the model.
 Calendar time can be included by splitting patient time into calendar months. During a month, the
 relative risk attributed to calendar time is assumed to be constant, and the risk from month to month is
-modeled using a cubic spline.
+modeled using a quadratic spline.
 
 Whereas the seasonality covariate uses a cyclic spline, repeating every year, this calendar time covariate
 can model trends over years.
+
+If a number of knots is specified, knots are automatically spaced according to equal percentiles of the data (people
+observed). If more than one study period is provided, two more knots (start and end) are automatically added for each
+additional study period. So if \code{calendarTimeKnots = 5} and there are 3 study periods, the total number of knots will
+be 5 + 2 * (3 - 1) = 9.#'
 }

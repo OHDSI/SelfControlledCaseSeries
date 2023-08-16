@@ -31,26 +31,31 @@ computeOutcomeRatePerMonth <- function(studyPopulation) {
     ) %>%
     mutate(outcomeCount = if_else(is.na(.data$outcomeCount), 0, .data$outcomeCount)) %>%
     mutate(rate = .data$outcomeCount / (.data$endMonth - .data$startMonth + .data$startMonthFraction + .data$endMonthFraction))
-  months <- seq(min(cases$startMonth), max(cases$endMonth))
   observedCounts <- studyPopulation$outcomes %>%
     inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
     transmute(month = convertDateToMonth(.data$observationPeriodStartDate + .data$outcomeDay)) %>%
     group_by(.data$month) %>%
     summarise(observedCount = n())
-  computeExpected <- function(month) {
-    cases %>%
-      filter(month >= .data$startMonth & month <= .data$endMonth) %>%
-      mutate(weight = if_else(month == .data$startMonth,
-                              .data$startMonthFraction,
-                              if_else(month == .data$endMonth,
-                                      .data$endMonthFraction,
-                                      1))) %>%
-      summarize(expectedCount = sum(.data$weight * .data$rate)) %>%
-      pull() %>%
-      return()
+  if (nrow(cases) == 0) {
+    expectedCounts <- tibble(month = 1, expectedCount = 1.0, observationPeriodCount = 1.0) %>%
+      filter(month == 0)
+  } else {
+    months <- seq(min(cases$startMonth), max(cases$endMonth))
+    computeExpected <- function(month) {
+      cases %>%
+        filter(month >= .data$startMonth & month <= .data$endMonth) %>%
+        mutate(weight = if_else(month == .data$startMonth,
+                                .data$startMonthFraction,
+                                if_else(month == .data$endMonth,
+                                        .data$endMonthFraction,
+                                        1))) %>%
+        summarize(month = !!month,
+                  expectedCount = sum(.data$weight * .data$rate),
+                  observationPeriodCount = sum(.data$weight)) %>%
+        return()
+    }
+    expectedCounts <- bind_rows(lapply(months, computeExpected))
   }
-  expectedCounts <- tibble(month = months,
-                           expectedCount = sapply(months, computeExpected))
   data <- observedCounts %>%
     inner_join(expectedCounts, by = join_by("month")) %>%
     mutate(rate = .data$observedCount / .data$expectedCount)  %>%
@@ -73,7 +78,7 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
     data <- data %>%
       mutate(gap = .data$month - lag(.data$month) > 1) %>%
       mutate(gap = if_else(is.na(.data$gap), 0, .data$gap)) %>%
-      mutate(segment = cumsum(gap))
+      mutate(segment = cumsum(.data$gap))
     data <- data %>%
       inner_join(
         data %>%

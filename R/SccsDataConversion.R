@@ -225,12 +225,10 @@ addAgeSettings <- function(settings,
       return(settings)
     }
     settings$ageOffset <- ageKnots[1]
-    ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)],
-                                   knots = ageKnots[2:(length(ageKnots) - 1)],
-                                   Boundary.knots = ageKnots[c(1, length(ageKnots))]
-    )
-    # Fixing first beta to zero, so dropping first column of design matrix:
-    settings$ageDesignMatrix <- ageDesignMatrix[, 2:ncol(ageDesignMatrix)]
+    settings$ageDesignMatrix <- splines::bs(ageKnots[1]:ageKnots[length(ageKnots)],
+                                            knots = ageKnots[2:(length(ageKnots) - 1)],
+                                            Boundary.knots = ageKnots[c(1, length(ageKnots))],
+                                            degree = 2)
     splineCovariateRef <- tibble(
       covariateId = 100:(100 + length(ageKnots) - 1),
       covariateName = paste(

@@ -89,7 +89,7 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
 
 saveRDS(studyPop, file.path(folder, "studyPop.rds"))
 
-plotAgeSpans(studyPop, maxPersons = 10)
+plotAgeSpans(studyPop, maxPersons = 1000)
 
 plotCalendarTimeSpans(studyPop, maxPersons = 10)
 
@@ -178,6 +178,7 @@ model <- fitSccsModel(sccsIntervalData,
                                               fold = 10,
                                               cvRepetitions = 1,
                                               threads = 10))
+
 saveRDS(model, file.path(folder, "seasonCalendarTimeModel.rds"))
 # model <- readRDS('s:/temp/vignetteSccs/ageSeasonCalendarTimeModel.rds')
 model
@@ -185,8 +186,6 @@ model
 plotSeasonality(model)
 
 plotCalendarTimeEffect(model)
-
-plotAgeEffect(model)
 
 plotEventToCalendarTime(studyPopulation = studyPop,
                         sccsModel = model)
@@ -210,8 +209,8 @@ stability$stable
 #                                                  end = -1,
 #                                                  endAnchor = "era start")
 # seasonalityCovariateSettings <- createSeasonalityCovariateSettings()
-
-calendarTimeSettings <- createCalendarTimeCovariateSettings()
+#
+# calendarTimeSettings <- createCalendarTimeCovariateSettings()
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,

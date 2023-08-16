@@ -472,13 +472,13 @@ plotAgeEffect <- function(sccsModel,
   }
 
   estimates <- sccsModel$estimates
-  estimates <- estimates[estimates$covariateId >= 100 & estimates$covariateId < 200, ]
-  splineCoefs <- c(0, estimates$logRr)
+  splineCoefs <- estimates[estimates$covariateId >= 100 & estimates$covariateId < 200, "logRr"]
   ageKnots <- sccsModel$metaData$age$ageKnots
   age <- seq(min(ageKnots), max(ageKnots), length.out = 100)
   ageDesignMatrix <- splines::bs(age,
     knots = ageKnots[2:(length(ageKnots) - 1)],
-    Boundary.knots = ageKnots[c(1, length(ageKnots))]
+    Boundary.knots = ageKnots[c(1, length(ageKnots))],
+    degree = 2
   )
   logRr <- apply(ageDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
