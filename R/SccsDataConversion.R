@@ -403,7 +403,7 @@ createMultiSegmentDesignMatrix <- function(x, knotsPerSegment) {
   }
   rowsToFillWithPrior <- sum(x > lastBoundary)
   if (rowsToFillWithPrior != 0) {
-    filler <- fullDesignMatrix[rep(now(fullDesignMatrix), rowsToFillWithPrior), ]
+    filler <- fullDesignMatrix[rep(nrow(fullDesignMatrix), rowsToFillWithPrior), ]
     fullDesignMatrix <- rbind(fullDesignMatrix, filler)
   }
   return(fullDesignMatrix)
@@ -411,6 +411,16 @@ createMultiSegmentDesignMatrix <- function(x, knotsPerSegment) {
 
 convertDateToMonth <- function(date) {
   return(as.numeric(format(date, "%Y")) * 12 + as.numeric(format(date, "%m")) - 1)
+}
+
+computeMonthFraction <- function(date, post = FALSE) {
+  # For simplicity assume all months have 31 days. Could use lubridate package to be more precise.
+  # Assume day it self is included
+  if (post) {
+    return((31-as.numeric(format(date, "%d")))/31)
+  } else {
+    return(as.numeric(format(date, "%d"))/31)
+  }
 }
 
 convertMonthToStartDate <- function(month) {

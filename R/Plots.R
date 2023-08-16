@@ -398,7 +398,7 @@ plotEventToCalendarTime <- function(studyPopulation,
       mutate(type = "Assuming constant rate")
   levels <- c("Assuming constant rate")
 
-  if (!is.null(sccsModel) && hasCalendarTimeEffect(sccsModel) || hasSeasonality(sccsModel)) {
+  if (!is.null(sccsModel) && (hasCalendarTimeEffect(sccsModel) || hasSeasonality(sccsModel))) {
     types <- c("cal. time", "season")[c(hasCalendarTimeEffect(sccsModel), hasSeasonality(sccsModel))]
     type <- paste("Adj. for", paste(types, collapse = " and "))
     data <- adjustOutcomeRatePerMonth(data, sccsModel)
@@ -735,7 +735,7 @@ plotCalendarTimeEffect <- function(sccsModel,
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = date, y = rr)) +
-    ggplot2::geom_line(ggplot2::aes(group = segment), color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
+    ggplot2::geom_line(ggplot2::aes(group = .data$segment), color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
     ggplot2::geom_point(data = knotData) +
     ggplot2::scale_x_date("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",

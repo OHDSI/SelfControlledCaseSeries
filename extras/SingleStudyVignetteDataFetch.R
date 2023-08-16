@@ -75,7 +75,7 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
                           exposureIds = diclofenac,
-                          maxCasesPerOutcome = 1000,
+                          # maxCasesPerOutcome = 1000,
                           cdmVersion = cdmVersion)
 saveSccsData(sccsData, file.path(folder, "data1.zip"))
 sccsData <- loadSccsData(file.path(folder, "data1.zip"))
@@ -104,6 +104,8 @@ getAttritionTable(studyPop)
 computePreExposureGainP(sccsData = sccsData,
                         studyPopulation = studyPop,
                         exposureEraId = diclofenac)
+
+stability <- computeTimeStability(studyPop)
 
 covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
                                               includeEraIds = diclofenac,
@@ -184,24 +186,30 @@ plotSeasonality(model)
 
 plotCalendarTimeEffect(model)
 
+plotAgeEffect(model)
+
 plotEventToCalendarTime(studyPopulation = studyPop,
                         sccsModel = model)
-# model$metaData$covariateSettingsList
+
+stability <- computeTimeStability(studyPopulation = studyPop,
+                                  sccsModel = model)
+stability$stable
+
 
 # Remove COVID blip ------------------------------------------------------------
-diclofenac <- 1124300
-ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
-covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
-                                              includeEraIds = diclofenac,
-                                              start = 0,
-                                              end = 0,
-                                              endAnchor = "era end")
-covarPreDiclofenac <- createEraCovariateSettings(label = "Pre-exposure",
-                                                 includeEraIds = diclofenac,
-                                                 start = -60,
-                                                 end = -1,
-                                                 endAnchor = "era start")
-seasonalityCovariateSettings <- createSeasonalityCovariateSettings()
+# diclofenac <- 1124300
+# ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
+# covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
+#                                               includeEraIds = diclofenac,
+#                                               start = 0,
+#                                               end = 0,
+#                                               endAnchor = "era end")
+# covarPreDiclofenac <- createEraCovariateSettings(label = "Pre-exposure",
+#                                                  includeEraIds = diclofenac,
+#                                                  start = -60,
+#                                                  end = -1,
+#                                                  endAnchor = "era start")
+# seasonalityCovariateSettings <- createSeasonalityCovariateSettings()
 
 calendarTimeSettings <- createCalendarTimeCovariateSettings()
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
@@ -228,7 +236,7 @@ sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = list(covarDiclofenac,
                                                                        covarPreDiclofenac),
-                                           # seasonalityCovariateSettings = seasonalityCovariateSettings,
+                                           seasonalityCovariateSettings = seasonalityCovariateSettings,
                                            calendarTimeCovariateSettings = calendarTimeSettings)
 
 model <- fitSccsModel(sccsIntervalData,
@@ -241,14 +249,17 @@ model <- fitSccsModel(sccsIntervalData,
                                               fold = 10,
                                               cvRepetitions = 1,
                                               threads = 10))
-# model <- fitSccsModel(sccsIntervalData, prior = createPrior("none"))
 saveRDS(model, file.path(folder, "seasonCalendarTimeCovidBlipModel.rds"))
-# model <- readRDS('s:/temp/vignetteSccs/ageSeasonCalendarTimeModel.rds')
 model
 
 plotSeasonality(model)
 
 plotCalendarTimeEffect(sccsModel = model)
+
+plotEventToCalendarTime(studyPopulation = studyPop, sccsModel = model)
+
+stability <- computeTimeStability(studyPopulation = studyPop, sccsModel = model)
+stability$stable
 
 # Adding time-dependent observation periods ------------------------------------
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,

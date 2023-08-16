@@ -16,9 +16,13 @@
 
 computeOutcomeRatePerMonth <- function(studyPopulation) {
   cases <- studyPopulation$cases %>%
-    mutate(startMonth = convertDateToMonth(.data$observationPeriodStartDate + .data$startDay),
-           endMonth = convertDateToMonth(.data$observationPeriodStartDate + .data$endDay))  %>%
-    select("caseId", "startMonth", "endMonth") %>%
+    mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
+           endDate = .data$observationPeriodStartDate + .data$endDay) %>%
+    mutate(startMonth = convertDateToMonth(.data$startDate),
+           endMonth = convertDateToMonth(.data$endDate),
+           startMonthFraction = computeMonthFraction(.data$startDate, TRUE),
+           endMonthFraction = computeMonthFraction(.data$endDate))  %>%
+    select("caseId", "startMonth", "endMonth", "startMonthFraction", "endMonthFraction") %>%
     left_join(
       studyPopulation$outcomes %>%
         group_by(.data$caseId) %>%
@@ -26,7 +30,7 @@ computeOutcomeRatePerMonth <- function(studyPopulation) {
       by = join_by("caseId")
     ) %>%
     mutate(outcomeCount = if_else(is.na(.data$outcomeCount), 0, .data$outcomeCount)) %>%
-    mutate(rate = .data$outcomeCount / (.data$endMonth - .data$startMonth + 1))
+    mutate(rate = .data$outcomeCount / (.data$endMonth - .data$startMonth + .data$startMonthFraction + .data$endMonthFraction))
   months <- seq(min(cases$startMonth), max(cases$endMonth))
   observedCounts <- studyPopulation$outcomes %>%
     inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
@@ -36,7 +40,12 @@ computeOutcomeRatePerMonth <- function(studyPopulation) {
   computeExpected <- function(month) {
     cases %>%
       filter(month >= .data$startMonth & month <= .data$endMonth) %>%
-      summarize(expectedCount = sum(.data$rate)) %>%
+      mutate(weight = if_else(month == .data$startMonth,
+                              .data$startMonthFraction,
+                              if_else(month == .data$endMonth,
+                                      .data$endMonthFraction,
+                                      1))) %>%
+      summarize(expectedCount = sum(.data$weight * .data$rate)) %>%
       pull() %>%
       return()
   }
@@ -74,8 +83,6 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
       ) %>%
       mutate(logRr = .data$logRr - .data$meanLogRr) %>%
       mutate(calendarTimeRr = exp(.data$logRr))
-    # logRr <- logRr - mean(logRr)
-    # data$calendarTimeRr <- exp(logRr)
     data <- data %>%
       mutate(adjustedRate = .data$adjustedRate / .data$calendarTimeRr)
   }
@@ -149,13 +156,6 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
     pLowerBound <- 1 - ppois(observed, expected / maxRatio, lower.tail = FALSE)
     return(pmin(1, 2 * pmin(pUpperBound, pLowerBound)))
   }
-  # data <- data %>%
-  #   mutate(expected = .data$observedCount / .data$adjustedRate) %>%
-  #   summarise(
-  #     p = computeTwoSidedP(sum(.data$observedCount) , sum(.data$expected)),
-  #     alpha = !!alpha
-  #   ) %>%
-  #   mutate(stable = .data$p >= .data$alpha)
   data <- data %>%
     mutate(expected = .data$observedCount / .data$adjustedRate) %>%
     mutate(
