@@ -22,17 +22,17 @@ folderExists <- dir.exists(outputFolder)
 ```
 # Introduction
 
-This vignette describes how you can use the `SelfControlledCaseSeries` package to perform a single Self-Controlled Case Series (SCCS) study. We will walk through all the steps needed to perform an exemplar study, and we have selected the well-studied topic of the effect of NSAIDs on gastrointestinal (GI) bleeding-related hospitalization. For simplicity, we focus on one NSAID: diclofenac.
-
+This vignette describes how you can use the `SelfControlledCaseSeries` package to perform a single Self-Controlled Case Series (SCCS) study. We will walk through all the steps needed to perform an exemplar study, and we have selected the well-studied topic of the effect of aspirin on epistaxis.
 ## Terminology
 
 The following terms are used consistently throughout the package:
 
-- **Case**: a person having one or more outcomes .
-- **Observation period**: the time when a case is observed in the database. One case can have more than one observation period, but only observation periods that contain an outcome are considered.
+- **Case**: a period of continuous observation of a person containing one or more outcomes. One person can contribute to multiple cases, e.g. when the person has multiple observation periods.
+- **Observation period**: the time when a person is observed in the database, e.g. the time when enrolled in an insurance plan.
+- **Nesting cohort**: a cohort defining when persons are eligible to be included as cases. This is typically the indication of the drug. For example, if the drug treats diabetes, we may want to nest the analysis in the time when people have diabetes to avoid (time-varying) confounding by indication.
+- **Study period**: a period of calendar time when persons are eligible to be included as cases. For example, a study period could be January 1, 2020, onward. Unlink nesting cohorts, which could specify different time periods per person, a study period applies to all persons. 
 - **Naive period**: the first part of a person's observation period (e.g. the first 180 days). This is typically removed from the SCCS model to avoid exposure and incident outcome misclassification. For example, if we observe the outcome on the second day of a person's observation period, we do not know whether the outcome is a new one or just a follow-up for an old one, and whether the patient may have started the exposure just prior to observation start without us knowing about it.
-- **Nesting cohort**: the observation period can be restricted to the time when a case belongs to a certain cohort. This is typically the indication of the drug. For example, if the drug treats diabetes, we may want to nest the analysis in the time when people have diabetes to avoid (time-varying) confounding by indication.
-- **Study population**: the set of cases having a specific outcome, and their observation periods, that meet certain criteria, such as the naive period and age restrictions.
+- **Study population**: the set of cases having a specific outcome, that meet certain criteria, such as the naive period and age restrictions.
 - **Era**: a data element extracted from the database denoting a time period for a patient (a case). This can be a cohort, but also a drug era. 
 - **SCCS data**: a data object containing information on cases, observation periods, nesting cohorts, and eras.
 - **Covariate**: a time-varying variable used as a predictor for the outcome in the SCCS model. These include splines and era covariates.
@@ -62,9 +62,9 @@ In the `SelfControlledCaseSeries` package a study requires at least three steps:
 
 2. Transforming the data into a format suitable for an SCCS study. This step can be broken down in multiple tasks:
 
-    - Defining a study population, people having a specific outcome, with possible further restrictions such as age.
-    - Creating covariates based on the variables extracted from the database, such as defining risk windows based on exposures. 
-    - Transforming the data into non-overlapping time intervals, with information on the various covariates and outcomes per interval.
+- Defining a study population, people having a specific outcome, with possible further restrictions such as age.
+- Creating covariates based on the variables extracted from the database, such as defining risk windows based on exposures. 
+- Transforming the data into non-overlapping time intervals, with information on the various covariates and outcomes per interval.
 
 3. Fitting the model using conditional Poisson regression.
 
@@ -84,95 +84,60 @@ connectionDetails <- createConnectionDetails(dbms = "postgresql",
 
 cdmDatabaseSchema <- "my_cdm_data"
 cohortDatabaseSchema <- "my_results"
+cohortTable <- "my_cohorts"
 options(sqlRenderTempEmulationSchema = NULL)
-cdmVersion <- "5"
 ```
 
 The last three lines define the `cdmDatabaseSchema` and `cohortDatabaseSchema` variables,as well as the CDM version. We'll use these later to tell R where the data in CDM format live, where we have stored our cohorts of interest, and what version CDM is used. Note that for Microsoft SQL Server, 'databaseSchemas' need to specify both the database and the schema, so for example `cdmDatabaseSchema <- "my_cdm_data.dbo"`.
 
-## Preparing the health outcome of interest
+## Preparing the exposure and outcome of interest
 
-We need to define the exposures and outcomes for our study. One way to do this is by writing SQL statements against the OMOP CDM that populate a table of events in which we are interested. The resulting table should have the same structure as the `cohort` table in the CDM. This means it should have the fields `cohort_definition_id`, `cohort_start_date`, `cohort_end_date`, and `subject_id`. 
-
-For our example study, we have created a file called *vignette.sql* with the following contents:
-
-```sql
-/***********************************
-File vignette.sql 
-***********************************/
-
-DROP TABLE IF EXISTS @cohortDatabaseSchema.@outcomeTable;
-
-SELECT 1 AS cohort_definition_id,
-	condition_start_date AS cohort_start_date,
-	condition_end_date AS cohort_end_date,
-	condition_occurrence.person_id AS subject_id
-INTO @cohortDatabaseSchema.@outcomeTable
-FROM @cdmDatabaseSchema.condition_occurrence
-INNER JOIN @cdmDatabaseSchema.visit_occurrence
-	ON condition_occurrence.visit_occurrence_id = visit_occurrence.visit_occurrence_id
-WHERE condition_concept_id IN (
-		SELECT descendant_concept_id
-		FROM @cdmDatabaseSchema.concept_ancestor
-		WHERE ancestor_concept_id = 192671 -- GI - Gastrointestinal haemorrhage
-		)
-	AND visit_occurrence.visit_concept_id IN (9201, 9203);
-```
-
-This is parameterized SQL which can be used by the `SqlRender` package. We use parameterized SQL so we do not have to pre-specify the names of the CDM and cohort schemas. That way, if we want to run the SQL on a different schema, we only need to change the parameter values; we do not have to change the SQL code. By also making use of translation functionality in `SqlRender`, we can make sure the SQL code can be run in many different environments.
+We need to define the exposure and outcomes for our study. For the exposure, we will directly use the `drug_era` table in the CDM. For the outcome we can use the OHDSI `PhenotypeLibrary` to retrieve a community-approved definition of epistaxis:
 
 ```{r eval=FALSE}
-library(SqlRender)
-sql <- readSql("vignette.sql")
-sql <- render(sql,
-              cdmDatabaseSchema = cdmDatabaseSchema, 
-              cohortDatabaseSchema = cohortDatabaseSchema,
-              outcomeTable = "my_outcomes")
-sql <- translate(sql, targetDialect = connectionDetails$dbms)
-
-connection <- connect(connectionDetails)
-executeSql(connection, sql)
+epistaxis <- 356
+cohortDefinitionSet <- PhenotypeLibrary::getPlCohortDefinitionSet(epistaxis)
 ```
 
-In this code, we first read the SQL from the file into memory. In the next line, we replace the three parameter names with the actual values. We then translate the SQL into the dialect appropriate for the DBMS we already specified in the `connectionDetails`. Next, we connect to the server, and submit the rendered and translated SQL.
-
-If all went well, we now have a table with the outcome of interest. We can see how many events:
+We can use the `CohortGenerator` package to instantiate this cohort:
 
 ```{r eval=FALSE}
-sql <- paste("SELECT cohort_definition_id, COUNT(*) AS count",
-             "FROM @cohortDatabaseSchema.@outcomeTable",
-             "GROUP BY cohort_definition_id")
-sql <- render(sql, 
-              cohortDatabaseSchema = cohortDatabaseSchema, 
-              outcomeTable = "my_outcomes")
-sql <- translate(sql, targetDialect = connectionDetails$dbms)
+connection <- DatabaseConnector::connect(connectionDetails)
+cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
+CohortGenerator::createCohortTables(connection = connection,
+                                    cohortDatabaseSchema = cohortDatabaseSchema,
+                                    cohortTableNames = cohortTableNames)
+counts <- CohortGenerator::generateCohortSet(connection = connection,
+                                             cdmDatabaseSchema = cdmDatabaseSchema,
+                                             cohortDatabaseSchema = cohortDatabaseSchema,
+                                             cohortTableNames = cohortTableNames,
+                                             cohortDefinitionSet = cohortDefinitionSet)
+DatabaseConnector::disconnect(connection)
+```
 
-querySql(connection, sql)
-```
-```{r echo=FALSE,message=FALSE}
-data.frame(cohort_concept_id = c(1),count = c(1029443))
-```
+
 
 ## Extracting the data from the server
 
 Now we can tell `SelfControlledCaseSeries` to extract all necessary data for our analysis:
 
 ```{r eval=FALSE}
-diclofenac <- 1124300
+aspirin <- 1112807
 
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
                           outcomeTable = outcomeTable,
-                          outcomeIds = 1,
+                          outcomeIds = epistaxis,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
-                          exposureIds = diclofenac,
-                          cdmVersion = cdmVersion)
+                          exposureIds = aspirin,
+                          studyStartDates = "20100101",
+                          studyEndDates = "21000101")
 sccsData
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
-diclofenac <- 1124300
+aspirin <- 1124300
 if (folderExists) {
   sccsData <- loadSccsData(file.path(outputFolder, "data1.zip"))
 } 
@@ -183,7 +148,7 @@ if (folderExists) {
 }
 ```
 
-There are many parameters, but they are all documented in the `SelfControlledCaseSeries` manual. In short, we are pointing the function to the table created earlier and indicating which cohort ID in that table identifies the outcome. Note that it is possible to fetch the data for multiple outcomes at once. We further point the function to the `drug_era` table, and specify the concept ID of our exposure of interest: diclofenac. Again, note that it is also possible to fetch data for multiple drugs at once. In fact, when we do not specify any exposure IDs the function will retrieve the data for all the drugs found in the `drug_era` table.
+There are many parameters, but they are all documented in the `SelfControlledCaseSeries` manual. In short, we are pointing the function to the table created earlier and indicating which cohort ID in that table identifies the outcome. Note that it is possible to fetch the data for multiple outcomes at once. We further point the function to the `drug_era` table, and specify the concept ID of our exposure of interest: aspirin. Again, note that it is also possible to fetch data for multiple drugs at once. In fact, when we do not specify any exposure IDs the function will retrieve the data for all the drugs found in the `drug_era` table.
 
 All data about the patients, outcomes and exposures are extracted from the server and stored in the `sccsData` object. This object uses the `Andromeda` package to store information in a way that ensures R does not run out of memory, even when the data are large. 
 
@@ -203,7 +168,7 @@ if (folderExists) {
 Creating the `sccsData` file can take considerable computing time, and it is probably a good idea to save it for future sessions. Because `sccsData` uses `Andromeda`, we cannot use R's regular save function. Instead, we'll have to use the `saveSccsData()` function:
 
 ```{r eval=FALSE}
-saveSccsData(sccsData, "diclofenacAndGiBleed.zip")
+saveSccsData(sccsData, "sccsData.zip")
 ```
 
 We can use the `loadSccsData()` function to load the data in a future session.
@@ -214,12 +179,12 @@ From the data fetched from the server we can now define the population we wish t
 
 ```{r eval=FALSE}
 studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = 1,
+                                  outcomeId = epistaxis,
                                   firstOutcomeOnly = FALSE,
                                   naivePeriod = 180)
 ```
 
-Here we specify we wish to study the outcome with ID 1. Since this was the only outcome for which we fetched the data, we could also have skipped this argument. We furthermore specify that the first 180 days of observation of every person, the so-called 'naive period', will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person. 
+Here we specify we wish to study the outcome with the ID stored in `epistaxis`. Since this was the only outcome for which we fetched the data, we could also have skipped this argument. We furthermore specify that the first 180 days of observation of every person, the so-called 'naive period', will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person. 
 
 We can find out how many people (if any) were removed by any restrictions we imposed:
 
@@ -238,16 +203,16 @@ if (folderExists) {
 Next, we can use the data to define a simple model to fit:
 
 ```{r eval=FALSE}
-covarDiclofenac <- createEraCovariateSettings(label = "Exposure of interest",
-                                              includeEraIds = diclofenac,
-                                              start = 0,
-                                              end = 0,
-                                              endAnchor = "era end")
+covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
+                                           includeEraIds = aspirin,
+                                           start = 0,
+                                           end = 0,
+                                           endAnchor = "era end")
 
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = covarDiclofenac
+  eraCovariateSettings = covarAspirin
 )
 
 summary(sccsIntervalData)
@@ -259,7 +224,7 @@ if (folderExists) {
 }
 ```
 
-In this example, we use the `createEraCovariateSettings` to define a single covariate: exposure to diclofenac. We specify that the risk window is from start of exposure to the end by setting start and end to 0, and defining the anchor for the end to be the era end, which for drug eras is the end of exposure. 
+In this example, we use the `createEraCovariateSettings` to define a single covariate: exposure to aspirin. We specify that the risk window is from start of exposure to the end by setting start and end to 0, and defining the anchor for the end to be the era end, which for drug eras is the end of exposure. 
 
 We then use the covariate definition in the `createSccsIntervalData` function to generate the `sccsIntervalData`. This represents the data in non-overlapping time intervals, with information on the various covariates and outcomes per interval. 
 
@@ -283,24 +248,24 @@ if (folderExists){
 }
 ```
 
-This tells us what the estimated relative risk (the incidence rate ratio) is during exposure to diclofenac compared to non-exposed time. 
+This tells us what the estimated relative risk (the incidence rate ratio) is during exposure to aspirin compared to non-exposed time. 
 
 ## Adding a pre-exposure window
 
-The fact that NSAIDs like diclofenac can cause GI bleeds is well known to doctors, and this knowledge affects prescribing behavior. For example, a patient who has just had a GI bleed is not likely to be prescribed diclofenac. This may lead to underestimation of the rate during unexposed time, because the unexposed time includes time just prior to exposure where observing of the outcome is unlikely because of this behavior. One solution to this problem that is often used is to introduce a separate 'risk window' just prior to exposure, to separate it from the remaining unexposed time. We can add such a 'pre-exposure window' to our analysis:
+The fact that platelet aggregation inhibitors like aspirin can cause epistaxis is well known to doctors, and this knowledge affects prescribing behavior. For example, a patient who has just had a nose bleed is not likely to be prescribed aspirin. This may lead to underestimation of the rate during unexposed time, because the unexposed time includes time just prior to exposure where observing of the outcome is unlikely because of this behavior. One solution to this problem that is often used is to introduce a separate 'risk window' just prior to exposure, to separate it from the remaining unexposed time. We can add such a 'pre-exposure window' to our analysis:
 
 ```{r eval=FALSE}
-covarPreDiclofenac <- createEraCovariateSettings(label = "Pre-exposure",
-                                                 includeEraIds = diclofenac,
-                                                 start = -60,
-                                                 end = -1,
-                                                 endAnchor = "era start")
+covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
+                                              includeEraIds = aspirin,
+                                              start = -60,
+                                              end = -1,
+                                              endAnchor = "era start")
 
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarDiclofenac, 
-                              covarPreDiclofenac)
+  eraCovariateSettings = list(covarAspirin, 
+                              covarPreAspirin)
 )
 
 model <- fitSccsModel(sccsIntervalData)
@@ -317,8 +282,6 @@ if (folderExists) {
   model
 }
 ```
-
-Here we indeed see a lower relative risk in the time preceding the exposure, indicating the outcome might be a contra-indication for the drug of interest.
 
 ## Including seasonality, and calendar time
 
@@ -340,12 +303,12 @@ calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarDiclofenac,
-                              covarPreDiclofenac),
+  eraCovariateSettings = list(covarAspirin,
+                              covarPreAspirin),
   seasonalityCovariateSettings = seasonalityCovariateSettings,
   calendarTimeCovariateSettings = calendarTimeSettings
 )
-  
+
 model <- fitSccsModel(sccsIntervalData)
 ```
 
@@ -381,18 +344,105 @@ if (folderExists) {
 }
 ```
 
-We do not see a strong effect for season, but we do see an increasing trend over the years, with a drop near the end of observation time.
+We see some effect for season: epistaxis tends to be more prevalent during winter. We should verify if our model accounts for time trends, by plotting the rate of the outcome across time, before and after adjustment:
+
+```{r eval=FALSE}
+plotEventToCalendarTime(studyPopulation = studyPop,
+                        sccsModel = model)
+```
+```{r echo=FALSE,message=FALSE}
+if (folderExists) {
+  plot <- readRDS(file.path(folder, "stabilityPlot.rds"))
+  print(plot)
+}
+```
+
+Here we see that after adjustment, in general, the rate of outcome appears fairly stable across time, with the exception of some months in 2020. This is what we refer to as the 'COVID-blip', because during the time of the COVID-19 pandemic regular healthcare was put on hold. Our time trend diagnostic confirms the rate of the outcome was significantly lower during these months:
+
+```{r eval=FALSE}
+stability <- computeTimeStability(studyPopulation = studyPop,
+                                  sccsModel = model)
+stability %>%
+  filter(!stable)
+```
+```{r echo=FALSE,message=FALSE}
+if (folderExists) {
+  stability <- readRDS(file.path(folder, "stability.rds"))
+  stability %>%
+    filter(!stable)
+}
+```
+
+## Removing the COVID blip
+
+The discontinuity in the rate of the outcome during the COVID pandemic could cause bias. For this reason it is probably best to remove this time from the analysis altogether. We can achieve this by defining two separate study periods:
+
+```{r eval=FALSE}
+sccsData <- getDbSccsData(connectionDetails = connectionDetails,
+                          cdmDatabaseSchema = cdmDatabaseSchema,
+                          outcomeDatabaseSchema = cohortDatabaseSchema,
+                          outcomeTable = cohortTable,
+                          outcomeIds = epistaxis,
+                          exposureDatabaseSchema = cdmDatabaseSchema,
+                          exposureTable = "drug_era",
+                          exposureIds = aspirin,
+                          studyStartDates = c("19000101", "20220101"),
+                          studyEndDates = c("20191231", "21001231"))
+studyPop <- createStudyPopulation(sccsData = sccsData,
+                                  outcomeId = epistaxis,
+                                  firstOutcomeOnly = FALSE,
+                                  naivePeriod = 180)
+sccsIntervalData <- createSccsIntervalData(
+  studyPopulation = studyPop,
+  sccsData = sccsData,
+  eraCovariateSettings = list(covarAspirin,
+                              covarPreAspirin),
+  seasonalityCovariateSettings = seasonalityCovariateSettings,
+  calendarTimeCovariateSettings = calendarTimeSettings
+)
+model <- fitSccsModel(sccsIntervalData)
+```
+
+If we plot the outcomes over time, we see the entire time of the COVID pandemic has been removed:
+
+```{r eval=FALSE}
+plotEventToCalendarTime(studyPopulation = studyPop,
+                        sccsModel = model)
+```
+```{r echo=FALSE,message=FALSE}
+if (folderExists) {
+  plot <- readRDS(file.path(folder, "stabilityPlot2.rds"))
+  print(plot)
+}
+```
+
+We can verify if this improved temporal stability:
+
+
+```{r eval=FALSE}
+stability <- computeTimeStability(studyPopulation = studyPop,
+                                  sccsModel = model)
+stability %>%
+  filter(!stable)
+```
+```{r echo=FALSE,message=FALSE}
+if (folderExists) {
+  stability <- readRDS(file.path(folder, "stability2.rds"))
+  stability %>%
+    filter(!stable)
+}
+```
 
 ## Considering event-dependent observation time
 
 The SCCS method requires that observation periods are independent of outcome times. This requirement is violated when outcomes increase the mortality rate, since censoring of the observation periods is then event-dependent. A modification to the SCCS has been proposed that attempts to correct for this. First, several models are fitted to estimate the amount and shape of the event-dependent censoring, and the best fitting model is selected. Next, this model is used to reweigh various parts of the observation time. This approach is also implemented in this package, and can be turned on using the `eventDependentObservation` argument of the `createSccsIntervalData` function. However, this method has proven to be somewhat unstable in combinations with other corrections, so for now it is best to keep the model simple:
-
-```{r eval=FALSE}
+  
+  ```{r eval=FALSE}
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarDiclofenac,
-                              covarPreDiclofenac),
+  eraCovariateSettings = list(covarAspirin,
+                              covarPreAspirin),
   eventDependentObservation = TRUE
 )
 
@@ -417,25 +467,25 @@ Although we are usually interested in the effect of a single drug or drug class,
 
 ## Adding a class of drugs
 
-For example, oftentimes diclofenac is co-prescribed with proton-pump inhibitors (PPIs) to mitigate the risk of GI bleeding. We would like our estimate to represent just the effect of the diclofenac, so we need to keep the effect of the PPIs separate. First we have to retrieve the information on PPI exposure from the database:
+For example, SSRIs might also cause epistaxis, and if aspirin is co-prescribed with SSRIs we don't want the effect of SSRIs attributed to aspirin. We would like our estimate to represent just the effect of the aspirin, so we need to keep the effect of the SSRIs separate. First we have to retrieve the information on SSRI exposure from the database:
 
 ```{r eval=FALSE}
-diclofenac <- 1124300
-ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
-
+ssris <- c(715939, 722031, 739138, 751412, 755695, 797617, 40799195)
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = outcomeTable,
-                          outcomeIds = 1,
+                          outcomeTable = cohortTable,
+                          outcomeIds = epistaxis,
+                          maxCasesPerOutcome = 100000,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
-                          exposureIds = c(diclofenac, ppis),
-                          cdmVersion = cdmVersion)
+                          exposureIds = c(aspirin, ssris),
+                          studyStartDates = c("19000101", "20220101"),
+                          studyEndDates = c("20191231", "21001231"))
 sccsData
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
-ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
+ssris <- c(715939, 722031, 739138, 751412, 755695, 797617, 40799195)
 if (folderExists) {
   sccsData <- loadSccsData(file.path(outputFolder, "data2.zip"))
 } 
@@ -450,24 +500,21 @@ Once retrieved, we can use the data to build and fit our model:
 
 ```{r eval=FALSE}
 studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = 1,
+                                  outcomeId = epistaxis,
                                   firstOutcomeOnly = FALSE,
                                   naivePeriod = 180)
-
-covarPpis <- createEraCovariateSettings(label = "PPIs",
-                                        includeEraIds = ppis,
-                                        stratifyById = FALSE,
-                                        start = 1,
-                                        end = 0,
-                                        endAnchor = "era end")
-
+covarSsris <- createEraCovariateSettings(label = "SSRIs",
+                                         includeEraIds = ssris,
+                                         stratifyById = FALSE,
+                                         start = 1,
+                                         end = 0,
+                                         endAnchor = "era end")
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarDiclofenac,
-                              covarPreDiclofenac,
-                              covarPpis),
-  ageCovariateSettings = ageCovariateSettings,
+  eraCovariateSettings = list(covarAspirin,
+                              covarPreAspirin,
+                              covarSsris),
   seasonalityCovariateSettings = seasonalityCovariateSettings,
   calendarTimeCovariateSettings = calendarTimeSettings
 )
@@ -475,14 +522,14 @@ sccsIntervalData <- createSccsIntervalData(
 model <- fitSccsModel(sccsIntervalData)
 ```
 
-Here, we added a new covariate based on the list of concept IDs for the various PPIs. In this example we set `stratifyById` to `FALSE`, meaning that we will estimate a single incidence rate ratio for all PPIs, so one estimate for the entire class of drugs. Note that duplicates will be removed: if a person is exposed to two PPIs on the same day, this will be counted only once when fitting the model. Furthermore, we have set the `start` day to 1 instead of 0. The reason for this is that PPIs will also be used to treat GI bleeds, and are likely to be prescribed on the same day as the event. If we would include day 0, the risk of the outcome would be attributed to the PPI used for treatment, not the other factors that caused the GI bleed such as any exposure to our drug of interest. Again, we can inspect the model:
+Here, we added a new covariate based on the list of concept IDs for the various SSRIs. In this example we set `stratifyById` to `FALSE`, meaning that we will estimate a single incidence rate ratio for all SSRIs, so one estimate for the entire class of drugs. Note that duplicates will be removed: if a person is exposed to two SSRIs on the same day, this will be counted only once when fitting the model. Again, we can inspect the model:
 
 ```{r eval=FALSE}
 model
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
-  model <- readRDS(file.path(outputFolder, "ppiModel.rds"))
+  model <- readRDS(file.path(outputFolder, "ssriModel.rds"))
   model
 }
 ```
@@ -512,7 +559,7 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
                                   naivePeriod = 180)
 
 covarAllDrugs <- createEraCovariateSettings(label = "Other exposures",
-                                            excludeEraIds = diclofenac,
+                                            excludeEraIds = aspirin,
                                             stratifyById = TRUE,
                                             start = 1,
                                             end = 0,
@@ -522,8 +569,8 @@ covarAllDrugs <- createEraCovariateSettings(label = "Other exposures",
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarDiclofenac,
-                              covarPreDiclofenac,
+  eraCovariateSettings = list(covarAspirin,
+                              covarPreAspirin,
                               covarAllDrugs),
   seasonalityCovariateSettings = seasonalityCovariateSettings,
   calendarTimeCovariateSettings = calendarTimeSettings
@@ -532,25 +579,25 @@ sccsIntervalData <- createSccsIntervalData(
 model <- fitSccsModel(sccsIntervalData)
 ```
 
-The first thing to note is that we have defined the new covariates to be all drugs except diclofenac by not specifying the `includeEraIds` and setting the `excludeEraIds` to the concept ID of diclofenac. Furthermore, we have specified that `stratifyById` is TRUE, meaning an estimate will be produced for each drug. 
+The first thing to note is that we have defined the new covariates to be all drugs except aspirin by not specifying the `includeEraIds` and setting the `excludeEraIds` to the concept ID of aspirin. Furthermore, we have specified that `stratifyById` is TRUE, meaning an estimate will be produced for each drug. 
 
 We have set `allowRegularization` to `TRUE`, meaning we will use regularization for all estimates in this new covariate set. Regularization means we will impose a prior distribution on the effect size, effectively penalizing large estimates. This helps fit the model, for example when some drugs are rare, and when drugs are almost often prescribed together and their individual effects are difficult to untangle.
 
 Because there are now so many estimates, we will export all estimates to a data frame using `getModel()`:
 
 ```{r eval=FALSE}
-  estimates <- getModel(model)
-  estimates[estimates$originalEraId == diclofenac, ]
+estimates <- getModel(model)
+estimates[estimates$originalEraId == aspirin, ]
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
   model <- readRDS(file.path(outputFolder, "allDrugsModel.rds"))
   estimates <- getModel(model)
-  estimates[estimates$originalEraId == diclofenac, ]
+  estimates[estimates$originalEraId == aspirin, ]
 }
 ```
 
-Here we see that despite the extensive adjustments that are made in the model, the effect estimates for diclofenac have remained nearly the same. 
+Here we see that despite the extensive adjustments that are made in the model, the effect estimates for aspirin have remained nearly the same. 
 
 In case we're interested, we can also look at the effect sizes for the PPIs:
 
@@ -600,11 +647,11 @@ Note that we have to provide the covariate ID of the exposure of interest, which
 To gain a better understanding of when the event occurs relative to the start of exposure, we can plot their relationship. Note that we specify the naive period, so this can be applied to the data prior to showing the plot. This will make the plot better in line with the data we ended up fitting:
 
 ```{r eval=FALSE}
-plotExposureCentered(studyPop, sccsData, exposureEraId = diclofenac)
+plotExposureCentered(studyPop, sccsData, exposureEraId = aspirin)
 ```
 ```{r echo=FALSE,message=FALSE,fig.width=6.5, fig.height=5}
 if (folderExists) {
-  plotExposureCentered(studyPop, sccsData, exposureEraId = diclofenac)
+  plotExposureCentered(studyPop, sccsData, exposureEraId = aspirin)
 }
 ```
 
@@ -615,11 +662,11 @@ This plot suggests an increased rate of events in the first few weeks following 
 If the rate just before exposure is higher compared to during exposure, this indicates there might reverse causality: that the outcome, or some precursor of the outcome, increases the probability of having the exposure. To avoid incorrect causal inference, we want to detect these situations. We can compute a p-value for whether rate is increased pre-exposure:
 
 ```{r eval=FALSE}
-computePreExposureGainP(sccsData, studyPopulation, exposureEraId = diclofenac) 
+computePreExposureGainP(sccsData, studyPopulation, exposureEraId = aspirin) 
 ```
 ```{r echo=FALSE,message=FALSE,fig.width=6.5, fig.height=5}
 if (folderExists) {
-  computePreExposureGainP(sccsData, studyPop, exposureEraId = diclofenac) 
+  computePreExposureGainP(sccsData, studyPop, exposureEraId = aspirin) 
 }
 ```
 If this p-value is lower than a prespecified threshold (e.g. p < 0.05), we can decide to reject the null hypothesis that the rate is not increased, and we probably should not trust our analysis to produce reliable estimates.

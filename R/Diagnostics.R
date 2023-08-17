@@ -89,7 +89,8 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
       mutate(logRr = .data$logRr - .data$meanLogRr) %>%
       mutate(calendarTimeRr = exp(.data$logRr))
     data <- data %>%
-      mutate(adjustedRate = .data$adjustedRate / .data$calendarTimeRr)
+      mutate(adjustedRate = .data$adjustedRate / .data$calendarTimeRr) %>%
+      select(-"logRr", -"gap", -"segment", -"meanLogRr")
   }
 
   if (hasSeasonality(sccsModel)) {
@@ -100,7 +101,6 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
     seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
     logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
     logRr <- logRr - mean(logRr)
-
     data <- data %>%
       mutate(monthOfYear = .data$month %% 12 + 1) %>%
       inner_join(
@@ -110,9 +110,9 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
         ),
         by = join_by("monthOfYear")
       )
-
     data <- data %>%
-      mutate(adjustedRate = .data$adjustedRate / .data$seasonRr)
+      mutate(adjustedRate = .data$adjustedRate / .data$seasonRr) %>%
+      select(-"monthOfYear")
   }
   return(data)
 }
