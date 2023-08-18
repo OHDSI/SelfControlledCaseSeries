@@ -162,7 +162,7 @@ model <- fitSccsModel(sccsIntervalData,
                                               threads = 10))
 
 saveRDS(model, file.path(folder, "seasonCalendarTimeModel.rds"))
-# model <- readRDS('s:/temp/vignetteSccs/seasonCalendarTimeModel.rds')
+# model <- readRDS(file.path(folder, "seasonCalendarTimeModel.rds"))
 model
 
 plotSeasonality(model)
@@ -172,12 +172,13 @@ plotCalendarTimeEffect(model)
 plot <- plotEventToCalendarTime(studyPopulation = studyPop,
                                 sccsModel = model)
 saveRDS(plot, file.path(folder, "stabilityPlot.rds"))
+stability <- computeTimeStability(studyPopulation = studyPop)
+saveRDS(stability, file.path(folder, "stabilityA.rds"))
+
 stability <- computeTimeStability(studyPopulation = studyPop,
                                   sccsModel = model)
-saveRDS(stability, file.path(folder, "stability.rds"))
-stability %>%
-  filter(!stable)
-
+saveRDS(stability, file.path(folder, "stabilityB.rds"))
+stability
 
 # Remove COVID blip ------------------------------------------------------------
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
@@ -227,8 +228,7 @@ saveRDS(plot, file.path(folder, "stabilityPlot2.rds"))
 stability <- computeTimeStability(studyPopulation = studyPop,
                                   sccsModel = model)
 saveRDS(stability, file.path(folder, "stability2.rds"))
-x <- stability %>%
-  filter(!stable)
+stability
 
 
 # Adding time-dependent observation periods ------------------------------------

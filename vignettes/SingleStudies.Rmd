@@ -11,8 +11,8 @@ output:
     toc: yes
 vignette: >
   %\VignetteIndexEntry{Single studies using SelfControlledCaseSeries}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}      
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
@@ -352,7 +352,7 @@ plotEventToCalendarTime(studyPopulation = studyPop,
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
-  plot <- readRDS(file.path(folder, "stabilityPlot.rds"))
+  plot <- readRDS(file.path(outputFolder, "stabilityPlot.rds"))
   print(plot)
 }
 ```
@@ -367,9 +367,8 @@ stability %>%
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
-  stability <- readRDS(file.path(folder, "stability.rds"))
-  stability %>%
-    filter(!stable)
+  stability <- readRDS(file.path(outputFolder, "stability.rds"))
+  stability
 }
 ```
 
@@ -411,7 +410,7 @@ plotEventToCalendarTime(studyPopulation = studyPop,
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
-  plot <- readRDS(file.path(folder, "stabilityPlot2.rds"))
+  plot <- readRDS(file.path(outputFolder, "stabilityPlot2.rds"))
   print(plot)
 }
 ```
@@ -427,9 +426,8 @@ stability %>%
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
-  stability <- readRDS(file.path(folder, "stability2.rds"))
-  stability %>%
-    filter(!stable)
+  stability <- readRDS(file.path(outputFolder, "stability2.rds"))
+  stability 
 }
 ```
 
@@ -437,7 +435,7 @@ if (folderExists) {
 
 The SCCS method requires that observation periods are independent of outcome times. This requirement is violated when outcomes increase the mortality rate, since censoring of the observation periods is then event-dependent. A modification to the SCCS has been proposed that attempts to correct for this. First, several models are fitted to estimate the amount and shape of the event-dependent censoring, and the best fitting model is selected. Next, this model is used to reweigh various parts of the observation time. This approach is also implemented in this package, and can be turned on using the `eventDependentObservation` argument of the `createSccsIntervalData` function. However, this method has proven to be somewhat unstable in combinations with other corrections, so for now it is best to keep the model simple:
   
-  ```{r eval=FALSE}
+```{r eval=FALSE}
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
@@ -599,14 +597,14 @@ if (folderExists) {
 
 Here we see that despite the extensive adjustments that are made in the model, the effect estimates for aspirin have remained nearly the same. 
 
-In case we're interested, we can also look at the effect sizes for the PPIs:
+In case we're interested, we can also look at the effect sizes for the SSRIs:
 
 ```{r eval=FALSE}
-estimates[estimates$originalEraId %in% ppis, ]
+estimates[estimates$originalEraId %in% ssris, ]
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
-  estimates[estimates$originalEraId %in% ppis, ]
+  estimates[estimates$originalEraId %in% ssris, ]
 }
 ```
 
@@ -711,38 +709,12 @@ plotEventToCalendarTime(studyPop)
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
-  plotEventToCalendarTime(studyPop)
+  plot <- readRDS(file.path(outputFolder, "stabilityPlot.rds"))
+  print(plot)
 }
 ```
 
-In the top of the plot, we see the rate of the outcome (within those persons that are observed) does change over time. 
-
-Earlier, we've seen we can adjust for these types of patterns by including splines, for example for age, season, and calendar time. We can use the same plot to evaluate if these adjustments have been sufficient. For example, using the model we fitted earlier adjusting for age, season, and calendar time:
-
-```{r eval=FALSE}
-plotEventToCalendarTime(studyPop, model)
-```
-```{r echo=FALSE,message=FALSE}
-if (folderExists) {
-  model <- readRDS(file.path(outputFolder, "seasonCalendarTimeModel.rds"))
-  plotEventToCalendarTime(studyPop, model)
-}
-```
-
-Here, the top plot shows the rate of the outcome, after adjusting for the age, season, and calendar time effect. We see that the adjustment wasn't completely effective, and in fact may have over-adjusted. A more formal way to evaluate this is by using:
-
-```{r eval=FALSE}
-diagnostic <- computeTimeStability(studyPop, model)
-head(diagnostic[, c("monthStartDate", "monthEndDate", "p", "alpha", "stable")])
-```
-```{r echo=FALSE,message=FALSE}
-if (folderExists) {
-  diagnostic <- computeTimeStability(studyPop, model)
-  head(diagnostic[, c("monthStartDate", "monthEndDate", "p", "alpha", "stable")])
-}
-```
-
-This shows that, even after adjustment using the splines, there are months where the rate differs significantly from the mean rate, indicating temporal instability. We may want to change the knots in the splines, or possibly restrict our analysis to calendar time that is more stable.
+In the bottom of the plot, we see the rate of the outcome does change over time. 
 
 
 # Acknowledgments
