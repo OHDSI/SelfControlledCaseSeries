@@ -13,8 +13,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# source("~/git/SelfControlledCaseSeries/R/SccsDataConversion.R")
 
-computeOutcomeRatePerMonth <- function(studyPopulation) {
+computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
+  if (nrow(studyPopulation$cases) == 0) {
+    tibble(
+      month = 1.0,
+      observedCount = 1.0,
+      observationPeriodCount = 1.0,
+      rate = 1.0,
+      adjustedRate = 1.0,
+      monthStartDate = as.Date("2000-01-01"),
+      monthEndDate = as.Date("2000-01-01")) %>%
+      filter(month == 0) %>%
+      return()
+  }
   cases <- studyPopulation$cases %>%
     mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
            endDate = .data$observationPeriodStartDate + .data$endDay) %>%
@@ -31,77 +44,29 @@ computeOutcomeRatePerMonth <- function(studyPopulation) {
     ) %>%
     mutate(outcomeCount = if_else(is.na(.data$outcomeCount), 0, .data$outcomeCount)) %>%
     mutate(rate = .data$outcomeCount / (.data$endMonth - .data$startMonth + .data$startMonthFraction + .data$endMonthFraction))
-  observedCounts <- studyPopulation$outcomes %>%
-    inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
-    transmute(month = convertDateToMonth(.data$observationPeriodStartDate + .data$outcomeDay)) %>%
-    group_by(.data$month) %>%
-    summarise(observedCount = n())
-  if (nrow(cases) == 0) {
-    expectedCounts <- tibble(month = 1, expectedCount = 1.0, observationPeriodCount = 1.0) %>%
-      filter(month == 0)
-  } else {
-    months <- seq(min(cases$startMonth), max(cases$endMonth))
-    computeExpected <- function(month) {
-      cases %>%
-        filter(month >= .data$startMonth & month <= .data$endMonth) %>%
-        mutate(weight = if_else(month == .data$startMonth,
-                                .data$startMonthFraction,
-                                if_else(month == .data$endMonth,
-                                        .data$endMonthFraction,
-                                        1))) %>%
-        summarize(month = !!month,
-                  expectedCount = sum(.data$weight * .data$rate),
-                  observationPeriodCount = sum(.data$weight)) %>%
-        return()
-    }
-    expectedCounts <- bind_rows(lapply(months, computeExpected))
-  }
-  data <- observedCounts %>%
-    inner_join(expectedCounts, by = join_by("month")) %>%
-    mutate(rate = .data$observedCount / .data$expectedCount)  %>%
-    mutate(monthStartDate = convertMonthToStartDate(.data$month),
-           monthEndDate = convertMonthToEndDate(.data$month))
-  return(data)
-}
-
-adjustOutcomeRatePerMonth <- function(data, sccsModel) {
-  data$adjustedRate <- data$rate
-
-  if (hasCalendarTimeEffect(sccsModel)) {
+  hasAdjustment <- FALSE
+  monthAdjustments <- tibble(month = seq(min(cases$startMonth), max(cases$endMonth)),
+                             totalRr = 1)
+  if (!is.null(sccsModel) && hasCalendarTimeEffect(sccsModel)) {
+    hasAdjustment <- TRUE
     estimates <- sccsModel$estimates
     splineCoefs <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, "logRr"]
     calendarTimeKnotsInPeriods <- sccsModel$metaData$calendarTime$calendarTimeKnotsInPeriods
-    designMatrix <- createMultiSegmentDesignMatrix(x = data$month,
+    designMatrix <- createMultiSegmentDesignMatrix(x = monthAdjustments$month,
                                                    knotsPerSegment = calendarTimeKnotsInPeriods)
-    data$logRr <- apply(designMatrix %*% splineCoefs, 1, sum)
-    # Each segment can be thought of having its own intercept, so adjust logRr by mean in segment:
-    data <- data %>%
-      mutate(gap = .data$month - lag(.data$month) > 1) %>%
-      mutate(gap = if_else(is.na(.data$gap), 0, .data$gap)) %>%
-      mutate(segment = cumsum(.data$gap))
-    data <- data %>%
-      inner_join(
-        data %>%
-          group_by(.data$segment) %>%
-          summarize(meanLogRr = mean(logRr)),
-        by = join_by("segment")
-      ) %>%
-      mutate(logRr = .data$logRr - .data$meanLogRr) %>%
-      mutate(calendarTimeRr = exp(.data$logRr))
-    data <- data %>%
-      mutate(adjustedRate = .data$adjustedRate / .data$calendarTimeRr) %>%
-      select(-"logRr", -"gap", -"segment", -"meanLogRr")
+    monthAdjustments <- monthAdjustments %>%
+      mutate(calendarTimeRr = exp(apply(designMatrix %*% splineCoefs, 1, sum))) %>%
+      mutate(totalRr = .data$totalRr * .data$calendarTimeRr)
   }
-
-  if (hasSeasonality(sccsModel)) {
+  if (!is.null(sccsModel) && hasSeasonality(sccsModel)) {
+    hasAdjustment <- TRUE
     estimates <- sccsModel$estimates
     splineCoefs <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, "logRr"]
     seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
     season <- 1:12
     seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
     logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
-    logRr <- logRr - mean(logRr)
-    data <- data %>%
+    monthAdjustments <- monthAdjustments %>%
       mutate(monthOfYear = .data$month %% 12 + 1) %>%
       inner_join(
         tibble(
@@ -109,11 +74,60 @@ adjustOutcomeRatePerMonth <- function(data, sccsModel) {
           seasonRr = exp(logRr)
         ),
         by = join_by("monthOfYear")
-      )
-    data <- data %>%
-      mutate(adjustedRate = .data$adjustedRate / .data$seasonRr) %>%
-      select(-"monthOfYear")
+      ) %>%
+      select(-"monthOfYear") %>%
+      mutate(totalRr = .data$totalRr * .data$seasonRr)
   }
+  computeCorrection <- function(startMonth, endMonth, startMonthFraction, endMonthFraction) {
+    monthAdjustments %>%
+      filter(.data$month >= startMonth, .data$month <= endMonth) %>%
+      mutate(weight = if_else(.data$month == startMonth,
+                              startMonthFraction,
+                              if_else(.data$month == endMonth,
+                                      endMonthFraction,
+                                      1))) %>%
+      summarize(correction = sum(.data$weight * .data$totalRr) / sum(.data$weight)) %>%
+      pull(.data$correction) %>%
+      return()
+  }
+  if (hasAdjustment) {
+    cases <- cases %>%
+      rowwise() %>%
+      mutate(correction = computeCorrection(.data$startMonth, .data$endMonth, .data$startMonthFraction, .data$endMonthFraction)) %>%
+      ungroup()
+  } else {
+    cases <- cases %>%
+      mutate(correction = 1)
+  }
+  observedCounts <- studyPopulation$outcomes %>%
+    inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
+    transmute(month = convertDateToMonth(.data$observationPeriodStartDate + .data$outcomeDay)) %>%
+    group_by(.data$month) %>%
+    summarise(observedCount = n())
+  computeExpected <- function(monthAdjustment) {
+    month <- monthAdjustment$month
+    cases %>%
+      filter(month >= .data$startMonth & month <= .data$endMonth) %>%
+      mutate(weight = if_else(month == .data$startMonth,
+                              .data$startMonthFraction,
+                              if_else(month == .data$endMonth,
+                                      .data$endMonthFraction,
+                                      1))) %>%
+      summarize(month = !!month,
+                expectedCount = sum(.data$weight * .data$rate),
+                adjustedExpectedCount = sum(.data$weight * .data$rate * monthAdjustment$totalRr / .data$correction),
+                observationPeriodCount = sum(.data$weight)) %>%
+      return()
+  }
+  expectedCounts <- bind_rows(lapply(split(monthAdjustments, seq_len(nrow(monthAdjustments))), computeExpected))
+
+  data <- observedCounts %>%
+    inner_join(expectedCounts, by = join_by("month")) %>%
+    mutate(rate = .data$observedCount / .data$expectedCount)  %>%
+    mutate(adjustedRate = .data$observedCount / .data$adjustedExpectedCount)  %>%
+    mutate(monthStartDate = convertMonthToStartDate(.data$month),
+           monthEndDate = convertMonthToEndDate(.data$month)) %>%
+    select(-"expectedCount", -"adjustedExpectedCount")
   return(data)
 }
 
@@ -148,13 +162,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   checkmate::assertNumeric(alpha, lower = 0, upper = 1, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  data <- computeOutcomeRatePerMonth(studyPopulation)
-  if (is.null(sccsModel)) {
-    data <- data %>%
-      mutate(adjustedRate = .data$rate)
-  } else {
-    data <- adjustOutcomeRatePerMonth(data, sccsModel)
-  }
+  data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
   o <- data$observedCount
   e <- data$observedCount / data$adjustedRate
 
@@ -167,7 +175,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   vectorLikelihood <- function(x) {
     return(sapply(x, likelihood))
   }
-  x <- seq(1,10, by = 0.5)
+  x <- seq(1,10, by = 0.1)
   ll <- sapply(x, logLikelihood)
   maxX <- x[max(which(!is.na(ll) & !is.infinite(ll)))]
   minX <- x[min(which(!is.na(ll) & !is.infinite(ll)))]
@@ -189,7 +197,6 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
                    stable = p > alpha)
   return(result)
 }
-
 
 
 #' Compute P for pre-exposure risk gain

@@ -392,7 +392,7 @@ plotEventToCalendarTime <- function(studyPopulation,
   checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  data <- computeOutcomeRatePerMonth(studyPopulation)
+  data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
   plotData <- data %>%
     select("month", "monthStartDate", "monthEndDate", value = "rate") %>%
       mutate(type = "Assuming constant rate")
@@ -401,7 +401,6 @@ plotEventToCalendarTime <- function(studyPopulation,
   if (!is.null(sccsModel) && (hasCalendarTimeEffect(sccsModel) || hasSeasonality(sccsModel))) {
     types <- c("cal. time", "season")[c(hasCalendarTimeEffect(sccsModel), hasSeasonality(sccsModel))]
     type <- paste("Adj. for", paste(types, collapse = " and "))
-    data <- adjustOutcomeRatePerMonth(data, sccsModel)
     plotData <- bind_rows(
       plotData,
       select(data, "month", "monthStartDate", "monthEndDate", value = "adjustedRate") %>%

@@ -2,7 +2,7 @@ library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "d:/andromedaTemp")
 settings <- createSccsSimulationSettings(includeAgeEffect = F,
                                          includeCalendarTimeEffect = T,
-                                         includeSeasonality = F)
+                                         includeSeasonality = T)
 set.seed(123)
 sccsData <- simulateSccsData(5000, settings)
 # summary(sccsData)
@@ -19,23 +19,23 @@ covarSettings <- createEraCovariateSettings(label = "Exposure of interest",
                                             end = 0,
                                             endAnchor = "era end")
 
-studyPop <- createStudyPopulation(sccsData = sccsData,
+studyPopulation <- createStudyPopulation(sccsData = sccsData,
                                   outcomeId = 10,
                                   firstOutcomeOnly = FALSE,
                                   naivePeriod = 0)
 
-sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
+sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPopulation,
                                            sccsData = sccsData,
                                            eraCovariateSettings = covarSettings,
                                            # ageCovariateSettings = ageSettings,
-                                           # seasonalityCovariateSettings = seasonalitySettings,
+                                           seasonalityCovariateSettings = seasonalitySettings,
                                            calendarTimeCovariateSettings = calendarTimeSettings,
                                            minCasesForTimeCovariates = 10000)
 
-model <- fitSccsModel(sccsIntervalData, prior = createPrior("none"), control = createControl(threads = 4))
+sccsModel <- fitSccsModel(sccsIntervalData, prior = createPrior("none"), control = createControl(threads = 4))
 
-estimate1 <- model$estimates[model$estimates$originalEraId == 1, ]
-estimate2 <- model$estimates[model$estimates$originalEraId == 2, ]
+estimate1 <- sccsModel$estimates[sccsModel$estimates$originalEraId == 1, ]
+estimate2 <- sccsModel$estimates[sccsModel$estimates$originalEraId == 2, ]
 writeLines(sprintf("True RR: %0.2f, estimate: %0.2f (%0.2f-%0.2f)",
                    settings$simulationRiskWindows[[1]]$relativeRisks,
                    exp(estimate1$logRr),
@@ -49,18 +49,18 @@ writeLines(sprintf("True RR: %0.2f, estimate: %0.2f (%0.2f-%0.2f)",
 
 
 
-# model
-plotSeasonality(model)
-plotAgeEffect(model)
-plotCalendarTimeEffect(model)
-plotEventToCalendarTime(studyPop, model)
-computeTimeStability(studyPop)
-computeTimeStability(studyPop, model)
+# sccsModel
+plotSeasonality(sccsModel)
+plotAgeEffect(sccsModel)
+plotCalendarTimeEffect(sccsModel)
+plotEventToCalendarTime(studyPopulation, sccsModel)
+computeTimeStability(studyPopulation)
+computeTimeStability(studyPopulation, sccsModel)
 
 ### Plot simulated seasonality ###
-estimates <- model$estimates
+estimates <- sccsModel$estimates
 splineCoefs <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, "logRr"]
-seasonKnots <- model$metaData$seasonality$seasonKnots
+seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
 season <- seq(0,12, length.out = 100)
 seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
 logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
@@ -105,10 +105,10 @@ print(plot)
 
 
 ### Plot simulated age effect ###
-# estimates <- model$estimates
+# estimates <- sccsModel$estimates
 # estimates <- estimates[estimates$covariateId >= 100 & estimates$covariateId < 200, ]
 # splineCoefs <- c(0, estimates$logRr)
-# ageKnots <- model$metaData$age$ageKnots
+# ageKnots <- sccsModel$metaData$age$ageKnots
 # age <- seq(min(ageKnots), max(ageKnots), length.out = 100)
 # ageDesignMatrix <- splines::bs(age,
 #                                knots = ageKnots[2:(length(ageKnots) - 1)],
@@ -155,13 +155,13 @@ print(plot)
 
 
 ### Plot simulated calendar time effect ###
-estimates <- model$estimates
+estimates <- sccsModel$estimates
 estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
 splineCoefs <- estimates$logRr
 
 calendarTime <- seq(settings$minCalendarTime, settings$maxCalendarTime, length.out = 50)
 calendarMonth <- as.numeric(format(calendarTime,'%Y')) * 12 + as.numeric(format(calendarTime,'%m')) - 1
-calendarTimeKnots <- model$metaData$calendarTime$calendarTimeKnotsInPeriods[[1]]
+calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnotsInPeriods[[1]]
 calendarTimeDesignMatrix <- splines::bs(x = calendarMonth,
                                         knots = calendarTimeKnots[2:(length(calendarTimeKnots) - 1)],
                                         Boundary.knots = calendarTimeKnots[c(1, length(calendarTimeKnots))],
