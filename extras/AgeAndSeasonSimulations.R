@@ -1,6 +1,6 @@
 library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "d:/andromedaTemp")
-settings <- createSccsSimulationSettings(includeAgeEffect = F,
+settings <- createSccsSimulationSettings(includeAgeEffect = T,
                                          includeCalendarTimeEffect = T,
                                          includeSeasonality = T)
 set.seed(123)

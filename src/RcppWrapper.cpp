@@ -141,4 +141,39 @@ double testEgid(std::vector<double> p, double present, double astart, double aen
   return weight;
 }
 
+// [[Rcpp::export]]
+std::vector<double> computeCorrections(const DataFrame& cases, const DataFrame& monthAdjustments) {
+  NumericVector startMonths = cases["startMonth"];
+  NumericVector startMonthFractions = cases["startMonthFraction"];
+  NumericVector endMonths = cases["endMonth"];
+  NumericVector endMonthFractions = cases["endMonthFraction"];
+  NumericVector months = monthAdjustments["month"];
+  NumericVector totalRrs = monthAdjustments["totalRr"];
+  std::vector<double> corrections(cases.nrows());
+  for (int i = 0; i < cases.nrows(); i++) {
+    double startMonth = startMonths[i];
+    double startMonthFraction = startMonthFractions[i];
+    double endMonth = endMonths[i];
+    double endMonthFraction = endMonthFractions[i];
+    double sumW = 0;
+    double sumRr = 0;
+    for (int j = 0; j < monthAdjustments.nrows(); j++) {
+      double month = months[j];
+      if (month >= startMonth) {
+        double w = 1;
+        if (month == startMonth)
+          w = startMonthFraction;
+        else if (month == endMonth)
+          w = endMonthFraction;
+        sumW += w;
+        sumRr += w * totalRrs[j];
+      }
+      if (month == endMonth)
+        break;
+    }
+    corrections[i] = sumRr / sumW;
+  }
+  return corrections;
+}
+
 #endif // __RcppWrapper_cpp__

@@ -16,8 +16,14 @@
 # source("~/git/SelfControlledCaseSeries/R/SccsDataConversion.R")
 
 computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
+  # Computes not only the observed outcome rate per calendar month, but also
+  # observed / expected rate assuming everything is constant, and if sccsModel is
+  # provided, observed / expected using the adjustments in the model.
+  # To compute the expected rate for a month, we must consider only those cases
+  # observed during that month, summing their respective incidence rates.
+
   if (nrow(studyPopulation$cases) == 0) {
-    tibble(
+    result <- tibble(
       month = 1.0,
       observedCount = 1.0,
       observationPeriodCount = 1.0,
@@ -25,8 +31,8 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
       adjustedRate = 1.0,
       monthStartDate = as.Date("2000-01-01"),
       monthEndDate = as.Date("2000-01-01")) %>%
-      filter(month == 0) %>%
-      return()
+      filter(month == 0)
+    return(result)
   }
   cases <- studyPopulation$cases %>%
     mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
@@ -78,23 +84,11 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
       select(-"monthOfYear") %>%
       mutate(totalRr = .data$totalRr * .data$seasonRr)
   }
-  computeCorrection <- function(startMonth, endMonth, startMonthFraction, endMonthFraction) {
-    monthAdjustments %>%
-      filter(.data$month >= startMonth, .data$month <= endMonth) %>%
-      mutate(weight = if_else(.data$month == startMonth,
-                              startMonthFraction,
-                              if_else(.data$month == endMonth,
-                                      endMonthFraction,
-                                      1))) %>%
-      summarize(correction = sum(.data$weight * .data$totalRr) / sum(.data$weight)) %>%
-      pull(.data$correction) %>%
-      return()
-  }
   if (hasAdjustment) {
+    # Need to correct for the fact that a person may have seen only part of the spline, so
+    # techincally has a different intercept:
     cases <- cases %>%
-      rowwise() %>%
-      mutate(correction = computeCorrection(.data$startMonth, .data$endMonth, .data$startMonthFraction, .data$endMonthFraction)) %>%
-      ungroup()
+      mutate(correction = computeCorrections(cases, monthAdjustments))
   } else {
     cases <- cases %>%
       mutate(correction = 1)
@@ -134,24 +128,22 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
 #' Compute stability of outcome rate over time
 #'
 #' @details
-#' Computes for each calendar month the rate of the outcome, and evaluates whether that rate is constant over time. If
-#' splines are used to adjust for seasonality and/or calendar time, these adjustments are taken into consideration. For each
-#' month a two-sided p-value is computed against the null hypothesis that the rate in that month deviates from the mean rate
-#' no more than `maxRatio`. This p-value is compared to an alpha value, using a Bonferroni correction to adjust for the
-#' multiple testing across months.
+#' Computes for each month the observed and expected count, and computes the (weighted) mean ratio between the two. If
+#' splines are used to adjust for seasonality and/or calendar time, these adjustments are taken into consideration when
+#' considering the expected count. A one-sided p-value is computed against the null hypothesis that the ratio is smaller
+#' than `maxRatio`. If this p-value exceeds the specified alpha value, the series is considered stable.
 #'
 #' @template StudyPopulation
 #' @param sccsModel         Optional: A fitted SCCS model as created using [fitSccsModel()]. If the
 #'                          model contains splines for seasonality and or calendar time these will be adjusted
 #'                          for before computing stability.
-#' @param maxRatio          The maximum ratio between the (adjusted) rate in a month, and the mean (adjusted) rate that
-#'                          we would consider to be irrelevant.
-#' @param alpha             The alpha (type 1 error) used to test for stability. A Bonferroni correction will
-#'                          be applied for the number of months tested.
+#' @param maxRatio          The maximum global ratio between the observed and expected count.
+#' @param alpha             The alpha (type 1 error) used to test for stability.
 #'
 #' @return
-#' A tibble with information on the temporal stability per month. The column `stable` indicates whether the rate
-#' of the outcome is within the expected range for that month, assuming the rate is constant over time.
+#' A tibble with one row and three columns: `ratio` indicates the estimated mean ratio between observed and expected.
+#' `p` is the p-value against the null-hypothesis that the ratio is smaller than `maxRatio`, and `stable` is `TRUE`
+#' if `p` is greater than `alpha`.
 #'
 #' @export
 computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.25, alpha = 0.05) {
@@ -162,12 +154,25 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   checkmate::assertNumeric(alpha, lower = 0, upper = 1, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
+  data <- SelfControlledCaseSeries:::computeOutcomeRatePerMonth(studyPopulation, sccsModel)
+  if (nrow(data) == 0) {
+    result <- tibble(ratio = NA,
+                     p = 1,
+                     stable = TRUE)
+    return(result)
+  }
   o <- data$observedCount
   e <- data$observedCount / data$adjustedRate
 
+  # logLikelihood <- function(x) {
+  #   return(-sum(log(dpois(o, e*x) + dpois(o, e/x))))
+  # }
+  # From https://cdsmithus.medium.com/the-logarithm-of-a-sum-69dd76199790
+  smoothMax <- function(x, y) {
+    return(ifelse(abs(x-y) > 100, pmax(x,y), x + log(1 + exp(y-x))))
+  }
   logLikelihood <- function(x) {
-    return(-sum(log(dpois(o, e*x) + dpois(o, e/x))))
+    return(-sum(smoothMax(dpois(o, e*x, log = TRUE), dpois(o, e/x, log = TRUE))))
   }
   likelihood <- function(x) {
     return(exp(-logLikelihood(x)))
@@ -175,7 +180,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   vectorLikelihood <- function(x) {
     return(sapply(x, likelihood))
   }
-  x <- seq(1,10, by = 0.1)
+  x <- seq(1, 10, by = 0.1)
   ll <- sapply(x, logLikelihood)
   maxX <- x[max(which(!is.na(ll) & !is.infinite(ll)))]
   minX <- x[min(which(!is.na(ll) & !is.infinite(ll)))]

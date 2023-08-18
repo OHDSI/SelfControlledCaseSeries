@@ -123,6 +123,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// computeCorrections
+std::vector<double> computeCorrections(const DataFrame& cases, const DataFrame& monthAdjustments);
+RcppExport SEXP _SelfControlledCaseSeries_computeCorrections(SEXP casesSEXP, SEXP monthAdjustmentsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const DataFrame& >::type cases(casesSEXP);
+    Rcpp::traits::input_parameter< const DataFrame& >::type monthAdjustments(monthAdjustmentsSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeCorrections(cases, monthAdjustments));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SelfControlledCaseSeries_convertToSccs", (DL_FUNC) &_SelfControlledCaseSeries_convertToSccs, 18},
@@ -131,6 +143,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SelfControlledCaseSeries_testEwid", (DL_FUNC) &_SelfControlledCaseSeries_testEwid, 6},
     {"_SelfControlledCaseSeries_testEgad", (DL_FUNC) &_SelfControlledCaseSeries_testEgad, 6},
     {"_SelfControlledCaseSeries_testEgid", (DL_FUNC) &_SelfControlledCaseSeries_testEgid, 6},
+    {"_SelfControlledCaseSeries_computeCorrections", (DL_FUNC) &_SelfControlledCaseSeries_computeCorrections, 2},
     {NULL, NULL, 0}
 };
 

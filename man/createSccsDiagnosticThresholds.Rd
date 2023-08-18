@@ -18,7 +18,7 @@ createSccsDiagnosticThresholds(
 \item{easeThreshold}{What is the maximum allowed expected absolute systematic error
 (EASE).}
 
-\item{timeTrendPThreshold}{What family-wise p-value threshold (alpha) will be used to determine
+\item{timeTrendPThreshold}{What p-value threshold (alpha) will be used to determine
 temporal instability?}
 
 \item{preExposurePThreshold}{What p-value threshold (alpha) will be used to determine whether the

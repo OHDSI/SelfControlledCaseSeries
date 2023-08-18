@@ -18,23 +18,21 @@ computeTimeStability(
 model contains splines for seasonality and or calendar time these will be adjusted
 for before computing stability.}
 
-\item{maxRatio}{The maximum ratio between the (adjusted) rate in a month, and the mean (adjusted) rate that
-we would consider to be irrelevant.}
+\item{maxRatio}{The maximum global ratio between the observed and expected count.}
 
-\item{alpha}{The alpha (type 1 error) used to test for stability. A Bonferroni correction will
-be applied for the number of months tested.}
+\item{alpha}{The alpha (type 1 error) used to test for stability.}
 }
 \value{
-A tibble with information on the temporal stability per month. The column \code{stable} indicates whether the rate
-of the outcome is within the expected range for that month, assuming the rate is constant over time.
+A tibble with one row and three columns: \code{ratio} indicates the estimated mean ratio between observed and expected.
+\code{p} is the p-value against the null-hypothesis that the ratio is smaller than \code{maxRatio}, and \code{stable} is \code{TRUE}
+if \code{p} is greater than \code{alpha}.
 }
 \description{
 Compute stability of outcome rate over time
 }
 \details{
-Computes for each calendar month the rate of the outcome, and evaluates whether that rate is constant over time. If
-splines are used to adjust for seasonality and/or calendar time, these adjustments are taken into consideration. For each
-month a two-sided p-value is computed against the null hypothesis that the rate in that month deviates from the mean rate
-no more than \code{maxRatio}. This p-value is compared to an alpha value, using a Bonferroni correction to adjust for the
-multiple testing across months.
+Computes for each month the observed and expected count, and computes the (weighted) mean ratio between the two. If
+splines are used to adjust for seasonality and/or calendar time, these adjustments are taken into consideration when
+considering the expected count. A one-sided p-value is computed against the null hypothesis that the ratio is smaller
+than \code{maxRatio}. If this p-value exceeds the specified alpha value, the series is considered stable.
 }

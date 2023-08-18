@@ -26,7 +26,7 @@
 #'                              (MDRR)?
 #' @param easeThreshold         What is the maximum allowed expected absolute systematic error
 #'                              (EASE).
-#' @param timeTrendPThreshold   What family-wise p-value threshold (alpha) will be used to determine
+#' @param timeTrendPThreshold   What p-value threshold (alpha) will be used to determine
 #'                              temporal instability?
 #' @param preExposurePThreshold What p-value threshold (alpha) will be used to determine whether the
 #'                              rate of the outcome was higher just before exposure initiation?
@@ -568,15 +568,17 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         )
     }
 
-    # sccsTimeTrend table
-    timeTrendData <- computeTimeStability(
+    # sccsTimeTrend table. No longer computing stability per month. Set flag
+    # to TRUE for all months for backwards compatability:
+    timeTrendData <- computeOutcomeRatePerMonth(
       studyPopulation = studyPop,
       sccsModel = sccsModel
     ) %>%
       mutate(
         calendarYear = floor(.data$month / 12),
         calendarMonth = floor(.data$month %% 12) + 1,
-        stable = as.integer(.data$stable)
+        stable = 1,
+        p = 1
       ) %>%
       select(
         "calendarYear",
@@ -596,11 +598,12 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
       bind_cols(timeTrendData)
 
     # sccsDiagnosticsSummary table
+    stability <- computeTimeStability(studyPopulation = studyPop, sccsModel = sccsModel)
     table <- ease %>%
       filter(.data$exposuresOutcomeSetId == refRow$exposuresOutcomeSetId & .data$analysisId == refRow$analysisId) %>%
       mutate(
         mdrr = as.numeric(NA),
-        timeTrendP = min(timeTrendData$p * nrow(timeTrendData)),
+        timeTrendP = stability$p,
         preExposureP = as.numeric(NA)
       )
     for (j in seq_len(nrow(table))) {

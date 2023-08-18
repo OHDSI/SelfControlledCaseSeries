@@ -25,3 +25,7 @@ testEgid <- function(p, present, astart, aend, start, end) {
     .Call('_SelfControlledCaseSeries_testEgid', PACKAGE = 'SelfControlledCaseSeries', p, present, astart, aend, start, end)
 }
 
+computeCorrections <- function(cases, monthAdjustments) {
+    .Call('_SelfControlledCaseSeries_computeCorrections', PACKAGE = 'SelfControlledCaseSeries', cases, monthAdjustments)
+}
+
