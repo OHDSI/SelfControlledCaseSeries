@@ -155,19 +155,39 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   } else {
     data <- adjustOutcomeRatePerMonth(data, sccsModel)
   }
-  computeTwoSidedP <- function(observed, expected) {
-    pUpperBound <- 1 - ppois(observed, expected * maxRatio, lower.tail = TRUE)
-    pLowerBound <- 1 - ppois(observed, expected / maxRatio, lower.tail = FALSE)
-    return(pmin(1, 2 * pmin(pUpperBound, pLowerBound)))
+  o <- data$observedCount
+  e <- data$observedCount / data$adjustedRate
+
+  logLikelihood <- function(x) {
+    return(-sum(log(dpois(o, e*x) + dpois(o, e/x))))
   }
-  data <- data %>%
-    mutate(expected = .data$observedCount / .data$adjustedRate) %>%
-    mutate(
-      p = computeTwoSidedP(.data$observedCount , .data$expected),
-      alpha = !!alpha / n()
-    ) %>%
-    mutate(stable = .data$p >= .data$alpha)
-  return(data)
+  likelihood <- function(x) {
+    return(exp(-logLikelihood(x)))
+  }
+  vectorLikelihood <- function(x) {
+    return(sapply(x, likelihood))
+  }
+  x <- seq(1,10, by = 0.5)
+  ll <- sapply(x, logLikelihood)
+  maxX <- x[max(which(!is.na(ll) & !is.infinite(ll)))]
+  minX <- x[min(which(!is.na(ll) & !is.infinite(ll)))]
+  xHat <- optim(1.5, logLikelihood, lower = minX, upper = maxX, method = "L-BFGS-B")$par
+  l0 <- integrate(vectorLikelihood, lower = 1, upper = maxRatio)$value
+  l1 <- integrate(vectorLikelihood, lower = maxRatio, upper = Inf)$value
+  llr <- 2*(log(l1) - log(l0))
+  if (is.nan(llr)) {
+    if (xHat > maxRatio) {
+      p <- 0
+    } else {
+      p <- 1
+    }
+  } else {
+    p <- pchisq(llr, 1, lower.tail = FALSE)
+  }
+  result <- tibble(ratio = xHat,
+                   p = p,
+                   stable = p > alpha)
+  return(result)
 }
 
 
