@@ -257,7 +257,7 @@ addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsD
   } else {
     if (length(seasonalityCovariateSettings$seasonKnots) == 1) {
       # Single number, should interpret as number of knots. Spread out knots evenly:
-      seasonKnots <- seq(1, 12, length.out = seasonalityCovariateSettings$seasonKnots)
+      seasonKnots <- 0.5 + seq(0, 12, length.out = seasonalityCovariateSettings$seasonKnots)
     } else {
       seasonKnots <- seasonalityCovariateSettings$seasonKnots
     }
@@ -323,7 +323,7 @@ addCalendarTimeSettings <- function(settings,
         # Evenly divide free knots (knots not at boundary) over periods:
         freeKnotsInPeriod <- round((calendarTimeCovariateSettings$calendarTimeKnots - 2) * (totalInPeriod / total))
         knotsInPeriod <- freeKnotsInPeriod + 2
-        cutoffs <- totalInPeriod * seq(0.01, 0.99, length.out = knotsInPeriod)
+        cutoffs <- totalInPeriod * seq(0.005, 0.995, length.out = knotsInPeriod)
         calendarTimeKnots <- rep(0, knotsInPeriod)
         for (j in seq_len(knotsInPeriod)) {
           calendarTimeKnots[j] <- min(countsInPeriod$month[countsInPeriod$cumCount >= cutoffs[j]])

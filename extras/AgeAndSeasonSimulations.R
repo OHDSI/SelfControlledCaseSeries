@@ -1,9 +1,9 @@
 library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "d:/andromedaTemp")
-settings <- createSccsSimulationSettings(includeAgeEffect = TRUE,
-                                         includeCalendarTimeEffect = TRUE,
-                                         includeSeasonality = TRUE)
-set.seed(1234)
+settings <- createSccsSimulationSettings(includeAgeEffect = F,
+                                         includeCalendarTimeEffect = T,
+                                         includeSeasonality = F)
+set.seed(123)
 sccsData <- simulateSccsData(5000, settings)
 # summary(sccsData)
 ageSettings <- createAgeCovariateSettings(ageKnots = 5,
@@ -22,13 +22,13 @@ covarSettings <- createEraCovariateSettings(label = "Exposure of interest",
 studyPop <- createStudyPopulation(sccsData = sccsData,
                                   outcomeId = 10,
                                   firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+                                  naivePeriod = 0)
 
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData = sccsData,
                                            eraCovariateSettings = covarSettings,
                                            # ageCovariateSettings = ageSettings,
-                                           seasonalityCovariateSettings = seasonalitySettings,
+                                           # seasonalityCovariateSettings = seasonalitySettings,
                                            calendarTimeCovariateSettings = calendarTimeSettings,
                                            minCasesForTimeCovariates = 10000)
 
@@ -50,18 +50,18 @@ writeLines(sprintf("True RR: %0.2f, estimate: %0.2f (%0.2f-%0.2f)",
 
 
 # model
-# plotSeasonality(model)
-# plotAgeEffect(model)
-# plotCalendarTimeEffect(model)
-# plotEventToCalendarTime(studyPop, model)
-# computeTimeStability(studyPop)$stable
-# computeTimeStability(studyPop, model)$stable
+plotSeasonality(model)
+plotAgeEffect(model)
+plotCalendarTimeEffect(model)
+plotEventToCalendarTime(studyPop, model)
+computeTimeStability(studyPop)
+computeTimeStability(studyPop, model)
 
 ### Plot simulated seasonality ###
 estimates <- model$estimates
 splineCoefs <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, "logRr"]
 seasonKnots <- model$metaData$seasonality$seasonKnots
-season <- seq(min(seasonKnots), max(seasonKnots), length.out = 100)
+season <- seq(0,12, length.out = 100)
 seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
 logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
 logRr <- logRr - mean(logRr)
@@ -72,7 +72,7 @@ x <- 1:365
 y <- attr(sccsData, "metaData")$seasonFun(x)
 y <- y - mean(y)
 y <- exp(y)
-x <- 1 + x * 11/365
+x <- x * 12/365
 data <- rbind(data, data.frame(x = x, y = y, type = "simulated"))
 breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
 seasonBreaks <- 1:12
@@ -159,7 +159,7 @@ estimates <- model$estimates
 estimates <- estimates[estimates$covariateId >= 300 & estimates$covariateId < 400, ]
 splineCoefs <- estimates$logRr
 
-calendarTime <- seq(settings$minCalendarTime, settings$maxCalendarTime, length.out = 100)
+calendarTime <- seq(settings$minCalendarTime, settings$maxCalendarTime, length.out = 50)
 calendarMonth <- as.numeric(format(calendarTime,'%Y')) * 12 + as.numeric(format(calendarTime,'%m')) - 1
 calendarTimeKnots <- model$metaData$calendarTime$calendarTimeKnotsInPeriods[[1]]
 calendarTimeDesignMatrix <- splines::bs(x = calendarMonth,
