@@ -24,11 +24,11 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(
   user = keyring::key_get("redShiftUserName"),
   password = keyring::key_get("redShiftPassword")
 )
-cdmDatabaseSchema <- "cdm_truven_mdcd_v1734"
+cdmDatabaseSchema <- "cdm_truven_mdcd_v2565"
 cohortDatabaseSchema <- "scratch_mschuemi"
-outcomeTable <- "sccs_vignette"
+cohortTable <- "sccs_vignette"
 options(sqlRenderTempEmulationSchema = NULL)
-outcomeTable <- "sccs_vignette"
+cohortTable <- "sccs_vignette"
 cdmVersion <- "5"
 outputFolder <- "d:/temp/sccsVignette2"
 
@@ -36,31 +36,24 @@ outputFolder <- "d:/temp/sccsVignette2"
 # Create cohorts ---------------------------------------------------------------
 connection <- DatabaseConnector::connect(connectionDetails)
 
-sql <- loadRenderTranslateSql("vignette.sql",
-                              packageName = "SelfControlledCaseSeries",
-                              dbms = connectionDetails$dbms,
-                              cdmDatabaseSchema = cdmDatabaseSchema,
-                              cohortDatabaseSchema = cohortDatabaseSchema,
-                              outcomeTable = outcomeTable
-)
-
-DatabaseConnector::executeSql(connection, sql)
+cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
+CohortGenerator::createCohortTables(connection = connection,
+                                    cohortDatabaseSchema = cohortDatabaseSchema,
+                                    cohortTableNames = cohortTableNames)
+cohortDefinitionSet <- PhenotypeLibrary::getPlCohortDefinitionSet(77)
+counts <- CohortGenerator::generateCohortSet(connection = connection,
+                                             cdmDatabaseSchema = cdmDatabaseSchema,
+                                             cohortDatabaseSchema = cohortDatabaseSchema,
+                                             cohortTableNames = cohortTableNames,
+                                             cohortDefinitionSet = cohortDefinitionSet)
 
 # Check number of subjects per cohort:
-sql <- "SELECT cohort_definition_id, COUNT(*) AS count FROM @cohortDatabaseSchema.@outcomeTable GROUP BY cohort_definition_id"
+sql <- "SELECT cohort_definition_id, COUNT(*) AS count FROM @cohortDatabaseSchema.@cohortTable GROUP BY cohort_definition_id;"
 sql <- SqlRender::render(sql,
                          cohortDatabaseSchema = cohortDatabaseSchema,
-                         outcomeTable = outcomeTable
-)
+                         cohortTable = cohortTable)
 sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
 DatabaseConnector::querySql(connection, sql)
-
-# Get all PPIs:
-# sql <- "SELECT concept_id FROM @cdmDatabaseSchema.concept_ancestor INNER JOIN @cdmDatabaseSchema.concept ON descendant_concept_id = concept_id WHERE ancestor_concept_id = 21600095 AND concept_class_id = 'Ingredient'"
-# sql <- SqlRender::render(sql, cdmDatabaseSchema = cdmDatabaseSchema)
-# sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
-# ppis <- DatabaseConnector::querySql(connection, sql)
-# ppis <- ppis$CONCEPT_ID
 
 DatabaseConnector::disconnect(connection)
 
@@ -93,15 +86,16 @@ negativeControls <- c(
 )
 diclofenac <- 1124300
 ppis <- c(911735, 929887, 923645, 904453, 948078, 19039926)
+giBleed <- 77
 
 exposuresOutcomeList <- list()
 exposuresOutcomeList[[1]] <- createExposuresOutcome(
-  outcomeId = 1,
+  outcomeId = giBleed,
   exposures = list(createExposure(exposureId = diclofenac))
 )
 for (exposureId in c(negativeControls)) {
   exposuresOutcome <- createExposuresOutcome(
-    outcomeId = 1,
+    outcomeId = giBleed,
     exposures = list(createExposure(exposureId = exposureId, trueEffectSize = 1))
   )
   exposuresOutcomeList[[length(exposuresOutcomeList) + 1]] <- exposuresOutcome
@@ -256,13 +250,13 @@ exposuresOutcomeList <- loadExposuresOutcomeList(file.path(outputFolder, "exposu
 sccsAnalysisList <- loadSccsAnalysisList(file.path(outputFolder, "sccsAnalysisList.txt"))
 multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(parallel::detectCores() - 1)
 
-referenceTable <- runSccsAnalyses(
+runSccsAnalyses(
   connectionDetails = connectionDetails,
   cdmDatabaseSchema = cdmDatabaseSchema,
   exposureDatabaseSchema = cdmDatabaseSchema,
   exposureTable = "drug_era",
   outcomeDatabaseSchema = cohortDatabaseSchema,
-  outcomeTable = outcomeTable,
+  outcomeTable = cohortTable,
   cdmVersion = cdmVersion,
   outputFolder = outputFolder,
   combineDataFetchAcrossOutcomes = TRUE,

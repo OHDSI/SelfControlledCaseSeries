@@ -525,8 +525,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         )
     }
     if (!is.null(sccsModel$metaData$calendarTime)) {
-      calendarTimeKnots <- sccsModel$metaData$calendarTime$calendarTimeKnots
-
+      calendarTimeKnots <- do.call(c, sccsModel$metaData$calendarTime$calendarTimeKnotsInPeriods)
       sccsSpline[[length(sccsSpline) + 1]] <- refRow %>%
         select("analysisId", "exposuresOutcomeSetId") %>%
         bind_cols(

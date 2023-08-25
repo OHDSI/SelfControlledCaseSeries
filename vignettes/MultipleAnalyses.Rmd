@@ -11,8 +11,8 @@ output:
     toc: yes
 vignette: >
   %\VignetteIndexEntry{Multiple analyses using SelfControlledCaseSeries}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 
@@ -20,6 +20,8 @@ vignette: >
 library(SelfControlledCaseSeries)
 library(EmpiricalCalibration)
 outputFolder <- "d:/temp/sccsVignette2"
+diclofenac <- 1124300
+giBleed <- 77
 ```
 # Introduction
 
@@ -69,49 +71,29 @@ cdmVersion <- "5"
 
 The last three lines define the `cdmDatabaseSchema` and `cohortDatabaseSchema` variables, as well as the CDM version. We'll use these later to tell R where the data in CDM format live, where we want to store the (outcome) cohorts, and what version CDM is used. Note that for Microsoft SQL Server, databaseschemas need to specify both the database and the schema, so for example `cdmDatabaseSchema <- "my_cdm_data.dbo"`.
 
-We also need to prepare our exposures and outcomes of interest. The drug_era table in the OMOP Common Data Model already contains pre-specified cohorts of users at the ingredient level, so we will use that for the exposures. For the outcomes, we want to restrict our analysis only to those events that are recorded in an inpatient setting, so we will need to create a custom cohort table. For this example, we are only interested in GI bleed (concept ID 192671) .  
-
-We create a text file called *vignette.sql* with the following content:
-
-```sql
-/***********************************
-File vignette.sql 
-***********************************/
-
-DROP TABLE IF EXISTS @cohortDatabaseSchema.@outcomeTable;
-
-SELECT 1 AS cohort_definition_id,
-condition_start_date AS cohort_start_date,
-condition_end_date AS cohort_end_date,
-condition_occurrence.person_id AS subject_id
-INTO @cohortDatabaseSchema.@outcomeTable
-FROM @cdmDatabaseSchema.condition_occurrence
-INNER JOIN @cdmDatabaseSchema.visit_occurrence
-ON condition_occurrence.visit_occurrence_id = visit_occurrence.visit_occurrence_id
-WHERE condition_concept_id IN (
-SELECT descendant_concept_id
-FROM @cdmDatabaseSchema.concept_ancestor
-WHERE ancestor_concept_id = 192671 -- GI - Gastrointestinal haemorrhage
-)
-AND visit_occurrence.visit_concept_id IN (9201, 9203);
-```
-
-This is parameterized SQL which can be used by the `SqlRender` package. We use parameterized SQL so we do not have to pre-specify the names of the CDM and result schemas. That way, if we want to run the SQL on a different schema, we only need to change the parameter values; we do not have to change the SQL code. By also making use of translation functionality in `SqlRender`, we can make sure the SQL code can be run in many different environments.
+We also need to prepare our exposures and outcomes of interest. The drug_era table in the OMOP Common Data Model already contains pre-specified cohorts of users at the ingredient level, so we will use that for the exposures. For the outcome we can use the OHDSI `PhenotypeLibrary` to retrieve a community-approved definition of GI bleeding:
 
 ```{r eval=FALSE}
-library(SqlRender)
-sql <- readSql("vignette.sql")
-sql <- render(sql,
-  cdmDatabaseSchema = cdmDatabaseSchema,
-  cohortDatabaseSchema = cohortDatabaseSchema
-)
-sql <- translate(sql, targetDialect = connectionDetails$dbms)
-
-connection <- connect(connectionDetails)
-executeSql(connection, sql)
+epistaxis <- 77
+cohortDefinitionSet <- PhenotypeLibrary::getPlCohortDefinitionSet(epistaxis)
 ```
 
-In this code, we first read the SQL from the file into memory. In the next line, we replace the two parameter names with the actual values. We then translate the SQL into the dialect appropriate for the DBMS we already specified in the `connectionDetails`. Next, we connect to the server, and submit the rendered and translated SQL.
+We can use the `CohortGenerator` package to instantiate this cohort:
+
+```{r eval=FALSE}
+connection <- DatabaseConnector::connect(connectionDetails)
+cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
+CohortGenerator::createCohortTables(connection = connection,
+                                    cohortDatabaseSchema = cohortDatabaseSchema,
+                                    cohortTableNames = cohortTableNames)
+counts <- CohortGenerator::generateCohortSet(connection = connection,
+                                             cdmDatabaseSchema = cdmDatabaseSchema,
+                                             cohortDatabaseSchema = cohortDatabaseSchema,
+                                             cohortTableNames = cohortTableNames,
+                                             cohortDefinitionSet = cohortDefinitionSet)
+DatabaseConnector::disconnect(connection)
+```
+
 
 # Specifying exposures-outcome sets
 
@@ -125,15 +107,16 @@ negativeControls <- c(
   1317967, 1501309, 1505346, 1551673, 1560278, 1584910, 19010309,
   40163731
 )
+giBleed <- 77
 
 exposuresOutcomeList <- list()
 exposuresOutcomeList[[1]] <- createExposuresOutcome(
-  outcomeId = 1,
+  outcomeId = giBleed,
   exposures = list(createExposure(exposureId = diclofenac))
 )
 for (exposureId in c(negativeControls)) {
   exposuresOutcome <- createExposuresOutcome(
-    outcomeId = 1,
+    outcomeId = giBleed,
     exposures = list(createExposure(exposureId = exposureId, trueEffectSize = 1))
   )
   exposuresOutcomeList[[length(exposuresOutcomeList) + 1]] <- exposuresOutcome
@@ -356,17 +339,17 @@ If for some reason the execution was interrupted, you can restart by re-issuing 
 The result of the `runSccsAnalyses()` is a data frame with one row per exposures-outcome-analysis combination, so one row per fitted SCCS model. It provides the file names of the intermediate and end-result files that were constructed. For example, we can retrieve the fitted model for the combination of our drug of interest,  outcome, and first analysis:
 
 ```{r eval=FALSE}
-sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 &
-  result$outcomeId == 1 &
+sccsModelFile <- result$sccsModelFile[result$exposureId == diclofenac &
+  result$outcomeId == giBleed &
   result$analysisId == 1]
 sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
 sccsModel
 ```
 ```{r echo=FALSE,message=FALSE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  result <- readRDS(file.path(outputFolder, "outcomeModelReference.rds"))
-  sccsModelFile <- result$sccsModelFile[result$exposureId == 1124300 &
-    result$outcomeId == 1 &
+  result <- getFileReference(outputFolder)
+  sccsModelFile <- result$sccsModelFile[result$exposureId == diclofenac &
+    result$outcomeId == giBleed &
     result$analysisId == 1]
   sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
   sccsModel
@@ -403,8 +386,8 @@ install.packages("EmpiricalCalibration")
 library(EmpiricalCalibration)
 
 # Analysis 1: Simplest model
-negCons <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId != 1124300, ]
-ei <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == 1124300, ]
+negCons <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId != diclofenac, ]
+ei <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == diclofenac, ]
 null <- fitNull(
   negCons$logRr,
   negCons$seLogRr
@@ -419,8 +402,8 @@ plotCalibrationEffect(
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId != 1124300, ]
-  ei <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == 1124300, ]
+  negCons <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId != diclofenac, ]
+  ei <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == diclofenac, ]
   null <- fitNull(
     negCons$logRr,
     negCons$seLogRr
@@ -437,8 +420,8 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 
 ```{r eval=FALSE}
 # Analysis 2: Including prophylactics and pre-exposure
-negCons <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId != 1124300, ]
-ei <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == 1124300, ]
+negCons <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId != diclofenac, ]
+ei <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == diclofenac, ]
 null <- fitNull(
   negCons$logRr,
   negCons$seLogRr
@@ -453,8 +436,8 @@ plotCalibrationEffect(
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId != 1124300, ]
-  ei <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == 1124300, ]
+  negCons <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId != diclofenac, ]
+  ei <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == diclofenac, ]
   null <- fitNull(
     negCons$logRr,
     negCons$seLogRr
@@ -471,8 +454,8 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 
 ```{r eval=FALSE}
 # Analysis 3: Including prophylactics, season, calendar time, and pre-exposure
-negCons <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId != 1124300, ]
-ei <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == 1124300, ]
+negCons <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId != diclofenac, ]
+ei <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == diclofenac, ]
 null <- fitNull(
   negCons$logRr,
   negCons$seLogRr
@@ -487,8 +470,8 @@ plotCalibrationEffect(
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId != 1124300, ]
-  ei <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == 1124300, ]
+  negCons <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId != diclofenac, ]
+  ei <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == diclofenac, ]
   null <- fitNull(
     negCons$logRr,
     negCons$seLogRr
@@ -505,8 +488,8 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 
 ```{r eval=FALSE}
 # Analysis 4: Including all other drugs
-negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
-ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != diclofenac, ]
+ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == diclofenac, ]
 null <- fitNull(
   negCons$logRr,
   negCons$seLogRr
@@ -521,8 +504,8 @@ plotCalibrationEffect(
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
-  ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+  negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != diclofenac, ]
+  ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == diclofenac, ]
   null <- fitNull(
     negCons$logRr,
     negCons$seLogRr
@@ -539,8 +522,8 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 
 ```{r eval=FALSE}
 # Analysis 5: Adjusting for event-dependent obs. end
-negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
-ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != diclofenac, ]
+ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == diclofenac, ]
 null <- fitNull(
   negCons$logRr,
   negCons$seLogRr
@@ -555,8 +538,8 @@ plotCalibrationEffect(
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != 1124300, ]
-  ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == 1124300, ]
+  negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != diclofenac, ]
+  ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == diclofenac, ]
   null <- fitNull(
     negCons$logRr,
     negCons$seLogRr
