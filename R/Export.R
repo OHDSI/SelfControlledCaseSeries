@@ -581,7 +581,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         "calendarYear",
         "calendarMonth",
         observedSubjects = "observationPeriodCount",
-        outcomeRatio = "ratio",
+        ratio = "ratio",
         "adjustedRatio"
       ) %>%
       mutate(databaseId = !!databaseId)

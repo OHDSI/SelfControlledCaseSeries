@@ -4,7 +4,7 @@ SELECT analysis_id,
 	calendar_year
 	calendar_month,
 	observed_subjects,
-	NULL AS outcome_ratio,
+	NULL AS ratio,
 	NULL AS adjusted_ratio
 INTO @new_time_trend_table
 FROM @old_time_trend_table;
