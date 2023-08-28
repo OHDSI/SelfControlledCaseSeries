@@ -366,7 +366,12 @@ plotExposureCentered <- function(studyPopulation,
   return(plot)
 }
 
-#' Plot the count of events over calendar time.
+#' Plot the ratio of observed to expected events over calendar time.
+#'
+#' @details
+#' Plot the ratio of observed to expected events over calendar time. The expected count expected
+#' rate considers which persons were observed during that month, and if specified in the model,
+#' the adjustment for season and calendar time.
 #'
 #' @template StudyPopulation
 #' @param sccsModel         Optional: A fitted SCCS model as created using [fitSccsModel()]. If the

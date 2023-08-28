@@ -2,7 +2,7 @@
 % Please edit documentation in R/Plots.R
 \name{plotEventToCalendarTime}
 \alias{plotEventToCalendarTime}
-\title{Plot the count of events over calendar time.}
+\title{Plot the ratio of observed to expected events over calendar time.}
 \usage{
 plotEventToCalendarTime(
   studyPopulation,
@@ -28,5 +28,10 @@ A ggplot object. Use the \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} functio
 format.
 }
 \description{
-Plot the count of events over calendar time.
+Plot the ratio of observed to expected events over calendar time.
+}
+\details{
+Plot the ratio of observed to expected events over calendar time. The expected count expected
+rate considers which persons were observed during that month, and if specified in the model,
+the adjustment for season and calendar time.
 }

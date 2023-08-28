@@ -13,6 +13,10 @@ Changes
 
 5. The spline for calendar time effects can now be multi-segmented, for multiple study periods. Internal knots are evenly distributed over segments based on the amount of data per segment. Additional boundary knots are automatically added for additional segments.
 
+6. Changed the stability metric implemented in the `computeTimeStability()` function in two ways: First, the observed rate of the outcome for each month is now compared against the expected rate. This expected rate considers which persons were observed during that month, and if specified, the adjustment for season and calendar time. Second, instead of considering whether any single month exceeded the threshold, the metric now considers whether the mean ratio across all months exceeds the threshold. Together, this makes the metric more robust, and less likely to declare instability when the majority of data is stable.
+
+7. Changed the `plotEventToCalendarTime()` to show the observed-to-expected ratio, both with and without adjustments for season and calendar time (if specified in the model).
+
 Bugfix
 
 1. Using BIGINT when summing patient days to avoid errors when populations are large.
