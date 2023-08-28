@@ -90,7 +90,7 @@ sccs_time_trend,database_id,varchar,Yes,Yes,No,Foreign key referencing the datab
 sccs_time_trend,calendar_year,int,Yes,Yes,No,The calendar year (e.g. 2022).
 sccs_time_trend,calendar_month,int,Yes,Yes,No,The calendar month (e.g. 1 for January).
 sccs_time_trend,observed_subjects,int,No,No,Yes,Number of people observed during the month.
-sccs_time_trend,outcome_ratio,float,No,No,Yes,Observed over expected ratio, where the expected count assumes a constant rate over time.
+sccs_time_trend,outcome_ratio,float,No,No,Yes,"Observed over expected ratio, where the expected count assumes a constant rate over time."
 sccs_time_trend,adjusted_ratio,float,No,No,Yes,"Observed over expected ratio, where the expected count is adjusted for age, season, or calendar time, as specified in the analysis."
 sccs_time_to_event,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_time_to_event,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
