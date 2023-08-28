@@ -23,14 +23,15 @@ folderExists <- dir.exists(outputFolder)
 # Introduction
 
 This vignette describes how you can use the `SelfControlledCaseSeries` package to perform a single Self-Controlled Case Series (SCCS) study. We will walk through all the steps needed to perform an exemplar study, and we have selected the well-studied topic of the effect of aspirin on epistaxis.
+
 ## Terminology
 
 The following terms are used consistently throughout the package:
 
-- **Case**: a period of continuous observation of a person containing one or more outcomes. One person can contribute to multiple cases, e.g. when the person has multiple observation periods.
+- **Case**: a period of continuous observation of a person containing one or more outcomes. One person can contribute to multiple cases, for example when the person has multiple observation periods.
 - **Observation period**: the time when a person is observed in the database, e.g. the time when enrolled in an insurance plan.
 - **Nesting cohort**: a cohort defining when persons are eligible to be included as cases. This is typically the indication of the drug. For example, if the drug treats diabetes, we may want to nest the analysis in the time when people have diabetes to avoid (time-varying) confounding by indication.
-- **Study period**: a period of calendar time when persons are eligible to be included as cases. For example, a study period could be January 1, 2020, onward. Unlink nesting cohorts, which could specify different time periods per person, a study period applies to all persons. 
+- **Study period**: a period of calendar time when persons are eligible to be included as cases. For example, a study period could be January 1, 2020, onward. Unlike nesting cohorts, which could specify different time periods per person, a study period applies to all persons. 
 - **Naive period**: the first part of a person's observation period (e.g. the first 180 days). This is typically removed from the SCCS model to avoid exposure and incident outcome misclassification. For example, if we observe the outcome on the second day of a person's observation period, we do not know whether the outcome is a new one or just a follow-up for an old one, and whether the patient may have started the exposure just prior to observation start without us knowing about it.
 - **Study population**: the set of cases having a specific outcome, that meet certain criteria, such as the naive period and age restrictions.
 - **Era**: a data element extracted from the database denoting a time period for a patient (a case). This can be a cohort, but also a drug era. 
@@ -88,11 +89,11 @@ cohortTable <- "my_cohorts"
 options(sqlRenderTempEmulationSchema = NULL)
 ```
 
-The last three lines define the `cdmDatabaseSchema` and `cohortDatabaseSchema` variables,as well as the CDM version. We'll use these later to tell R where the data in CDM format live, where we have stored our cohorts of interest, and what version CDM is used. Note that for Microsoft SQL Server, 'databaseSchemas' need to specify both the database and the schema, so for example `cdmDatabaseSchema <- "my_cdm_data.dbo"`.
+The last lines define the `cdmDatabaseSchema`, `cohortDatabaseSchema`, and cohortTable variables. We'll use these later to tell R where the data in CDM format live, where we have stored our cohorts of interest, and what version CDM is used. Note that for Microsoft SQL Server, 'databaseSchemas' need to specify both the database and the schema, so for example `cdmDatabaseSchema <- "my_cdm_data.dbo"`. For database platforms that do not support temp tables, such as Oracle, it is also necessary to provide a schema where the user has write access that can be used to emulate temp tables. PostgreSQL supports temp tables, so we can set `options(sqlRenderTempEmulationSchema = NULL)` (or not set the `sqlRenderTempEmulationSchema` at all.)
 
 ## Preparing the exposure and outcome of interest
 
-We need to define the exposure and outcomes for our study. For the exposure, we will directly use the `drug_era` table in the CDM. For the outcome we can use the OHDSI `PhenotypeLibrary` to retrieve a community-approved definition of epistaxis:
+We need to define the exposure and outcome for our study. For the exposure, we will directly use the `drug_era` table in the CDM. For the outcome we can use the OHDSI `PhenotypeLibrary` package to retrieve a community-approved definition of epistaxis:
 
 ```{r eval=FALSE}
 epistaxis <- 356
@@ -127,7 +128,7 @@ aspirin <- 1112807
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = outcomeTable,
+                          outcomeTable = cohortTable,
                           outcomeIds = epistaxis,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
@@ -137,7 +138,7 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
 sccsData
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
-aspirin <- 1124300
+aspirin <- 1112807
 if (folderExists) {
   sccsData <- loadSccsData(file.path(outputFolder, "data1.zip"))
 } 
@@ -287,12 +288,12 @@ if (folderExists) {
 
 Often both the rate of exposure and the outcome change with age, and can even depend on the season or calendar time in general (e.g. rates may be higher in 2021 compared to 2020). This may lead to confounding and may bias our estimates. To correct for this we can include age, season, and/or calendar time into the model. 
 
-For computational reasons we assume the effect of age, season, and calendar time are constant within each calendar month. We assume that the rate from one month to the next can be different, but we also assume that subsequent months have somewhat similar rates. This is implemented by using cubic spline functions.
+For computational reasons we assume the effect of age, season, and calendar time are constant within each calendar month. We assume that the rate from one month to the next can be different, but we also assume that subsequent months have somewhat similar rates. This is implemented by using spline functions.
 
 ![Spline for seasonality](spline.png)
-*Figure 1*. Example of how a spline is used for seasonality: within a month, the risk attributable to seasonality is assumed to be constant, but from month to month the risks are assumed to follow a cyclic cubic spline.
+*Figure 1*. Example of how a spline is used for seasonality: within a month, the risk attributable to seasonality is assumed to be constant, but from month to month the risks are assumed to follow a cyclic quadratic spline.
 
-Note that the by default all people that have the outcome will be used to estimate the effect of age, seasonality, and calendar time on the outcome, so not just the people exposed to the drug of interest. Adjusting for age typically only makes sense for small children, where a small difference in age can still make a big difference (remember: we are modeling the effect of age in each person by themselves, not the effect of age across persons). Since age and calendar time are often hard to fit simultaneously, it is often best to only mode seasonality, and calendar time, like this:
+Note that by default all people that have the outcome will be used to estimate the effect of age, seasonality, and calendar time on the outcome, so not just the people exposed to the drug of interest. Adjusting for age typically only makes sense for small children, where a small difference in age can still make a big difference (remember: we are modeling the effect of age in each person by themselves, not the effect of age across persons). Since age and calendar time are often hard to fit simultaneously, it is often best to only model seasonality and calendar time, like this:
 
 
 ```{r eval=FALSE}
@@ -344,7 +345,7 @@ if (folderExists) {
 }
 ```
 
-We see some effect for season: epistaxis tends to be more prevalent during winter. We should verify if our model accounts for time trends, by plotting the rate of the outcome across time, before and after adjustment:
+We see some effect for season: epistaxis tends to be more prevalent during winter. We should verify if our model accounts for time trends, by plotting the observed to expected rate of the outcome across time, before and after adjustment:
 
 ```{r eval=FALSE}
 plotEventToCalendarTime(studyPopulation = studyPop,
@@ -357,20 +358,7 @@ if (folderExists) {
 }
 ```
 
-Here we see that after adjustment, in general, the rate of outcome appears fairly stable across time, with the exception of some months in 2020. This is what we refer to as the 'COVID-blip', because during the time of the COVID-19 pandemic regular healthcare was put on hold. Our time trend diagnostic confirms the rate of the outcome was significantly lower during these months:
-
-```{r eval=FALSE}
-stability <- computeTimeStability(studyPopulation = studyPop,
-                                  sccsModel = model)
-stability %>%
-  filter(!stable)
-```
-```{r echo=FALSE,message=FALSE}
-if (folderExists) {
-  stability <- readRDS(file.path(outputFolder, "stability.rds"))
-  stability
-}
-```
+Here we see that after adjustment, in general, the rate of outcome appears fairly stable across time, with the exception of some months in 2020. This is what we refer to as the 'COVID-blip', because during the time of the COVID-19 pandemic regular healthcare was put on hold. 
 
 ## Removing the COVID blip
 
@@ -412,22 +400,6 @@ plotEventToCalendarTime(studyPopulation = studyPop,
 if (folderExists) {
   plot <- readRDS(file.path(outputFolder, "stabilityPlot2.rds"))
   print(plot)
-}
-```
-
-We can verify if this improved temporal stability:
-
-
-```{r eval=FALSE}
-stability <- computeTimeStability(studyPopulation = studyPop,
-                                  sccsModel = model)
-stability %>%
-  filter(!stable)
-```
-```{r echo=FALSE,message=FALSE}
-if (folderExists) {
-  stability <- readRDS(file.path(outputFolder, "stability2.rds"))
-  stability 
 }
 ```
 
@@ -540,7 +512,7 @@ Another approach could be to add all drugs into the model. Again, the first step
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = outcomeTable,
+                          outcomeTable = cohortTable,
                           outcomeIds = 1,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
@@ -642,7 +614,7 @@ Note that we have to provide the covariate ID of the exposure of interest, which
 
 ## Time from exposure start to event
 
-To gain a better understanding of when the event occurs relative to the start of exposure, we can plot their relationship. Note that we specify the naive period, so this can be applied to the data prior to showing the plot. This will make the plot better in line with the data we ended up fitting:
+To gain a better understanding of when the event occurs relative to the start of exposure, we can plot their relationship:
 
 ```{r eval=FALSE}
 plotExposureCentered(studyPop, sccsData, exposureEraId = aspirin)
@@ -653,11 +625,9 @@ if (folderExists) {
 }
 ```
 
-This plot suggests an increased rate of events in the first few weeks following the start of exposure, perhaps because of an acute effect.
-
 ## Increased risk pre-exposure
 
-If the rate just before exposure is higher compared to during exposure, this indicates there might reverse causality: that the outcome, or some precursor of the outcome, increases the probability of having the exposure. To avoid incorrect causal inference, we want to detect these situations. We can compute a p-value for whether rate is increased pre-exposure:
+If the rate just before exposure is higher compared to during exposure, this indicates there might reverse causality: that the outcome, or some precursor of the outcome, increases the probability of having the exposure. To avoid incorrect causal interpretation, we want to detect these situations. We can compute a p-value for whether rate is increased pre-exposure:
 
 ```{r eval=FALSE}
 computePreExposureGainP(sccsData, studyPopulation, exposureEraId = aspirin) 
@@ -698,23 +668,37 @@ if (folderExists) {
 }
 ```
 
-Here we see that overall the two distributions are somewhat similar, with little evidence that censoring tends to lead to shorter times to the end of observation.
+Here we see that overall the two distributions are similar, suggesting epistaxis does not lead to earlier observation end.
 
 ## Stability of the outcome over calendar time
 
 If the rate of the outcome changes as a function of calendar time, this could introduce bias. For example, if the outcome is more prevalent during winter, and the exposure also tends to occur in winter, this will create an association between the two that likely doesn't imply causation. We can check for patterns over time:
 
 ```{r eval=FALSE}
-plotEventToCalendarTime(studyPop)
+plotEventToCalendarTime(studyPopulation = studyPop,
+                        sccsModel = model)
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
-  plot <- readRDS(file.path(outputFolder, "stabilityPlot.rds"))
+  plot <- readRDS(file.path(outputFolder, "stabilityPlot2.rds"))
   print(plot)
 }
 ```
 
-In the bottom of the plot, we see the rate of the outcome does change over time. 
+We see that, after removing the COVID blip, the observed-to-expected ratio seems stable. We can perform a formal test for stability:
+
+```{r eval=FALSE}
+stability <- computeTimeStability(studyPopulation = studyPop,
+                                  sccsModel = model)
+stability %>%
+  filter(!stable)
+```
+```{r echo=FALSE,message=FALSE}
+if (folderExists) {
+  stability <- readRDS(file.path(outputFolder, "stability2.rds"))
+  stability 
+}
+```
 
 
 # Acknowledgments

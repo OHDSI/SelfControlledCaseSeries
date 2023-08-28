@@ -74,8 +74,8 @@ The last three lines define the `cdmDatabaseSchema` and `cohortDatabaseSchema` v
 We also need to prepare our exposures and outcomes of interest. The drug_era table in the OMOP Common Data Model already contains pre-specified cohorts of users at the ingredient level, so we will use that for the exposures. For the outcome we can use the OHDSI `PhenotypeLibrary` to retrieve a community-approved definition of GI bleeding:
 
 ```{r eval=FALSE}
-epistaxis <- 77
-cohortDefinitionSet <- PhenotypeLibrary::getPlCohortDefinitionSet(epistaxis)
+giBleed <- 77
+cohortDefinitionSet <- PhenotypeLibrary::getPlCohortDefinitionSet(giBleed)
 ```
 
 We can use the `CohortGenerator` package to instantiate this cohort:
@@ -123,7 +123,7 @@ for (exposureId in c(negativeControls)) {
 }
 ```
 
-We defined the outcome of interest to be the cohort with ID 1 we defined in the SQL above. The exposures include diclofenac (concept ID 1124300) and a large number of negative control exposures. Note that for the negative controls we specify `trueEffectSize = 1`. 
+We defined the outcome of interest to be the cohort with the ID stored in `giBleed`. The exposures include diclofenac (concept ID 1124300) and a large number of negative control exposures. Note that for the negative controls we specify `trueEffectSize = 1` since we assume negative controls have no causal effect on the outcome.
 
 A convenient way to save `exposuresOutcomeList` to file is by using the `saveExposuresOutcomeList` function, and we can load it again using the `loadExposuresOutcomeList` function.
 
@@ -303,7 +303,7 @@ A convenient way to save `sccsAnalysisList` to file is by using the `saveSccsAna
 
 # Executing multiple analyses
 
-We can now run the analyses against the hypotheses of interest using the `runScsAnalyses()`function. This function will run all specified analyses against all hypotheses of interest, meaning that the total number of outcome models is `length(sccsAnalysisList) * length(exposuresOutcomeList)`. (If we want, we can skip some of these combinations using the `analysesToExclude` argument.)
+We can now run the analyses against the hypotheses of interest using the `runSccsAnalyses()` function. This function will run all specified analyses against all hypotheses of interest, meaning that the total number of outcome models is `length(sccsAnalysisList) * length(exposuresOutcomeList)`. (If we want, we can skip some of these combinations using the `analysesToExclude` argument.)
 
 ```{r eval=FALSE}
 multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(
@@ -316,7 +316,7 @@ referenceTable <- runSccsAnalyses(
   exposureDatabaseSchema = cdmDatabaseSchema,
   exposureTable = "drug_era",
   outcomeDatabaseSchema = cohortDatabaseSchema,
-  outcomeTable = outcomeTable,
+  outcomeTable = cohortTable,
   cdmVersion = cdmVersion,
   outputFolder = outputFolder,
   combineDataFetchAcrossOutcomes = TRUE,
@@ -326,7 +326,7 @@ referenceTable <- runSccsAnalyses(
 )
 ```
 
-In the code above, we first specify how many parallel threads `SelfControlledCaseSeires` can use. Many of the computations can be computed in parallel, and providing more than one CPU core can greatly speed up the computation. Here we specify `SelfControlledCaseSeires` can use all the CPU cores detected in the system (using the `parallel::detectCores()` function). 
+In the code above, we first specify how many parallel threads `SelfControlledCaseSeries` can use. Many of the computations can be computed in parallel, and providing more than one CPU core can greatly speed up the computation. Here we specify `SelfControlledCaseSeries` can use all but one of the CPU cores detected in the system (using the `parallel::detectCores()` function). 
 
 We call `runSccsAnalyses`, providing the arguments for connecting to the database, which schemas and tables to use, as well as the analyses and hypotheses of interest. The `outputFolder` specifies where the outcome models and intermediate files will be written. 
 
@@ -339,18 +339,18 @@ If for some reason the execution was interrupted, you can restart by re-issuing 
 The result of the `runSccsAnalyses()` is a data frame with one row per exposures-outcome-analysis combination, so one row per fitted SCCS model. It provides the file names of the intermediate and end-result files that were constructed. For example, we can retrieve the fitted model for the combination of our drug of interest,  outcome, and first analysis:
 
 ```{r eval=FALSE}
-sccsModelFile <- result$sccsModelFile[result$exposureId == diclofenac &
-  result$outcomeId == giBleed &
-  result$analysisId == 1]
+sccsModelFile <- referenceTable$sccsModelFile[result$exposureId == diclofenac &
+  referenceTable$outcomeId == giBleed &
+  referenceTable$analysisId == 1]
 sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
 sccsModel
 ```
 ```{r echo=FALSE,message=FALSE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  result <- getFileReference(outputFolder)
-  sccsModelFile <- result$sccsModelFile[result$exposureId == diclofenac &
-    result$outcomeId == giBleed &
-    result$analysisId == 1]
+  referenceTable <- getFileReference(outputFolder)
+  sccsModelFile <- referenceTable$sccsModelFile[referenceTable$exposureId == diclofenac &
+    referenceTable$outcomeId == giBleed &
+    referenceTable$analysisId == 1]
   sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
   sccsModel
 }
@@ -360,7 +360,7 @@ Note that some of the file names will appear several times in the table. In our 
 
 We can always retrieve the file reference table again using the `getFileReference()` function:
 ```{r eval=FALSE}
-result <- getFileReference(outputFolder)
+referenceTable <- getFileReference(outputFolder)
 ```
 
 We can get a summary of the results using `getResultsSummary()`:
@@ -377,9 +377,9 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 
 This tells us, per exposure-outcome-analysis combination (so possible multiple rows per SCCS model) the estimated relative risk and 95% confidence interval, as well as the number of subjects (cases) and the number of events observed for those subjects. The only covariates included in this summary are those we marked with `exposureOfInterest = TRUE` when calling `createEraCovariateSettings()` earlier.
 
-## Empirical calibration
+## Negative control distribution
 
-Now that we have produced estimates for all outcomes including our negative controls, we can perform empirical calibration to estimate the bias of the various analyses included in our study. We will create the calibration effect plots for every analysis ID. In each plot, the blue dots represent our negative control exposures, and the yellow diamond represents our exposure of interest: diclofenac. An unbiased, well-calibrated analysis should have 95% of the negative controls between the dashed lines (ie. 95% should have p > .05).
+Now that we have produced estimates for all outcomes including our negative controls, we can look at the distrubtion of negative controls. In each plot, the blue dots represent our negative control exposures, and the yellow diamond represents our exposure of interest: diclofenac. An unbiased, well-calibrated analysis should have 95% of the negative controls between the dashed lines (ie. 95% should have p > .05). Note that empirical calibration was already automatically performed, and calibrated confidence intervals and p-values are included separately in the analyses summary.
 
 ```{r eval=FALSE}
 install.packages("EmpiricalCalibration")
