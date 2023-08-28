@@ -30,23 +30,18 @@ plotTimeTrend <- function(timeTrend) {
     mutate(
       monthStartDate = convertToStartDate(calendarYear, calendarMonth),
       monthEndDate = convertToEndDate(calendarYear, calendarMonth),
-      outcomeRate = pmax(0, outcomeRate),
+      outcomeRatio = pmax(0, outcomeRatio),
       observedSubjects = pmax(0, observedSubjects),
-      adjustedRate = pmax(0, adjustedRate))
+      adjustedRatio = pmax(0, adjustedRatio))
 
   plotData <- bind_rows(
-    select(timeTrend, "monthStartDate", "monthEndDate", value = "outcomeRate") %>%
-      mutate(type = "Outcomes per person",
-             stable = "Stable"),
-    select(timeTrend, "monthStartDate", "monthEndDate", value = "observedSubjects") %>%
-      mutate(type = "Observed persons",
-             stable = "Stable"),
-    select(timeTrend, "monthStartDate", "monthEndDate", value = "adjustedRate", "stable") %>%
-      mutate(type = "Adj. outcomes per person",
-             stable = ifelse(stable == 1, "Stable", "Unstable"))
+    select(timeTrend, "monthStartDate", "monthEndDate", value = "outcomeRatio") %>%
+      mutate(type = "Obs/exp assuming constant rate"),
+    select(timeTrend, "monthStartDate", "monthEndDate", value = "adjustedRatio") %>%
+      mutate(type = "Obs/exp after adjustments")
   )
 
-  levels <- c("Observed persons", "Outcomes per person", "Adj. outcomes per person")
+  levels <- c("Obs/exp assuming constant rate", "Obs/exp after adjustments")
   plotData$type <- factor(plotData$type, levels = rev(levels))
 
   theme <- ggplot2::element_text(colour = "#000000", size = 14)

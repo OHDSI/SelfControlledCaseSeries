@@ -27,8 +27,8 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
       month = 1.0,
       observedCount = 1.0,
       observationPeriodCount = 1.0,
-      rate = 1.0,
-      adjustedRate = 1.0,
+      ratio = 1.0,
+      adjustedRatio = 1.0,
       monthStartDate = as.Date("2000-01-01"),
       monthEndDate = as.Date("2000-01-01")) %>%
       filter(month == 0)
@@ -117,8 +117,8 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
 
   data <- observedCounts %>%
     inner_join(expectedCounts, by = join_by("month")) %>%
-    mutate(rate = .data$observedCount / .data$expectedCount)  %>%
-    mutate(adjustedRate = .data$observedCount / .data$adjustedExpectedCount)  %>%
+    mutate(ratio = .data$observedCount / .data$expectedCount)  %>%
+    mutate(adjustedRatio = .data$observedCount / .data$adjustedExpectedCount)  %>%
     mutate(monthStartDate = convertMonthToStartDate(.data$month),
            monthEndDate = convertMonthToEndDate(.data$month)) %>%
     select(-"expectedCount", -"adjustedExpectedCount")
@@ -154,7 +154,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   checkmate::assertNumeric(alpha, lower = 0, upper = 1, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  data <- SelfControlledCaseSeries:::computeOutcomeRatePerMonth(studyPopulation, sccsModel)
+  data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
   if (nrow(data) == 0) {
     result <- tibble(ratio = NA,
                      p = 1,
@@ -162,7 +162,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
     return(result)
   }
   o <- data$observedCount
-  e <- data$observedCount / data$adjustedRate
+  e <- data$observedCount / data$adjustedRatio
 
   # logLikelihood <- function(x) {
   #   return(-sum(log(dpois(o, e*x) + dpois(o, e/x))))

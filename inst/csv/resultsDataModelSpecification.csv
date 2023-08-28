@@ -90,10 +90,8 @@ sccs_time_trend,database_id,varchar,Yes,Yes,No,Foreign key referencing the datab
 sccs_time_trend,calendar_year,int,Yes,Yes,No,The calendar year (e.g. 2022).
 sccs_time_trend,calendar_month,int,Yes,Yes,No,The calendar month (e.g. 1 for January).
 sccs_time_trend,observed_subjects,int,No,No,Yes,Number of people observed during the month.
-sccs_time_trend,outcome_rate,float,No,No,Yes,Number of outcomes divided by the number of subjects.
-sccs_time_trend,adjusted_rate,float,No,No,Yes,"The outcome rate, adjusted for age, season, or calendar time, as specified in the analysis."
-sccs_time_trend,stable,int,No,No,No,"Does the adjusted rate not deviate significantly from the mean? (1 = stable, 0 = unstable)"
-sccs_time_trend,p,float,No,No,No,The two-sided p-value against the null hypothesis that the rate is equal to the mean.
+sccs_time_trend,outcome_ratio,float,No,No,Yes,Observed over expected ratio, where the expected count assumes a constant rate over time.
+sccs_time_trend,adjusted_ratio,float,No,No,Yes,"Observed over expected ratio, where the expected count is adjusted for age, season, or calendar time, as specified in the analysis."
 sccs_time_to_event,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_time_to_event,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_time_to_event,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
@@ -124,7 +122,7 @@ sccs_diagnostics_summary,covariate_id,int,Yes,Yes,No,The identifier for the cova
 sccs_diagnostics_summary,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
 sccs_diagnostics_summary,mdrr,float,No,No,No,The minimum detectable relative risk.
 sccs_diagnostics_summary,ease,float,No,No,No,The expected absolute systematic error.
-sccs_diagnostics_summary,time_trend_p,float,No,No,No,The family-wise p for whether the monthly outcome rate is equal to the mean.
+sccs_diagnostics_summary,time_trend_p,float,No,No,No,The p for whether the mean monthly ratio between observed and expected is no greater than 1.25.
 sccs_diagnostics_summary,pre_exposure_p,float,No,No,No,"One-sided p-value for whether the rate before expore is higher than after, against the null of no difference."
 sccs_diagnostics_summary,mdrr_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the MDRR diagnostic.
 sccs_diagnostics_summary,ease_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the EASE diagnostic.

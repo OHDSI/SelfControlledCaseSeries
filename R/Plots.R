@@ -394,7 +394,7 @@ plotEventToCalendarTime <- function(studyPopulation,
 
   data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
   plotData <- data %>%
-    select("month", "monthStartDate", "monthEndDate", value = "rate") %>%
+    select("month", "monthStartDate", "monthEndDate", value = "ratio") %>%
       mutate(type = "Assuming constant rate")
   levels <- c("Assuming constant rate")
 
@@ -403,7 +403,7 @@ plotEventToCalendarTime <- function(studyPopulation,
     type <- paste("Adj. for", paste(types, collapse = " and "))
     plotData <- bind_rows(
       plotData,
-      select(data, "month", "monthStartDate", "monthEndDate", value = "adjustedRate") %>%
+      select(data, "month", "monthStartDate", "monthEndDate", value = "adjustedRatio") %>%
         mutate(type = !!type),
     )
     levels <- c(levels, type)

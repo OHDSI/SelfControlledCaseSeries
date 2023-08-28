@@ -575,22 +575,16 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
     ) %>%
       mutate(
         calendarYear = floor(.data$month / 12),
-        calendarMonth = floor(.data$month %% 12) + 1,
-        stable = 1,
-        p = 1
+        calendarMonth = floor(.data$month %% 12) + 1
       ) %>%
       select(
         "calendarYear",
         "calendarMonth",
         observedSubjects = "observationPeriodCount",
-        outcomeRate = "rate",
-        "adjustedRate",
-        "stable",
-        "p"
+        outcomeRatio = "ratio",
+        "adjustedRatio"
       ) %>%
       mutate(databaseId = !!databaseId)
-    timeTrendData <- enforceMinCellValue(timeTrendData, "outcomeRate", minCellCount / timeTrendData$observedSubjects, silent = TRUE)
-    timeTrendData <- enforceMinCellValue(timeTrendData, "adjustedRate", minCellCount / timeTrendData$observedSubjects, silent = TRUE)
 
     sccsTimeTrend[[length(sccsTimeTrend) + 1]] <- refRow %>%
       select("analysisId", "exposuresOutcomeSetId") %>%
