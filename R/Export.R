@@ -575,12 +575,13 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
     ) %>%
       mutate(
         calendarYear = floor(.data$month / 12),
-        calendarMonth = floor(.data$month %% 12) + 1
+        calendarMonth = floor(.data$month %% 12) + 1,
+        observedSubjects = round(.data$observationPeriodCount)
       ) %>%
       select(
         "calendarYear",
         "calendarMonth",
-        observedSubjects = "observationPeriodCount",
+        "observedSubjects",
         ratio = "ratio",
         "adjustedRatio"
       ) %>%
