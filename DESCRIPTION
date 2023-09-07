@@ -48,9 +48,9 @@ Suggests:
 	rmarkdown,
 	Eunomia
 Remotes:
-  ohdsi/Eunomia
-  ohdsi/SqlRender@develop
-  ohsdi/ResultModelManager
+	ohdsi/Eunomia,
+	ohdsi/SqlRender@develop,
+	ohsdi/ResultModelManager
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
