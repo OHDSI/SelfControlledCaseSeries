@@ -46,7 +46,8 @@ Suggests:
 	testthat,
 	knitr,
 	rmarkdown,
-	Eunomia
+	Eunomia,
+	withr
 Remotes:
 	ohdsi/Eunomia,
 	ohdsi/SqlRender@develop,
