@@ -3,15 +3,11 @@
  -- 1. Deprecates the outcome_rate_ adjusted_rate, stable, and p fields from the time_trend  table (no change to the data).
  -- 2. Adds the ratio and adjusted_ratio fields to the time_trend  table
 
-{DEFAULT @package_version = package_version}
-{DEFAULT @migration = migration}
-{DEFAULT @table_prefix = ''}
-
 -- Create table indicating version number of ddl
-DROP TABLE IF EXISTS @database_schema.@table_prefix@package_version;
+DROP TABLE IF EXISTS @database_schema.@table_prefixpackage_version;
 
 --HINT DISTRIBUTE ON RANDOM
-CREATE TABLE @database_schema.@table_prefix@package_version (
+CREATE TABLE @database_schema.@table_prefixpackage_version (
     version_number VARCHAR(50) PRIMARY KEY
 );
 

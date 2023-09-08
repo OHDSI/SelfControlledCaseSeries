@@ -78,7 +78,7 @@ testCreateSchema <- function(connectionDetails, resultsDatabaseSchema) {
   ))
 }
 
-test_that("Create schema on Postgres", {
+test_that("Create schema", {
   testCreateSchema(connectionDetails = postgresConnectionDetails,
                    resultsDatabaseSchema = postgresResultsDatabaseSchema)
   testCreateSchema(connectionDetails = sqliteConnectionDetails,

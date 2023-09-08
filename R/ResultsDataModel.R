@@ -15,8 +15,6 @@
 # limitations under the License.
 #
 
-# Copied from https://github.com/OHDSI/CohortDiagnostics/blob/main/R/ResultsDataModel.R
-
 #' Get specifications for SelfControlledCaseSeries results data model
 #'
 #' @return
@@ -28,24 +26,6 @@ getResultsDataModelSpecifications <- function() {
   resultsDataModelSpecifications <- readr::read_csv(file = pathToCsv, col_types = readr::cols())
   colnames(resultsDataModelSpecifications) <- SqlRender::snakeCaseToCamelCase(colnames(resultsDataModelSpecifications))
   return(resultsDataModelSpecifications)
-}
-
-# Private function for testing migrations in isolation
-.createDataModel <- function(connection, databaseSchema, tablePrefix) {
-  sqlParams <- getPrefixedTableNames(tablePrefix)
-  sql <- do.call(
-    SqlRender::loadRenderTranslateSql,
-    c(
-      sqlParams,
-      list(
-        sqlFilename = "CreateResultsDataModel.sql",
-        packageName = utils::packageName(),
-        dbms = connection@dbms,
-        database_schema = databaseSchema
-      )
-    )
-  )
-  DatabaseConnector::executeSql(connection, sql)
 }
 
 #' Create the results data model tables on a database server.
@@ -67,7 +47,16 @@ createResultsDataModel <- function(connectionDetails = NULL,
   connection <- DatabaseConnector::connect(connectionDetails)
   on.exit(DatabaseConnector::disconnect(connection))
 
-  .createDataModel(connection, databaseSchema, tablePrefix)
+  # Create first version of results model:
+  sql <- SqlRender::loadRenderTranslateSql(
+    sqlFilename = "CreateResultsDataModel.sql",
+    packageName = utils::packageName(),
+    dbms = connection@dbms,
+    database_schema = databaseSchema,
+    table_prefix = tablePrefix
+  )
+  DatabaseConnector::executeSql(connection, sql)
+  # Migrate to current version:
   migrateDataModel(
     connectionDetails = connectionDetails,
     databaseSchema = databaseSchema,
@@ -120,7 +109,6 @@ uploadResults <- function(connectionDetails,
     forceOverWriteOfSpecifications = forceOverWriteOfSpecifications,
     purgeSiteDataBeforeUploading = purgeSiteDataBeforeUploading,
     runCheckAndFixCommands = FALSE,
-    databaseIdentifierFile = "database.csv",
     specifications = getResultsDataModelSpecifications(),
     warnOnMissingTable = FALSE,
     ...
@@ -143,10 +131,12 @@ migrateDataModel <- function(connectionDetails, databaseSchema, tablePrefix = ""
   migrator$finalize()
 
   ParallelLogger::logInfo("Updating version number")
-  updateVersionSql <- SqlRender::loadRenderTranslateSql("UpdateVersionNumber.sql",
+  updateVersionSql <- SqlRender::loadRenderTranslateSql(
+    sqlFilename = "UpdateVersionNumber.sql",
     packageName = utils::packageName(),
     database_schema = databaseSchema,
     table_prefix = tablePrefix,
+    version_number = as.character(utils::packageVersion(utils::packageName())),
     dbms = connectionDetails$dbms
   )
 
@@ -175,25 +165,4 @@ getDataMigrator <- function(connectionDetails, databaseSchema, tablePrefix = "")
     migrationPath = "migrations",
     packageName = utils::packageName()
   )
-}
-
-# This is required but wasn't in https://github.com/OHDSI/CohortDiagnostics/blob/main/R/ResultsDataModel.R
-getPrefixedTableNames <- function(tablePrefix) {
-  if (is.null(tablePrefix)) {
-    tablePrefix <- ""
-  }
-
-  if (grepl(" ", tablePrefix)) {
-    stop("Table prefix cannot include spaces")
-  }
-
-  dataModel <- getResultsDataModelSpecifications()
-  tableNames <- dataModel$tableName %>% unique()
-  resultList <- list()
-
-  for (tableName in tableNames) {
-    resultList[tableName] <- paste0(tablePrefix, tableName)
-  }
-
-  return(resultList)
 }
