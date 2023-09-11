@@ -129,22 +129,7 @@ migrateDataModel <- function(connectionDetails, databaseSchema, tablePrefix = ""
   migrator <- getDataMigrator(connectionDetails = connectionDetails, databaseSchema = databaseSchema, tablePrefix = tablePrefix)
   migrator$executeMigrations()
   migrator$finalize()
-
-  ParallelLogger::logInfo("Updating version number")
-  updateVersionSql <- SqlRender::loadRenderTranslateSql(
-    sqlFilename = "UpdateVersionNumber.sql",
-    packageName = utils::packageName(),
-    database_schema = databaseSchema,
-    table_prefix = tablePrefix,
-    version_number = as.character(utils::packageVersion(utils::packageName())),
-    dbms = connectionDetails$dbms
-  )
-
-  connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
-  on.exit(DatabaseConnector::disconnect(connection))
-  DatabaseConnector::executeSql(connection, updateVersionSql)
 }
-
 
 #' Get database migrations instance
 #' @description
