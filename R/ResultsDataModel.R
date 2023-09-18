@@ -126,7 +126,9 @@ uploadResults <- function(connectionDetails,
 #' @export
 migrateDataModel <- function(connectionDetails, databaseSchema, tablePrefix = "") {
   ParallelLogger::logInfo("Migrating data set")
-  migrator <- getDataMigrator(connectionDetails = connectionDetails, databaseSchema = databaseSchema, tablePrefix = tablePrefix)
+  migrator <- getDataMigrator(connectionDetails = connectionDetails,
+                              databaseSchema = databaseSchema,
+                              tablePrefix = tablePrefix)
   migrator$executeMigrations()
   migrator$finalize()
 }
@@ -147,6 +149,7 @@ getDataMigrator <- function(connectionDetails, databaseSchema, tablePrefix = "")
     connectionDetails = connectionDetails,
     databaseSchema = databaseSchema,
     tablePrefix = tablePrefix,
+    packageTablePrefix = "sccs_",
     migrationPath = "migrations",
     packageName = utils::packageName()
   )
