@@ -27,7 +27,7 @@ Depends:
 	DatabaseConnector (>= 6.0.0),
 	Andromeda
 Imports:
-	SqlRender (>= 1.12.0),
+	SqlRender (>= 1.16.0),
 	dplyr (>= 1.0.0),
 	Rcpp (>= 1.0.9),
 	ParallelLogger (>= 3.1.0),
@@ -39,14 +39,19 @@ Imports:
 	cli,
 	pillar,
 	checkmate,
-	readr
+	readr,
+	ResultModelManager,
+	zip
 Suggests:
 	testthat,
 	knitr,
 	rmarkdown,
-	Eunomia
+	Eunomia,
+	withr
 Remotes:
-  ohdsi/Eunomia
+	ohdsi/Eunomia,
+	ohdsi/SqlRender@develop,
+	ohdsi/ResultModelManager
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
