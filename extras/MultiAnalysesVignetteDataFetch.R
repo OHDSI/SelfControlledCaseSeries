@@ -276,3 +276,49 @@ exportToCsv(
   minCellCount = 5
 )
 
+# Upload results to SQLite -----------------------------------------------------
+databaseFile <-  file.path(outputFolder, "export", "SccsResults.sqlite")
+connectionDetails <- DatabaseConnector::createConnectionDetails(
+  dbms = "sqlite",
+  server = databaseFile
+)
+createResultsDataModel(
+  connectionDetails = connectionDetails,
+  databaseSchema = "main",
+  tablePrefix = ""
+)
+uploadResults(
+  connectionDetails = connectionDetails,
+  schema = "main",
+  zipFileName = file.path(outputFolder, "export", "Results_MDCD.zip"),
+  purgeSiteDataBeforeUploading = FALSE
+)
+# Add cohort and database tables:
+connection <- DatabaseConnector::connect(connectionDetails)
+cohorts <- tibble(
+  cohortDefinitionId = c(diclofenac, giBleed, ppis, negativeControls),
+  cohortName = c("Diclofenac", "GI Bleed", paste0("PPI_", seq_along(ppis)), paste0("NegativeControl_", seq_along(negativeControls)))
+)
+DatabaseConnector::insertTable(
+  connection = connection,
+  databaseSchema = "main",
+  tableName = "cg_cohort_definition",
+  data = cohorts,
+  dropTableIfExists = TRUE,
+  createTable = TRUE,
+  camelCaseToSnakeCase = TRUE
+)
+databases <- tibble(
+  database_id = "MDCD",
+  cdm_source_name = "Merative Marketscan MDCD",
+  cdm_source_abbreviation = "MDCD"
+)
+DatabaseConnector::insertTable(
+  connection = connection,
+  databaseSchema = "main",
+  tableName = "databases",
+  data = databases,
+  dropTableIfExists = TRUE,
+  createTable = TRUE
+)
+DatabaseConnector::disconnect(connection)
