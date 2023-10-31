@@ -168,6 +168,8 @@ test_that("Running multiple analyses against Eunomia", {
   # Test export to CSV:
   exportToCsv(outputFolder)
 
+  # Workaround for issue https://github.com/tidyverse/vroom/issues/519:
+  readr::local_edition(1)
   diagnosticsSummary <- readr::read_csv(file.path(outputFolder, "export", "sccs_diagnostics_summary.csv"), show_col_types = FALSE)
   expect_true(all(diagnosticsSummary$ease_diagnostic == "NOT EVALUATED"))
 
