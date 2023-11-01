@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.0.0</span>
       </span>
     </div>
 
@@ -79,6 +79,8 @@
 <span>  deleteCovariatesSmallCount <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  studyStartDate <span class="op">=</span> <span class="st">""</span>,</span>
 <span>  studyEndDate <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  studyStartDates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  studyEndDates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  maxCasesPerOutcome <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  exposureIds <span class="op">=</span> <span class="st">"exposureId"</span>,</span>
 <span>  customCovariateIds <span class="op">=</span> <span class="st">""</span></span>
@@ -104,11 +106,19 @@
 
 
 <dt>studyStartDate</dt>
-<dd><p>A character object specifying the minimum date where data is used. Date format is 'yyyymmdd'.</p></dd>
+<dd><p>DEPRECATED. Use studyStartDates instead.</p></dd>
 
 
 <dt>studyEndDate</dt>
-<dd><p>A character object specifying the maximum date where data is used. Date format is 'yyyymmdd'.</p></dd>
+<dd><p>DEPRECATED. Use studyEndDates instead.</p></dd>
+
+
+<dt>studyStartDates</dt>
+<dd><p>A character object specifying the minimum dates where data is used. Date format is 'yyyymmdd'. Use "" to indicate all time prior. See section for more information.</p></dd>
+
+
+<dt>studyEndDates</dt>
+<dd><p>A character object specifying the maximum dates where data is used. Date format is 'yyyymmdd'. Use "" to indicate to the end of observation. See section for more information.</p></dd>
 
 
 <dt>maxCasesPerOutcome</dt>

@@ -85,6 +85,9 @@
     <loc>/reference/createGetDbSccsDataArgs.html</loc>
   </url>
   <url>
+    <loc>/reference/createResultsDataModel.html</loc>
+  </url>
+  <url>
     <loc>/reference/createSccsAnalysis.html</loc>
   </url>
   <url>
@@ -133,6 +136,9 @@
     <loc>/reference/getAttritionTable.html</loc>
   </url>
   <url>
+    <loc>/reference/getDataMigrator.html</loc>
+  </url>
+  <url>
     <loc>/reference/getDbSccsData.html</loc>
   </url>
   <url>
@@ -140,6 +146,9 @@
   </url>
   <url>
     <loc>/reference/getModel.html</loc>
+  </url>
+  <url>
+    <loc>/reference/getResultsDataModelSpecifications.html</loc>
   </url>
   <url>
     <loc>/reference/getResultsSummary.html</loc>
@@ -179,6 +188,9 @@
   </url>
   <url>
     <loc>/reference/loadSccsIntervalData.html</loc>
+  </url>
+  <url>
+    <loc>/reference/migrateDataModel.html</loc>
   </url>
   <url>
     <loc>/reference/plotAgeEffect.html</loc>
@@ -245,5 +257,8 @@
   </url>
   <url>
     <loc>/reference/summarizeSccsAnalyses.html</loc>
+  </url>
+  <url>
+    <loc>/reference/uploadResults.html</loc>
   </url>
 </urlset>

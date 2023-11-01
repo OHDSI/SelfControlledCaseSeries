@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.0.0</span>
       </span>
     </div>
 
@@ -92,7 +92,7 @@ package</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie</h4>
             
-            <h4 data-toc-skip class="date">2023-04-13</h4>
+            <h4 data-toc-skip class="date">2023-11-01</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/ResultsSchema.Rmd" class="external-link"><code>vignettes/ResultsSchema.Rmd</code></a></small>
       <div class="hidden name"><code>ResultsSchema.Rmd</code></div>
@@ -704,8 +704,8 @@ sccs_exposures_outcome_set table.</td>
 <td align="left">float</td>
 <td align="left">No</td>
 <td align="left">No</td>
-<td align="left">The family-wise p for whether the monthly outcome rate
-is equal to the mean.</td>
+<td align="left">The p for whether the mean monthly ratio between
+observed and expected is no greater than 1.25.</td>
 </tr>
 <tr class="even">
 <td align="left">pre_exposure_p</td>
@@ -1392,36 +1392,21 @@ sccs_exposures_outcome_set table.</td>
 <td align="left">Number of people observed during the month.</td>
 </tr>
 <tr class="odd">
-<td align="left">outcome_rate</td>
+<td align="left">ratio</td>
 <td align="left">float</td>
 <td align="left">No</td>
-<td align="left">Yes</td>
-<td align="left">Number of outcomes divided by the number of
-subjects.</td>
+<td align="left">No</td>
+<td align="left">Observed over expected ratio, where the expected count
+assumes a constant rate over time.</td>
 </tr>
 <tr class="even">
-<td align="left">adjusted_rate</td>
-<td align="left">float</td>
-<td align="left">No</td>
-<td align="left">Yes</td>
-<td align="left">The outcome rate, adjusted for age, season, or calendar
-time, as specified in the analysis.</td>
-</tr>
-<tr class="odd">
-<td align="left">stable</td>
-<td align="left">int</td>
-<td align="left">No</td>
-<td align="left">No</td>
-<td align="left">Does the adjusted rate not deviate significantly from
-the mean? (1 = stable, 0 = unstable)</td>
-</tr>
-<tr class="even">
-<td align="left">p</td>
+<td align="left">adjusted_ratio</td>
 <td align="left">float</td>
 <td align="left">No</td>
 <td align="left">No</td>
-<td align="left">The two-sided p-value against the null hypothesis that
-the rate is equal to the mean.</td>
+<td align="left">Observed over expected ratio, where the expected count
+is adjusted for age, season, or calendar time, as specified in the
+analysis.</td>
 </tr>
 </tbody>
 </table>

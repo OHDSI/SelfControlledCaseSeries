@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.0.0</span>
       </span>
     </div>
 
@@ -77,7 +77,8 @@
 <span>  naivePeriod <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  minAge <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  maxAge <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  genderConceptIds <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  genderConceptIds <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  restrictTimeToEraId <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -100,8 +101,11 @@
 
 
 <dt>genderConceptIds</dt>
-<dd><p>Set of gender concept IDs to restrict the population to. If not specified,
-no restriction on gender will be applied.</p></dd>
+<dd><p>Set of gender concept IDs to restrict the population to. If not specified, no restriction on gender will be applied.</p></dd>
+
+
+<dt>restrictTimeToEraId</dt>
+<dd><p>If provided, study time (for all patients) will be restricted to the calender time when that era was observed in the data. For example, if the era ID refers to a drug, study time will be restricted to when the drug was on the market.</p></dd>
 
 </dl></div>
     <div id="details">

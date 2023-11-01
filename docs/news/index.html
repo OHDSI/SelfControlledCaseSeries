@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.0.0</span>
       </span>
     </div>
 
@@ -66,6 +66,19 @@
       <small>Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="5.0.0" id="selfcontrolledcaseseries-500">SelfControlledCaseSeries 5.0.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-500"></a></h2>
+<p>Changes</p>
+<ol style="list-style-type: decimal"><li><p>Added the <code>restrictTimeToEraId</code> argument to the <code><a href="../reference/createStudyPopulation.html">createStudyPopulation()</a></code> and <code><a href="../reference/createCreateStudyPopulationArgs.html">createCreateStudyPopulationArgs()</a></code> functions to allow automatically restricting study time to when the exposure was observed (e.g. when the drug was on the market).</p></li>
+<li><p>Switching from cubic to quadratic splines for age, season, and calendar time to reduce degrees of freedom.</p></li>
+<li><p>Deprecating the <code>studyStartDate</code> and <code>studyEndDate</code> arguments of the <code><a href="../reference/getDbSccsData.html">getDbSccsData()</a></code> function.</p></li>
+<li><p>Introducing the <code>studyStartDates</code> and <code>studyEndDates</code> arguments of the <code><a href="../reference/getDbSccsData.html">getDbSccsData()</a></code> function. These allow specification of multiple (non-overlapping) study periods. This can for example be useful when one wishes to exclude the time of the COVID-19 pandemic to avoid temporal instability.</p></li>
+<li><p>The spline for calendar time effects can now be multi-segmented, for multiple study periods. Internal knots are evenly distributed over segments based on the amount of data per segment. Additional boundary knots are automatically added for additional segments.</p></li>
+<li><p>Changed the stability metric implemented in the <code><a href="../reference/computeTimeStability.html">computeTimeStability()</a></code> function in two ways: First, the observed rate of the outcome for each month is now compared against the expected rate. This expected rate considers which persons were observed during that month, and if specified, the adjustment for season and calendar time. Second, instead of considering whether any single month exceeded the threshold, the metric now considers whether the mean ratio across all months exceeds the threshold. Together, this makes the metric more robust, and less likely to declare instability when the majority of data is stable.</p></li>
+<li><p>Changed the <code><a href="../reference/plotEventToCalendarTime.html">plotEventToCalendarTime()</a></code> to show the observed-to-expected ratio, both with and without adjustments for season and calendar time (if specified in the model).</p></li>
+</ol><p>Bugfix</p>
+<ol style="list-style-type: decimal"><li>Using BIGINT when summing patient days to avoid errors when populations are large.</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="4.2.0" id="selfcontrolledcaseseries-420">SelfControlledCaseSeries 4.2.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-420"></a></h2>
 <p>Changes</p>

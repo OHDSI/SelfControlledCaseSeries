@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">4.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.0.0</span>
       </span>
     </div>
 
@@ -93,29 +93,29 @@ for before computing stability.</p></dd>
 
 
 <dt>maxRatio</dt>
-<dd><p>The maximum ratio between the (adjusted) rate in a month, and the mean (adjusted) rate that
-we would consider to be irrelevant.</p></dd>
+<dd><p>The maximum global ratio between the observed and expected count.</p></dd>
 
 
 <dt>alpha</dt>
-<dd><p>The alpha (type 1 error) used to test for stability. A Bonferroni correction will
-be applied for the number of months tested.</p></dd>
+<dd><p>The alpha (type 1 error) used to test for stability.</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
     
 
-<p>A tibble with information on the temporal stability per month. The column <code>stable</code> indicates whether the rate
-of the outcome is within the expected range for that month, assuming the rate is constant over time.</p>
+<p>A tibble with one row and three columns: <code>ratio</code> indicates the estimated mean ratio between observed and expected.
+<code>p</code> is the p-value against the null-hypothesis that the ratio is smaller than <code>maxRatio</code>, and <code>stable</code> is <code>TRUE</code></p>
+
+
+<p>if <code>p</code> is greater than <code>alpha</code>.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
-    <p>Computes for each calendar month the rate of the outcome, and evaluates whether that rate is constant over time. If
-splines are used to adjust for seasonality and/or calendar time, these adjustments are taken into consideration. For each
-month a two-sided p-value is computed against the null hypothesis that the rate in that month deviates from the mean rate
-no more than <code>maxRatio</code>. This p-value is compared to an alpha value, using a Bonferroni correction to adjust for the
-multiple testing across months.</p>
+    <p>Computes for each month the observed and expected count, and computes the (weighted) mean ratio between the two. If
+splines are used to adjust for seasonality and/or calendar time, these adjustments are taken into consideration when
+considering the expected count. A one-sided p-value is computed against the null hypothesis that the ratio is smaller
+than <code>maxRatio</code>. If this p-value exceeds the specified alpha value, the series is considered stable.</p>
     </div>
 
   </div>

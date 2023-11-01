@@ -77,6 +77,15 @@ reference:
       - getResultsSummary
       - createSccsDiagnosticThresholds
       - exportToCsv
+  - title: "Result upload"
+    desc: >
+      Uploading results to a database.
+    contents:
+      - createResultsDataModel
+      - getDataMigrator
+      - getResultsDataModelSpecifications
+      - migrateDataModel
+      - uploadResults
   - title: "Simulation"
     desc: >
       Functions for simulating cohort method data objects.
