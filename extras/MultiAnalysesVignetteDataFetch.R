@@ -316,9 +316,32 @@ databases <- tibble(
 DatabaseConnector::insertTable(
   connection = connection,
   databaseSchema = "main",
-  tableName = "databases",
+  tableName = "database_meta_data",
   data = databases,
   dropTableIfExists = TRUE,
   createTable = TRUE
 )
 DatabaseConnector::disconnect(connection)
+
+# Launch Shiny app:
+databaseFile <-  file.path(outputFolder, "export", "SccsResults.sqlite")
+connectionDetails <- DatabaseConnector::createConnectionDetails(
+  dbms = "sqlite",
+  server = databaseFile
+)
+resultDatabaseDetails <- list(
+  dbms = connectionDetails$dbms,
+  tablePrefix = 'sccs_',
+  cohortTablePrefix = 'cg_',
+  databaseTablePrefix = '',
+  schema = "main",
+  databaseTable = 'database_meta_data'
+)
+sccsModule <- ShinyAppBuilder::createDefaultSccsConfig()
+aboutModule <- ShinyAppBuilder::createDefaultAboutConfig()
+shinyAppConfig <- ShinyAppBuilder::initializeModuleConfig() %>%
+  ShinyAppBuilder::addModuleConfig(aboutModule) %>%
+  ShinyAppBuilder::addModuleConfig(sccsModule)
+connectionHandler <- ResultModelManager::ConnectionHandler$new(connectionDetails)
+ShinyAppBuilder::viewShiny(shinyAppConfig, connectionHandler)
+connectionHandler$closeConnection()
