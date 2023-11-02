@@ -679,7 +679,7 @@ createReferenceTable <- function(sccsAnalysisList,
   referenceTable$sccsModelFile <- generateFileName(1:nrow(referenceTable))
 
   # Remove rows that the user specified to exclude ---------------------------------
-  if (!is.null(analysesToExclude)) {
+  if (!is.null(analysesToExclude) && nrow(analysesToExclude) != 0) {
     matchingColumns <- colnames(analysesToExclude)[colnames(analysesToExclude) %in% c("exposureId", "outcomeId", "analysisId", "nestingCohortId")]
     if (length(matchingColumns) == 0) {
       stop("The 'analysesToExclude' argument should contain columns 'exposureId', 'outcomeId', or 'analysisId'.")
