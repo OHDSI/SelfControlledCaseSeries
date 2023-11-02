@@ -489,57 +489,60 @@ createReferenceTable <- function(sccsAnalysisList,
   referenceTable <- eos %>%
     cross_join(analyses)
 
-  # Determine if loading calls can be combined for efficiency ----------------------------
+  # Determine if loading calls can be combined for efficiency ------------------
 
   # Instantiate loading settings per row in the reference table
+  instantiateArgs <- function(i, sccsAnalysis) {
+    exposureIds <- c()
+    if (is.null(sccsAnalysis$getDbSccsDataArgs$exposureIds)) {
+      exposureIds <- "all"
+    } else {
+      for (exposureId in sccsAnalysis$getDbSccsDataArgs$exposureIds) {
+        if (is.character(exposureId)) {
+          if (!exposureId %in% uniqueExposureIdRefs) {
+            stop(paste("Variable", exposureId, " not found in exposures-outcome sets"))
+          }
+          exposureIds <- c(exposureIds, referenceTable[i, ]$exposureId)
+        } else {
+          exposureIds <- c(exposureIds, as.numeric(exposureId))
+        }
+      }
+    }
+    customCovariateIds <- c()
+    if (sccsAnalysis$getDbSccsDataArgs$useCustomCovariates) {
+      if (is.null(sccsAnalysis$getDbSccsDataArgs$customCovariateIds)) {
+        customCovariateIds <- "all"
+      } else {
+        for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
+          if (is.character(customCovariateId)) {
+            if (!customCovariateId %in% uniqueExposureIdRefs) {
+              stop(paste("Variable", customCovariateId, " not found in exposures-outcome sets"))
+            }
+            customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
+          } else {
+            customCovariateIds <- c(customCovariateIds, customCovariateId)
+          }
+        }
+      }
+    }
+    nestingCohortId <- -1
+    if (sccsAnalysis$getDbSccsDataArgs$useNestingCohort) {
+      nestingCohortId <- sccsAnalysis$getDbSccsDataArgs$nestingCohortId
+    }
+    instantiatedArgs <- sccsAnalysis$getDbSccsDataArgs
+    instantiatedArgs$outcomeId <- referenceTable$outcomeId[i]
+    instantiatedArgs$exposureIds <- exposureIds
+    instantiatedArgs$customCovariateIds <- customCovariateIds
+    instantiatedArgs$nestingCohortId <- nestingCohortId
+    instantiatedArgs$rowId <- i
+    return(instantiatedArgs)
+  }
   instantiatedArgsPerRow <- vector(mode = "list", length = nrow(referenceTable))
   for (sccsAnalysis in sccsAnalysisList) {
     idx <- which(referenceTable$analysisId == sccsAnalysis$analysisId)
-    for (i in idx) {
-      exposureIds <- c()
-      if (is.null(sccsAnalysis$getDbSccsDataArgs$exposureIds)) {
-        exposureIds <- "all"
-      } else {
-        for (exposureId in sccsAnalysis$getDbSccsDataArgs$exposureIds) {
-          if (is.character(exposureId)) {
-            if (!exposureId %in% uniqueExposureIdRefs) {
-              stop(paste("Variable", exposureId, " not found in exposures-outcome sets"))
-            }
-            exposureIds <- c(exposureIds, referenceTable[i, ]$exposureId)
-          } else {
-            exposureIds <- c(exposureIds, as.numeric(exposureId))
-          }
-        }
-      }
-      customCovariateIds <- c()
-      if (sccsAnalysis$getDbSccsDataArgs$useCustomCovariates) {
-        if (is.null(sccsAnalysis$getDbSccsDataArgs$customCovariateIds)) {
-          customCovariateIds <- "all"
-        } else {
-          for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
-            if (is.character(customCovariateId)) {
-              if (!customCovariateId %in% uniqueExposureIdRefs) {
-                stop(paste("Variable", customCovariateId, " not found in exposures-outcome sets"))
-              }
-              customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
-            } else {
-              customCovariateIds <- c(customCovariateIds, customCovariateId)
-            }
-          }
-        }
-      }
-      nestingCohortId <- -1
-      if (sccsAnalysis$getDbSccsDataArgs$useNestingCohort) {
-        nestingCohortId <- sccsAnalysis$getDbSccsDataArgs$nestingCohortId
-      }
-      instantiatedArgs <- sccsAnalysis$getDbSccsDataArgs
-      instantiatedArgs$outcomeId <- referenceTable$outcomeId[i]
-      instantiatedArgs$exposureIds <- exposureIds
-      instantiatedArgs$customCovariateIds <- customCovariateIds
-      instantiatedArgs$nestingCohortId <- nestingCohortId
-      instantiatedArgs$rowId <- i
-      instantiatedArgsPerRow[[i]] <- instantiatedArgs
-    }
+    instantiatedArgsPerRow[idx] <- lapply(idx,
+                                            instantiateArgs,
+                                            sccsAnalysis = sccsAnalysis)
   }
 
   # Group loads where possible
@@ -576,7 +579,7 @@ createReferenceTable <- function(sccsAnalysisList,
   referenceTable$sccsDataFile <- ""
   referenceTable$loadId <- NA
   loadConceptsPerLoad <- list()
-  for (loadId in 1:length(uniqueLoads)) {
+  for (loadId in seq_along(uniqueLoads)) {
     uniqueLoad <- uniqueLoads[[loadId]]
     groupables <- ParallelLogger::matchInList(instantiatedArgsPerRow, uniqueLoad)
     outcomeIds <- c()
