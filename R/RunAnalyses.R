@@ -574,16 +574,16 @@ createReferenceTable <- function(sccsAnalysisList,
       )
     )
   }
-
   # Compute unions of concept sets
-  uniqueLoads <- unique(loads)
+  loadStrings <- sapply(loads, jsonlite::toJSON)
+  uniqueLoadStrings <- unique(loadStrings)
   referenceTable$sccsDataFile <- ""
   referenceTable$loadId <- NA
   loadConceptsPerLoad <- list()
-  for (loadId in seq_along(uniqueLoads)) {
-    uniqueLoad <- uniqueLoads[[loadId]]
+  for (loadId in seq_along(uniqueLoadStrings)) {
+    uniqueLoadString <- uniqueLoadStrings[[loadId]]
     # groupables <- ParallelLogger::matchInList(instantiatedArgsPerRow, uniqueLoad)
-    rowIds <- which(sapply(loads, function(x) isTRUE(all.equal(uniqueLoad, x))))
+    rowIds <- which(loadStrings == uniqueLoadString)
     groupables <-instantiatedArgsPerRow[rowIds]
     outcomeIds <- unique(unlist(ParallelLogger::selectFromList(groupables, "outcomeId")))
     exposureIds <- lapply(groupables, function(x) x$exposureIds)

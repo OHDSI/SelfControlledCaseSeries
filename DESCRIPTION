@@ -41,7 +41,8 @@ Imports:
 	checkmate,
 	readr,
 	ResultModelManager,
-	zip
+	zip,
+	jsonlite
 Suggests:
 	testthat,
 	knitr,
