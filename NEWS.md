@@ -1,9 +1,13 @@
-SelfControlledCaseSeries 5.0.0
+SelfControlledCaseSeries 5.1.0
 ==============================
 
 Changes
 
-1. Optimized `runSccsAnalyses()` to allow running bigger sets of analyses.
+1. Allowing nesting cohort ID to be specified as part of the exposure-outcome pair.
+
+2. Deprecating the `useCustomCovariates` and `useNestingCohort` arguments of the `getDbSccsData()` function.
+
+3. Optimized `runSccsAnalyses()` to allow running bigger sets of analyses.
 
 
 SelfControlledCaseSeries 5.0.0

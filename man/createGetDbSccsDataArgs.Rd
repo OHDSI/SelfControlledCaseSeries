@@ -19,9 +19,9 @@ createGetDbSccsDataArgs(
 )
 }
 \arguments{
-\item{useCustomCovariates}{Create covariates from a custom table?}
+\item{useCustomCovariates}{DEPRECATED. Set customCovariateIds to non-null value to use custom cohorts.}
 
-\item{useNestingCohort}{Should the study be nested in a cohort (e.g. people with a specific indication)? If not, the study will be nested in the general population.}
+\item{useNestingCohort}{DEPRECATED. Set nestingCohortId to non-null value to use a nesting cohort.}
 
 \item{nestingCohortId}{A cohort definition ID identifying the records in the nestingCohortTable to use as nesting cohort.}
 

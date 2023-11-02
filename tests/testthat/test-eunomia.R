@@ -23,6 +23,11 @@ test_that("Running multiple analyses against Eunomia", {
       outcomeId = 4
     ),
     createExposuresOutcome(
+      exposures = list(createExposure(exposureId = 1)),
+      outcomeId = 3,
+      nestingCohortId = 4
+    ),
+    createExposuresOutcome(
       exposures = list(createExposure(exposureId = 999)),
       outcomeId = 4
     ),
@@ -143,7 +148,7 @@ test_that("Running multiple analyses against Eunomia", {
     "No cases left in study population"
   )
   ref <- getFileReference(outputFolder)
-  expect_equal(nrow(ref), 6)
+  expect_equal(nrow(ref), 8)
 
   # analysesToExclude was enforced:
   expect_false(any(ref$exposureId == 1 & ref$outcomeId == 4))
@@ -151,9 +156,12 @@ test_that("Running multiple analyses against Eunomia", {
   model <- readRDS(file.path(outputFolder, result$sccsModelFile[1]))
   expect_true(max(grepl("gender", getAttritionTable(model)$description)) == 1)
 
+  model <- readRDS(file.path(outputFolder, pull(filter(ref, nestingCohortId  == 4), sccsModelFile)[1]))
+  expect_true(max(grepl("nesting", getAttritionTable(model)$description)) == 1)
+
   analysisSum <- getResultsSummary(outputFolder)
 
-  expect_equal(nrow(analysisSum), 6)
+  expect_equal(nrow(analysisSum), 8)
 
   # sccsData <- loadSccsData(file.path(outputFolder, ref$sccsDataFile[5]))
   # sccsData$eraRef

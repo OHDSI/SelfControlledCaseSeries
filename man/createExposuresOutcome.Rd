@@ -4,12 +4,14 @@
 \alias{createExposuresOutcome}
 \title{Create a exposures-outcome combination.}
 \usage{
-createExposuresOutcome(outcomeId, exposures)
+createExposuresOutcome(outcomeId, exposures, nestingCohortId = NULL)
 }
 \arguments{
 \item{outcomeId}{An integer used to identify the outcome in the outcome cohort table.}
 
 \item{exposures}{A list of object of type \code{Exposure} as created by \code{\link[=createExposure]{createExposure()}}.}
+
+\item{nestingCohortId}{(Optional) the nesting cohort ID.}
 }
 \value{
 An object of type \code{ExposuresOutcome}.

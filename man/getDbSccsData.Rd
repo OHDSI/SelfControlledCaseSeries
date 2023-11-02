@@ -74,7 +74,7 @@ If \code{exposureTable = "drug_era"}, \code{exposureIds} is used to select
 the \code{drug_concept_id}. If no exposure IDs are provided, all drugs
 or cohorts in the \code{exposureTable} are included as exposures.}
 
-\item{useCustomCovariates}{Create covariates from a custom table?}
+\item{useCustomCovariates}{DEPRECATED. Set \code{customCovariateIds} to non-null value to use custom cohorts.}
 
 \item{customCovariateDatabaseSchema}{The name of the database schema that is the location where
 the custom covariate data is available.}
@@ -86,9 +86,7 @@ should have the same structure as the cohort table (see details).}
 the \code{customCovariateTable} to use for building custom
 covariates.}
 
-\item{useNestingCohort}{Should the study be nested in a cohort (e.g. people with
-a specific indication)? If not, the study will be nested
-in the general population.}
+\item{useNestingCohort}{DEPRECATED. Set \code{nestingCohortId} to non-null value to use a nesting cohort.}
 
 \item{nestingCohortDatabaseSchema}{The name of the database schema that is the location
 where the nesting cohort is defined.}

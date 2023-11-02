@@ -474,11 +474,12 @@ createReferenceTable <- function(sccsAnalysisList,
 
   convertExposuresOutcomeToTable <- function(i) {
     exposuresOutcome <- exposuresOutcomeList[[i]]
-    names <- c("exposuresOutcomeSetId", "outcomeId", uniqueExposureIdRefs)
-    values <- c(i, exposuresOutcome$outcomeId, rep(-1, length(uniqueExposureIdRefs)))
+    names <- c("exposuresOutcomeSetId", "outcomeId", "nestingCohortId", uniqueExposureIdRefs)
+    nestingCohortId <- if (is.null(exposuresOutcome$nestingCohortId)) NA else exposuresOutcome$nestingCohortId
+    values <- c(i, exposuresOutcome$outcomeId, nestingCohortId, rep(-1, length(uniqueExposureIdRefs)))
     for (exposure in exposuresOutcome$exposures) {
       idx <- which(uniqueExposureIdRefs == exposure$exposureIdRef)
-      values[idx + 2] <- exposure$exposureId
+      values[idx + 3] <- exposure$exposureId
     }
     names(values) <- names
     as_tibble(t(values)) %>%
@@ -502,31 +503,29 @@ createReferenceTable <- function(sccsAnalysisList,
           if (!exposureId %in% uniqueExposureIdRefs) {
             stop(paste("Variable", exposureId, " not found in exposures-outcome sets"))
           }
-          exposureIds <- c(exposureIds, referenceTable[i, ]$exposureId)
+          exposureIds <- c(exposureIds, referenceTable$exposureId[i])
         } else {
           exposureIds <- c(exposureIds, as.numeric(exposureId))
         }
       }
     }
-    customCovariateIds <- c()
-    if (sccsAnalysis$getDbSccsDataArgs$useCustomCovariates) {
-      if (is.null(sccsAnalysis$getDbSccsDataArgs$customCovariateIds)) {
-        customCovariateIds <- "all"
-      } else {
-        for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
-          if (is.character(customCovariateId)) {
-            if (!customCovariateId %in% uniqueExposureIdRefs) {
-              stop(paste("Variable", customCovariateId, " not found in exposures-outcome sets"))
-            }
-            customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
-          } else {
-            customCovariateIds <- c(customCovariateIds, customCovariateId)
+    customCovariateIds <- sccsAnalysis$getDbSccsDataArgs$customCovariateIds
+    if (customCovariateIds == "") {
+      customCovariateIds <- c()
+    } else {
+      for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
+        if (is.character(customCovariateId)) {
+          if (!customCovariateId %in% uniqueExposureIdRefs) {
+            stop(paste("Variable", customCovariateId, " not found in exposures-outcome sets"))
           }
+          customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
+        } else {
+          customCovariateIds <- c(customCovariateIds, customCovariateId)
         }
       }
     }
-    nestingCohortId <- -1
-    if (sccsAnalysis$getDbSccsDataArgs$useNestingCohort) {
+    nestingCohortId <- referenceTable$nestingCohortId[i]
+    if (is.na(nestingCohortId)) {
       nestingCohortId <- sccsAnalysis$getDbSccsDataArgs$nestingCohortId
     }
     instantiatedArgs <- sccsAnalysis$getDbSccsDataArgs
@@ -541,13 +540,13 @@ createReferenceTable <- function(sccsAnalysisList,
   for (sccsAnalysis in sccsAnalysisList) {
     idx <- which(referenceTable$analysisId == sccsAnalysis$analysisId)
     instantiatedArgsPerRow[idx] <- lapply(idx,
-                                            instantiateArgs,
-                                            sccsAnalysis = sccsAnalysis)
+                                          instantiateArgs,
+                                          sccsAnalysis = sccsAnalysis)
   }
 
   # Group loads where possible
   if (combineDataFetchAcrossOutcomes) {
-    uniqueLoads <- unique(ParallelLogger::selectFromList(
+    loads <- ParallelLogger::selectFromList(
       instantiatedArgsPerRow,
       c(
         "nestingCohortId",
@@ -558,9 +557,9 @@ createReferenceTable <- function(sccsAnalysisList,
         "studyEndDates",
         "maxCasesPerOutcome"
       )
-    ))
+    )
   } else {
-    uniqueLoads <- unique(ParallelLogger::selectFromList(
+    loads <- ParallelLogger::selectFromList(
       instantiatedArgsPerRow,
       c(
         "nestingCohortId",
@@ -572,38 +571,27 @@ createReferenceTable <- function(sccsAnalysisList,
         "maxCasesPerOutcome",
         "outcomeId"
       )
-    ))
+    )
   }
 
   # Compute unions of concept sets
+  uniqueLoads <- unique(loads)
   referenceTable$sccsDataFile <- ""
   referenceTable$loadId <- NA
   loadConceptsPerLoad <- list()
   for (loadId in seq_along(uniqueLoads)) {
     uniqueLoad <- uniqueLoads[[loadId]]
-    groupables <- ParallelLogger::matchInList(instantiatedArgsPerRow, uniqueLoad)
-    outcomeIds <- c()
-    exposureIds <- c()
-    customCovariateIds <- c()
-    rowIds <- c()
-    for (groupable in groupables) {
-      outcomeIds <- c(outcomeIds, groupable$outcomeId)
-      if (!(length(exposureIds) == 1 && exposureIds[1] == "all")) {
-        if (groupable$exposureIds[1] == "all") {
-          exposureIds <- "all"
-        } else {
-          exposureIds <- c(exposureIds, groupable$exposureIds)
-        }
-      }
-      if (!(length(customCovariateIds) == 1 && customCovariateIds[1] == "all")) {
-        if ((length(groupable$customCovariateIds) == 1 && groupable$customCovariateIds[1] == "all")) {
-          customCovariateIds <- "all"
-        } else {
-          customCovariateIds <- c(customCovariateIds, groupable$customCovariateIds)
-        }
-      }
-      rowIds <- c(rowIds, groupable$rowId)
+    # groupables <- ParallelLogger::matchInList(instantiatedArgsPerRow, uniqueLoad)
+    rowIds <- which(sapply(loads, function(x) isTRUE(all.equal(uniqueLoad, x))))
+    groupables <-instantiatedArgsPerRow[rowIds]
+    outcomeIds <- unique(unlist(ParallelLogger::selectFromList(groupables, "outcomeId")))
+    exposureIds <- lapply(groupables, function(x) x$exposureIds)
+    if (any(exposureIds == "all")) {
+      exposureIds <- "all"
+    } else {
+      exposureIds <- unique(do.call(c, exposureIds))
     }
+    customCovariateIds <- unique(do.call(c, lapply(groupables, function(x) x$customCovariateIds)))
     loadConceptsPerLoad[[loadId]] <- list(
       exposureIds = unique(exposureIds),
       outcomeIds = unique(outcomeIds),
@@ -653,14 +641,14 @@ createReferenceTable <- function(sccsAnalysisList,
   analysisIdToStudyPopId <- tibble(analysisId = analysisIds, studyPopId = studyPopId, restrictTimeToEraId = restrictTimeToEraId)
   referenceTable <- inner_join(referenceTable, analysisIdToStudyPopId, by = join_by("analysisId"))
   referenceTable$restrictTimeToEraId <- sapply(seq_along(referenceTable$restrictTimeToEraId),
-                                function(i) {
-                                  id <- referenceTable$restrictTimeToEraId[i]
-                                  if (id =="") {
-                                    return(NA)
-                                  } else {
-                                    return(pull(referenceTable[i, id]))
-                                  }
-                                })
+                                               function(i) {
+                                                 id <- referenceTable$restrictTimeToEraId[i]
+                                                 if (id =="") {
+                                                   return(NA)
+                                                 } else {
+                                                   return(pull(referenceTable[i, id]))
+                                                 }
+                                               })
   referenceTable$studyPopFile <- .createStudyPopulationFileName(
     loadId = referenceTable$loadId,
     studyPopId = referenceTable$studyPopId,
@@ -669,18 +657,12 @@ createReferenceTable <- function(sccsAnalysisList,
   )
 
   # Add interval data and model filenames -----------------------------------------------------
-  for (sccsAnalysis in sccsAnalysisList) {
-    analysisFolder <- paste("Analysis_", sccsAnalysis$analysisId, sep = "")
-    if (!file.exists(file.path(outputFolder, analysisFolder))) {
-      dir.create(file.path(outputFolder, analysisFolder))
-    }
-  }
-
   generateFileName <- function(i) {
     return(.createSccsIntervalDataFileName(
       paste("Analysis_", referenceTable$analysisId[i], sep = ""),
       referenceTable$exposureId[i],
-      referenceTable$outcomeId[i]
+      referenceTable$outcomeId[i],
+      referenceTable$nestingCohortId[i]
     ))
   }
   referenceTable$sccsIntervalDataFile <- generateFileName(1:nrow(referenceTable))
@@ -689,7 +671,8 @@ createReferenceTable <- function(sccsAnalysisList,
     return(.createSccsModelFileName(
       paste("Analysis_", referenceTable$analysisId[i], sep = ""),
       referenceTable$exposureId[i],
-      referenceTable$outcomeId[i]
+      referenceTable$outcomeId[i],
+      referenceTable$nestingCohortId[i]
     ))
   }
   referenceTable$sccsModelFile <- generateFileName(1:nrow(referenceTable))
@@ -800,13 +783,17 @@ createSccsModelObject <- function(params) {
   return(name)
 }
 
-.createSccsIntervalDataFileName <- function(analysisFolder, exposureId, outcomeId) {
-  name <- sprintf("SccsIntervalData_e%s_o%s.zip", .f(exposureId), .f(outcomeId))
+.createSccsIntervalDataFileName <- function(analysisFolder, exposureId, outcomeId, nestingCohortId) {
+  name <- if_else(is.na(nestingCohortId),
+                  name <- sprintf("SccsIntervalData_e%s_o%s.zip", .f(exposureId), .f(outcomeId)),
+                  name <- sprintf("SccsIntervalData_e%s_o%s_i%s.zip", .f(exposureId), .f(outcomeId), .f(nestingCohortId)))
   return(file.path(analysisFolder, name))
 }
 
-.createSccsModelFileName <- function(analysisFolder, exposureId, outcomeId) {
-  name <- sprintf("SccsModel_e%s_o%s.rds", .f(exposureId), .f(outcomeId))
+.createSccsModelFileName <- function(analysisFolder, exposureId, outcomeId, nestingCohortId) {
+  name <- if_else(is.na(nestingCohortId),
+                  name <- sprintf("SccsModel_e%s_o%s.rds", .f(exposureId), .f(outcomeId)),
+                  name <- sprintf("SccsModel_e%s_o%s_i%s.rds", .f(exposureId), .f(outcomeId), .f(nestingCohortId)))
   return(file.path(analysisFolder, name))
 }
 
@@ -814,9 +801,9 @@ createSccsModelObject <- function(params) {
   if (is.null(type)) {
     if (is.list(value)) {
       stop(paste("Multiple ",
-        label,
-        "s specified, but none selected in analyses (comparatorType).",
-        sep = ""
+                 label,
+                 "s specified, but none selected in analyses (comparatorType).",
+                 sep = ""
       ))
     }
     return(value)

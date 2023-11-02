@@ -83,7 +83,7 @@
 #'                                        If `exposureTable = "drug_era"`, `exposureIds` is used to select
 #'                                        the `drug_concept_id`. If no exposure IDs are provided, all drugs
 #'                                        or cohorts in the `exposureTable` are included as exposures.
-#' @param useCustomCovariates             Create covariates from a custom table?
+#' @param useCustomCovariates             DEPRECATED. Set `customCovariateIds` to non-null value to use custom cohorts.
 #' @param customCovariateDatabaseSchema   The name of the database schema that is the location where
 #'                                        the custom covariate data is available.
 #' @param customCovariateTable            Name of the table holding the custom covariates. This table
@@ -91,9 +91,7 @@
 #' @param customCovariateIds              A list of cohort definition IDs identifying the records in
 #'                                        the `customCovariateTable` to use for building custom
 #'                                        covariates.
-#' @param useNestingCohort                Should the study be nested in a cohort (e.g. people with
-#'                                        a specific indication)? If not, the study will be nested
-#'                                        in the general population.
+#' @param useNestingCohort                DEPRECATED. Set `nestingCohortId` to non-null value to use a nesting cohort.
 #' @param nestingCohortDatabaseSchema     The name of the database schema that is the location
 #'                                        where the nesting cohort is defined.
 #' @param nestingCohortTable              Name of the table holding the nesting cohort. This table
@@ -154,11 +152,9 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertCharacter(exposureDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(exposureTable, len = 1, add = errorMessages)
   checkmate::assertIntegerish(exposureIds, null.ok = TRUE, add = errorMessages)
-  checkmate::assertLogical(useCustomCovariates, len = 1, add = errorMessages)
   checkmate::assertCharacter(customCovariateDatabaseSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(customCovariateTable, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertIntegerish(customCovariateIds, null.ok = TRUE, add = errorMessages)
-  checkmate::assertLogical(useNestingCohort, len = 1, add = errorMessages)
   checkmate::assertCharacter(nestingCohortDatabaseSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(nestingCohortTable, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(nestingCohortId, null.ok = TRUE, add = errorMessages)
@@ -194,6 +190,14 @@ getDbSccsData <- function(connectionDetails,
   if (cdmVersion == "4") {
     stop("CDM version 4 is no longer supported")
   }
+  if (isTRUE(useCustomCovariates)) {
+    warning("The useCustomCovariates is deprecated. Set customCovariateIds to non-null value to use custom cohorts. ")
+  }
+  useCustomCovariates <- !is.null(customCovariateIds)
+  if (isTRUE(useNestingCohort)) {
+    warning("The useNestingCohort is deprecated. Set nestingCohortId to non-null value to use a nesting cohort. ")
+  }
+  useNestingCohort <- !is.null(nestingCohortId)
   DatabaseConnector::assertTempEmulationSchemaSet(dbms = connectionDetails$dbms,
                                                   tempEmulationSchema = tempEmulationSchema)
 

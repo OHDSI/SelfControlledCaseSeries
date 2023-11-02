@@ -5,8 +5,8 @@
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param useCustomCovariates  Create covariates from a custom table?
-#' @param useNestingCohort  Should the study be nested in a cohort (e.g. people with a specific indication)? If not, the study will be nested in the general population.
+#' @param useCustomCovariates  DEPRECATED. Set customCovariateIds to non-null value to use custom cohorts.
+#' @param useNestingCohort  DEPRECATED. Set nestingCohortId to non-null value to use a nesting cohort.
 #' @param nestingCohortId  A cohort definition ID identifying the records in the nestingCohortTable to use as nesting cohort.
 #' @param deleteCovariatesSmallCount  The minimum count for a covariate to appear in the data to be kept.
 #' @param studyStartDate  DEPRECATED. Use studyStartDates instead.

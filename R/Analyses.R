@@ -130,17 +130,19 @@ createExposure <- function(exposureId, exposureIdRef = "exposureId", trueEffectS
 #' @details
 #' Create a set of hypotheses of interest, to be used with the [runSccsAnalyses] function.
 #'
-#' @param outcomeId    An integer used to identify the outcome in the outcome cohort table.
-#' @param exposures    A list of object of type `Exposure` as created by [createExposure()].
+#' @param outcomeId       An integer used to identify the outcome in the outcome cohort table.
+#' @param exposures       A list of object of type `Exposure` as created by [createExposure()].
+#' @param nestingCohortId (Optional) the nesting cohort ID.
 #'
 #' @return
 #' An object of type `ExposuresOutcome`.
 #'
 #' @export
-createExposuresOutcome <- function(outcomeId, exposures) {
+createExposuresOutcome <- function(outcomeId, exposures, nestingCohortId = NULL) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertInt(outcomeId, add = errorMessages)
   checkmate::assertList(exposures, min.len = 1, add = errorMessages)
+  checkmate::assertInt(nestingCohortId, null.ok = TRUE, add = errorMessages)
   for (i in seq_along(exposures)) {
     checkmate::assertClass(exposures[[i]], "Exposure", add = errorMessages)
   }
@@ -149,7 +151,6 @@ createExposuresOutcome <- function(outcomeId, exposures) {
   if (length(uniqueExposureIdRefs) != length(exposures)) {
     stop("Duplicate exposureIdRefs are not allowed. Please give each exposure a unique exposureIdRef.")
   }
-
   exposuresOutcome <- list()
   for (name in names(formals(createExposuresOutcome))) {
     exposuresOutcome[[name]] <- get(name)
