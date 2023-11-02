@@ -108,6 +108,7 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
 #'
 #' - exposureId
 #' - outcomeId
+#' - nestingCohortId
 #' - analysisId
 #'
 #' This data frame will be joined to the outcome model reference table before executing, and matching rows
@@ -679,7 +680,7 @@ createReferenceTable <- function(sccsAnalysisList,
 
   # Remove rows that the user specified to exclude ---------------------------------
   if (!is.null(analysesToExclude)) {
-    matchingColumns <- colnames(analysesToExclude)[colnames(analysesToExclude) %in% c("exposureId", "outcomeId", "analysisId")]
+    matchingColumns <- colnames(analysesToExclude)[colnames(analysesToExclude) %in% c("exposureId", "outcomeId", "analysisId", "nestingCohortId")]
     if (length(matchingColumns) == 0) {
       stop("The 'analysesToExclude' argument should contain columns 'exposureId', 'outcomeId', or 'analysisId'.")
     }

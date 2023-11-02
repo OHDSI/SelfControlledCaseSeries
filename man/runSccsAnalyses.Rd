@@ -111,6 +111,7 @@ one of the following columns:
 \itemize{
 \item exposureId
 \item outcomeId
+\item nestingCohortId
 \item analysisId
 }
 
