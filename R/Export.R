@@ -292,6 +292,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   sccsSpline <- list()
   sccsTimeToEvent <- list()
   sccsTimeTrend <- list()
+  sccsTimePeriod <- list()
   sccsDiagnosticsSummary <- list()
 
   sccsDataFile <- ""
@@ -337,6 +338,24 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
       sccsCalendarTimeSpanning[[length(sccsCalendarTimeSpanning) + 1]] <- refRows %>%
         select("analysisId", "exposuresOutcomeSetId") %>%
         cross_join(timeSpans)
+
+      # time_period table
+      if (!is.null(studyPop$metaData$restrictedTimeToEra)) {
+        timePeriod <- studyPop$metaData$restrictedTimeToEra %>%
+          select(minDate = .data$minObservedDate,
+                 maxDate = .data$maxObservedDate)
+      } else {
+        timePeriod <- studyPop$cases %>%
+          mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
+                 endDate = .data$observationPeriodStartDate + .data$endDay) %>%
+          summarise(minDate = min(startDate),
+                    maxDate = max(endDate))
+      }
+      refRows <- reference %>%
+        filter(.data$studyPopFile == !!studyPopFile)
+      sccsTimePeriod[[length(sccsCalendarTimeSpanning) + 1]] <- refRows %>%
+        select("analysisId", "exposuresOutcomeSetId") %>%
+        cross_join(timePeriod)
 
       # sccsEventDepObservation table
       data <- computeTimeToObsEnd(studyPop) %>%
@@ -666,12 +685,17 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   fileName <- file.path(exportFolder, "sccs_attrition.csv")
   writeToCsv(sccsAttrition, fileName)
 
-  message("  Censoring sccs_age_spanning table")
+  message("  Censoring sccs_calendar_time_spanning table")
   sccsCalendarTimeSpanning <- sccsCalendarTimeSpanning %>%
     bind_rows() %>%
     enforceMinCellValue("coverBeforeAfterSubjects", minCellCount)
   fileName <- file.path(exportFolder, "sccs_calendar_time_spanning.csv")
   writeToCsv(sccsCalendarTimeSpanning, fileName)
+
+  sccsTimePeriod <- sccsTimePeriod %>%
+    bind_rows()
+  fileName <- file.path(exportFolder, "sccs_time_period.csv")
+  writeToCsv(sccsTimePeriod, fileName)
 
   sccsCovariate <- sccsCovariate %>%
     bind_rows() %>%

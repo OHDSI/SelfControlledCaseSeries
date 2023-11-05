@@ -9,6 +9,12 @@ Changes
 
 3. Optimized `runSccsAnalyses()` to allow running bigger sets of analyses.
 
+4. Adding `sccs_time_period` table to export, capturing the calendar time period included in the analysis.
+
+Bugfixes
+
+1. Handling edge case in `computeTimeStability()` when there is only 1 month.
+
 
 SelfControlledCaseSeries 5.0.0
 ==============================

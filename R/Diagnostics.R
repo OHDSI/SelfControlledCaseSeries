@@ -154,8 +154,11 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   checkmate::assertNumeric(alpha, lower = 0, upper = 1, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
-  if (nrow(data) == 0) {
+  saveRDS(studyPopulation, "d:/temp/studyPopulation.rds")
+  saveRDS(sccsModel, "d:/temp/sccsModel.rds")
+
+  data <- SelfControlledCaseSeries:::computeOutcomeRatePerMonth(studyPopulation, sccsModel)
+  if (nrow(data) < 2) {
     result <- tibble(ratio = NA,
                      p = 1,
                      stable = TRUE)
