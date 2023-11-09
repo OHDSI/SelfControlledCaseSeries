@@ -411,9 +411,9 @@ convertDateToMonth <- function(date) {
 
 computeMonthFraction <- function(date, post = FALSE) {
   # For simplicity assume all months have 31 days. Could use lubridate package to be more precise.
-  # Assume day it self is included
+  # Assume day itself is included
   if (post) {
-    return((31-as.numeric(format(date, "%d")))/31)
+    return((31-as.numeric(format(date, "%d")) + 1)/31)
   } else {
     return(as.numeric(format(date, "%d"))/31)
   }

@@ -15,6 +15,8 @@ Bugfixes
 
 1. Handling edge case in `computeTimeStability()` when there is only 1 month.
 
+2. Correcting computation of fraction of start month observed for `computeTimeStability()` (was off by 1/31).
+
 
 SelfControlledCaseSeries 5.0.0
 ==============================
