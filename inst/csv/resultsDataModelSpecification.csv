@@ -21,6 +21,7 @@ sccs_era,era_name,varchar,No,No,No,A name for the era. Is NULL for eras derived 
 sccs_era,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
 sccs_exposures_outcome_set,exposures_outcome_set_id,int,Yes,Yes,No,A unique identifier for a set of exposures and an outcome.
 sccs_exposures_outcome_set,outcome_id,int,Yes,No,No,A cohort ID.
+sccs_exposures_outcome_set,nesting_cohort_id,int,No,No,No,A cohort ID.
 sccs_exposure,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_exposure,era_id,int,Yes,Yes,No,A foreign key referencing the sccs_era table.
 sccs_exposure,true_effect_size,float,No,No,No,"If known, the true effect size. For negatitive controls this equals 1."

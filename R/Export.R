@@ -256,6 +256,7 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
 
     exposuresOutcomeSet <- tibble(
       exposuresOutcomeSetId = i,
+      nestingCohortId = eso$nestingCohortId,
       outcomeId = eso$outcomeId
     )
     sccsExposuresOutcomeSet[[length(sccsExposuresOutcomeSet) + 1]] <- exposuresOutcomeSet
