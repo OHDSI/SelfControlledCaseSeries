@@ -44,6 +44,7 @@ sccs_result,rr,float,No,No,No,The estimated relative risk (i.e. the incidence ra
 sccs_result,ci_95_lb,float,No,No,No,The lower bound of the 95% confidence interval of the relative risk.
 sccs_result,ci_95_ub,float,No,No,No,The upper bound of the 95% confidence interval of the relative risk.
 sccs_result,p,float,No,No,No,The two-sided p-value considering the null hypothesis of no effect.
+sccs_result,one_sided_p,float,No,No,No,The one-sided p-value considering the null hypothesis of IRR <= 1.
 sccs_result,outcome_subjects,int,Yes,No,Yes,The number of subjects with at least one outcome.
 sccs_result,outcome_events,int,Yes,No,Yes,The number of outcome events.
 sccs_result,outcome_observation_periods,int,Yes,No,Yes,The number of observation periods containing at least one outcome.
@@ -59,6 +60,7 @@ sccs_result,calibrated_rr,float,No,No,No,The calibrated relative risk.
 sccs_result,calibrated_ci_95_lb,float,No,No,No,The lower bound of the calibrated 95% confidence interval of the relative risk.
 sccs_result,calibrated_ci_95_ub,float,No,No,No,The upper bound of the calibrated 95% confidence interval of the relative risk.
 sccs_result,calibrated_p,float,No,No,No,The calibrated two-sided p-value.
+sccs_result,calibrated_one_sided_p,float,No,No,No,The calibrated one-sided p-value considering the null hypothesis of IRR <= 1.
 sccs_result,calibrated_log_rr,float,No,No,No,The log of the calibrated relative risk.
 sccs_result,calibrated_se_log_rr,float,No,No,No,The standard error of the log of the calibrated relative risk.
 sccs_result,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.

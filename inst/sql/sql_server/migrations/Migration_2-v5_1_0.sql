@@ -1,5 +1,7 @@
 -- Database migrations for version 5.1.0
 -- This migration updates the schema:
- -- 1. Adds the nesting_cohort_id to the sccs_exposures_outcome_set table
+-- 1. Adds the nesting_cohort_id to the sccs_exposures_outcome_set table.
+-- 2. Adds the one_sided_p and calibrated_one_sided_p fields to the sccs_result table.
 
-ALTER TABLE @database_schema.@table_prefixsccs_exposures_outcome_set ADD nesting_cohort_id FLOAT
+ALTER TABLE @database_schema.@table_prefixsccs_exposures_outcome_set ADD nesting_cohort_id INT;
+ALTER TABLE @database_schema.@table_prefixsccs_result ADD one_sided_p FLOAT, calibrated_one_sided_p FLOAT;

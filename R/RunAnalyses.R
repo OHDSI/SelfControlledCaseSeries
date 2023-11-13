@@ -845,8 +845,12 @@ summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder,
           if (nrow(estimate) == 0) {
             p <- NA
           } else {
-            z <- estimate$logRr / estimate$seLogRr
-            p <- 2 * pmin(pnorm(z), 1 - pnorm(z))
+            p <- EmpiricalCalibration::computeTraditionalP(logRr = estimate$logRr,
+                                                           seLogRr = estimate$seLogRr)
+            oneSidedP <- EmpiricalCalibration::computeTraditionalP(logRr = estimate$logRr,
+                                                                   seLogRr = estimate$seLogRr,
+                                                                   twoSided = FALSE,
+                                                                   upper = TRUE)
           }
           if (covariateSettings$eraIds[j] == -1) {
             exposure <- list(trueEffectSize = NA)
@@ -880,6 +884,7 @@ summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder,
             ci95Lb = ifelse(nrow(estimate) == 0, NA, exp(estimate$logLb95)),
             ci95Ub = ifelse(nrow(estimate) == 0, NA, exp(estimate$logUb95)),
             p = p,
+            oneSidedP = oneSidedP,
             logRr = ifelse(nrow(estimate) == 0, NA, estimate$logRr),
             seLogRr = ifelse(nrow(estimate) == 0, NA, estimate$seLogRr),
             llr = ifelse(nrow(estimate) == 0, NA, estimate$llr)
@@ -920,7 +925,14 @@ calibrateGroup <- function(group) {
   if (nrow(ncs) >= 5) {
     null <- EmpiricalCalibration::fitMcmcNull(logRr = ncs$logRr, seLogRr = ncs$seLogRr)
     ease <- EmpiricalCalibration::computeExpectedAbsoluteSystematicError(null)
-    calibratedP <- EmpiricalCalibration::calibrateP(null = null, logRr = group$logRr, seLogRr = group$seLogRr)
+    calibratedP <- EmpiricalCalibration::calibrateP(null = null,
+                                                    logRr = group$logRr,
+                                                    seLogRr = group$seLogRr)
+    calibratedOneSidedP <- EmpiricalCalibration::calibrateP(null = null,
+                                                            logRr = group$logRr,
+                                                            seLogRr = group$seLogRr,
+                                                            twoSided = FALSE,
+                                                            upper = TRUE)
     if (nrow(pcs) >= 5) {
       model <- EmpiricalCalibration::fitSystematicErrorModel(
         logRr = c(ncs$logRr, pcs$logRr),
@@ -936,6 +948,7 @@ calibrateGroup <- function(group) {
     group$calibratedCi95Lb <- exp(calibratedCi$logLb95Rr)
     group$calibratedCi95Ub <- exp(calibratedCi$logUb95Rr)
     group$calibratedP <- calibratedP$p
+    group$calibratedOneSidedP <- calibratedOneSidedP$p
     group$calibratedLogRr <- calibratedCi$logRr
     group$calibratedSeLogRr <- calibratedCi$seLogRr
     group$ease <- ease$ease
@@ -944,6 +957,7 @@ calibrateGroup <- function(group) {
     group$calibratedCi95Lb <- NA
     group$calibratedCi95Ub <- NA
     group$calibratedP <- NA
+    group$calibratedOneSidedP <- NA
     group$calibratedLogRr <- NA
     group$calibratedSeLogRr <- NA
     group$ease <- NA
