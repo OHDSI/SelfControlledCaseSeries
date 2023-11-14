@@ -11,6 +11,8 @@ Changes
 
 4. Adding `sccs_time_period` table to export, capturing the calendar time period included in the analysis.
 
+5. Adding one-sided (calibrated) p-values to results summary and results model.
+
 Bugfixes
 
 1. Handling edge case in `computeTimeStability()` when there is only 1 month.

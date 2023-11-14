@@ -349,8 +349,8 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
         timePeriod <- studyPop$cases %>%
           mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
                  endDate = .data$observationPeriodStartDate + .data$endDay) %>%
-          summarise(minDate = min(startDate),
-                    maxDate = max(endDate))
+          summarise(minDate = min(.data$startDate),
+                    maxDate = max(.data$endDate))
       }
       refRows <- reference %>%
         filter(.data$studyPopFile == !!studyPopFile)
