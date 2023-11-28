@@ -132,3 +132,4 @@ sccs_diagnostics_summary,ease_diagnostic,varchar(20),Yes,No,No,Pass / warning / 
 sccs_diagnostics_summary,time_trend_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the time trend (unstalbe months) diagnostic.
 sccs_diagnostics_summary,pre_exposure_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the time trend (unstalbe months) diagnostic.
 sccs_diagnostics_summary,unblind,int,Yes,No,No,"Is unblinding the result recommended? (1 = yes, 0 = no)"
+sccs_diagnostics_summary,unblind_for_evidence_synthesis,int,Yes,No,No,"Is unblinding the result for inclusion in evidence synthesis recommended? This ignores the MDRR diagnostic. (1 = yes, 0 = no)"

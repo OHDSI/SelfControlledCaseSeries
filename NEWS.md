@@ -15,6 +15,8 @@ Changes
 
 6. `exportToCsv()` can now use multithreading for speed.
 
+7. Adding `unblindForEvidenceSynthesis` field to `sccs_diagnostics_summary_table`.
+
 
 Bugfixes
 
