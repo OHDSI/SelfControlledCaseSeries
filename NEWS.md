@@ -13,6 +13,9 @@ Changes
 
 5. Adding one-sided (calibrated) p-values to results summary and results model.
 
+6. `exportToCsv()` can now use multithreading for speed.
+
+
 Bugfixes
 
 1. Handling edge case in `computeTimeStability()` when there is only 1 month.
