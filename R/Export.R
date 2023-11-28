@@ -747,8 +747,13 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
           TRUE ~ "FAIL"
         )
       ) %>%
-      mutate(unblind = ifelse(.data$easeDiagnostic == "PASS" & .data$mdrrDiagnostic == "PASS" & .data$timeTrendDiagnostic == "PASS" & .data$preExposureDiagnostic == "PASS", 1, 0)) %>%
-      mutate(unblindForEvidenceSynthesis = ifelse(.data$easeDiagnostic == "PASS" & .data$timeTrendDiagnostic == "PASS" & .data$preExposureDiagnostic == "PASS", 1, 0)) %>%
+      mutate(unblind = ifelse(.data$easeDiagnostic != "FAIL" &
+                                .data$mdrrDiagnostic != "FAIL" &
+                                .data$timeTrendDiagnostic != "FAIL" &
+                                .data$preExposureDiagnostic != "FAIL", 1, 0)) %>%
+      mutate(unblindForEvidenceSynthesis = ifelse(.data$easeDiagnostic != "FAIL" &
+                                                    .data$timeTrendDiagnostic != "FAIL" &
+                                                    .data$preExposureDiagnostic != "FAIL", 1, 0)) %>%
       select(-"eraId")
     sccsDiagnosticsSummary[[length(sccsDiagnosticsSummary) + 1]] <- table
     return(list(

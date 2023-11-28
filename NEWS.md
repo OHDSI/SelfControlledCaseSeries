@@ -17,6 +17,8 @@ Changes
 
 7. Adding `unblindForEvidenceSynthesis` field to `sccs_diagnostics_summary_table`.
 
+8. Unblinding logic now same as for `CohortMethod`: also unblind if a diagnostic is not evaluated (instead of only unblinding when passing).
+
 
 Bugfixes
 
