@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.1.0</span>
       </span>
     </div>
 
@@ -217,6 +217,7 @@ However, sometimes we may not need all those combinations. Using the <code>analy
 we can remove certain items from the full matrix. This argument should be a data frame with at least
 one of the following columns:</p><ul><li><p>exposureId</p></li>
 <li><p>outcomeId</p></li>
+<li><p>nestingCohortId</p></li>
 <li><p>analysisId</p></li>
 </ul><p>This data frame will be joined to the outcome model reference table before executing, and matching rows
 will be removed. For example, if one specifies only one exposure ID and analysis ID, then any analyses with

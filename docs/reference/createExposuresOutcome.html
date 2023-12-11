@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.1.0</span>
       </span>
     </div>
 
@@ -72,7 +72,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">createExposuresOutcome</span><span class="op">(</span><span class="va">outcomeId</span>, <span class="va">exposures</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">createExposuresOutcome</span><span class="op">(</span><span class="va">outcomeId</span>, <span class="va">exposures</span>, nestingCohortId <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -83,6 +83,10 @@
 
 <dt>exposures</dt>
 <dd><p>A list of object of type <code>Exposure</code> as created by <code><a href="createExposure.html">createExposure()</a></code>.</p></dd>
+
+
+<dt>nestingCohortId</dt>
+<dd><p>(Optional) the nesting cohort ID.</p></dd>
 
 </dl></div>
     <div id="value">

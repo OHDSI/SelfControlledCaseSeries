@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.1.0</span>
       </span>
     </div>
 
@@ -92,7 +92,7 @@ package</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie</h4>
             
-            <h4 data-toc-skip class="date">2023-11-01</h4>
+            <h4 data-toc-skip class="date">2023-12-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/ResultsSchema.Rmd" class="external-link"><code>vignettes/ResultsSchema.Rmd</code></a></small>
       <div class="hidden name"><code>ResultsSchema.Rmd</code></div>
@@ -755,6 +755,15 @@ the time trend (unstalbe months) diagnostic.</td>
 <td align="left">Is unblinding the result recommended? (1 = yes, 0 =
 no)</td>
 </tr>
+<tr class="even">
+<td align="left">unblind_for_evidence_synthesis</td>
+<td align="left">int</td>
+<td align="left">No</td>
+<td align="left">No</td>
+<td align="left">Is unblinding the result for inclusion in evidence
+synthesis recommended? This ignores the MDRR diagnostic. (1 = yes, 0 =
+no)</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -943,6 +952,13 @@ outcome.</td>
 <td align="left">No</td>
 <td align="left">A cohort ID.</td>
 </tr>
+<tr class="odd">
+<td align="left">nesting_cohort_id</td>
+<td align="left">int</td>
+<td align="left">No</td>
+<td align="left">No</td>
+<td align="left">A cohort ID.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1073,20 +1089,28 @@ relative risk.</td>
 of no effect.</td>
 </tr>
 <tr class="even">
+<td align="left">one_sided_p</td>
+<td align="left">float</td>
+<td align="left">No</td>
+<td align="left">No</td>
+<td align="left">The one-sided p-value considering the null hypothesis
+of IRR &lt;= 1.</td>
+</tr>
+<tr class="odd">
 <td align="left">outcome_subjects</td>
 <td align="left">int</td>
 <td align="left">No</td>
 <td align="left">Yes</td>
 <td align="left">The number of subjects with at least one outcome.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">outcome_events</td>
 <td align="left">int</td>
 <td align="left">No</td>
 <td align="left">Yes</td>
 <td align="left">The number of outcome events.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">outcome_observation_periods</td>
 <td align="left">int</td>
 <td align="left">No</td>
@@ -1094,28 +1118,28 @@ of no effect.</td>
 <td align="left">The number of observation periods containing at least
 one outcome.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">covariate_subjects</td>
 <td align="left">int</td>
 <td align="left">No</td>
 <td align="left">Yes</td>
 <td align="left">The number of subjects having the covariate.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">covariate_days</td>
 <td align="left">int</td>
 <td align="left">No</td>
 <td align="left">Yes</td>
 <td align="left">The total covariate time in days.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">covariate_eras</td>
 <td align="left">int</td>
 <td align="left">No</td>
 <td align="left">Yes</td>
 <td align="left">The number of continuous eras of the covariate.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">covariate_outcomes</td>
 <td align="left">int</td>
 <td align="left">No</td>
@@ -1123,21 +1147,21 @@ one outcome.</td>
 <td align="left">The number of outcomes observed during the covariate
 time.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">observed_days</td>
 <td align="left">bigint</td>
 <td align="left">No</td>
 <td align="left">Yes</td>
 <td align="left">The number of days subjects were observed.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">log_rr</td>
 <td align="left">float</td>
 <td align="left">No</td>
 <td align="left">No</td>
 <td align="left">The log of the relative risk.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">se_log_rr</td>
 <td align="left">float</td>
 <td align="left">No</td>
@@ -1145,7 +1169,7 @@ time.</td>
 <td align="left">The standard error of the log of the relative
 risk.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">llr</td>
 <td align="left">float</td>
 <td align="left">No</td>
@@ -1153,14 +1177,14 @@ risk.</td>
 <td align="left">The log of the likelihood ratio (of the MLE vs the null
 hypothesis of no effect).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">calibrated_rr</td>
 <td align="left">float</td>
 <td align="left">No</td>
 <td align="left">No</td>
 <td align="left">The calibrated relative risk.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">calibrated_ci_95_lb</td>
 <td align="left">float</td>
 <td align="left">No</td>
@@ -1168,7 +1192,7 @@ hypothesis of no effect).</td>
 <td align="left">The lower bound of the calibrated 95% confidence
 interval of the relative risk.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">calibrated_ci_95_ub</td>
 <td align="left">float</td>
 <td align="left">No</td>
@@ -1176,12 +1200,20 @@ interval of the relative risk.</td>
 <td align="left">The upper bound of the calibrated 95% confidence
 interval of the relative risk.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">calibrated_p</td>
 <td align="left">float</td>
 <td align="left">No</td>
 <td align="left">No</td>
 <td align="left">The calibrated two-sided p-value.</td>
+</tr>
+<tr class="even">
+<td align="left">calibrated_one_sided_p</td>
+<td align="left">float</td>
+<td align="left">No</td>
+<td align="left">No</td>
+<td align="left">The calibrated one-sided p-value considering the null
+hypothesis of IRR &lt;= 1.</td>
 </tr>
 <tr class="odd">
 <td align="left">calibrated_log_rr</td>

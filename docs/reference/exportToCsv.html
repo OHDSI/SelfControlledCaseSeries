@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.1.0</span>
       </span>
     </div>
 
@@ -77,6 +77,7 @@
 <span>  exportFolder <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">outputFolder</span>, <span class="st">"export"</span><span class="op">)</span>,</span>
 <span>  databaseId <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  minCellCount <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  maxCores <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sccsDiagnosticThresholds <span class="op">=</span> <span class="fu"><a href="createSccsDiagnosticThresholds.html">createSccsDiagnosticThresholds</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -100,6 +101,10 @@ most tables.</p></dd>
 <dd><p>To preserve privacy: the minimum number of subjects contributing
 to a count before it can be included in the results. If the
 count is below this threshold, it will be set to <code>-minCellCount</code>.</p></dd>
+
+
+<dt>maxCores</dt>
+<dd><p>Maximum number of CPU cores to use.</p></dd>
 
 
 <dt>sccsDiagnosticThresholds</dt>
