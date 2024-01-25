@@ -1,3 +1,10 @@
+SelfControlledCaseSeries 5.1.1
+==============================
+
+Bigfixes
+
+1. Fixed 'oneSidedP not found' error when unable to fit a model.
+
 SelfControlledCaseSeries 5.1.0
 ==============================
 

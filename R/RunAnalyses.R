@@ -844,6 +844,7 @@ summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder,
           }
           if (nrow(estimate) == 0) {
             p <- NA
+            oneSidedP <- NA
           } else {
             p <- EmpiricalCalibration::computeTraditionalP(logRr = estimate$logRr,
                                                            seLogRr = estimate$seLogRr)
