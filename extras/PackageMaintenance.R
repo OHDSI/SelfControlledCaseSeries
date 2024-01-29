@@ -1,4 +1,4 @@
-# Copyright 2024 Observational Health Data Sciences and Informatics
+# Copyright 2023 Observational Health Data Sciences and Informatics
 #
 # This file is part of SelfControlledCaseSeries
 #
@@ -34,7 +34,7 @@ source("extras/AgeAndSeasonSimulations.R")
 
 # Create manual and vignette
 unlink("extras/SelfControlledCaseSeries.pdf")
-shell("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
+system("R CMD Rd2pdf ./ --output=extras/SelfControlledCaseSeries.pdf")
 
 rmarkdown::render("vignettes/SingleStudies.Rmd",
                   output_file = "../inst/doc/SingleStudies.pdf")
