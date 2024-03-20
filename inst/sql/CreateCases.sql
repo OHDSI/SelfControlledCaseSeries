@@ -107,7 +107,7 @@ SELECT observation_period_id,
 	gender_concept_id
 INTO #cases_in_nesting
 {@has_study_periods} ? {
-FROM #cases_in_period cases
+FROM #cases_in_periods cases
 } : {
 FROM #cases cases
 }
