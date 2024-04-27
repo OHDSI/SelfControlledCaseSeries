@@ -171,7 +171,6 @@ fitSccsModel <- function(sccsIntervalData,
       if ((!is.null(profileGrid) || !is.null(profileBounds)) && fit$return_flag != "ILLCONDITIONED") {
         covariateIds <- intersect(needProfile, as.numeric(Cyclops::getCovariateIds(cyclopsData)))
         getLikelihoodProfile <- function(covariateId) {
-          if (all(fit$estimates))
           logLikelihoodProfile <- Cyclops::getCyclopsProfileLogLikelihood(
             object = fit,
             parm = covariateId,
