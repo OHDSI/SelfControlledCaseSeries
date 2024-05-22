@@ -1,3 +1,13 @@
+SelfControlledCaseSeries 5.1.2
+==============================
+
+Bugfixes
+
+1. Fixed error in SQL about "#case_in_period".
+
+2. Fixed case count in `createStudyPopulation()` when restricting time in prior `getDbSccsData()` call, e.g. by defining a study period and/or nesting cohort.
+
+
 SelfControlledCaseSeries 5.1.1
 ==============================
 

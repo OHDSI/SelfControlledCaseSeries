@@ -248,6 +248,14 @@ createStudyPopulation <- function(sccsData,
   metaData$outcomeId <- unique(outcomes$eraId)
   metaData$attrition <- attrition
 
+  # Restrict cases to those that have at least one outcome between start and end:
+  cases <- outcomes %>%
+    select("caseId", "eraStartDay") %>%
+    inner_join(cases,
+               by = join_by("caseId", between("eraStartDay", "startDay", "endDay"))) %>%
+    select(-"eraStartDay") %>%
+    distinct()
+
   cases <- cases %>%
     select("observationPeriodId", "caseId", "personId", "observationPeriodStartDate", "ageAtObsStart", "startDay", "endDay", "noninformativeEndCensor")
 
@@ -263,7 +271,7 @@ createStudyPopulation <- function(sccsData,
 
 countOutcomes <- function(outcomes, cases, description) {
   counts <- outcomes %>%
-    inner_join(cases, by = join_by("caseId")) %>%
+    inner_join(cases, by = join_by("caseId"), between("eraStartDay", "startDay", "endDay")) %>%
     group_by(.data$eraId) %>%
     summarise(
       outcomeSubjects = n_distinct(.data$personId),
