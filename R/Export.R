@@ -472,7 +472,7 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
     }
 
     # sccsTimeToEvent table
-    for (exposure in esoList[[refRow$exposuresOutcomeSetId]]$exposures) {
+    for (exposure in esoList[[refRow$exposuresOutcomeSetSeqId]]$exposures) {
       data <- computeTimeToEvent(
         studyPopulation = studyPop,
         sccsData = sccsData,

@@ -1,5 +1,9 @@
-SelfControlledCaseSeries 5.1.2
+SelfControlledCaseSeries 5.2.0
 ==============================
+
+Changes
+
+1. Switching `exposures_outcome_set_id` from a sequential number to a hash to avoid issues when dividing a set of analyses over various machines, and combining the results later.
 
 Bugfixes
 

@@ -475,18 +475,29 @@ createReferenceTable <- function(sccsAnalysisList,
 
   convertExposuresOutcomeToTable <- function(i) {
     exposuresOutcome <- exposuresOutcomeList[[i]]
-    names <- c("exposuresOutcomeSetId", "outcomeId", "nestingCohortId", uniqueExposureIdRefs)
+    names <- c("exposuresOutcomeSetId", "exposuresOutcomeSetSeqId", "outcomeId", "nestingCohortId", uniqueExposureIdRefs)
     nestingCohortId <- if (is.null(exposuresOutcome$nestingCohortId)) NA else exposuresOutcome$nestingCohortId
-    values <- c(i, exposuresOutcome$outcomeId, nestingCohortId, rep(-1, length(uniqueExposureIdRefs)))
+    # Use hash of exposure IDs, outcome ID, and nesting ID to generate exposuresOutcomeSetId.
+    # This should make ID consistent even when an analysis is distributed over various machines:
+    hashString <- paste(exposuresOutcome$outcomeId,
+                        nestingCohortId,
+                        paste(sapply(exposuresOutcome$exposures, function(x) x$exposureId), collapse = " "))
+    hash <- as.integer(as.numeric(paste0("0x", digest::digest(hashString, algo = "murmur32", serialize = FALSE)))-2^31)
+
+    # values <- c(hash, i, exposuresOutcome$outcomeId, nestingCohortId, rep(-1, length(uniqueExposureIdRefs)))
+    values <- c(hash, i, exposuresOutcome$outcomeId, nestingCohortId, rep(-1, length(uniqueExposureIdRefs)))
     for (exposure in exposuresOutcome$exposures) {
       idx <- which(uniqueExposureIdRefs == exposure$exposureIdRef)
-      values[idx + 3] <- exposure$exposureId
+      values[idx + 4] <- exposure$exposureId
     }
     names(values) <- names
     as_tibble(t(values)) %>%
       return()
   }
   eos <- bind_rows(lapply(seq_along(exposuresOutcomeList), convertExposuresOutcomeToTable))
+  if (any(duplicated(eos$exposuresOutcomeSetId))) {
+    stop("Collision detected for exposuresOutcomeSetId. Are all exposures-outcome-nesting objects unique?")
+  }
 
   referenceTable <- eos %>%
     cross_join(analyses)
@@ -856,7 +867,7 @@ summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder,
           if (covariateSettings$eraIds[j] == -1) {
             exposure <- list(trueEffectSize = NA)
           } else {
-            exposuresOutcome <- exposuresOutcomeList[[refRow$exposuresOutcomeSetId]]
+            exposuresOutcome <- exposuresOutcomeList[[refRow$exposuresOutcomeSetSeqId]]
             exposure <- ParallelLogger::matchInList(exposuresOutcome$exposures, list(exposureId = covariateSettings$eraIds[j]))
             if (length(exposure) != 1) {
               stop(sprintf("Error finding exposure for covariate ID %d in analysis ID %d", covariateSettings$outputIds[j], refRow$analysisId))
