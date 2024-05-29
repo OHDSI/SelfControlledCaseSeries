@@ -613,7 +613,7 @@ createReferenceTable <- function(sccsAnalysisList,
       studyStartDate = groupables[[1]]$studyStartDate,
       studyEndDate = groupables[[1]]$studyEndDate,
       studyStartDates = groupables[[1]]$studyStartDates,
-      studyEndDatse = groupables[[1]]$studyEndDates,
+      studyEndDates = groupables[[1]]$studyEndDates,
       maxCasesPerOutcome = groupables[[1]]$maxCasesPerOutcome
     )
     sccsDataFileName <- .createSccsDataFileName(loadId)

@@ -11,6 +11,8 @@ Bugfixes
 
 2. Fixed case count in `createStudyPopulation()` when restricting time in prior `getDbSccsData()` call, e.g. by defining a study period and/or nesting cohort.
 
+3. Preventing duplicate calendar time and age knots, causing unique key violation errors when uploading.
+
 
 SelfControlledCaseSeries 5.1.1
 ==============================

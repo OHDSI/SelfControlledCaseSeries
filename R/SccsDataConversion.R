@@ -215,6 +215,7 @@ addAgeSettings <- function(settings,
         transmute(outcomeAge = .data$outcomeDay + .data$ageAtObsStart) %>%
         pull() %>%
         quantile(seq(0.01, 0.99, length.out = ageCovariateSettings$ageKnots))
+      ageKnots <- ageKnots[!duplicated(ageKnots)]
     } else {
       ageKnots <- ageCovariateSettings$ageKnots
     }
@@ -328,6 +329,7 @@ addCalendarTimeSettings <- function(settings,
         for (j in seq_len(knotsInPeriod)) {
           calendarTimeKnots[j] <- min(countsInPeriod$month[countsInPeriod$cumCount >= cutoffs[j]])
         }
+        calendarTimeKnots <- calendarTimeKnots[!duplicated(calendarTimeKnots)]
         calendarTimeKnotsInPeriods[[length(calendarTimeKnotsInPeriods) + 1]] <- calendarTimeKnots
       }
     } else {
