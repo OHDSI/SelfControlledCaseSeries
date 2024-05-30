@@ -271,7 +271,7 @@ createStudyPopulation <- function(sccsData,
 
 countOutcomes <- function(outcomes, cases, description) {
   counts <- outcomes %>%
-    inner_join(cases, by = join_by("caseId"), between("eraStartDay", "startDay", "endDay")) %>%
+    inner_join(cases, by = join_by("caseId", between("eraStartDay", "startDay", "endDay"))) %>%
     group_by(.data$eraId) %>%
     summarise(
       outcomeSubjects = n_distinct(.data$personId),
