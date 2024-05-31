@@ -2,7 +2,7 @@ Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
 Version: 5.2.0
-Date: 2024-05-22
+Date: 2024-05-31
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
@@ -51,7 +51,6 @@ Suggests:
 	Eunomia,
 	withr
 Remotes:
-	ohdsi/Eunomia,
 	ohdsi/ResultModelManager
 License: Apache License 2.0
 LinkingTo: Rcpp

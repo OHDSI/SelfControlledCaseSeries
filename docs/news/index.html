@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.2.0</span>
       </span>
     </div>
 
@@ -66,6 +66,15 @@
       <small>Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="5.2.0" id="selfcontrolledcaseseries-520">SelfControlledCaseSeries 5.2.0<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-520"></a></h2>
+<p>Changes</p>
+<ol style="list-style-type: decimal"><li>Switching <code>exposures_outcome_set_id</code> from a sequential number to a hash to avoid issues when dividing a set of analyses over various machines, and combining the results later.</li>
+</ol><p>Bugfixes</p>
+<ol style="list-style-type: decimal"><li><p>Fixed error in SQL about “#case_in_period”.</p></li>
+<li><p>Fixed case count in <code><a href="../reference/createStudyPopulation.html">createStudyPopulation()</a></code> when restricting time in prior <code><a href="../reference/getDbSccsData.html">getDbSccsData()</a></code> call, e.g. by defining a study period and/or nesting cohort.</p></li>
+<li><p>Preventing duplicate calendar time and age knots, causing unique key violation errors when uploading.</p></li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="5.1.1" id="selfcontrolledcaseseries-511">SelfControlledCaseSeries 5.1.1<a class="anchor" aria-label="anchor" href="#selfcontrolledcaseseries-511"></a></h2>
 <p>Bugfixes</p>
