@@ -181,6 +181,16 @@ test_that("Running multiple analyses against Eunomia", {
   diagnosticsSummary <- readr::read_csv(file.path(outputFolder, "export", "sccs_diagnostics_summary.csv"), show_col_types = FALSE)
   expect_true(all(diagnosticsSummary$ease_diagnostic == "NOT EVALUATED"))
 
+  # Make sure exposures_outcome_set_id is consistent across table:
+  exposure <- readr::read_csv(file.path(outputFolder, "export", "sccs_exposure.csv"), show_col_types = FALSE)
+  eos <- readr::read_csv(file.path(outputFolder, "export", "sccs_exposures_outcome_set.csv"), show_col_types = FALSE)
+  expect_length(setdiff(unique(diagnosticsSummary$exposures_outcome_set_id),
+                        unique(exposure$exposures_outcome_set_id)),
+                0)
+  expect_length(setdiff(unique(eos$exposures_outcome_set_id),
+                        unique(exposure$exposures_outcome_set_id)),
+                0)
+
   specs <- readr::read_csv(
     file = system.file("csv", "resultsDataModelSpecification.csv", package = "SelfControlledCaseSeries"),
     show_col_types = FALSE

@@ -237,6 +237,8 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
   message("- sccs_exposure and sccs_exposures_outcome_set tables")
 
   esoList <- readRDS(file.path(outputFolder, "exposuresOutcomeList.rds"))
+  ref <- getFileReference(outputFolder) %>%
+    distinct(exposuresOutcomeSetId, exposuresOutcomeSetSeqId)
 
   # exposure = eso$exposures[[1]]
   convertExposureToTable <- function(exposure) {
@@ -255,12 +257,12 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
     exposures <- lapply(eso$exposures, convertExposureToTable) %>%
       bind_rows() %>%
       mutate(
-        exposuresOutcomeSetId = i
+        exposuresOutcomeSetSeqId = i
       )
     sccsExposure[[length(sccsExposure) + 1]] <- exposures
 
     exposuresOutcomeSet <- tibble(
-      exposuresOutcomeSetId = i,
+      exposuresOutcomeSetSeqId = i,
       nestingCohortId = eso$nestingCohortId,
       outcomeId = eso$outcomeId
     )
@@ -268,12 +270,16 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
   }
 
   sccsExposure <- sccsExposure %>%
-    bind_rows()
+    bind_rows() %>%
+    inner_join(ref, by = join_by("exposuresOutcomeSetSeqId")) %>%
+    select(-"exposuresOutcomeSetSeqId")
   fileName <- file.path(exportFolder, "sccs_exposure.csv")
   writeToCsv(sccsExposure, fileName)
 
   sccsExposuresOutcomeSet <- sccsExposuresOutcomeSet %>%
-    bind_rows()
+    bind_rows() %>%
+    inner_join(ref, by = join_by("exposuresOutcomeSetSeqId")) %>%
+    select(-"exposuresOutcomeSetSeqId")
   fileName <- file.path(exportFolder, "sccs_exposures_outcome_set.csv")
   writeToCsv(sccsExposuresOutcomeSet, fileName)
 }

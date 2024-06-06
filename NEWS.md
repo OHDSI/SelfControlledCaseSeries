@@ -1,3 +1,12 @@
+SelfControlledCaseSeries 5.2.1
+==============================
+
+Bugfixes
+
+1. Fix `exposures_outcome_set_id` field in 'sccs_exposure' and 'sccs_exposures_outcome_set' tables.
+
+
+
 SelfControlledCaseSeries 5.2.0
 ==============================
 
