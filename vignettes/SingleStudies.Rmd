@@ -688,10 +688,8 @@ if (folderExists) {
 We see that, after removing the COVID blip, the observed-to-expected ratio seems stable. We can perform a formal test for stability:
 
 ```{r eval=FALSE}
-stability <- computeTimeStability(studyPopulation = studyPop,
-                                  sccsModel = model)
-stability %>%
-  filter(!stable)
+computeTimeStability(studyPopulation = studyPop,
+                     sccsModel = model)
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {

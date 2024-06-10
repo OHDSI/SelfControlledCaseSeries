@@ -19,7 +19,7 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.2.2</span>
       </span>
     </div>
 
@@ -45,7 +45,7 @@
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
-     
+
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
@@ -71,7 +71,7 @@
 <li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
-     
+
   </a>
 </li>
       </ul>
@@ -82,7 +82,7 @@
 </div>
 <!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="col-md-9 contents">
@@ -91,16 +91,16 @@
 SelfControlledCaseSeries package</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie</h4>
-            
-            <h4 data-toc-skip class="date">2024-06-07</h4>
-      
+
+            <h4 data-toc-skip class="date">2024-06-10</h4>
+
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/MultipleAnalyses.Rmd" class="external-link"><code>vignettes/MultipleAnalyses.Rmd</code></a></small>
       <div class="hidden name"><code>MultipleAnalyses.Rmd</code></div>
 
     </div>
 
-    
-    
+
+
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -514,13 +514,21 @@ first analysis:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Outcome count:</span></span>
 <span><span class="co">##    outcomeSubjects outcomeEvents outcomeObsPeriods observedDays</span></span>
+<<<<<<< HEAD
 <span><span class="co">## 77            9390         13725              9392     25940825</span></span>
+=======
+<span><span class="co">## 77            9440         18340              9444     26259638</span></span>
+>>>>>>> develop
 <span><span class="co">## </span></span>
 <span><span class="co">## Estimates:</span></span>
 <span><span class="co">## <span style="color: #949494;"># A tibble: 1 x 7</span></span></span>
 <span><span class="co">##   Name                    ID Estimate LB95CI UB95CI LogRr SeLogRr</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<<<<<<< HEAD
 <span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.11   1.02   1.20 0.101  0.040<span style="text-decoration: underline;">3</span></span></span></code></pre>
+=======
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.12   1.04   1.19 0.110  0.034<span style="text-decoration: underline;">9</span></span></span></code></pre>
+>>>>>>> develop
 <p>Note that some of the file names will appear several times in the
 table. In our example all analysis share the same <code>sccsData</code>
 object.</p>
@@ -533,6 +541,7 @@ object.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">resultsSum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getResultsSummary.html">getResultsSummary</a></span><span class="op">(</span><span class="va">outputFolder</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">resultsSum</span><span class="op">)</span></span></code></pre></div>
+<<<<<<< HEAD
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 x 30</span></span></span>
 <span><span class="co">##   exposuresOutcomeSetId outcomeId analysisId covariateAnalysisId covariateId</span></span>
 <span><span class="co">##                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -549,6 +558,24 @@ object.</p>
 <span><span class="co">## <span style="color: #949494;">#   logRr &lt;dbl&gt;, seLogRr &lt;dbl&gt;, llr &lt;dbl&gt;, trueEffectSize &lt;int&gt;,</span></span></span>
 <span><span class="co">## <span style="color: #949494;">#   calibratedRr &lt;dbl&gt;, calibratedCi95Lb &lt;dbl&gt;, calibratedCi95Ub &lt;dbl&gt;,</span></span></span>
 <span><span class="co">## <span style="color: #949494;">#   calibratedP &lt;dbl&gt;, calibratedLogRr &lt;dbl&gt;, calibratedSeLogRr &lt;dbl&gt;, ...</span></span></span></code></pre>
+=======
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 x 32</span></span></span>
+<span><span class="co">##   exposuresOutcomeSetId outcomeId analysisId covariateAnalysisId covariateId</span></span>
+<span><span class="co">##                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>            <span style="text-decoration: underline;">1</span>480<span style="text-decoration: underline;">556</span>481        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span>            <span style="text-decoration: underline;">1</span>039<span style="text-decoration: underline;">014</span>262        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span>           -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">616</span><span style="color: #BB0000; text-decoration: underline;">427</span><span style="color: #BB0000;">546</span>        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span>           -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">774</span><span style="color: #BB0000; text-decoration: underline;">200</span><span style="color: #BB0000;">863</span>        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span>            -<span style="color: #BB0000;">612</span><span style="color: #BB0000; text-decoration: underline;">981</span><span style="color: #BB0000;">155</span>        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span>           -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">166</span><span style="color: #BB0000; text-decoration: underline;">912</span><span style="color: #BB0000;">124</span>        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
+<span><span class="co">## <span style="color: #949494;"># i 27 more variables: covariateName &lt;chr&gt;, eraId &lt;dbl&gt;, outcomeSubjects &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   outcomeEvents &lt;dbl&gt;, outcomeObservationPeriods &lt;dbl&gt;, observedDays &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   covariateSubjects &lt;dbl&gt;, covariateDays &lt;dbl&gt;, covariateEras &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   covariateOutcomes &lt;dbl&gt;, rr &lt;dbl&gt;, ci95Lb &lt;dbl&gt;, ci95Ub &lt;dbl&gt;, p &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   oneSidedP &lt;dbl&gt;, logRr &lt;dbl&gt;, seLogRr &lt;dbl&gt;, llr &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   trueEffectSize &lt;int&gt;, calibratedRr &lt;dbl&gt;, calibratedCi95Lb &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   calibratedCi95Ub &lt;dbl&gt;, calibratedP &lt;dbl&gt;, calibratedOneSidedP &lt;dbl&gt;, ...</span></span></span></code></pre>
+>>>>>>> develop
 <p>This tells us, per exposure-outcome-analysis combination (so possible
 multiple rows per SCCS model) the estimated relative risk and 95%
 confidence interval, as well as the number of subjects (cases) and the
@@ -664,7 +691,7 @@ the analyses summary.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2024).</span></span>
 <span><span class="co">##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package</span></span>
-<span><span class="co">##   version 5.2.1, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span></span>
+<span><span class="co">##   version 5.2.2, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## A BibTeX entry for LaTeX users is</span></span>
 <span><span class="co">## </span></span>
@@ -672,7 +699,7 @@ the analyses summary.</p>
 <span><span class="co">##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},</span></span>
 <span><span class="co">##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},</span></span>
 <span><span class="co">##     year = {2024},</span></span>
-<span><span class="co">##     note = {R package version 5.2.1},</span></span>
+<span><span class="co">##     note = {R package version 5.2.2},</span></span>
 <span><span class="co">##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},</span></span>
 <span><span class="co">##   }</span></span></code></pre>
 <p>Further, <code>SelfControlledCaseSeries</code> makes extensive use of
@@ -726,10 +753,10 @@ Foundation grant IIS 1251151.</p>
       </footer>
 </div>
 
-  
 
 
-  
+
+
 
   </body>
 </html>

@@ -19,7 +19,7 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.2.2</span>
       </span>
     </div>
 
@@ -45,7 +45,7 @@
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
-     
+
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
@@ -71,7 +71,7 @@
 <li>
   <a href="https://github.com/OHDSI/SelfControlledCaseSeries/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
-     
+
   </a>
 </li>
       </ul>
@@ -82,7 +82,7 @@
 </div>
 <!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="col-md-9 contents">
@@ -91,16 +91,20 @@
 SelfControlledCaseSeries package</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie, Marc A. Suchard and Patrick Ryan</h4>
-            
+
+<<<<<<< HEAD
             <h4 data-toc-skip class="date">2024-06-07</h4>
-      
+=======
+            <h4 data-toc-skip class="date">2024-06-10</h4>
+>>>>>>> develop
+
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/SingleStudies.Rmd" class="external-link"><code>vignettes/SingleStudies.Rmd</code></a></small>
       <div class="hidden name"><code>SingleStudies.Rmd</code></div>
 
     </div>
 
-    
-    
+
+
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -305,7 +309,11 @@ necessary data for our analysis:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
+<<<<<<< HEAD
 <span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmp4UWOkS\file2e7c12b112f2.sqlite</span></span></span>
+=======
+<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmp0alt9D\file28f82f242e64.sqlite</span></span></span>
+>>>>>>> develop
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)</span></span>
@@ -714,7 +722,7 @@ have to retrieve the information on SSRI exposure from the database:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmp4UWOkS\file2e7c3e1d2928.sqlite</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmp0alt9D\file28f854d34e16.sqlite</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)</span></span>
@@ -972,10 +980,15 @@ causation. We can check for patterns over time:</p>
 <p>We see that, after removing the COVID blip, the observed-to-expected
 ratio seems stable. We can perform a formal test for stability:</p>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<<<<<<< HEAD
 <code class="sourceCode R"><span><span class="va">stability</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeTimeStability.html">computeTimeStability</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>                                  sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span>
 <span><span class="va">stability</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">stable</span><span class="op">)</span></span></code></pre></div>
+=======
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/computeTimeStability.html">computeTimeStability</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
+<span>                     sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
+>>>>>>> develop
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 x 3</span></span></span>
 <span><span class="co">##   ratio     p stable</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> </span></span>
@@ -993,7 +1006,7 @@ ratio seems stable. We can perform a formal test for stability:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2024).</span></span>
 <span><span class="co">##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package</span></span>
-<span><span class="co">##   version 5.2.1, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span></span>
+<span><span class="co">##   version 5.2.2, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## A BibTeX entry for LaTeX users is</span></span>
 <span><span class="co">## </span></span>
@@ -1001,7 +1014,7 @@ ratio seems stable. We can perform a formal test for stability:</p>
 <span><span class="co">##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},</span></span>
 <span><span class="co">##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},</span></span>
 <span><span class="co">##     year = {2024},</span></span>
-<span><span class="co">##     note = {R package version 5.2.1},</span></span>
+<span><span class="co">##     note = {R package version 5.2.2},</span></span>
 <span><span class="co">##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},</span></span>
 <span><span class="co">##   }</span></span></code></pre>
 <p>Furthermore, <code>SelfControlledCaseSeries</code> makes extensive
@@ -1058,10 +1071,10 @@ Foundation grant IIS 1251151.</p>
       </footer>
 </div>
 
-  
 
 
-  
+
+
 
   </body>
 </html>

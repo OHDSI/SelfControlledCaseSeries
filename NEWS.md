@@ -1,3 +1,10 @@
+SelfControlledCaseSeries 5.2.2
+==============================
+
+Bugfixes
+
+1. Fix export when there are multiple exposure-outcomes per SCCS data file.
+
 SelfControlledCaseSeries 5.2.1
 ==============================
 

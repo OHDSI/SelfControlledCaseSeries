@@ -3,6 +3,7 @@
 # Currently requires installing OhdsiSharing from https://github.com/anthonysena/OhdsiSharing/tree/issue-6-upload-results
 library(OhdsiSharing)
 library(DatabaseConnector)
+library(SelfControlledCaseSeries)
 
 outputFolder <- "d:/temp/sccsVignette2"
 
@@ -19,16 +20,16 @@ file.copy(
   to = file.path(outputFolder, "export")
 )
 
-createResultsDataModelTables(
+createResultsDataModel(
   connectionDetails = connectionDetails,
-  schema = "main",
-  resultsFolder = file.path(outputFolder, "export")
+  databaseSchema = "main"
 )
 
-uploadResults(
+SelfControlledCaseSeries::uploadResults(
   connectionDetails = connectionDetails,
   schema = "main",
-  resultsFolder = file.path(outputFolder, "export")
+  zipFileName = file.path(outputFolder, "export", "Results_MDCD.zip"),
+  purgeSiteDataBeforeUploading = FALSE
 )
 
 # Add cg_cohort_definition table:

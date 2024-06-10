@@ -238,7 +238,7 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
 
   esoList <- readRDS(file.path(outputFolder, "exposuresOutcomeList.rds"))
   ref <- getFileReference(outputFolder) %>%
-    distinct(exposuresOutcomeSetId, exposuresOutcomeSetSeqId)
+    distinct(.data$exposuresOutcomeSetId, .data$exposuresOutcomeSetSeqId)
 
   # exposure = eso$exposures[[1]]
   convertExposureToTable <- function(exposure) {
@@ -762,23 +762,23 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
                                                     .data$preExposureDiagnostic != "FAIL", 1, 0)) %>%
       select(-"eraId")
     sccsDiagnosticsSummary[[length(sccsDiagnosticsSummary) + 1]] <- table
-    return(list(
-      sccsAgeSpanning = sccsAgeSpanning,
-      sccsAttrition = sccsAttrition,
-      sccsCalendarTimeSpanning = sccsCalendarTimeSpanning,
-      sccsCensorModel = sccsCensorModel,
-      sccsCovariate = sccsCovariate,
-      sccsCovariateResult = sccsCovariateResult,
-      sccsEra = sccsEra,
-      sccsEventDepObservation = sccsEventDepObservation,
-      sccsLikelihoodProfile = sccsLikelihoodProfile,
-      sccsSpline = sccsSpline,
-      sccsTimeToEvent = sccsTimeToEvent,
-      sccsTimeTrend = sccsTimeTrend,
-      sccsTimePeriod = sccsTimePeriod,
-      sccsDiagnosticsSummary = sccsDiagnosticsSummary
-    ))
   }
+  return(list(
+    sccsAgeSpanning = sccsAgeSpanning,
+    sccsAttrition = sccsAttrition,
+    sccsCalendarTimeSpanning = sccsCalendarTimeSpanning,
+    sccsCensorModel = sccsCensorModel,
+    sccsCovariate = sccsCovariate,
+    sccsCovariateResult = sccsCovariateResult,
+    sccsEra = sccsEra,
+    sccsEventDepObservation = sccsEventDepObservation,
+    sccsLikelihoodProfile = sccsLikelihoodProfile,
+    sccsSpline = sccsSpline,
+    sccsTimeToEvent = sccsTimeToEvent,
+    sccsTimeTrend = sccsTimeTrend,
+    sccsTimePeriod = sccsTimePeriod,
+    sccsDiagnosticsSummary = sccsDiagnosticsSummary
+  ))
 }
 
 computeSpans <- function(studyPopulation, variable = "age") {
