@@ -238,7 +238,7 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
 
   esoList <- readRDS(file.path(outputFolder, "exposuresOutcomeList.rds"))
   ref <- getFileReference(outputFolder) %>%
-    distinct(exposuresOutcomeSetId, exposuresOutcomeSetSeqId)
+    distinct(.data$exposuresOutcomeSetId, .data$exposuresOutcomeSetSeqId)
 
   # exposure = eso$exposures[[1]]
   convertExposureToTable <- function(exposure) {
