@@ -24,7 +24,7 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(
   user = keyring::key_get("redShiftUserName"),
   password = keyring::key_get("redShiftPassword")
 )
-cdmDatabaseSchema <- "cdm_truven_mdcd_v2565"
+cdmDatabaseSchema <- "cdm_truven_mdcd_v2888"
 cohortDatabaseSchema <- "scratch_mschuemi"
 cohortTable <- "sccs_vignette"
 options(sqlRenderTempEmulationSchema = NULL)
@@ -273,7 +273,8 @@ exportToCsv(
   outputFolder = outputFolder,
   exportFolder = file.path(outputFolder, "export"),
   databaseId = "MDCD",
-  minCellCount = 5
+  minCellCount = 5,
+  maxCores = 1
 )
 
 # Upload results to SQLite -----------------------------------------------------
