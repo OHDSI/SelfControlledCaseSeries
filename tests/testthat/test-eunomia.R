@@ -69,10 +69,9 @@ test_that("Running multiple analyses against Eunomia", {
     endAnchor = "era start"
   )
 
-  # All outcomes occur at almost the same age, causing issues. Disable for now:
-  # ageSettings <- createAgeCovariateSettings(ageKnots = 5)
-  #
-  # seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
+  calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5)
+
+  seasonalitySettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
 
   covarPreExp <- createEraCovariateSettings(
     label = "Pre-exposure",
@@ -88,7 +87,9 @@ test_that("Running multiple analyses against Eunomia", {
       covarExposureOfInt,
       covarExposureOfInt2,
       covarPreExp
-    )
+    ),
+    calendarTimeCovariateSettings = calendarTimeSettings,
+    seasonalityCovariateSettings = seasonalitySettings
   )
 
   fitSccsModelArgs <- createFitSccsModelArgs()

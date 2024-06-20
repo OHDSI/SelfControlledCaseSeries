@@ -29,14 +29,13 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace sccs {
 
-AndromedaTableIterator::AndromedaTableIterator(const List& _andromedaTable, const bool& _showProgressBar) :
+AndromedaTableIterator::AndromedaTableIterator(const List& _andromedaTable, const bool& _showProgressBar, const String& sortColumn) :
 progressBar(0),
 showProgressBar(_showProgressBar),
 completed(0),
 done(false) {
-
+  Environment dplyr = Environment::namespace_env("dplyr");
   if (showProgressBar){
-    Environment dplyr = Environment::namespace_env("dplyr");
     Function count = dplyr["count"];
     Function pull = dplyr["pull"];
     total = as<int>(pull(count(_andromedaTable)));
@@ -50,12 +49,13 @@ done(false) {
   }
   Environment dbplyr = Environment::namespace_env("dbplyr");
   Function remote_con = dbplyr["remote_con"];
+  Function arrange = dplyr["arrange"];
   Function sql_render = dbplyr["sql_render"];
   Environment dbi = Environment::namespace_env("DBI");
   Function dbSendQuery = dbi["dbSendQuery"];
 
   S4 connection = remote_con(_andromedaTable);
-  String sql = sql_render(_andromedaTable, connection);
+  String sql = sql_render(arrange(_andromedaTable), connection);
   resultSet = dbSendQuery(connection, sql);
 }
 

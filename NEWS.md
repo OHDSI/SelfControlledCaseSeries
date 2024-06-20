@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 5.2.3
+==============================
+
+Bugfixes
+
+1. Fixing 'ORDER BY is ignored in subqueries without LIMIT' warning when calling `createSccsIntervalData()`.
+
+
 SelfControlledCaseSeries 5.2.2
 ==============================
 

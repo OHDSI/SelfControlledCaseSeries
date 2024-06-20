@@ -31,7 +31,7 @@ namespace sccs {
 
 class AndromedaTableIterator {
 public:
-  AndromedaTableIterator(const List& _andromedaTable, const bool& _showProgressBar);
+  AndromedaTableIterator(const List& _andromedaTable, const bool& _showProgressBar, const String& sortColumn);
   ~AndromedaTableIterator();
   bool hasNext();
   List next();

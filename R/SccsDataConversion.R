@@ -126,14 +126,12 @@ createSccsIntervalData <- function(studyPopulation,
   # Ensure all sorted bv caseId:
   cases <- studyPopulation$cases[order(studyPopulation$cases$caseId), ]
   outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$caseId), ]
-  eras <- sccsData$eras %>%
-    arrange(.data$caseId)
   data <- Andromeda::andromeda()
 
   convertToSccs(
     cases = cases,
     outcomes = outcomes,
-    eras = eras,
+    eras = sccsData$eras,
     includeAge = !is.null(ageCovariateSettings),
     ageOffset = settings$ageOffset,
     ageDesignMatrix = settings$ageDesignMatrix,

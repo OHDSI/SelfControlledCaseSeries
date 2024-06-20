@@ -32,7 +32,7 @@ namespace sccs {
 
 
 PersonDataIterator::PersonDataIterator(const DataFrame& _cases, const DataFrame& _outcomes, const List& _eras) :
- erasIterator(_eras, true), casesObservationPeriodStartDate(0), casesCursor(0), outcomesCursor(0), erasCursor(0) {
+ erasIterator(_eras, true, "caseId"), casesObservationPeriodStartDate(0), casesCursor(0), outcomesCursor(0), erasCursor(0) {
 
   outcomesCaseId = _outcomes["caseId"];
   outcomesOutcomeDay = _outcomes["outcomeDay"];
