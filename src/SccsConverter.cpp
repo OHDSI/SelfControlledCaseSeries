@@ -311,7 +311,7 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const PersonData& perso
       }
     }
     if (includeCalendarTime){
-      int monthIndex = (startOfMonth.year + 1900) * 12 + startOfMonth.month - 1 - calendarTimeOffset;
+      int monthIndex = (startOfMonth.year) * 12 + startOfMonth.month - 1 - calendarTimeOffset;
       if (monthIndex < 0) {
         monthIndex = 0;
       } else if (monthIndex >= calendarTimeDesignMatrix.nrow()) {
