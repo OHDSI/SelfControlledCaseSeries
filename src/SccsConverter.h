@@ -301,8 +301,6 @@ private:
   void addToResult(const ConcomitantEra& era, int outcomeCount, const double duration, const int64_t& observationPeriodId);
   void removeNonRiskOrControlIntervals(std::vector<ConcomitantEra>& concomitantEras);
   void computeEventDepObsWeights(std::vector<ConcomitantEra>& concomitantEras, const PersonData& personData);
-  int dateDifference(struct tm &date1, struct tm &date2);
-  struct tm addMonth(const struct tm &date);
   void addMonthEras(std::vector<Era>& eras, const PersonData& personData);
   void addCovariateEra(std::vector<Era>& outputEras, int start, int end, int leftCensor, int rightCensor, int covariateIdRow, const CovariateSettings& covariateSettings);
   void addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings);

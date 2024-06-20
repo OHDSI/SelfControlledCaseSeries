@@ -37,7 +37,8 @@ test_that("Running multiple analyses against Eunomia", {
     )
   )
 
-  getDbSccsDataArgs <- createGetDbSccsDataArgs(deleteCovariatesSmallCount = 1)
+  getDbSccsDataArgs <- createGetDbSccsDataArgs(deleteCovariatesSmallCount = 1,
+                                               studyStartDates = "20000101")
 
   createStudyPopulationArgs1 <- createCreateStudyPopulationArgs(
     naivePeriod = 180,

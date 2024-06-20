@@ -89,15 +89,13 @@ createScriIntervalData <- function(studyPopulation,
   # Ensure all sorted bv caseId:
   cases <- studyPopulation$cases[order(studyPopulation$cases$caseId), ]
   outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$caseId), ]
-  eras <- sccsData$eras %>%
-    arrange(.data$caseId)
 
   controlIntervalId <- settings$covariateSettingsList[sapply(settings$covariateSettingsList, function(x) x$isControlInterval)][[1]]$outputIds[1, 1]
   data <- Andromeda::andromeda()
   convertToSccs(
     cases = cases,
     outcomes = outcomes,
-    eras = eras,
+    eras = sccsData$eras,
     includeAge = FALSE,
     ageOffset = 0,
     ageDesignMatrix = matrix(),

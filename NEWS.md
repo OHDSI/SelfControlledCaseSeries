@@ -3,7 +3,9 @@ SelfControlledCaseSeries 5.2.3
 
 Bugfixes
 
-1. Fixing 'ORDER BY is ignored in subqueries without LIMIT' warning when calling `createSccsIntervalData()`.
+1. Fixed 'ORDER BY is ignored in subqueries without LIMIT' warning when calling `createSccsIntervalData()`.
+
+2. Fixed 'std::bad_alloc' error when any observation period start date is before 1970.
 
 
 SelfControlledCaseSeries 5.2.2

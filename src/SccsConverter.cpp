@@ -21,11 +21,11 @@
 #ifndef SCCSCONVERTER_CPP_
 #define SCCSCONVERTER_CPP_
 
-#include <ctime>
 #include <Rcpp.h>
 #include "SccsConverter.h"
 #include "PersonDataIterator.h"
 #include "NumericIntegration.h"
+#include "DateFunctons.h"
 
 using namespace Rcpp;
 
@@ -281,42 +281,17 @@ void SccsConverter::computeEventDepObsWeights(std::vector<ConcomitantEra>& conco
   }
 }
 
-struct tm SccsConverter::addMonth(const struct tm &date) {
-  struct tm newDate(date);
-  if (newDate.tm_mon == 11){
-    newDate.tm_mon = 0;
-    newDate.tm_year++;
-  } else {
-    newDate.tm_mon++;
-  }
-  return newDate;
-}
-
-int SccsConverter::dateDifference(struct tm &date1, struct tm &date2) {
-  std::time_t time1 = std::mktime(&date1);
-  std::time_t time2 = std::mktime(&date2);
-  int difference = std::difftime(time1, time2) / (60 * 60 * 24);
-  return difference;
-}
-
 void SccsConverter::addMonthEras(std::vector<Era>& eras, const PersonData& personData){
-  struct tm obsStartDate = {0, 0, 12};
-  obsStartDate.tm_year = personData.obsStartYear - 1900;
-  obsStartDate.tm_mon = personData.obsStartMonth - 1;
-  obsStartDate.tm_mday = personData.obsStartDay;
-  mktime(&obsStartDate);
-  struct tm startDate = {0, 0, 12};
-  startDate.tm_year = personData.obsStartYear - 1900;
-  startDate.tm_mon = personData.obsStartMonth - 1;
-  startDate.tm_mday = personData.obsStartDay + personData.startDay;
-  mktime(&startDate);
-  struct tm startOfMonth(startDate);
-  startOfMonth.tm_mday = 1;
-  struct tm startOfNextMonth = addMonth(startOfMonth);
+  Date obsStartDate = {personData.obsStartYear, personData.obsStartMonth, personData.obsStartDay};
+  Date startDate = addDays(obsStartDate, personData.startDay);
+  Date startOfMonth = startDate;
+  startOfMonth.day = 1;
+  Date startOfNextMonth = addMonth(startOfMonth);
   int eraStartDay = personData.startDay;
-  int nextEraStartDay = std::min(dateDifference(startOfNextMonth, obsStartDate), personData.endDay + 1);
-  int month = startOfMonth.tm_mon;
+  int nextEraStartDay = std::min(differenceInDays(startOfNextMonth, obsStartDate), personData.endDay + 1);
+  int month = startOfMonth.month;
   while (eraStartDay <= personData.endDay) {
+    // std::cout << "eraStartDay: " << eraStartDay << ", startOfMonth.year: " << startOfMonth.year << ", startOfMonth.month: " << startOfMonth.month << "\n";
     if (includeAge){
       int ageIndex = personData.ageInDays + eraStartDay - ageOffset;
       if (ageIndex < 0) {
@@ -331,12 +306,12 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const PersonData& perso
     }
     if (includeSeason){
       for (int i = 0; i < seasonDesignMatrix.ncol(); i++){
-        Era era(eraStartDay, nextEraStartDay - 1, seasonIdOffset + i, seasonDesignMatrix(month, i));
+        Era era(eraStartDay, nextEraStartDay - 1, seasonIdOffset + i, seasonDesignMatrix(month - 1, i));
         eras.push_back(era);
       }
     }
     if (includeCalendarTime){
-      int monthIndex = (startOfMonth.tm_year + 1900) * 12 + startOfMonth.tm_mon - calendarTimeOffset;
+      int monthIndex = (startOfMonth.year + 1900) * 12 + startOfMonth.month - 1 - calendarTimeOffset;
       if (monthIndex < 0) {
         monthIndex = 0;
       } else if (monthIndex >= calendarTimeDesignMatrix.nrow()) {
@@ -349,9 +324,9 @@ void SccsConverter::addMonthEras(std::vector<Era>& eras, const PersonData& perso
     }
     eraStartDay = nextEraStartDay;
     startOfMonth = startOfNextMonth;
-    month = startOfMonth.tm_mon;
+    month = startOfMonth.month;
     startOfNextMonth = addMonth(startOfMonth);
-    nextEraStartDay = std::min(dateDifference(startOfNextMonth, obsStartDate), personData.endDay + 1);
+    nextEraStartDay = std::min(differenceInDays(startOfNextMonth, obsStartDate), personData.endDay + 1);
   }
 }
 
