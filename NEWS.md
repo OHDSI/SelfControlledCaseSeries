@@ -1,6 +1,11 @@
 SelfControlledCaseSeries 5.2.3
 ==============================
 
+Changes
+
+1. More informative error messages when analysis specifications are inconsistent.
+
+
 Bugfixes
 
 1. Fixed 'ORDER BY is ignored in subqueries without LIMIT' warning when calling `createSccsIntervalData()`.

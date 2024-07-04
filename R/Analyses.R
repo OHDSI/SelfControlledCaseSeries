@@ -43,7 +43,7 @@ createSccsAnalysis <- function(analysisId = 1,
   checkmate::assertCharacter(description, len = 1, add = errorMessages)
   checkmate::assertClass(getDbSccsDataArgs, "args", add = errorMessages)
   checkmate::assertClass(createStudyPopulationArgs, "args", add = errorMessages)
-  checkmate::assertClass(createIntervalDataArgs, "args", null.ok = TRUE, add = errorMessages)
+  checkmate::assertClass(createIntervalDataArgs, "args", add = errorMessages)
   checkmate::assertClass(fitSccsModelArgs, "args", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   analysis <- list()

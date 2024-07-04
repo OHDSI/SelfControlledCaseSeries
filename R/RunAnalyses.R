@@ -335,7 +335,7 @@ runSccsAnalyses <- function(connectionDetails,
         for (includeEraId in settings$includeEraIds) {
           if (is.character(includeEraId)) {
             if (is.null(refRow[[includeEraId]])) {
-              stop(paste("Variable", includeEraId, " not found in exposures-outcome set"))
+              stop(paste0("The 'includeEraIds' argument was set to '", includeEraId, "' when calling createEraCovariateSettings(), but this exposure label is not found in exposures-outcome sets"))
             }
             includeEraIds <- c(includeEraIds, refRow[[includeEraId]])
           } else {
@@ -348,7 +348,7 @@ runSccsAnalyses <- function(connectionDetails,
         for (excludeEraId in settings$excludeEraIds) {
           if (is.character(excludeEraId)) {
             if (is.null(refRow[[excludeEraId]])) {
-              stop(paste("Variable", excludeEraId, " not found in exposure-outcome set"))
+              stop(paste0("The 'excludeEraIds' argument was set to '", excludeEraId, "' when calling createEraCovariateSettings(), but this exposure label is not found in exposures-outcome sets"))
             }
             excludeEraIds <- c(excludeEraIds, refRow[[excludeEraId]])
           } else {
@@ -513,7 +513,7 @@ createReferenceTable <- function(sccsAnalysisList,
       for (exposureId in sccsAnalysis$getDbSccsDataArgs$exposureIds) {
         if (is.character(exposureId)) {
           if (!exposureId %in% uniqueExposureIdRefs) {
-            stop(paste("Variable", exposureId, " not found in exposures-outcome sets"))
+            stop(paste0("The 'exposureIds' argument was set to '", exposureId, "' when calling createGetDbSccsDataArgs(), but this exposure label is not found in exposures-outcome sets"))
           }
           exposureIds <- c(exposureIds, referenceTable$exposureId[i])
         } else {
@@ -528,7 +528,7 @@ createReferenceTable <- function(sccsAnalysisList,
       for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
         if (is.character(customCovariateId)) {
           if (!customCovariateId %in% uniqueExposureIdRefs) {
-            stop(paste("Variable", customCovariateId, " not found in exposures-outcome sets"))
+            stop(paste0("The 'customCovariateIds' argument was set to '", customCovariateId, "' when calling createGetDbSccsDataArgs(), but this exposure label is not found in exposures-outcome sets"))
           }
           customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
         } else {
