@@ -483,8 +483,6 @@ createReferenceTable <- function(sccsAnalysisList,
                         nestingCohortId,
                         paste(sapply(exposuresOutcome$exposures, function(x) x$exposureId), collapse = " "))
     hash <- as.integer(as.numeric(paste0("0x", digest::digest(hashString, algo = "murmur32", serialize = FALSE)))-2^31)
-
-    # values <- c(hash, i, exposuresOutcome$outcomeId, nestingCohortId, rep(-1, length(uniqueExposureIdRefs)))
     values <- c(hash, i, exposuresOutcome$outcomeId, nestingCohortId, rep(-1, length(uniqueExposureIdRefs)))
     for (exposure in exposuresOutcome$exposures) {
       idx <- which(uniqueExposureIdRefs == exposure$exposureIdRef)

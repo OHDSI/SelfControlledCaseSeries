@@ -241,6 +241,7 @@ sccsAnalysis3 <- createSccsAnalysis(
 
 covarAllDrugs <- createEraCovariateSettings(
   label = "Other exposures",
+  includeEraIds = c(),
   excludeEraIds = "exposureId",
   stratifyById = TRUE,
   start = 1,

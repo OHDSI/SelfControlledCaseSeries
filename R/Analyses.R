@@ -36,7 +36,7 @@ createSccsAnalysis <- function(analysisId = 1,
                                description = "",
                                getDbSccsDataArgs,
                                createStudyPopulationArgs,
-                               createIntervalDataArgs = NULL,
+                               createIntervalDataArgs,
                                fitSccsModelArgs) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertInt(analysisId, add = errorMessages)
@@ -46,6 +46,20 @@ createSccsAnalysis <- function(analysisId = 1,
   checkmate::assertClass(createIntervalDataArgs, "args", add = errorMessages)
   checkmate::assertClass(fitSccsModelArgs, "args", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
+  covariateSettings <- createIntervalDataArgs$eraCovariateSettings
+  hasExposureOfInterest <- FALSE
+  if (is(covariateSettings, "EraCovariateSettings")) {
+    covariateSettings <- list(covariateSettings)
+  }
+  for (covariateSetting in covariateSettings) {
+    if (covariateSetting$exposureOfInterest) {
+      hasExposureOfInterest <- TRUE
+      break
+    }
+  }
+  if (!hasExposureOfInterest) {
+    stop("At least one of the era covariates must be the exposure of interest")
+  }
   analysis <- list()
   for (name in names(formals(createSccsAnalysis))) {
     analysis[[name]] <- get(name)

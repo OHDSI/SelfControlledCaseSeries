@@ -5,6 +5,10 @@ Changes
 
 1. More informative error messages when analysis specifications are inconsistent.
 
+2. Throwing error when defining analysis that does not specify at least one era covariate that is the exposure of interest.
+
+3. The `includeEraIds` argument of `createEraCovariateSettings()` no longer has a default, forcing users to explicitly set this to avoid erroneously specifying all covariates.
+
 
 Bugfixes
 

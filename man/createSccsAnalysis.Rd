@@ -9,7 +9,7 @@ createSccsAnalysis(
   description = "",
   getDbSccsDataArgs,
   createStudyPopulationArgs,
-  createIntervalDataArgs = NULL,
+  createIntervalDataArgs,
   fitSccsModelArgs
 )
 }

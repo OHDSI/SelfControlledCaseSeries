@@ -20,7 +20,7 @@
 #' Create an object specifying how to create a (set of) era-based covariates.
 #'
 #' @param includeEraIds         One or more IDs of variables in the [SccsData] object that should be
-#'                              used to construct this covariate. If no IDs are specified, all
+#'                              used to construct this covariate. If set to NULL, all
 #'                              variables will be used.
 #' @param excludeEraIds         One or more IDs of variables in the \[SccsData] object that should not
 #'                              be used to construct this covariate.
@@ -52,7 +52,7 @@
 #' An object of type `EraCovariateSettings`.
 #'
 #' @export
-createEraCovariateSettings <- function(includeEraIds = NULL,
+createEraCovariateSettings <- function(includeEraIds,
                                        excludeEraIds = NULL,
                                        label = "Covariates",
                                        stratifyById = FALSE,
