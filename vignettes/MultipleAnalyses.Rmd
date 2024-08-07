@@ -163,6 +163,8 @@ fitSccsModelArgs <- createFitSccsModelArgs()
 
 Any argument that is not explicitly specified by the user will assume the default value specified in the function. Note that for several arguments for concept or cohort definition IDs we can use the `exposureIdRef` (default = `"exposureId"`) in the `Exposure` objects that we used in `createExposuresOutcome()`. In this case, we defined the argument `includeEraIds` to get the value of the `exposureId` variable, meaning it will take the value of the diclofenac concept ID, or any of the negative control IDs. Also note that we set `exposureOfInterest = TRUE`, which will cause the estimate for this covariate to be included in the result summary later on.
 
+**Important: at least one era covariate in your analysis must have `exposureOfInterest = TRUE`.**
+
 We can now combine the arguments for the various functions into a single analysis:
 
 ```{r eval=TRUE}
