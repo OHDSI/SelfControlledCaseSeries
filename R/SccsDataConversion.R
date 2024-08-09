@@ -132,12 +132,12 @@ createSccsIntervalData <- function(studyPopulation,
     cases = cases,
     outcomes = outcomes,
     eras = sccsData$eras,
-    includeAge = !isTRUE(all.equal(settings$ageDesignMatrix, matrix())),
+    includeAge = settings$includeAge,
     ageOffset = settings$ageOffset,
     ageDesignMatrix = settings$ageDesignMatrix,
-    includeSeason = !isTRUE(all.equal(settings$seasonDesignMatrix, matrix())),
+    includeSeason = settings$includeSeason,
     seasonDesignMatrix = settings$seasonDesignMatrix,
-    includeCalendarTime = !isTRUE(all.equal(settings$calendarTimeDesignMatrix, matrix())),
+    includeCalendarTime = settings$includeCalendarTime,
     calendarTimeOffset = settings$calendarTimeOffset,
     calendarTimeDesignMatrix = settings$calendarTimeDesignMatrix,
     timeCovariateCases = timeCovariateCases,
@@ -205,6 +205,7 @@ addAgeSettings <- function(settings,
   if (is.null(ageCovariateSettings)) {
     settings$ageOffset <- 0
     settings$ageDesignMatrix <- matrix()
+    settings$includeAge <- FALSE
     return(settings)
   } else {
     if (length(ageCovariateSettings$ageKnots) == 1) {
@@ -228,6 +229,7 @@ addAgeSettings <- function(settings,
                                             knots = ageKnots[2:(length(ageKnots) - 1)],
                                             Boundary.knots = ageKnots[c(1, length(ageKnots))],
                                             degree = 2)
+    settings$includeAge <- TRUE
     splineCovariateRef <- tibble(
       covariateId = 100:(100 + length(ageKnots) - 1),
       covariateName = paste(
@@ -253,6 +255,7 @@ addAgeSettings <- function(settings,
 addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsData) {
   if (is.null(seasonalityCovariateSettings)) {
     settings$seasonDesignMatrix <- matrix()
+    settings$includeSeason <- FALSE
   } else {
     if (length(seasonalityCovariateSettings$seasonKnots) == 1) {
       # Single number, should interpret as number of knots. Spread out knots evenly:
@@ -261,6 +264,7 @@ addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsD
       seasonKnots <- seasonalityCovariateSettings$seasonKnots
     }
     settings$seasonDesignMatrix <- cyclicSplineDesign(1:12, knots = seasonKnots)
+    settings$includeSeason <- TRUE
     splineCovariateRef <- tibble(
       covariateId = 200:(200 + length(seasonKnots) - 2),
       covariateName = paste(
@@ -290,6 +294,7 @@ addCalendarTimeSettings <- function(settings,
   if (is.null(calendarTimeCovariateSettings)) {
     settings$calendarTimeOffset <- 0
     settings$calendarTimeDesignMatrix <- matrix()
+    settings$includeCalendarTime <- FALSE
     return(settings)
   } else if ((length(calendarTimeCovariateSettings$calendarTimeKnots) == 1 &&
               calendarTimeCovariateSettings$calendarTimeKnots > nrow(studyPopulation$outcomes)) ||
@@ -297,6 +302,7 @@ addCalendarTimeSettings <- function(settings,
     warning("There are more calendar time knots than cases. Removing calendar time from model")
     settings$calendarTimeOffset <- 0
     settings$calendarTimeDesignMatrix <- matrix()
+    settings$includeCalendarTime <- FALSE
     return(settings)
   } else {
     if (length(calendarTimeCovariateSettings$calendarTimeKnots) == 1) {
@@ -341,6 +347,7 @@ addCalendarTimeSettings <- function(settings,
       x = seq(firstKnot, lastKnot),
       knotsPerSegment = calendarTimeKnotsInPeriods
     )
+    settings$includeCalendarTime <- TRUE
     splineCovariateRef <- tibble(
       covariateId = 300 + seq_len(ncol(settings$calendarTimeDesignMatrix)) - 1,
       covariateName = paste(
