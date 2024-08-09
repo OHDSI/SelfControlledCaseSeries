@@ -16,6 +16,8 @@ Bugfixes
 
 2. Fixed 'std::bad_alloc' error when any observation period start date is before 1970.
 
+3. Fixed NA covariate values when age, season, or calendar time splines are removed because there are fewer cases than knots.
+
 
 SelfControlledCaseSeries 5.2.2
 ==============================
