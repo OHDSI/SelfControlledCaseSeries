@@ -19,7 +19,7 @@ Description: SelfControlledCaseSeries is an R package for performing self-
 	included at once (MSCCS), with regularization on all coefficients except for the
 	exposure of interest.
 VignetteBuilder: knitr
-URL:  https://ohdsi.github.io/SelfControlledCaseSeries/, https://github.com/OHDSI/SelfControlledCaseSeries
+URL:  https://ohdsi.github.io/SelfControlledCaseSeries, https://github.com/OHDSI/SelfControlledCaseSeries
 BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
 	R (>= 4.0.0),
