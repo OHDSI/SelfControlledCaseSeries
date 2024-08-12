@@ -220,6 +220,7 @@ model <- fitSccsModel(sccsIntervalData,
                                               cvRepetitions = 1,
                                               threads = 10))
 saveRDS(model, file.path(folder, "seasonCalendarTimeCovidBlipModel.rds"))
+model <- readRDS(file.path(folder, "seasonCalendarTimeCovidBlipModel.rds"))
 model
 
 plot <- plotEventToCalendarTime(studyPopulation = studyPop,

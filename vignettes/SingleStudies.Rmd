@@ -619,7 +619,7 @@ To gain a better understanding of when the event occurs relative to the start of
 ```{r eval=FALSE}
 plotExposureCentered(studyPop, sccsData, exposureEraId = aspirin)
 ```
-```{r echo=FALSE,message=FALSE,fig.width=6.5, fig.height=5}
+```{r echo=FALSE,message=FALSE,warning=FALSE,fig.width=6.5, fig.height=5}
 if (folderExists) {
   plotExposureCentered(studyPop, sccsData, exposureEraId = aspirin)
 }

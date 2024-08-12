@@ -6,13 +6,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Single studies using the SelfControlledCaseSeries package • SelfControlledCaseSeries</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><meta property="og:title" content="Single studies using the SelfControlledCaseSeries package">
-<meta property="og:description" content="SelfControlledCaseSeries">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -33,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.2.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.2.3</span>
       </span>
     </div>
 
@@ -91,20 +90,16 @@
 SelfControlledCaseSeries package</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie, Marc A. Suchard and Patrick Ryan</h4>
-
-<<<<<<< HEAD
-            <h4 data-toc-skip class="date">2024-06-07</h4>
-=======
-            <h4 data-toc-skip class="date">2024-06-10</h4>
->>>>>>> develop
-
+            
+            <h4 data-toc-skip class="date">2024-08-12</h4>
+      
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/SingleStudies.Rmd" class="external-link"><code>vignettes/SingleStudies.Rmd</code></a></small>
       <div class="hidden name"><code>SingleStudies.Rmd</code></div>
 
     </div>
 
-
-
+    
+    
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -302,6 +297,9 @@ necessary data for our analysis:</p>
 <span>                          studyStartDates <span class="op">=</span> <span class="st">"20100101"</span>,</span>
 <span>                          studyEndDates <span class="op">=</span> <span class="st">"21000101"</span><span class="op">)</span></span>
 <span><span class="va">sccsData</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: Low disk space in 'C:\Users\ADMIN_~3\AppData\Local\Temp\2\RtmpMHcCi1'. Only 9.6 GB left.</span></span>
+<span><span class="co">## <span style="color: #949494;">Use options(warnDiskSpaceThreshold = &lt;n&gt;) to set the number of bytes for this warning to trigger.</span></span></span>
+<span><span class="co">## <span style="color: #949494;">This warning will not be shown for this file location again during this R session.</span></span></span></code></pre>
 <pre><code><span><span class="co">## <span style="color: #949494;"># SccsData object</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Exposure cohort ID(s): 1112807</span></span>
@@ -309,11 +307,7 @@ necessary data for our analysis:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
-<<<<<<< HEAD
-<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmp4UWOkS\file2e7c12b112f2.sqlite</span></span></span>
-=======
-<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmp0alt9D\file28f82f242e64.sqlite</span></span></span>
->>>>>>> develop
+<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\RtmpMHcCi1\fileeec99a2561.sqlite</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)</span></span>
@@ -336,7 +330,7 @@ way that ensures R does not run out of memory, even when the data are
 large.</p>
 <p>We can use the generic <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> function to view some
 more information of the data we extracted:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sccsData</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## SccsData object summary</span></span>
 <span><span class="co">## </span></span>
@@ -358,7 +352,7 @@ computing time, and it is probably a good idea to save it for future
 sessions. Because <code>sccsData</code> uses <code>Andromeda</code>, we
 cannot use R’s regular save function. Instead, we’ll have to use the
 <code><a href="../reference/saveSccsData.html">saveSccsData()</a></code> function:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/saveSccsData.html">saveSccsData</a></span><span class="op">(</span><span class="va">sccsData</span>, <span class="st">"sccsData.zip"</span><span class="op">)</span></span></code></pre></div>
 <p>We can use the <code><a href="../reference/loadSccsData.html">loadSccsData()</a></code> function to load the data
 in a future session.</p>
@@ -371,7 +365,7 @@ in a future session.</p>
 population we wish to study. If we retrieved data for multiple outcomes,
 we should now select only one, and possibly impose further
 restrictions:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span>sccsData <span class="op">=</span> <span class="va">sccsData</span>,</span>
 <span>                                  outcomeId <span class="op">=</span> <span class="va">epistaxis</span>,</span>
 <span>                                  firstOutcomeOnly <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -387,7 +381,7 @@ period). We also specify we will use all occurrences of the outcome, not
 just the first one per person.</p>
 <p>We can find out how many people (if any) were removed by any
 restrictions we imposed:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/getAttritionTable.html">getAttritionTable</a></span><span class="op">(</span><span class="va">studyPop</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   outcomeId outcomeSubjects outcomeEvents outcomeObsPeriods observedDays</span></span>
 <span><span class="co">## 1       356          882260       1386052            908691   3367212134</span></span>
@@ -404,7 +398,7 @@ restrictions we imposed:</p>
 <h3 id="defining-a-simple-model">Defining a simple model<a class="anchor" aria-label="anchor" href="#defining-a-simple-model"></a>
 </h3>
 <p>Next, we can use the data to define a simple model to fit:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">covarAspirin</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"Exposure of interest"</span>,</span>
 <span>                                           includeEraIds <span class="op">=</span> <span class="va">aspirin</span>,</span>
 <span>                                           start <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -442,10 +436,10 @@ covariates and outcomes per interval.</p>
 <h3 id="model-fitting">Model fitting<a class="anchor" aria-label="anchor" href="#model-fitting"></a>
 </h3>
 <p>The <code>fitSccsModel</code> function is used to fit the model:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></span></code></pre></div>
 <p>We can inspect the resulting model:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span></span></code></pre></div>
 <pre><code><span><span class="co">## SccsModel object</span></span>
 <span><span class="co">## </span></span>
@@ -476,7 +470,7 @@ is unlikely because of this behavior. One solution to this problem that
 is often used is to introduce a separate ‘risk window’ just prior to
 exposure, to separate it from the remaining unexposed time. We can add
 such a ‘pre-exposure window’ to our analysis:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">covarPreAspirin</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"Pre-exposure"</span>,</span>
 <span>                                              includeEraIds <span class="op">=</span> <span class="va">aspirin</span>,</span>
 <span>                                              start <span class="op">=</span> <span class="op">-</span><span class="fl">60</span>,</span>
@@ -496,7 +490,7 @@ one. We define the risk window to start 60 days prior to exposure, and
 end on the day just prior to exposure. We combine the two covariate
 settings in a list for the <code>createSccsIntervalData</code> function.
 Again, we can take a look at the results:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span></span></code></pre></div>
 <pre><code><span><span class="co">## SccsModel object</span></span>
 <span><span class="co">## </span></span>
@@ -540,7 +534,7 @@ are modeling the effect of age in each person by themselves, not the
 effect of age across persons). Since age and calendar time are often
 hard to fit simultaneously, it is often best to only model seasonality
 and calendar time, like this:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">seasonalityCovariateSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSeasonalityCovariateSettings.html">createSeasonalityCovariateSettings</a></span><span class="op">(</span>seasonKnots <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">calendarTimeSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createCalendarTimeCovariateSettings.html">createCalendarTimeCovariateSettings</a></span><span class="op">(</span>calendarTimeKnots <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
@@ -556,7 +550,7 @@ and calendar time, like this:</p>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></span></code></pre></div>
 <p>Again, we can inspect the model:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span></span></code></pre></div>
 <pre><code><span><span class="co">## SccsModel object</span></span>
 <span><span class="co">## </span></span>
@@ -584,17 +578,17 @@ and calendar time, like this:</p>
 <p>We see that our estimates for exposed and pre-exposure time have not
 changes much. We can plot the spline curves for season, and calendar
 time to learn more:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSeasonality.html">plotSeasonality</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotCalendarTimeEffect.html">plotCalendarTimeEffect</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-29-1.png" width="700"></p>
 <p>We see some effect for season: epistaxis tends to be more prevalent
 during winter. We should verify if our model accounts for time trends,
 by plotting the observed to expected rate of the outcome across time,
 before and after adjustment:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotEventToCalendarTime.html">plotEventToCalendarTime</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>                        sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-31-1.png" width="700"></p>
@@ -610,7 +604,7 @@ time of the COVID-19 pandemic regular healthcare was put on hold.</p>
 pandemic could cause bias. For this reason it is probably best to remove
 this time from the analysis altogether. We can achieve this by defining
 two separate study periods:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,</span>
 <span>                          cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
 <span>                          outcomeDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>,</span>
@@ -636,7 +630,7 @@ two separate study periods:</p>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></span></code></pre></div>
 <p>If we plot the outcomes over time, we see the entire time of the
 COVID pandemic has been removed:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotEventToCalendarTime.html">plotEventToCalendarTime</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>                        sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
@@ -657,7 +651,7 @@ in this package, and can be turned on using the
 <code>createSccsIntervalData</code> function. However, this method has
 proven to be somewhat unstable in combinations with other corrections,
 so for now it is best to keep the model simple:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span></span>
 <span>  studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>  sccsData <span class="op">=</span> <span class="va">sccsData</span>,</span>
@@ -668,7 +662,7 @@ so for now it is best to keep the model simple:</p>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitSccsModel.html">fitSccsModel</a></span><span class="op">(</span><span class="va">sccsIntervalData</span><span class="op">)</span></span></code></pre></div>
 <p>Again, we can inspect the model:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span></span></code></pre></div>
 <pre><code><span><span class="co">## SccsModel object</span></span>
 <span><span class="co">## </span></span>
@@ -701,7 +695,7 @@ co-prescribed with SSRIs we don’t want the effect of SSRIs attributed to
 aspirin. We would like our estimate to represent just the effect of the
 aspirin, so we need to keep the effect of the SSRIs separate. First we
 have to retrieve the information on SSRI exposure from the database:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ssris</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">715939</span>, <span class="fl">722031</span>, <span class="fl">739138</span>, <span class="fl">751412</span>, <span class="fl">755695</span>, <span class="fl">797617</span>, <span class="fl">40799195</span><span class="op">)</span></span>
 <span><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,</span>
 <span>                          cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
@@ -722,14 +716,14 @@ have to retrieve the information on SSRI exposure from the database:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmp0alt9D\file28f854d34e16.sqlite</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\RtmpMHcCi1\fileeec30b34a38.sqlite</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)</span></span>
 <span><span class="co">## $eraRef (eraType, eraId, eraName, minObservedDate, maxObservedDate)</span></span>
 <span><span class="co">## $eras (eraType, caseId, eraId, eraValue, eraStartDay, eraEndDay)</span></span></code></pre>
 <p>Once retrieved, we can use the data to build and fit our model:</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span>sccsData <span class="op">=</span> <span class="va">sccsData</span>,</span>
 <span>                                  outcomeId <span class="op">=</span> <span class="va">epistaxis</span>,</span>
 <span>                                  firstOutcomeOnly <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -758,7 +752,7 @@ rate ratio for all SSRIs, so one estimate for the entire class of drugs.
 Note that duplicates will be removed: if a person is exposed to two
 SSRIs on the same day, this will be counted only once when fitting the
 model. Again, we can inspect the model:</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span></span></code></pre></div>
 <pre><code><span><span class="co">## SccsModel object</span></span>
 <span><span class="co">## </span></span>
@@ -791,7 +785,7 @@ model. Again, we can inspect the model:</p>
 </h3>
 <p>Another approach could be to add all drugs into the model. Again, the
 first step is to get all the relevant data from the database:</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span>connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,</span>
 <span>                          cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
 <span>                          outcomeDatabaseSchema <span class="op">=</span> <span class="va">cohortDatabaseSchema</span>,</span>
@@ -804,7 +798,7 @@ first step is to get all the relevant data from the database:</p>
 <p>Note that the <code>exposureIds</code> argument is left empty. This
 will cause data for all concepts in the exposure table to be retrieved.
 Next, we simply create a new set of covariates, and fit the model:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span>sccsData <span class="op">=</span> <span class="va">sccsData</span>,</span>
 <span>                                  outcomeId <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                                  firstOutcomeOnly <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -844,7 +838,7 @@ almost often prescribed together and their individual effects are
 difficult to untangle.</p>
 <p>Because there are now so many estimates, we will export all estimates
 to a data frame using <code><a href="../reference/getModel.html">getModel()</a></code>:</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getModel.html">getModel</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
 <span><span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op">==</span> <span class="va">aspirin</span>, <span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 2 x 10</span></span></span>
@@ -858,7 +852,7 @@ the model, the effect estimates for aspirin have remained nearly the
 same.</p>
 <p>In case we’re interested, we can also look at the effect sizes for
 the SSRIs:</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ssris</span>, <span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 4 x 10</span></span></span>
 <span><span class="co">##   name                    id estimate lb95Ci ub95Ci  logRr seLogRr originalEraId</span></span>
@@ -890,7 +884,7 @@ is fixed in retrospective studies (the data has already been collected),
 and the true effect size is unknown, the
 <code>SelfControlledCaseSeries</code> package provides a function to
 compute the minimum detectable relative risk (MDRR) instead:</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/computeMdrr.html">computeMdrr</a></span><span class="op">(</span><span class="va">sccsIntervalData</span>,</span>
 <span>            exposureCovariateId <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>            alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
@@ -912,9 +906,8 @@ of one.</p>
 </h3>
 <p>To gain a better understanding of when the event occurs relative to
 the start of exposure, we can plot their relationship:</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotExposureCentered.html">plotExposureCentered</a></span><span class="op">(</span><span class="va">studyPop</span>, <span class="va">sccsData</span>, exposureEraId <span class="op">=</span> <span class="va">aspirin</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: Removed 52 rows containing missing values (`geom_rect()`).</span></span></code></pre>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-53-1.png" width="624"></p>
 </div>
 <div class="section level3">
@@ -980,19 +973,12 @@ causation. We can check for patterns over time:</p>
 <p>We see that, after removing the COVID blip, the observed-to-expected
 ratio seems stable. We can perform a formal test for stability:</p>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
-<<<<<<< HEAD
-<code class="sourceCode R"><span><span class="va">stability</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeTimeStability.html">computeTimeStability</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
-<span>                                  sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span>
-<span><span class="va">stability</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">stable</span><span class="op">)</span></span></code></pre></div>
-=======
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/computeTimeStability.html">computeTimeStability</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>                     sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
->>>>>>> develop
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 x 3</span></span></span>
 <span><span class="co">##   ratio     p stable</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span>  1.10     1 TRUE</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>  1.12     1 TRUE</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -1006,7 +992,7 @@ ratio seems stable. We can perform a formal test for stability:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2024).</span></span>
 <span><span class="co">##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package</span></span>
-<span><span class="co">##   version 5.2.2, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span></span>
+<span><span class="co">##   version 5.2.3, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## A BibTeX entry for LaTeX users is</span></span>
 <span><span class="co">## </span></span>
@@ -1014,7 +1000,7 @@ ratio seems stable. We can perform a formal test for stability:</p>
 <span><span class="co">##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},</span></span>
 <span><span class="co">##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},</span></span>
 <span><span class="co">##     year = {2024},</span></span>
-<span><span class="co">##     note = {R package version 5.2.2},</span></span>
+<span><span class="co">##     note = {R package version 5.2.3},</span></span>
 <span><span class="co">##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},</span></span>
 <span><span class="co">##   }</span></span></code></pre>
 <p>Furthermore, <code>SelfControlledCaseSeries</code> makes extensive
@@ -1050,9 +1036,7 @@ Foundation grant IIS 1251151.</p>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
-    </nav>
-</div>
+      </div>
 
 </div>
 
@@ -1065,7 +1049,7 @@ Foundation grant IIS 1251151.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
       </footer>

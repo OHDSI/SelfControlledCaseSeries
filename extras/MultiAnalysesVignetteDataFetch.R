@@ -278,6 +278,7 @@ exportToCsv(
 )
 
 # Upload results to SQLite -----------------------------------------------------
+library(SelfControlledCaseSeries)
 databaseFile <-  file.path(outputFolder, "export", "SccsResults.sqlite")
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "sqlite",
@@ -298,7 +299,11 @@ uploadResults(
 connection <- DatabaseConnector::connect(connectionDetails)
 cohorts <- tibble(
   cohortDefinitionId = c(diclofenac, giBleed, ppis, negativeControls),
-  cohortName = c("Diclofenac", "GI Bleed", paste0("PPI_", seq_along(ppis)), paste0("NegativeControl_", seq_along(negativeControls)))
+  cohortName = c("Diclofenac", "GI Bleed", paste0("PPI_", seq_along(ppis)), paste0("NegativeControl_", seq_along(negativeControls))),
+  isCohort = 0,
+  description = "",
+  json = "{}",
+  sqlCommand = ""
 )
 DatabaseConnector::insertTable(
   connection = connection,
@@ -324,12 +329,15 @@ DatabaseConnector::insertTable(
 )
 DatabaseConnector::disconnect(connection)
 
-# Launch Shiny app:
+# Launch Shiny app -------------------------------------------------------------
+library(dplyr)
+outputFolder <- "d:/temp/sccsVignette2"
 databaseFile <-  file.path(outputFolder, "export", "SccsResults.sqlite")
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "sqlite",
   server = databaseFile
 )
+# conn <- DatabaseConnector::connect(connectionDetails)
 resultDatabaseDetails <- list(
   dbms = connectionDetails$dbms,
   tablePrefix = 'sccs_',
@@ -338,11 +346,11 @@ resultDatabaseDetails <- list(
   schema = "main",
   databaseTable = 'database_meta_data'
 )
-sccsModule <- ShinyAppBuilder::createDefaultSccsConfig()
+estimationModule <- ShinyAppBuilder::createDefaultEstimationConfig()
 aboutModule <- ShinyAppBuilder::createDefaultAboutConfig()
 shinyAppConfig <- ShinyAppBuilder::initializeModuleConfig() %>%
   ShinyAppBuilder::addModuleConfig(aboutModule) %>%
-  ShinyAppBuilder::addModuleConfig(sccsModule)
+  ShinyAppBuilder::addModuleConfig(estimationModule)
 connectionHandler <- ResultModelManager::ConnectionHandler$new(connectionDetails)
 ShinyAppBuilder::viewShiny(shinyAppConfig, connectionHandler)
 connectionHandler$closeConnection()
