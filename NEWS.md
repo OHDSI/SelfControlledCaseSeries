@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 5.3.0
+==============================
+
+Changes
+
+1. Added `controlType` argument to `runSccsAnalyses()`, explicitly setting the type of (negative) controls: outcome controls or exposure controls. Setting to "outcome" (the default) will now group by exposure (and nesting cohort if defined).
+
+
 SelfControlledCaseSeries 5.2.3
 ==============================
 

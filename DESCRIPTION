@@ -1,8 +1,8 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 5.2.3
-Date: 2024-08-12
+Version: 5.3.0
+Date: 2024-08-13
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
@@ -19,7 +19,7 @@ Description: SelfControlledCaseSeries is an R package for performing self-
 	included at once (MSCCS), with regularization on all coefficients except for the
 	exposure of interest.
 VignetteBuilder: knitr
-URL:  https://ohdsi.github.io/SelfControlledCaseSeries, https://github.com/OHDSI/SelfControlledCaseSeries
+URL:  https://ohdsi.github.io/SelfControlledCaseSeries/, https://github.com/OHDSI/SelfControlledCaseSeries
 BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
 	R (>= 4.0.0),

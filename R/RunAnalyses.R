@@ -160,6 +160,11 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
 #' @param sccsMultiThreadingSettings       An object of type `SccsMultiThreadingSettings` as created using
 #'                                         the [createSccsMultiThreadingSettings()] or
 #'                                         [createDefaultSccsMultiThreadingSettings()] functions.
+#' @param controlType                      Type of negative (and positive) controls. Can be "outcome" or
+#'                                         "exposure". When set to "outcome", controls with the
+#'                                         same exposure (and nesting cohort) are grouped together for
+#'                                         calibration. When set to "exposure", controls with the same
+#'                                         outcome are grouped together.
 #'
 #' @return
 #' A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
@@ -183,7 +188,8 @@ runSccsAnalyses <- function(connectionDetails,
                             exposuresOutcomeList,
                             analysesToExclude = NULL,
                             combineDataFetchAcrossOutcomes = FALSE,
-                            sccsMultiThreadingSettings = createSccsMultiThreadingSettings()) {
+                            sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
+                            controlType = "outcome") {
   errorMessages <- checkmate::makeAssertCollection()
   if (is(connectionDetails, "connectionDetails")) {
     checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
@@ -213,6 +219,7 @@ runSccsAnalyses <- function(connectionDetails,
   checkmate::assertDataFrame(analysesToExclude, null.ok = TRUE, add = errorMessages)
   checkmate::assertLogical(combineDataFetchAcrossOutcomes, len = 1, add = errorMessages)
   checkmate::assertClass(sccsMultiThreadingSettings, "SccsMultiThreadingSettings", add = errorMessages)
+  checkmate::assertChoice(controlType, c("outcome", "exposure"), add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   uniqueExposuresOutcomeList <- unique(lapply(lapply(lapply(exposuresOutcomeList, unlist), as.character), paste, collapse = " "))
@@ -445,7 +452,8 @@ runSccsAnalyses <- function(connectionDetails,
       exposuresOutcomeList = exposuresOutcomeList,
       outputFolder = outputFolder,
       mainFileName = mainFileName,
-      calibrationThreads = sccsMultiThreadingSettings$calibrationThreads
+      calibrationThreads = sccsMultiThreadingSettings$calibrationThreads,
+      controlType = controlType
     )
   }
 
@@ -825,7 +833,12 @@ createSccsModelObject <- function(params) {
   }
 }
 
-summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder, mainFileName, calibrationThreads = 1) {
+summarizeResults <- function(referenceTable,
+                             exposuresOutcomeList,
+                             outputFolder,
+                             mainFileName,
+                             calibrationThreads = 1,
+                             controlType) {
   rows <- list()
   # i = 1
   pb <- txtProgressBar(style = 3)
@@ -875,6 +888,7 @@ summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder,
           }
           row <- tibble(
             exposuresOutcomeSetId = refRow$exposuresOutcomeSetId,
+            nestingCohortId = refRow$nestingCohortId,
             outcomeId = refRow$outcomeId,
             analysisId = refRow$analysisId,
             covariateAnalysisId = covariateSettings$covariateAnalysisId,
@@ -909,18 +923,22 @@ summarizeResults <- function(referenceTable, exposuresOutcomeList, outputFolder,
   mainResults <- bind_rows(rows)
   mainResults <- calibrateEstimates(
     results = mainResults,
-    calibrationThreads = calibrationThreads
+    calibrationThreads = calibrationThreads,
+    controlType = controlType
   )
   saveRDS(mainResults, mainFileName)
 }
 
-calibrateEstimates <- function(results, calibrationThreads) {
+calibrateEstimates <- function(results, calibrationThreads, controlType) {
   if (nrow(results) == 0) {
     return(results)
   }
   message("Calibrating estimates")
-  groups <- split(results, paste(results$covariateId, results$analysisId))
-
+  if (controlType == "outcome") {
+    groups <- split(results, paste(results$eraId, results$nestingCohortId, results$covariateId, results$analysisId))
+  } else {
+    groups <- split(results, paste(results$outcomeId, results$covariateId, results$analysisId))
+  }
   cluster <- ParallelLogger::makeCluster(min(length(groups), calibrationThreads))
   results <- ParallelLogger::clusterApply(cluster, groups, calibrateGroup)
   ParallelLogger::stopCluster(cluster)

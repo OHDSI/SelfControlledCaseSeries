@@ -325,13 +325,14 @@ referenceTable <- runSccsAnalyses(
   combineDataFetchAcrossOutcomes = TRUE,
   exposuresOutcomeList = exposuresOutcomeList,
   sccsAnalysisList = sccsAnalysisList,
-  sccsMultiThreadingSettings = multiThreadingSettings
+  sccsMultiThreadingSettings = multiThreadingSettings,
+  controlType = "exposure"
 )
 ```
 
 In the code above, we first specify how many parallel threads `SelfControlledCaseSeries` can use. Many of the computations can be computed in parallel, and providing more than one CPU core can greatly speed up the computation. Here we specify `SelfControlledCaseSeries` can use all but one of the CPU cores detected in the system (using the `parallel::detectCores()` function). 
 
-We call `runSccsAnalyses`, providing the arguments for connecting to the database, which schemas and tables to use, as well as the analyses and hypotheses of interest. The `outputFolder` specifies where the outcome models and intermediate files will be written. 
+We call `runSccsAnalyses`, providing the arguments for connecting to the database, which schemas and tables to use, as well as the analyses and hypotheses of interest. The `outputFolder` specifies where the outcome models and intermediate files will be written. Because in this example we use negative control exposures, we must explicitly specify `controlType = "exposure"`. This will cause the different negative control exposure-outcome pairs to be used for the same outcome.
 
 ## Restarting
 

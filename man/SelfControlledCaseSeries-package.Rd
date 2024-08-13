@@ -11,6 +11,7 @@ SelfControlledCaseSeries is an R package for performing self- controlled case se
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://ohdsi.github.io/SelfControlledCaseSeries/}
   \item \url{https://github.com/OHDSI/SelfControlledCaseSeries}
   \item Report bugs at \url{https://github.com/OHDSI/SelfControlledCaseSeries/issues}
 }

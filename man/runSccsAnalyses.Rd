@@ -22,7 +22,8 @@ runSccsAnalyses(
   exposuresOutcomeList,
   analysesToExclude = NULL,
   combineDataFetchAcrossOutcomes = FALSE,
-  sccsMultiThreadingSettings = createSccsMultiThreadingSettings()
+  sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
+  controlType = "outcome"
 )
 }
 \arguments{
@@ -88,6 +89,12 @@ the subjects that have the different outcomes.}
 \item{sccsMultiThreadingSettings}{An object of type \code{SccsMultiThreadingSettings} as created using
 the \code{\link[=createSccsMultiThreadingSettings]{createSccsMultiThreadingSettings()}} or
 \code{\link[=createDefaultSccsMultiThreadingSettings]{createDefaultSccsMultiThreadingSettings()}} functions.}
+
+\item{controlType}{Type of negative (and positive) controls. Can be "outcome" or
+"exposure". When set to "outcome", controls with the
+same exposure (and nesting cohort) are grouped together for
+calibration. When set to "exposure", controls with the same
+outcome are grouped together.}
 }
 \value{
 A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
