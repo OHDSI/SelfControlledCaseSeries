@@ -24,7 +24,7 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(
   user = keyring::key_get("redShiftUserName"),
   password = keyring::key_get("redShiftPassword")
 )
-cdmDatabaseSchema <- "cdm_truven_mdcd_v2888"
+cdmDatabaseSchema <- "cdm_truven_mdcd_v3038"
 cohortDatabaseSchema <- "scratch_mschuemi"
 cohortTable <- "sccs_vignette"
 options(sqlRenderTempEmulationSchema = NULL)
@@ -58,7 +58,7 @@ DatabaseConnector::querySql(connection, sql)
 DatabaseConnector::disconnect(connection)
 
 
-# Create settings -----------------------------
+# Create settings --------------------------------------------------------------
 negativeControls <- c(
   705178,
   705944,
@@ -195,6 +195,7 @@ sccsAnalysis3 <- createSccsAnalysis(
 
 covarAllDrugs <- createEraCovariateSettings(
   label = "Other exposures",
+  includeEraIds = c(),
   excludeEraIds = "exposureId",
   stratifyById = TRUE,
   start = 1,
@@ -262,7 +263,8 @@ runSccsAnalyses(
   combineDataFetchAcrossOutcomes = TRUE,
   exposuresOutcomeList = exposuresOutcomeList,
   sccsAnalysisList = sccsAnalysisList,
-  sccsMultiThreadingSettings = multiThreadingSettings
+  sccsMultiThreadingSettings = multiThreadingSettings,
+  controlType = "exposure"
 )
 
 referenceTable <- getFileReference(outputFolder)

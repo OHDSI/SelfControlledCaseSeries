@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.2.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.3.0</span>
       </span>
     </div>
 
@@ -90,7 +90,8 @@
 <span>  <span class="va">exposuresOutcomeList</span>,</span>
 <span>  analysesToExclude <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  combineDataFetchAcrossOutcomes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  sccsMultiThreadingSettings <span class="op">=</span> <span class="fu"><a href="createSccsMultiThreadingSettings.html">createSccsMultiThreadingSettings</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  sccsMultiThreadingSettings <span class="op">=</span> <span class="fu"><a href="createSccsMultiThreadingSettings.html">createSccsMultiThreadingSettings</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  controlType <span class="op">=</span> <span class="st">"outcome"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -195,6 +196,14 @@ the subjects that have the different outcomes.</p></dd>
 <dd><p>An object of type <code>SccsMultiThreadingSettings</code> as created using
 the <code><a href="createSccsMultiThreadingSettings.html">createSccsMultiThreadingSettings()</a></code> or
 <code><a href="createDefaultSccsMultiThreadingSettings.html">createDefaultSccsMultiThreadingSettings()</a></code> functions.</p></dd>
+
+
+<dt id="arg-controltype">controlType<a class="anchor" aria-label="anchor" href="#arg-controltype"></a></dt>
+<dd><p>Type of negative (and positive) controls. Can be "outcome" or
+"exposure". When set to "outcome", controls with the
+same exposure (and nesting cohort) are grouped together for
+calibration. When set to "exposure", controls with the same
+outcome are grouped together.</p></dd>
 
 </dl></div>
     <div id="value">

@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.2.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.3.0</span>
       </span>
     </div>
 
@@ -91,7 +91,7 @@ SelfControlledCaseSeries package</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie</h4>
             
-            <h4 data-toc-skip class="date">2024-08-12</h4>
+            <h4 data-toc-skip class="date">2024-08-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/MultipleAnalyses.Rmd" class="external-link"><code>vignettes/MultipleAnalyses.Rmd</code></a></small>
       <div class="hidden name"><code>MultipleAnalyses.Rmd</code></div>
@@ -472,7 +472,8 @@ total number of outcome models is
 <span>  combineDataFetchAcrossOutcomes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  exposuresOutcomeList <span class="op">=</span> <span class="va">exposuresOutcomeList</span>,</span>
 <span>  sccsAnalysisList <span class="op">=</span> <span class="va">sccsAnalysisList</span>,</span>
-<span>  sccsMultiThreadingSettings <span class="op">=</span> <span class="va">multiThreadingSettings</span></span>
+<span>  sccsMultiThreadingSettings <span class="op">=</span> <span class="va">multiThreadingSettings</span>,</span>
+<span>  controlType <span class="op">=</span> <span class="st">"exposure"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>In the code above, we first specify how many parallel threads
 <code>SelfControlledCaseSeries</code> can use. Many of the computations
@@ -485,7 +486,10 @@ cores detected in the system (using the
 connecting to the database, which schemas and tables to use, as well as
 the analyses and hypotheses of interest. The <code>outputFolder</code>
 specifies where the outcome models and intermediate files will be
-written.</p>
+written. Because in this example we use negative control exposures, we
+must explicitly specify <code>controlType = "exposure"</code>. This will
+cause the different negative control exposure-outcome pairs to be used
+for the same outcome.</p>
 <div class="section level3">
 <h3 id="restarting">Restarting<a class="anchor" aria-label="anchor" href="#restarting"></a>
 </h3>
@@ -516,13 +520,13 @@ first analysis:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Outcome count:</span></span>
 <span><span class="co">##    outcomeSubjects outcomeEvents outcomeObsPeriods observedDays</span></span>
-<span><span class="co">## 77            9440         18340              9444     26259638</span></span>
+<span><span class="co">## 77            9566         18967              9569     27341436</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Estimates:</span></span>
 <span><span class="co">## <span style="color: #949494;"># A tibble: 1 x 7</span></span></span>
 <span><span class="co">##   Name                    ID Estimate LB95CI UB95CI LogRr SeLogRr</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.12   1.04   1.19 0.110  0.034<span style="text-decoration: underline;">9</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.15   1.08   1.23 0.142  0.034<span style="text-decoration: underline;">0</span></span></span></code></pre>
 <p>Note that some of the file names will appear several times in the
 table. In our example all analysis share the same <code>sccsData</code>
 object.</p>
@@ -535,22 +539,22 @@ object.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">resultsSum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getResultsSummary.html">getResultsSummary</a></span><span class="op">(</span><span class="va">outputFolder</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">resultsSum</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 x 32</span></span></span>
-<span><span class="co">##   exposuresOutcomeSetId outcomeId analysisId covariateAnalysisId covariateId</span></span>
-<span><span class="co">##                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span>            <span style="text-decoration: underline;">1</span>480<span style="text-decoration: underline;">556</span>481        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span>            <span style="text-decoration: underline;">1</span>039<span style="text-decoration: underline;">014</span>262        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span>           -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">616</span><span style="color: #BB0000; text-decoration: underline;">427</span><span style="color: #BB0000;">546</span>        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">4</span>           -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">774</span><span style="color: #BB0000; text-decoration: underline;">200</span><span style="color: #BB0000;">863</span>        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">5</span>            -<span style="color: #BB0000;">612</span><span style="color: #BB0000; text-decoration: underline;">981</span><span style="color: #BB0000;">155</span>        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">6</span>           -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">166</span><span style="color: #BB0000; text-decoration: underline;">912</span><span style="color: #BB0000;">124</span>        77          1                   1        <span style="text-decoration: underline;">1</span>000</span></span>
-<span><span class="co">## <span style="color: #949494;"># i 27 more variables: covariateName &lt;chr&gt;, eraId &lt;dbl&gt;, outcomeSubjects &lt;dbl&gt;,</span></span></span>
-<span><span class="co">## <span style="color: #949494;">#   outcomeEvents &lt;dbl&gt;, outcomeObservationPeriods &lt;dbl&gt;, observedDays &lt;dbl&gt;,</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 x 33</span></span></span>
+<span><span class="co">##   exposuresOutcomeSetId nestingCohortId outcomeId analysisId covariateAnalysisId</span></span>
+<span><span class="co">##                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>            <span style="text-decoration: underline;">1</span>480<span style="text-decoration: underline;">556</span>481              <span style="color: #BB0000;">NA</span>        77          1                   1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span>            <span style="text-decoration: underline;">1</span>039<span style="text-decoration: underline;">014</span>262              <span style="color: #BB0000;">NA</span>        77          1                   1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span>           -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">616</span><span style="color: #BB0000; text-decoration: underline;">427</span><span style="color: #BB0000;">546</span>              <span style="color: #BB0000;">NA</span>        77          1                   1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span>           -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">774</span><span style="color: #BB0000; text-decoration: underline;">200</span><span style="color: #BB0000;">863</span>              <span style="color: #BB0000;">NA</span>        77          1                   1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span>            -<span style="color: #BB0000;">612</span><span style="color: #BB0000; text-decoration: underline;">981</span><span style="color: #BB0000;">155</span>              <span style="color: #BB0000;">NA</span>        77          1                   1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span>           -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">166</span><span style="color: #BB0000; text-decoration: underline;">912</span><span style="color: #BB0000;">124</span>              <span style="color: #BB0000;">NA</span>        77          1                   1</span></span>
+<span><span class="co">## <span style="color: #949494;"># i 28 more variables: covariateId &lt;dbl&gt;, covariateName &lt;chr&gt;, eraId &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   outcomeSubjects &lt;dbl&gt;, outcomeEvents &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   outcomeObservationPeriods &lt;dbl&gt;, observedDays &lt;dbl&gt;,</span></span></span>
 <span><span class="co">## <span style="color: #949494;">#   covariateSubjects &lt;dbl&gt;, covariateDays &lt;dbl&gt;, covariateEras &lt;dbl&gt;,</span></span></span>
 <span><span class="co">## <span style="color: #949494;">#   covariateOutcomes &lt;dbl&gt;, rr &lt;dbl&gt;, ci95Lb &lt;dbl&gt;, ci95Ub &lt;dbl&gt;, p &lt;dbl&gt;,</span></span></span>
 <span><span class="co">## <span style="color: #949494;">#   oneSidedP &lt;dbl&gt;, logRr &lt;dbl&gt;, seLogRr &lt;dbl&gt;, llr &lt;dbl&gt;,</span></span></span>
-<span><span class="co">## <span style="color: #949494;">#   trueEffectSize &lt;int&gt;, calibratedRr &lt;dbl&gt;, calibratedCi95Lb &lt;dbl&gt;,</span></span></span>
-<span><span class="co">## <span style="color: #949494;">#   calibratedCi95Ub &lt;dbl&gt;, calibratedP &lt;dbl&gt;, calibratedOneSidedP &lt;dbl&gt;, ...</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #949494;">#   trueEffectSize &lt;int&gt;, calibratedRr &lt;dbl&gt;, calibratedCi95Lb &lt;dbl&gt;, ...</span></span></span></code></pre>
 <p>This tells us, per exposure-outcome-analysis combination (so possible
 multiple rows per SCCS model) the estimated relative risk and 95%
 confidence interval, as well as the number of subjects (cases) and the
@@ -666,7 +670,8 @@ the analyses summary.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2024).</span></span>
 <span><span class="co">##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package</span></span>
-<span><span class="co">##   version 5.2.3, &lt;https://github.com/OHDSI/SelfControlledCaseSeries&gt;.</span></span>
+<span><span class="co">##   version 5.3.0, https://github.com/OHDSI/SelfControlledCaseSeries,</span></span>
+<span><span class="co">##   &lt;https://ohdsi.github.io/SelfControlledCaseSeries/&gt;.</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## A BibTeX entry for LaTeX users is</span></span>
 <span><span class="co">## </span></span>
@@ -674,8 +679,9 @@ the analyses summary.</p>
 <span><span class="co">##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},</span></span>
 <span><span class="co">##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},</span></span>
 <span><span class="co">##     year = {2024},</span></span>
-<span><span class="co">##     note = {R package version 5.2.3},</span></span>
-<span><span class="co">##     url = {https://github.com/OHDSI/SelfControlledCaseSeries},</span></span>
+<span><span class="co">##     note = {R package version 5.3.0, </span></span>
+<span><span class="co">## https://github.com/OHDSI/SelfControlledCaseSeries},</span></span>
+<span><span class="co">##     url = {https://ohdsi.github.io/SelfControlledCaseSeries/},</span></span>
 <span><span class="co">##   }</span></span></code></pre>
 <p>Further, <code>SelfControlledCaseSeries</code> makes extensive use of
 the <code>Cyclops</code> package.</p>
