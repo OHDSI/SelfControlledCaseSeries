@@ -16,21 +16,19 @@
 
 # This code should be used to fetch the data that is used in the vignettes.
 library(SelfControlledCaseSeries)
-options(andromedaTempFolder = "d:/andromedaTemp")
+options(andromedaTempFolder = "e:/andromedaTemp")
 
-connectionDetails <- DatabaseConnector::createConnectionDetails(
-  dbms = "redshift",
-  connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcd"),
-  user = keyring::key_get("redShiftUserName"),
-  password = keyring::key_get("redShiftPassword")
+connectionDetails <- createConnectionDetails(
+  dbms = "spark",
+  connectionString = keyring::key_get("databricksConnectionString"),
+  user = "token",
+  password = keyring::key_get("databricksToken")
 )
-cdmDatabaseSchema <- "cdm_truven_mdcd_v3038"
-cohortDatabaseSchema <- "scratch_mschuemi"
-cohortTable <- "sccs_vignette"
-options(sqlRenderTempEmulationSchema = NULL)
-cohortTable <- "sccs_vignette"
-cdmVersion <- "5"
-outputFolder <- "d:/temp/sccsVignette2"
+cdmDatabaseSchema <- "merative_mdcr.cdm_merative_mdcr_v3045"
+cohortDatabaseSchema <- "scratch.scratch_mschuemi"
+cohortTable  <- "sccs_vignette"
+options(sqlRenderTempEmulationSchema = "scratch.scratch_mschuemi")
+outputFolder <- "e:/temp/sccsVignette2"
 
 
 # Create cohorts ---------------------------------------------------------------
@@ -258,7 +256,6 @@ runSccsAnalyses(
   exposureTable = "drug_era",
   outcomeDatabaseSchema = cohortDatabaseSchema,
   outcomeTable = cohortTable,
-  cdmVersion = cdmVersion,
   outputFolder = outputFolder,
   combineDataFetchAcrossOutcomes = TRUE,
   exposuresOutcomeList = exposuresOutcomeList,
@@ -333,7 +330,7 @@ DatabaseConnector::disconnect(connection)
 
 # Launch Shiny app -------------------------------------------------------------
 library(dplyr)
-outputFolder <- "d:/temp/sccsVignette2"
+outputFolder <- "e:/temp/sccsVignette2"
 databaseFile <-  file.path(outputFolder, "export", "SccsResults.sqlite")
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "sqlite",

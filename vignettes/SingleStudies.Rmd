@@ -17,7 +17,7 @@ vignette: >
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
-outputFolder <- "d:/temp/vignetteSccs"
+outputFolder <- "e:/temp/vignetteSccs"
 folderExists <- dir.exists(outputFolder)
 ```
 # Introduction
@@ -529,6 +529,7 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
                                   naivePeriod = 180)
 
 covarAllDrugs <- createEraCovariateSettings(label = "Other exposures",
+                                            includeEraIds = c(),
                                             excludeEraIds = aspirin,
                                             stratifyById = TRUE,
                                             start = 1,
@@ -646,7 +647,7 @@ We can visualize which age ranges are covered by each subject's observation time
 ```{r eval=FALSE}
 plotAgeSpans(studyPop)
 ```
-```{r echo=FALSE,message=FALSE}
+```{r echo=FALSE,message=FALSE,warnings=FALSE}
 if (folderExists) {
   plotAgeSpans(studyPop)
 }

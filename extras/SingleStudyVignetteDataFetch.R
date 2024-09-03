@@ -16,20 +16,19 @@
 
 # This code should be used to fetch the data that is used in the vignettes.
 library(SelfControlledCaseSeries)
-options(andromedaTempFolder = "d:/andromedaTemp")
+options(andromedaTempFolder = "e:/andromedaTemp")
 
-folder <- "d:/temp/vignetteSccs"
-connectionDetails <- DatabaseConnector::createConnectionDetails(
-  dbms = "redshift",
-  connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcd"),
-  user = keyring::key_get("redShiftUserName"),
-  password = keyring::key_get("redShiftPassword")
+folder <- "e:/temp/vignetteSccs"
+connectionDetails <- createConnectionDetails(
+  dbms = "spark",
+  connectionString = keyring::key_get("databricksConnectionString"),
+  user = "token",
+  password = keyring::key_get("databricksToken")
 )
-cdmDatabaseSchema <- "cdm_truven_mdcd_v2565"
-cohortDatabaseSchema <- "scratch_mschuemi"
-cohortTable <- "sccs_epistaxis"
-cdmVersion <- "5"
-options(sqlRenderTempEmulationSchema = NULL)
+cdmDatabaseSchema <- "merative_mdcr.cdm_merative_mdcr_v3045"
+cohortDatabaseSchema <- "scratch.scratch_mschuemi"
+cohortTable  <- "sccs_vignette"
+options(sqlRenderTempEmulationSchema = "scratch.scratch_mschuemi")
 
 # Create cohorts ---------------------------------------------------------------
 connection <- DatabaseConnector::connect(connectionDetails)
@@ -73,8 +72,7 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureIds = aspirin,
                           studyStartDates = "20100101",
                           studyEndDates = "21000101",
-                          maxCasesPerOutcome = 100000,
-                          cdmVersion = cdmVersion)
+                          maxCasesPerOutcome = 100000)
 saveSccsData(sccsData, file.path(folder, "data1.zip"))
 sccsData <- loadSccsData(file.path(folder, "data1.zip"))
 sccsData
@@ -191,8 +189,7 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureIds = aspirin,
                           maxCasesPerOutcome = 100000,
                           studyStartDates = c("20100101", "20220101"),
-                          studyEndDates = c("20191231", "21001231"),
-                          cdmVersion = cdmVersion)
+                          studyEndDates = c("20191231", "21001231"))
 saveSccsData(sccsData, file.path(folder, "data2.zip"))
 sccsData <- loadSccsData(file.path(folder, "data2.zip"))
 studyPop <- createStudyPopulation(sccsData = sccsData,
@@ -300,8 +297,7 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           exposureIds = c(),
                           maxCasesPerOutcome = 100000,
                           studyStartDates = c("19000101", "20220101"),
-                          studyEndDates = c("20191231", "21001231"),
-                          cdmVersion = cdmVersion)
+                          studyEndDates = c("20191231", "21001231"))
 saveSccsData(sccsData, file.path(folder, "data3.zip"))
 sccsData <- loadSccsData(file.path(folder, "data3.zip"))
 
@@ -313,6 +309,7 @@ studyPop <- createStudyPopulation(sccsData = sccsData,
                                   naivePeriod = 180)
 
 covarAllDrugs <- createEraCovariateSettings(label = "Other exposures",
+                                            includeEraIds = c(),
                                             excludeEraIds = aspirin,
                                             stratifyById = TRUE,
                                             start = 1,

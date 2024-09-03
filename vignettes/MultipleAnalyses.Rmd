@@ -19,7 +19,7 @@ vignette: >
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
 library(EmpiricalCalibration)
-outputFolder <- "d:/temp/sccsVignette2"
+outputFolder <- "e:/temp/sccsVignette2"
 diclofenac <- 1124300
 giBleed <- 77
 ```
@@ -66,7 +66,6 @@ outputFolder <- "s:/temp/sccsVignette2"
 cdmDatabaseSchema <- "my_cdm_data"
 cohortDatabaseSchema <- "my_cohorts"
 options(sqlRenderTempEmulationSchema = NULL)
-cdmVersion <- "5"
 ```
 
 The last three lines define the `cdmDatabaseSchema` and `cohortDatabaseSchema` variables, as well as the CDM version. We'll use these later to tell R where the data in CDM format live, where we want to store the (outcome) cohorts, and what version CDM is used. Note that for Microsoft SQL Server, databaseschemas need to specify both the database and the schema, so for example `cdmDatabaseSchema <- "my_cdm_data.dbo"`.
@@ -320,7 +319,6 @@ referenceTable <- runSccsAnalyses(
   exposureTable = "drug_era",
   outcomeDatabaseSchema = cohortDatabaseSchema,
   outcomeTable = cohortTable,
-  cdmVersion = cdmVersion,
   outputFolder = outputFolder,
   combineDataFetchAcrossOutcomes = TRUE,
   exposuresOutcomeList = exposuresOutcomeList,
