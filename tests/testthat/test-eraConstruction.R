@@ -11,7 +11,8 @@ convertToSccsDataWrapper <- function(cases,
                                      firstOutcomeOnly = FALSE,
                                      excludeeraIds = NULL,
                                      minAge = NULL,
-                                     maxAge = NULL) {
+                                     maxAge = NULL,
+                                     endOfObservationEraLength = 0) {
   if (is.null(covariateSettings)) {
     covariateSettings <- createEraCovariateSettings(
       includeEraIds = exposureId,
@@ -61,7 +62,8 @@ convertToSccsDataWrapper <- function(cases,
     sccsData = data,
     ageCovariateSettings = ageSettings,
     seasonalityCovariateSettings = seasonalitySettings,
-    eraCovariateSettings = covariateSettings
+    eraCovariateSettings = covariateSettings,
+    endOfObservationEraLength = endOfObservationEraLength
   )
   return(list(outcomes = collect(result$outcomes), covariates = collect(result$covariates)))
 }

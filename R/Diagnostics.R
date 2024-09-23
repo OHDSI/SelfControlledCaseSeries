@@ -334,3 +334,27 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   names(p) <- NULL
   return(p)
 }
+
+#' Compute p-value for event-dependent observation end
+#'
+#' @param sccsModel         A fitted SCCS model as created using [fitSccsModel()].
+#'
+#' @return
+#' The p-value
+#'
+#' @export
+computeEventDependentObservationP <- function(sccsModel) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
+  llr <- sccsModel$estimates |>
+    filter(.data$covariateId == 99) |>
+    pull(llr)
+  if (length(llr) == 0) {
+    warning("No estimate found for the end of observation probe")
+    return(NA)
+  }
+  p <- 0.5 * pchisq(2 * llr, df = 0, lower.tail = FALSE) + 0.5 * pchisq(2 * llr, df = 1, lower.tail = FALSE)
+  return(p)
+}

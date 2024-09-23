@@ -37,7 +37,7 @@ cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
 CohortGenerator::createCohortTables(connection = connection,
                                     cohortDatabaseSchema = cohortDatabaseSchema,
                                     cohortTableNames = cohortTableNames)
-cohortDefinitionSet <- PhenotypeLibrary::getPlCohortDefinitionSet(356)
+cohortDefinitionSet <- PhenotypeLibrary::getPlCohortDefinitionSet(c(356, 70))
 counts <- CohortGenerator::generateCohortSet(connection = connection,
                                              cdmDatabaseSchema = cdmDatabaseSchema,
                                              cohortDatabaseSchema = cohortDatabaseSchema,
@@ -58,6 +58,7 @@ DatabaseConnector::disconnect(connection)
 # Simple model -----------------------------------------------------------------
 aspirin <- 1112807
 epistaxis <- 356
+stroke <- 70
 
 if (!file.exists(folder))
   dir.create(folder)
@@ -105,7 +106,7 @@ studyPop <- readRDS(file.path(folder, "studyPop.rds"))
 # stability %>%
 #   filter(!stable)
 
-covarAspirin<- createEraCovariateSettings(label = "Exposure of interest",
+covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
                                           includeEraIds = aspirin,
                                           start = 0,
                                           end = 0,
@@ -117,11 +118,40 @@ saveSccsIntervalData(sccsIntervalData, file.path(folder, "intervalData1.zip"))
 sccsIntervalData <- loadSccsIntervalData(file.path(folder, "intervalData1.zip"))
 sccsIntervalData
 summary(sccsIntervalData)
+metaData <- attr(sccsIntervalData, "metaData")
+metaData$endOfObservationEra
 
 model <- fitSccsModel(sccsIntervalData)
 saveRDS(model, file.path(folder, "simpleModel.rds"))
 model
 
+# Stroke model -----------------------------------------------------------------
+sccsDataStroke <- getDbSccsData(connectionDetails = connectionDetails,
+                          cdmDatabaseSchema = cdmDatabaseSchema,
+                          outcomeDatabaseSchema = cohortDatabaseSchema,
+                          outcomeTable = cohortTable,
+                          outcomeIds = epistaxis,
+                          exposureDatabaseSchema = cdmDatabaseSchema,
+                          exposureTable = "drug_era",
+                          exposureIds = aspirin,
+                          studyStartDates = "20100101",
+                          studyEndDates = "21000101",
+                          maxCasesPerOutcome = 100000)
+saveSccsData(sccsDataStroke, file.path(folder, "data1Stroke.zip"))
+sccsDataStroke <- loadSccsData(file.path(folder, "data1Stroke.zip"))
+
+studyPop <- createStudyPopulation(sccsData = sccsDataStroke,
+                                  outcomeId = stroke,
+                                  firstOutcomeOnly = FALSE,
+                                  naivePeriod = 180)
+sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
+                                           sccsDataStroke,
+                                           eraCovariateSettings = covarAspirin,
+                                           eventDependentObservation = F)
+model <- fitSccsModel(sccsIntervalData)
+model
+
+computeEventDependentObservationP(model)
 
 # Pre-exposure -----------------------------------------------------------------
 covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",

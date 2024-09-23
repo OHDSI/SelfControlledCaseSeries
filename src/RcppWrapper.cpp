@@ -42,6 +42,8 @@ void convertToSccs(const DataFrame& cases,
                    const NumericMatrix& seasonDesignMatrix,
                    const NumericVector& timeCovariateCases,
                    const List& covariateSettingsList,
+                   const int endOfObservationEraLength,
+                   const int endOfObservationCovariateId,
                    const bool eventDependentObservation,
                    const List& censorModel,
                    const bool scri,
@@ -53,8 +55,9 @@ void convertToSccs(const DataFrame& cases,
   try {
     SccsConverter sccsConverter(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason,
                                 seasonDesignMatrix, includeCalendarTime, calendarTimeOffset, calendarTimeDesignMatrix,
-                                timeCovariateCases, covariateSettingsList, eventDependentObservation,
-                                censorModel, scri, controlIntervalId, resultAndromeda);
+                                timeCovariateCases, covariateSettingsList, endOfObservationEraLength,
+                                endOfObservationCovariateId,eventDependentObservation, censorModel, scri,
+                                controlIntervalId, resultAndromeda);
     sccsConverter.convertToSccs();
   } catch (std::exception &e) {
     forward_exception_to_r(e);

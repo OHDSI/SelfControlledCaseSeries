@@ -36,6 +36,9 @@
 #' @param minCasesForAgeSeason        DEPRECATED: Use `minCasesForTimeCovariates` instead.
 #' @param minCasesForTimeCovariates   Minimum number of cases to use to fit age, season and calendar time splines. If
 #'                                    needed (and available), cases that are not exposed will be included.
+#' @param endOfObservationEraLength   Length in days of the probe that is inserted at the end of a patient's
+#'                                    observation time. This probe will be used to test whether there is event-
+#'                                    dependent observation end. Set to 0 to not include the probe.
 #' @param eventDependentObservation   Should the extension proposed by Farrington et al. be used to
 #'                                    adjust for event-dependent observation time?
 #'
@@ -56,6 +59,7 @@ createSccsIntervalData <- function(studyPopulation,
                                    calendarTimeCovariateSettings = NULL,
                                    minCasesForAgeSeason = NULL,
                                    minCasesForTimeCovariates = 10000,
+                                   endOfObservationEraLength = 30,
                                    eventDependentObservation = FALSE) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
@@ -98,7 +102,8 @@ createSccsIntervalData <- function(studyPopulation,
   settings <- addEventDependentObservationSettings(
     settings,
     eventDependentObservation,
-    studyPopulation
+    studyPopulation,
+    endOfObservationEraLength
   )
   if (eventDependentObservation && settings$metaData$censorModel$model %in% c(1, 3) && !is.null(ageCovariateSettings)) {
     warning("Optimal censoring model adjusts for age, so removing age as separate covariate.")
@@ -107,7 +112,6 @@ createSccsIntervalData <- function(studyPopulation,
   settings <- addAgeSettings(settings, ageCovariateSettings, studyPopulation)
   settings <- addSeasonalitySettings(settings, seasonalityCovariateSettings, sccsData)
   settings <- addCalendarTimeSettings(settings, calendarTimeCovariateSettings, studyPopulation, sccsData)
-
   settings <- addEraCovariateSettings(settings, eraCovariateSettings, sccsData)
   settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
   metaData <- append(studyPopulation$metaData, settings$metaData)
@@ -142,6 +146,8 @@ createSccsIntervalData <- function(studyPopulation,
     calendarTimeDesignMatrix = settings$calendarTimeDesignMatrix,
     timeCovariateCases = timeCovariateCases,
     covariateSettingsList = settings$covariateSettingsList,
+    endOfObservationEraLength = settings$endOfObservationEraLength,
+    endOfObservationCovariateId = settings$endOfObservationCovariateId,
     eventDependentObservation = eventDependentObservation,
     censorModel = settings$censorModel,
     scri = FALSE,
@@ -502,7 +508,8 @@ computeObservedPerMonth <- function(studyPopulation) {
 
 addEventDependentObservationSettings <- function(settings,
                                                  eventDependentObservation,
-                                                 studyPopulation) {
+                                                 studyPopulation,
+                                                 endOfObservationEraLength) {
   if (!eventDependentObservation) {
     settings$censorModel <- list(model = 0, p = c(0))
   } else {
@@ -519,6 +526,21 @@ addEventDependentObservationSettings <- function(settings,
     settings$censorModel <- fitModelsAndPickBest(data)
     settings$metaData$censorModel <- settings$censorModel
   }
+  settings$endOfObservationEraLength <- endOfObservationEraLength
+  settings$endOfObservationCovariateId <- 99
+  newCovariateRef <- tibble(
+    covariateId = settings$endOfObservationCovariateId,
+    covariateName = "End of observation period",
+    covariateAnalysisId = NA,
+    originalEraId = 0,
+    originalEraType = "",
+    originalEraName = "",
+    isControlInterval = FALSE
+  )
+  settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
+  settings$metaData$endOfObservationEra <- list(
+    endOfObservationEraLength = settings$endOfObservationEraLength,
+    endOfObservationCovariateId = settings$endOfObservationCovariateId)
   return(settings)
 }
 

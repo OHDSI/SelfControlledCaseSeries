@@ -121,7 +121,8 @@ studyPop <- createStudyPopulation(
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = createEraCovariateSettings(includeEraIds = 3)
+  eraCovariateSettings = createEraCovariateSettings(includeEraIds = 3),
+  endOfObservationEraLength = 0
 )
 test_that("sccsIntervalData correctly handles nesting", {
   outcomes <- sccsIntervalData$outcomes %>%

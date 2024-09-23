@@ -148,7 +148,8 @@ test_that("Produces same results as SCCS package when using event-dependent obse
       end = 0,
       endAnchor = "era end"
     ),
-    eventDependentObservation = TRUE
+    eventDependentObservation = TRUE,
+    endOfObservationEraLength = 0
   )
 
   expect_equal(attr(sccsIntervalData, "metaData")$censorModel$aic, min(x$modelfit[2, ]), tolerance = 1e-04)
