@@ -347,7 +347,9 @@ computeEventDependentObservationP <- function(sccsModel) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-
+  if (is.null(sccsModel$estimates)) {
+    return(NA)
+  }
   llr <- sccsModel$estimates |>
     filter(.data$covariateId == 99) |>
     pull(llr)
