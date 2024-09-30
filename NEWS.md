@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 5.3.1
+==============================
+
+Bugfixes
+
+1. Fixed (near) infinite loop when using end-of-observation dependence correction and weighting function is poorly integrable. 
+
+
 SelfControlledCaseSeries 5.3.0
 ==============================
 

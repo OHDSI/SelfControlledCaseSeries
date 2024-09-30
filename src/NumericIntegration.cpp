@@ -55,7 +55,8 @@ double NumericIntegration::recursiveIntegerate(IntegrableFunction& f, const doub
   double i2 = quart/3.0*(fStart+4.0*(fMidL+fMidR)+2.0*fMiddle+fEnd);
   i1 = (16.0 * i2 - i1) / 15.0;
   double q = 0;
-  if ((std::abs(i1-i2) <= std::abs(is)) || (middle <= start) || (end <= middle)) {
+  double epsilon = 1e-5;
+  if ((std::abs(i1-i2) <= std::abs(is)) || (middle - start < epsilon) || (end - middle < epsilon)) {
     q = i1;
   } else {
     if(count < 100) {
