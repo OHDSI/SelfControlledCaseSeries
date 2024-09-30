@@ -948,7 +948,7 @@ calibrateEstimates <- function(results, calibrationThreads, controlType) {
 
 # group = groups[[1]]
 calibrateGroup <- function(group) {
-  ncs <- group[group$trueEffectSize == 1 & !is.na(group$seLogRr), ]
+  ncs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize == 1 & !is.na(group$seLogRr), ]
   pcs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize != 1 & !is.na(group$seLogRr), ]
   if (nrow(ncs) >= 5) {
     null <- EmpiricalCalibration::fitMcmcNull(logRr = ncs$logRr, seLogRr = ncs$seLogRr)
