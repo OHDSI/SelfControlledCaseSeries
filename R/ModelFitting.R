@@ -61,7 +61,7 @@ fitSccsModel <- function(sccsIntervalData,
                          ),
                          profileGrid = NULL,
                          profileBounds = c(log(0.1), log(10)),
-                         endOfObservationEffectBounds = c(log(0.75), log(1.25))) {
+                         endOfObservationEffectBounds = c(log(0.5), log(2.0))) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsIntervalData, "SccsIntervalData", null.ok = TRUE, add = errorMessages)
   checkmate::assertClass(prior, "cyclopsPrior", add = errorMessages)

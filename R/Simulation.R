@@ -17,9 +17,9 @@
 #' Create a risk window definition for simulation
 #'
 #' @param start                 Start of the risk window relative to exposure start.
-#' @param end                     The end of the risk window (in days) relative to the `endAnchor`.
-#' @param endAnchor               The anchor point for the end of the risk window. Can be `"era start"`
-#'                                or `"era end"`.
+#' @param end                   The end of the risk window (in days) relative to the `endAnchor`.
+#' @param endAnchor             The anchor point for the end of the risk window. Can be `"era start"`
+#'                              or `"era end"`.
 #' @param splitPoints           Subdivision of the risk window in to smaller sub-windows.
 #' @param relativeRisks         Either a single number representing the relative risk in the risk
 #'                              window, or when splitPoints have been defined a vector of relative
@@ -78,6 +78,8 @@ createSimulationRiskWindow <- function(start = 0,
 #' @param eraIds                      The IDs for the covariates to be generated.
 #' @param patientUsages               The fraction of patients that use the drugs.
 #' @param usageRate                   The rate of prescriptions per person that uses the drug.
+#' @param usageRateSlope              The change in the usage rate from one day to the next.
+#'                                    `usageRate` is the intercept at day 0
 #' @param meanPrescriptionDurations   The mean duration of a prescription, per drug.
 #' @param sdPrescriptionDurations     The standard deviation of the duration of a prescription, per
 #'                                    drug.
@@ -107,6 +109,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          eraIds = c(1, 2),
                                          patientUsages = c(0.2, 0.1),
                                          usageRate = c(0.01, 0.01),
+                                         usageRateSlope = c(0, 0),
                                          meanPrescriptionDurations = c(14, 30),
                                          sdPrescriptionDurations = c(7, 14),
                                          simulationRiskWindows = list(
@@ -132,6 +135,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
   checkmate::assertIntegerish(eraIds, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(patientUsages, lower = 0, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(usageRate, lower = 0, min.len = 1, add = errorMessages)
+  checkmate::assertNumeric(usageRateSlope, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(meanPrescriptionDurations, lower = 0, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(sdPrescriptionDurations, lower = 0, min.len = 1, add = errorMessages)
   checkmate::assertList(simulationRiskWindows, min.len = 1, add = errorMessages)
@@ -167,7 +171,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
   # Simulate a batch of persons, and eliminate non-cases
   n <- 1000
 
-  ### Generate patients ###
+  # Generate patients  -----------------------------------------------------------------------------
   observationDays <- round(rnorm(n, settings$meanPatientTime, settings$sdPatientTime))
   observationDays[observationDays < 1] <- 1
   observationDays[observationDays > settings$maxAge - settings$minAge] <- settings$maxAge - settings$minAge
@@ -191,41 +195,73 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
     noninformativeEndCensor = 0
   )
 
-  ### Generate eras ###
+  # Generate eras ----------------------------------------------------------------------------------
+  cumulativeIntensity <- function(t, usageRate, usageRateSlope) {
+    usageRate * t + 0.5 * usageRateSlope * t^2
+  }
+
+  inverseCumulativeIntensity <- function(u, usageRate, usageRateSlope, days) {
+    if (usageRateSlope == 0) {
+      t <- u * days
+    } else {
+      lambdaT <- usageRate * days + 0.5 * usageRateSlope * days^2
+      t <- (-usageRate + sqrt(usageRate^2 + 2 * usageRateSlope * u * lambdaT)) / usageRateSlope
+    }
+    return(t)
+  }
+
+  sampleErasForPerson <- function(idx, eraId, usageRate, usageRateSlope, meanPrescriptionDurations, sdPrescriptionDurations) {
+    nEvents <- rpois(1, cumulativeIntensity(observationDays[idx], usageRate, usageRateSlope))
+    if (nEvents == 0) {
+      return(tibble())
+    } else {
+      u <- runif(nEvents)
+      startDay <- sapply(u,
+                         inverseCumulativeIntensity,
+                         usageRate = settings$usageRate[i],
+                         usageRateSlope = settings$usageRateSlope[i],
+                         days = observationDays[idx]) |>
+        round() |>
+        unique() |>
+        sort()
+      duration <- round(rnorm(length(startDay), meanPrescriptionDurations, sdPrescriptionDurations))
+      duration[duration < 1] <- 1
+      endDay <- startDay + duration
+      endDay[endDay > observationDays[idx]] <- observationDays[idx]
+      newEras <- tibble(
+        eraType = "rx",
+        caseId = idx,
+        eraId = eraId,
+        eraValue = 1,
+        eraStartDay = startDay,
+        eraEndDay = endDay
+      )
+      return(newEras)
+    }
+  }
+
   eras <- tibble()
   for (i in 1:length(settings$eraIds)) {
     # i <- 1
     patientsOnDrug <- sample.int(nrow(cases),
-      settings$patientUsages[i] * nrow(cases),
-      replace = FALSE
+                                 settings$patientUsages[i] * nrow(cases),
+                                 replace = FALSE
     )
-    patientsOnDrug <- patientsOnDrug[order(patientsOnDrug)]
-    count <- rpois(length(patientsOnDrug), observationDays[patientsOnDrug] * settings$usageRate[i])
-    observationPeriodId <- rep(patientsOnDrug, count)
-    patientsOnDrug <- patientsOnDrug[count != 0]
-    startDay <- round(runif(sum(count), 0, cases$endDay[observationPeriodId]))
-    duration <- round(rnorm(
-      sum(count),
-      settings$meanPrescriptionDurations[i],
-      settings$sdPrescriptionDurations[i]
-    ))
-    duration[duration < 1] <- 1
-    endDay <- startDay + duration
-    endDay[endDay > cases$endDay[observationPeriodId]] <- cases$endDay[observationPeriodId][endDay >
-      cases$endDay[observationPeriodId]]
-    newEras <- tibble(
-      eraType = "rx",
-      caseId = observationPeriodId,
-      eraId = settings$eraIds[i],
-      eraValue = 1,
-      eraStartDay = startDay,
-      eraEndDay = endDay
-    )
-    eras <- rbind(eras, newEras)
+    patientsOnDrug <- sort(patientsOnDrug)
+
+    newEras <- lapply(patientsOnDrug,
+                      sampleErasForPerson,
+                      eraId = settings$eraIds[i],
+                      usageRate = settings$usageRate[i],
+                      usageRateSlope = settings$usageRateSlope[i],
+                      meanPrescriptionDurations = settings$meanPrescriptionDurations[i],
+                      sdPrescriptionDurations = settings$sdPrescriptionDurations[i])
+    newEras <- bind_rows(newEras)
+    eras <- bind_rows(eras, newEras)
   }
   eras <- eras[order(eras$caseId, eras$eraId), ]
 
-  ### Generate outcomes ###
+  # Generate outcomes  -----------------------------------------------------------------------------
   baselineRates <- runif(n, min = settings$minBaselineRate, max = settings$maxBaselineRate)
   if (settings$includeAgeEffect) {
     ageRrs <- exp(ageFun(settings$minAge:settings$maxAge))
