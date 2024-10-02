@@ -6,17 +6,24 @@ library(SelfControlledCaseSeries)
 scenarios <- list()
 for (trueRr in c(1, 2, 4)) {
   for (baseLineRate in c(0.01, 0.001, 0.0001)) {
-    for (usageRateSlope in c(-0.0001, 0, 0.0001)) {
+    for (usageRateSlope in c(-0.00001, 0, 0.00001)) {
       for (censorType in c("Next week", "Gradual", "None")) {
         for (censorStrength in if (censorType == "None") c("None") else c("Weak", "Strong")) {
           rw <- createSimulationRiskWindow(start = 0,
                                            end = 0,
                                            endAnchor = "era end",
                                            relativeRisks = trueRr)
+          if (usageRateSlope > 0) {
+            usageRate <- 0.001
+          } else if (usageRateSlope < 0) {
+            usageRate <- 0.001 - 3000 * usageRateSlope
+          } else {
+            usageRate <- 0.01
+          }
           settings <- createSccsSimulationSettings(minBaselineRate = baseLineRate / 10,
                                                    maxBaselineRate = baseLineRate,
                                                    eraIds = 1,
-                                                   usageRate = if (usageRateSlope < 0) 0.01 - 3000 * usageRateSlope else 0.01,
+                                                   usageRate = if (usageRateSlope < 0) 0.001 - 3000 * usageRateSlope else 0.001,
                                                    usageRateSlope = usageRateSlope,
                                                    simulationRiskWindows = list(rw),
                                                    includeAgeEffect = FALSE,
@@ -66,9 +73,9 @@ for (trueRr in c(1, 2, 4)) {
 writeLines(sprintf("Number of simulation scenarios: %d", length(scenarios)))
 
 # Run simulations ----------------------------------------------------------------------------------
-folder <- "e:/SccsEdoSimulations1000"
+folder <- "e:/SccsEdoSimulations100"
 
-scenario = scenarios[[10]]
+scenario = scenarios[[132]]
 simulateOne <- function(seed, scenario) {
   set.seed(seed)
   sccsData <- simulateSccsData(1000, scenario$settings)
@@ -104,7 +111,7 @@ simulateOne <- function(seed, scenario) {
   studyPop <- createStudyPopulation(sccsData = sccsData,
                                     outcomeId = scenario$settings$outcomeId,
                                     firstOutcomeOnly = TRUE,
-                                    naivePeriod = 0)
+                                    naivePeriod = 365)
 
   sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                              sccsData = sccsData,
@@ -112,6 +119,8 @@ simulateOne <- function(seed, scenario) {
 
   model <- fitSccsModel(sccsIntervalData, profileBounds = NULL)
   estimates <- model$estimates
+  # estimates
+  # x <- sccsData$eras |> collect()
   idx1 <- which(estimates$covariateId == 1000)
   idx2 <- which(estimates$covariateId == 99)
   scenario$settings <- NULL
@@ -141,7 +150,7 @@ for (i in seq_along(scenarios)) {
   if (file.exists(fileName)) {
     results <- readRDS(fileName)
   } else {
-    results <- ParallelLogger::clusterApply(cluster, 1:1000, simulateOne, scenario = scenario)
+    results <- ParallelLogger::clusterApply(cluster, 1:100, simulateOne, scenario = scenario)
     results <- bind_rows(results)
     saveRDS(results, fileName)
   }
