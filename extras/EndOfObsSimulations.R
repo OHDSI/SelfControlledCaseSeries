@@ -1,7 +1,6 @@
 library(SelfControlledCaseSeries)
 
 
-
 # Define simulation scenarios ----------------------------------------------------------------------
 
 scenarios <- list()
@@ -67,7 +66,7 @@ for (trueRr in c(1, 2, 4)) {
 writeLines(sprintf("Number of simulation scenarios: %d", length(scenarios)))
 
 # Run simulations ----------------------------------------------------------------------------------
-folder <- "simulations"
+folder <- "e:/SccsEdoSimulations1000"
 
 scenario = scenarios[[10]]
 simulateOne <- function(seed, scenario) {
@@ -142,16 +141,16 @@ for (i in seq_along(scenarios)) {
   if (file.exists(fileName)) {
     results <- readRDS(fileName)
   } else {
-    results <- ParallelLogger::clusterApply(cluster, 1:100, simulateOne, scenario = scenario)
+    results <- ParallelLogger::clusterApply(cluster, 1:1000, simulateOne, scenario = scenario)
     results <- bind_rows(results)
     saveRDS(results, fileName)
   }
   metrics <- results |>
-    mutate(coverage = ci95Lb < trueRr & ci95Ub > trueRr,
+    mutate(coverage = ci95Lb < scenario$trueRr & ci95Ub > scenario$trueRr,
            diagnosticEstimate = log(diagnosticEstimate),
            failDiagnostic = diagnosticP < 0.05) |>
     summarise(coverage = mean(coverage, na.rm = TRUE),
-              bias = mean(logRr, na.rm = TRUE),
+              bias = mean(logRr - log(scenario$trueRr), na.rm = TRUE),
               meanDiagnosticEstimate = exp(mean(diagnosticEstimate, na.rm = TRUE)),
               fractionFailingDiagnostic = mean(failDiagnostic, na.rm = TRUE))
   row <- as_tibble(scenarioKey) |>
@@ -161,3 +160,4 @@ for (i in seq_along(scenarios)) {
 rows <- bind_rows(rows)
 
 ParallelLogger::stopCluster(cluster)
+readr::write_csv(rows, file.path(folder, "Results.csv"))
