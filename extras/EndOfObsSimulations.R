@@ -6,7 +6,7 @@ library(SelfControlledCaseSeries)
 scenarios <- list()
 for (trueRr in c(1, 2, 4)) {
   for (baseLineRate in c(0.01, 0.001, 0.0001)) {
-    for (usageRateSlope in c(-0.00001, 0, 0.00001)) {
+    for (usageRateSlope in c(0, 0.00001)) {
       for (censorType in c("Next week", "Gradual", "First to last", "None")) {
         for (censorStrength in if (censorType == "None") c("None") else c("Weak", "Strong")) {
           rw <- createSimulationRiskWindow(start = 0,
@@ -182,6 +182,7 @@ for (i in seq_along(scenarios)) {
   scenario <- scenarios[[i]]
   scenarioKey <- scenario
   scenarioKey$settings <- NULL
+  scenarioKey$startCensorFunction <- NULL
   scenarioKey$endCensorFunction <- NULL
   fileName <- paste0(paste(gsub("__", "", gsub("[^a-zA-Z0-9]", "_", paste(names(scenarioKey), scenarioKey, sep = "_"))), collapse = "_"), ".rds")
   fileName <- file.path(folder, fileName)
