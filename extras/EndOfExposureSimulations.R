@@ -30,7 +30,7 @@ for (trueRr in c(1, 2, 4)) {
                                                    maxBaselineRate = baseLineRate,
                                                    eraIds = 1,
                                                    usageRate = usageRate,
-                                                   usageRateSlope = usageRateSlope,,
+                                                   usageRateSlope = usageRateSlope,
                                                    meanPrescriptionDurations = 30,
                                                    sdPrescriptionDurations = 14,
                                                    simulationRiskWindows = list(rw),
@@ -55,7 +55,9 @@ writeLines(sprintf("Number of simulation scenarios: %d", length(scenarios)))
 # Run simulations ----------------------------------------------------------------------------------
 folder <- "e:/SccsEdeSimulations100"
 
-scenario = scenarios[[1]]
+scenario = scenarios[[20]]
+scenario$censorType
+
 simulateOne <- function(seed, scenario) {
   set.seed(seed)
   sccsData <- simulateSccsData(1000, scenario$settings)
@@ -101,7 +103,12 @@ simulateOne <- function(seed, scenario) {
       arrange(caseId, eraStartDay)
   } else if (scenario$censorType == "Permanent when exposed") {
     probability <- if_else(scenario$censorStrength == "Strong", 0.8, 0.25)
+    # Only outcomes during exposure can lead to exposure censoring:
     outcomeEras <- outcomeEras |>
+      inner_join(sccsData$eras |>
+                   filter(eraType == "rx"),
+                 by = join_by(caseId, between(outcomeDay, eraStartDay, eraEndDay))) |>
+      select(caseId, outcomeDay) |>
       filter(runif() > probability)
 
     filteredExposureEras <- sccsData$eras |>
