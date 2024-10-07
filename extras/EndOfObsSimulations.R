@@ -7,7 +7,7 @@ scenarios <- list()
 for (trueRr in c(1, 2, 4)) {
   for (baseLineRate in c(0.01, 0.001, 0.0001)) {
     for (usageRateSlope in c(-0.00001, 0, 0.00001)) {
-      for (censorType in c("Next week", "Gradual", "None")) {
+      for (censorType in c("Next week", "Gradual", "First to last", "None")) {
         for (censorStrength in if (censorType == "None") c("None") else c("Weak", "Strong")) {
           rw <- createSimulationRiskWindow(start = 0,
                                            end = 0,
@@ -29,35 +29,58 @@ for (trueRr in c(1, 2, 4)) {
                                                    includeAgeEffect = FALSE,
                                                    includeSeasonality = FALSE,
                                                    includeCalendarTimeEffect = FALSE)
+          startCensorFunction <- function(startDay, firstDay) {
+            startDay
+          }
           if (censorType == "Next week") {
             # One change of dying in next week:
             if (censorStrength == "Weak") {
-              censorFunction <- function(endDay, outcomeDay) {
+              endCensorFunction <- function(endDay, outcomeDay, lastDay) {
                 if_else(runif(length(endDay)) < 0.05, round(pmin(endDay, outcomeDay + runif(length(endDay), 0, 7))), endDay)
               }
             } else {
-              censorFunction <- function(endDay, outcomeDay) {
+              endCensorFunction <- function(endDay, outcomeDay, lastDay) {
                 if_else(runif(length(endDay)) < 0.25, round(pmin(endDay, outcomeDay + runif(length(endDay), 0, 7))), endDay)
               }
             }
           } else if (censorType == "Gradual") {
             # Added hazard of dying for rest of time:
             if (censorStrength == "Weak") {
-              censorFunction <- function(endDay, outcomeDay) {
+              endCensorFunction <- function(endDay, outcomeDay, lastDay) {
                 pmin(endDay, outcomeDay + rexp(length(endDay), 0.001))
               }
             } else {
-              censorFunction <- function(endDay, outcomeDay) {
+              endCensorFunction <- function(endDay, outcomeDay, lastDay) {
                 pmin(endDay, outcomeDay + rexp(length(endDay), 0.01))
               }
             }
-          } else {
-            censorFunction <- function(endDay, outcomeDay) {
+          } else if (censorType == "First to last") {
+            # Mimic censoring when observation time is defined as first to last event:
+            if (censorStrength == "Weak") {
+              startCensorFunction <- function(startDay, firstDay) {
+                if_else(runif(length(startDay)) < 0.2, firstDay, startDay)
+              }
+              endCensorFunction <- function(endDay, outcomeDay, lastDay) {
+                if_else(runif(length(endDay)) < 0.2, lastDay, endDay)
+              }
+            } else {
+              startCensorFunction <- function(startDay, firstDay) {
+                firstDay
+              }
+              endCensorFunction <- function(endDay, outcomeDay, lastDay) {
+                endDay
+              }
+            }
+          } else if (censorType == "None") {
+            endCensorFunction <- function(endDay, outcomeDay, lastDay) {
               endDay
             }
+          } else {
+            stop("Unknown censor type: ", censortType)
           }
           scenario <- list(settings = settings,
-                           censorFunction = censorFunction,
+                           startCensorFunction = startCensorFunction,
+                           endCensorFunction = endCensorFunction,
                            trueRr = trueRr,
                            baselineRate = baseLineRate,
                            usageRateSlope = usageRateSlope,
@@ -86,12 +109,27 @@ simulateOne <- function(seed, scenario) {
     ungroup() |>
     select(caseId, outcomeDay = eraStartDay)
 
-  # Censor observation at outcome:
+  firstObservation <- sccsData$eras |>
+    group_by(caseId) |>
+    filter(row_number(eraStartDay) == 1) |>
+    ungroup() |>
+    select(caseId, firstDay = eraStartDay)
+
+  lastObservation <- sccsData$eras |>
+    group_by(caseId) |>
+    filter(row_number(-eraStartDay) == 1) |>
+    ungroup() |>
+    select(caseId, lastDay = eraStartDay)
+
+  # Censor observation:
   sccsData$cases <- sccsData$cases |>
     inner_join(firstOutcomeEra, by = join_by(caseId)) |>
+    inner_join(firstObservation, by = join_by(caseId)) |>
+    inner_join(lastObservation, by = join_by(caseId)) |>
     collect() |>
-    mutate(endDay = scenario$censorFunction(endDay, outcomeDay)) |>
-    select(-outcomeDay)
+    mutate(startDay = scenario$startCensorFunction(startDay, firstDay),
+           endDay = scenario$endCensorFunction(endDay, outcomeDay, lastDay)) |>
+    select(-outcomeDay, -firstDay, -lastDay)
 
 
   covarSettings <- createEraCovariateSettings(label = "Exposure of interest",
@@ -124,7 +162,7 @@ simulateOne <- function(seed, scenario) {
   idx1 <- which(estimates$covariateId == 1000)
   idx2 <- which(estimates$covariateId == 99)
   scenario$settings <- NULL
-  scenario$censorFunction <- NULL
+  scenario$endCensorFunction <- NULL
 
   row <- tibble(logRr = estimates$logRr[idx1],
                 ci95Lb = exp(estimates$logLb95[idx1]),
@@ -144,7 +182,7 @@ for (i in seq_along(scenarios)) {
   scenario <- scenarios[[i]]
   scenarioKey <- scenario
   scenarioKey$settings <- NULL
-  scenarioKey$censorFunction <- NULL
+  scenarioKey$endCensorFunction <- NULL
   fileName <- paste0(paste(gsub("__", "", gsub("[^a-zA-Z0-9]", "_", paste(names(scenarioKey), scenarioKey, sep = "_"))), collapse = "_"), ".rds")
   fileName <- file.path(folder, fileName)
   if (file.exists(fileName)) {
