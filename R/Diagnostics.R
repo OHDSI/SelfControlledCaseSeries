@@ -529,6 +529,9 @@ computeExposureChangeP <- function(sccsData, studyPopulation, exposureEraId = NU
                                                modelType = "cpr",
                                                quiet = TRUE)
   fit <- Cyclops::fitCyclopsModel(cyclopsData)
+  if (fit$return_flag != "SUCCESS") {
+    return(NA)
+  }
   fit$log_likelihood
   logRr <- coef(fit)
   if (logRr >= bounds[1] && logRr <= bounds[2]) {
