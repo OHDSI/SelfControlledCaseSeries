@@ -126,6 +126,10 @@ computeTimeToObsEnd <- function(studyPopulation) {
 #' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
 #' format.
 #'
+#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
+#'                          See the function [ggplot2::ggsave()] for supported file formats.
+#' @param title             Optional: the main title for the plot
+#'
 #' @export
 plotEventObservationDependence <- function(studyPopulation,
                                            title = NULL,
@@ -180,7 +184,6 @@ computeTimeToEvent <- function(studyPopulation,
 
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
-    group_by(.data$caseId) %>%
     inner_join(cases,
                by = join_by("caseId", "eraStartDay" >= "startDay", "eraStartDay" < "endDay"),
                copy = TRUE) %>%
@@ -204,7 +207,7 @@ computeTimeToEvent <- function(studyPopulation,
     summarise(
       eraStartDay = min(.data$eraStartDay, na.rm = TRUE),
       eraEndDay = min(.data$eraEndDay, na.rm = TRUE),
-      .groups = "drop_last"
+      .groups = "drop"
     )
 
   outcomes <- studyPopulation$outcomes %>%
@@ -311,26 +314,26 @@ plotExposureCentered <- function(studyPopulation,
   if (highlightExposedEvents) {
     events <- data %>%
       transmute(.data$start,
-        .data$end,
-        type = "Events",
-        count1 = .data$eventsUnexposed,
-        count2 = .data$eventsExposed
+                .data$end,
+                type = "Events",
+                count1 = .data$eventsUnexposed,
+                count2 = .data$eventsExposed
       )
   } else {
     events <- data %>%
       transmute(.data$start,
-        .data$end,
-        type = "Events",
-        count1 = .data$eventsUnexposed + .data$eventsExposed,
-        count2 = NA
+                .data$end,
+                type = "Events",
+                count1 = .data$eventsUnexposed + .data$eventsExposed,
+                count2 = NA
       )
   }
   observed <- data %>%
     transmute(.data$start,
-      .data$end,
-      type = "Subjects under observation",
-      count1 = .data$observed,
-      count2 = NA
+              .data$end,
+              type = "Subjects under observation",
+              count1 = .data$observed,
+              count2 = NA
     )
   data <- bind_rows(events, observed)
 
@@ -400,7 +403,7 @@ plotEventToCalendarTime <- function(studyPopulation,
   data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
   plotData <- data %>%
     select("month", "monthStartDate", "monthEndDate", value = "ratio") %>%
-      mutate(type = "Assuming constant rate")
+    mutate(type = "Assuming constant rate")
   levels <- c("Assuming constant rate")
 
   if (!is.null(sccsModel) && (hasCalendarTimeEffect(sccsModel) || hasSeasonality(sccsModel))) {
@@ -480,9 +483,9 @@ plotAgeEffect <- function(sccsModel,
   ageKnots <- sccsModel$metaData$age$ageKnots
   age <- seq(min(ageKnots), max(ageKnots), length.out = 100)
   ageDesignMatrix <- splines::bs(age,
-    knots = ageKnots[2:(length(ageKnots) - 1)],
-    Boundary.knots = ageKnots[c(1, length(ageKnots))],
-    degree = 2
+                                 knots = ageKnots[2:(length(ageKnots) - 1)],
+                                 Boundary.knots = ageKnots[c(1, length(ageKnots))],
+                                 degree = 2
   )
   logRr <- apply(ageDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
@@ -501,10 +504,10 @@ plotAgeEffect <- function(sccsModel,
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
     ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Relative risk",
-      limits = rrLim,
-      trans = "log10",
-      breaks = breaks,
-      labels = breaks
+                                limits = rrLim,
+                                trans = "log10",
+                                breaks = breaks,
+                                labels = breaks
     ) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
@@ -563,7 +566,7 @@ plotSeasonality <- function(sccsModel,
   splineCoefs <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, "logRr"]
   seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
   season <- sort(unique(c(seq(min(seasonKnots), max(seasonKnots), length.out = 100),
-                     seasonKnots)))
+                          seasonKnots)))
   seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
   logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
@@ -583,10 +586,10 @@ plotSeasonality <- function(sccsModel,
     ggplot2::geom_point(data = knotData) +
     ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
     ggplot2::scale_y_continuous("Relative risk",
-      limits = rrLim,
-      trans = "log10",
-      breaks = breaks,
-      labels = breaks
+                                limits = rrLim,
+                                trans = "log10",
+                                breaks = breaks,
+                                labels = breaks
     ) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
@@ -742,10 +745,10 @@ plotCalendarTimeEffect <- function(sccsModel,
     ggplot2::geom_point(data = knotData) +
     ggplot2::scale_x_date("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",
-      limits = rrLim,
-      trans = "log10",
-      breaks = breaks,
-      labels = breaks
+                                limits = rrLim,
+                                trans = "log10",
+                                breaks = breaks,
+                                labels = breaks
     ) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
@@ -769,3 +772,112 @@ plotCalendarTimeEffect <- function(sccsModel,
   }
   return(plot)
 }
+
+
+#' Plot exposure days relative to the first outcome
+#'
+#' @param exposureEraId       The exposure to create the era data for. If not specified it is
+#'                            assumed to be the one exposure for which the data was loaded from
+#'                            the database.
+#' @template StudyPopulation
+#' @template SccsData
+#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
+#'                          See the function [ggplot2::ggsave()] for supported file formats.
+#' @param title             Optional: the main title for the plot
+#'
+#' @return
+#' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
+#' format.
+#'
+#' @export
+plotOutcomeCentered <- function(studyPopulation,
+                                sccsData,
+                                exposureEraId = NULL,
+                                title = NULL,
+                                fileName = NULL) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
+  checkmate::assertInt(exposureEraId, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
+  if (is.null(exposureEraId)) {
+    exposureEraId <- attr(sccsData, "metaData")$exposureIds
+    if (length(exposureEraId) != 1) {
+      stop("No exposure ID specified, but multiple exposures found")
+    }
+  }
+  data <- computeExposureDaysToEvent(studyPopulation = studyPopulation,
+                                     sccsData = sccsData,
+                                     exposureEraId = exposureEraId)
+  if (is.null(data)) {
+    return(NULL)
+  }
+
+  weeks <- dplyr::tibble(number = -26:25) |>
+    mutate(
+      start = .data$number * 7,
+      end = .data$number * 7 + 7
+    )
+
+  exposureDaysPerWeek <- weeks |>
+    cross_join(data$exposureDeltas) |>
+    mutate(daysExposure = pmax(0, pmin(end, deltaExposureEnd) - pmax(start, deltaExposureStart))) |>
+    group_by(.data$number, .data$start, .data$end) |>
+    summarise(
+      daysExposure = sum(daysExposure),
+      .groups = "drop"
+    )
+
+  observationDaysPerWeek <- weeks |>
+    cross_join(data$observationPeriodDeltas) |>
+    mutate(daysObserved = pmax(0, pmin(end, deltaEnd) - pmax(start, deltaStart))) |>
+    group_by(.data$number, .data$start, .data$end) |>
+    summarise(
+      daysObserved = sum(daysObserved),
+      .groups = "drop"
+    )
+
+  vizData <- bind_rows(
+    exposureDaysPerWeek |>
+      select(start, end, count = daysExposure) |>
+      mutate(type = "Days exposed"),
+    observationDaysPerWeek |>
+      select(start, end, count = daysObserved) |>
+      mutate(type = "Days observed")
+  )
+
+  breaks <- seq(-150, 150, 30)
+  theme <- ggplot2::element_text(colour = "#000000", size = 12)
+  themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
+  plot <- ggplot2::ggplot(vizData, ggplot2::aes(x = .data$start, xmin = .data$start, xmax = .data$end, ymax = .data$count, ymin = 0)) +
+    ggplot2::geom_rect(fill = rgb(0, 0, 0.8), alpha = 0.8) +
+    ggplot2::geom_vline(xintercept = 0, colour = "#000000", lty = 1, linewidth = 1) +
+    ggplot2::scale_x_continuous("Days since first outcome", breaks = breaks, labels = breaks) +
+    ggplot2::scale_y_continuous("Count") +
+    ggplot2::facet_grid(type ~ ., scales = "free_y") +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
+      panel.grid.major = ggplot2::element_line(colour = "#AAAAAA"),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = themeRA,
+      axis.text.x = theme,
+      strip.text.y = theme,
+      strip.background = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "top"
+    )
+  plot
+  if (!is.null(title)) {
+    plot <- plot + ggplot2::ggtitle(title)
+  }
+  if (!is.null(fileName)) {
+    ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
+  }
+  return(plot)
+}
+

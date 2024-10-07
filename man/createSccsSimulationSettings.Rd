@@ -16,6 +16,7 @@ createSccsSimulationSettings(
   eraIds = c(1, 2),
   patientUsages = c(0.2, 0.1),
   usageRate = c(0.01, 0.01),
+  usageRateSlope = c(0, 0),
   meanPrescriptionDurations = c(14, 30),
   sdPrescriptionDurations = c(7, 14),
   simulationRiskWindows = list(createSimulationRiskWindow(relativeRisks = 1),
@@ -51,6 +52,9 @@ createSccsSimulationSettings(
 \item{patientUsages}{The fraction of patients that use the drugs.}
 
 \item{usageRate}{The rate of prescriptions per person that uses the drug.}
+
+\item{usageRateSlope}{The change in the usage rate from one day to the next.
+\code{usageRate} is the intercept at day 0}
 
 \item{meanPrescriptionDurations}{The mean duration of a prescription, per drug.}
 

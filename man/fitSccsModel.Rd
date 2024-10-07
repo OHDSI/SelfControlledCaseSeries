@@ -11,7 +11,7 @@ fitSccsModel(
     0.1, seed = 1, resetCoefficients = TRUE, noiseLevel = "quiet"),
   profileGrid = NULL,
   profileBounds = c(log(0.1), log(10)),
-  endOfObservationEffectBounds = c(log(0.75), log(1.25))
+  endOfObservationEffectBounds = c(log(0.5), log(2))
 )
 }
 \arguments{
