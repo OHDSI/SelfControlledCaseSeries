@@ -364,8 +364,8 @@ computeEventDependentObservationP <- function(sccsModel) {
 
 computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId) {
   # This number of days before exposure start are assumed to be dealt with and are removed from
-  # both numerator and denominator:
-  preExposureDays <- 30
+  # both numerator (exposure days) and denominator (observation days):
+  preExposureDays <- 60 + 1
 
   cases <- studyPopulation$cases |>
     select("caseId", "startDay", "endDay")
@@ -390,17 +390,17 @@ computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId)
     filter(row_number(.data$outcomeDay) == 1)
 
   # Merge overlapping exposures if needed:
-  exposures <- exposures |>
-    arrange(caseId, eraStartDay) |>
-    group_by(caseId) |>
-    mutate(newGroup = cumsum(lag(eraEndDay, default = first(eraEndDay)) < eraStartDay)) |>
-    group_by(caseId, newGroup) |>
-    summarise(
-      eraStartDay = min(eraStartDay),
-      eraEndDay = max(eraEndDay),
-      .groups = 'drop'
-    ) |>
-    select(caseId, eraStartDay, eraEndDay)
+  # exposures <- exposures |>
+  #   arrange(caseId, eraStartDay) |>
+  #   group_by(caseId) |>
+  #   mutate(newGroup = cumsum(lag(eraEndDay, default = first(eraEndDay)) < eraStartDay)) |>
+  #   group_by(caseId, newGroup) |>
+  #   summarise(
+  #     eraStartDay = min(eraStartDay),
+  #     eraEndDay = max(eraEndDay),
+  #     .groups = 'drop'
+  #   ) |>
+  #   select(caseId, eraStartDay, eraEndDay)
 
   # Ensure at least <preExposureDays> before each exposure start, by moving end day back:
   truncatedExposures <- exposures |>
@@ -421,13 +421,16 @@ computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId)
   # Remove pre-exposure time from observation periods:
   joined <- studyPopulation$cases |>
     select(caseId, startDay, endDay) |>
-    left_join(truncatedExposures, by = "caseId") |>
+    # left_join(truncatedExposures, by = "caseId") |>
+    left_join(exposures |>
+                select("caseId", "eraStartDay", "eraEndDay"),
+              by = "caseId") |>
     arrange(caseId, eraStartDay)
   truncatedObservationPeriods <- joined |>
     group_by(caseId) |>
     mutate(
       periodStart = lag(eraStartDay, default = first(startDay)),
-      periodEnd = pmin(eraStartDay - 30, endDay),
+      periodEnd = pmin(eraStartDay - preExposureDays, endDay),
       lastPeriodStart = eraStartDay,
       lastPeriodEnd = endDay
     ) |>
@@ -484,24 +487,23 @@ computeExposureChangeP <- function(sccsData, studyPopulation, exposureEraId = NU
   if (is.null(data)) {
     return(NA)
   }
-  periods <- dplyr::tibble(status = c(0,1),
+  periods <- dplyr::tibble(afterOutcome = c(0,1),
                            start = c(-30, 0),
                            end = c(-1, 30))
 
   exposure <- periods |>
     cross_join(data$exposureDeltas) |>
-    mutate(daysExposure = pmax(0, pmin(end, deltaExposureEnd) - pmax(start, deltaExposureStart))) |>
-    group_by(caseId, status) |>
+    mutate(daysExposure = pmax(0, pmin(end, deltaExposureEnd) - pmax(start, deltaExposureStart) + 1)) |>
+    group_by(caseId, afterOutcome) |>
     summarise(daysExposure = sum(daysExposure), .groups = "drop") |>
-    select(caseId, status, daysExposure)
+    select(caseId, afterOutcome, daysExposure)
 
   observation <- periods |>
     cross_join(data$observationPeriodDeltas) |>
-    mutate(daysObserved = pmax(0, pmin(end, deltaEnd) - pmax(start, deltaStart))) |>
-    group_by(caseId, status) |>
+    mutate(daysObserved = pmax(0, pmin(end, deltaEnd) - pmax(start, deltaStart) + 1)) |>
+    group_by(caseId, afterOutcome) |>
     summarise(daysObserved = sum(daysObserved), .groups = "drop") |>
-    select(caseId, status, daysObserved)
-
+    select(caseId, afterOutcome, daysObserved)
 
   casesWithExposure <- exposure |>
     distinct(caseId) |>
@@ -509,7 +511,7 @@ computeExposureChangeP <- function(sccsData, studyPopulation, exposureEraId = NU
 
   poissonData <- observation |>
     filter(caseId %in% casesWithExposure & daysObserved > 0) |>
-    left_join(exposure, by = join_by(caseId, status)) |>
+    left_join(exposure, by = join_by(caseId, afterOutcome)) |>
     mutate(
       rowId = row_number(),
       covariateId = 1
@@ -518,10 +520,13 @@ computeExposureChangeP <- function(sccsData, studyPopulation, exposureEraId = NU
       "rowId",
       stratumId = "caseId",
       "covariateId",
-      covariateValue = "status",
+      covariateValue = "afterOutcome",
       time = "daysObserved",
       y = "daysExposure"
     )
+
+  poissonData <- poissonData |>
+    filter((covariateValue == 0 & time == 30) | (covariateValue == 1 & time == 31))
 
   cyclopsData <- Cyclops::convertToCyclopsData(outcomes = poissonData,
                                                covariates = poissonData,
@@ -529,9 +534,6 @@ computeExposureChangeP <- function(sccsData, studyPopulation, exposureEraId = NU
                                                modelType = "cpr",
                                                quiet = TRUE)
   fit <- Cyclops::fitCyclopsModel(cyclopsData)
-  if (fit$return_flag != "SUCCESS") {
-    return(NA)
-  }
   fit$log_likelihood
   logRr <- coef(fit)
   if (logRr >= bounds[1] && logRr <= bounds[2]) {

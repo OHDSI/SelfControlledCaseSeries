@@ -55,26 +55,44 @@ writeLines(sprintf("Number of simulation scenarios: %d", length(scenarios)))
 # Run simulations ----------------------------------------------------------------------------------
 folder <- "e:/SccsEdeSimulations100"
 
-scenario = scenarios[[1]]
+scenario = scenarios[[30]]
 scenario$censorType
 
 simulateOne <- function(seed, scenario) {
   set.seed(seed)
   sccsData <- simulateSccsData(1000, scenario$settings)
+
+  # Merge overlapping eras:
+  sccsData$eras <- sccsData$eras |>
+    collect() |>
+    arrange(caseId, eraType, eraId, eraStartDay) |>
+    group_by(caseId, eraType, eraId) |>
+    mutate(newGroup = cumsum(lag(eraEndDay, default = first(eraEndDay)) < eraStartDay)) |>
+    group_by(caseId, eraType, eraId, newGroup) |>
+    summarise(
+      eraStartDay = min(eraStartDay),
+      eraEndDay = max(eraEndDay),
+      .groups = 'drop'
+    ) |>
+    select(caseId, eraType, eraId, eraStartDay, eraEndDay) |>
+    mutate(eraValue = 1)
+
   outcomeEras <- sccsData$eras |>
     filter(eraType == "hoi") |>
     select(caseId, outcomeDay = eraStartDay)
   if (scenario$censorType == "Temporary") {
     probability <- if_else(scenario$censorStrength == "Strong", 0.8, 0.25)
+    beforeCount <- sccsData$eras |> filter(eraType == "rx") |> count() |> pull()
     filteredExposureEras <- sccsData$eras |>
       filter(eraType == "rx") |>
       left_join(outcomeEras, by = join_by(caseId)) |>
-      mutate(outcomeInWindow = outcomeDay > eraStartDay - 30 & outcomeDay <= eraStartDay) |>
+      mutate(outcomeInWindow = outcomeDay > eraStartDay - 30 & outcomeDay < eraStartDay) |>
       group_by(eraType, caseId, eraId, eraValue, eraStartDay, eraEndDay) |>
-      summarise(outcomeInWindow = any(outcomeInWindow), .groups = "drop") |>
+      summarise(outcomeInWindow = any(outcomeInWindow, na.rm = TRUE), .groups = "drop") |>
       filter(!outcomeInWindow | runif() > probability) |>
       select(-outcomeInWindow)
-
+    afterCount <- filteredExposureEras |> count() |> pull()
+    writeLines(sprintf("Removed %d of %d exposures (%0.1f%%)", beforeCount-afterCount, beforeCount, 100*(beforeCount-afterCount) / beforeCount))
     sccsData$eras <- union_all(
       sccsData$eras |>
         filter(eraType == "hoi"),
@@ -89,7 +107,7 @@ simulateOne <- function(seed, scenario) {
     filteredExposureEras <- sccsData$eras |>
       filter(eraType == "rx") |>
       left_join(outcomeEras, by = join_by(caseId)) |>
-      mutate(outcomeInWindow = outcomeDay <= eraStartDay) |>
+      mutate(outcomeInWindow = outcomeDay < eraStartDay) |>
       group_by(eraType, caseId, eraId, eraValue, eraStartDay, eraEndDay) |>
       summarise(outcomeInWindow = any(outcomeInWindow), .groups = "drop") |>
       filter(!outcomeInWindow) |>
@@ -140,7 +158,7 @@ simulateOne <- function(seed, scenario) {
   preCovarSettings <- createEraCovariateSettings(label = "Pre-exposure",
                                                  includeEraIds = 1,
                                                  stratifyById = FALSE,
-                                                 start = -30,
+                                                 start = -60,
                                                  end = -1,
                                                  endAnchor = "era start")
 
@@ -161,7 +179,9 @@ simulateOne <- function(seed, scenario) {
   idx1 <- which(estimates$covariateId == 1000)
   idx2 <- which(estimates$covariateId == 1001)
   p <- computeExposureChangeP(sccsData, studyPop, 1)
+  p
   # plotExposureCentered(studyPop, sccsData, 1)
+  # plotOutcomeCentered(studyPop, sccsData, 1)
 
   row <- tibble(logRr = estimates$logRr[idx1],
                 ci95Lb = exp(estimates$logLb95[idx1]),
@@ -198,6 +218,7 @@ for (i in seq_along(scenarios)) {
               bias = mean(logRr - log(scenario$trueRr), na.rm = TRUE),
               meanDiagnosticEstimate = exp(mean(diagnosticEstimate, na.rm = TRUE)),
               fractionFailingDiagnostic = mean(failDiagnostic, na.rm = TRUE))
+  metrics
   row <- as_tibble(scenarioKey) |>
     bind_cols(metrics)
   rows[[length(rows) + 1]] <- row
