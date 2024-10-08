@@ -511,6 +511,10 @@ computeExposureChangeP <- function(sccsData,
   poissonData <- poissonData |>
     filter(stratumId %in% casesWithExposure)
 
+  if (nrow(poissonData) < 5) {
+    return(NA)
+  }
+
   cyclopsData <- Cyclops::convertToCyclopsData(outcomes = poissonData,
                                                covariates = poissonData,
                                                addIntercept = FALSE,

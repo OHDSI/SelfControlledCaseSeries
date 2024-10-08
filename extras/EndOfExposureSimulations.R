@@ -11,7 +11,7 @@ library(SelfControlledCaseSeries)
 
 scenarios <- list()
 for (trueRr in c(1, 2, 4)) {
-  for (baseLineRate in c(0.01, 0.001, 0.0001)) {
+  for (baseLineRate in c(0.001, 0.0001)) {
     for (usageRateSlope in c(0, 0.00001)) {
       for (censorType in c("Temporary", "Permanent", "Permanent when exposed", "None")) {
         for (censorStrength in if (censorType == "None") c("None") else c("Weak", "Strong")) {
@@ -55,7 +55,7 @@ writeLines(sprintf("Number of simulation scenarios: %d", length(scenarios)))
 # Run simulations ----------------------------------------------------------------------------------
 folder <- "e:/SccsEdeSimulations100"
 
-scenario = scenarios[[34]]
+scenario = scenarios[[6]]
 scenario$censorType
 
 simulateOne <- function(seed, scenario) {
@@ -181,6 +181,7 @@ simulateOne <- function(seed, scenario) {
   p <- computeExposureChangeP(sccsData, studyPop, 1)
   p
   p2 <- computeExposureChangeP(sccsData, studyPop, 1, ignoreExposureStarts = FALSE)
+  p2
   # plotExposureCentered(studyPop, sccsData, 1)
   # plotOutcomeCentered(studyPop, sccsData, 1)
 
