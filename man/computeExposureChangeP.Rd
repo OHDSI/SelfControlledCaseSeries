@@ -8,7 +8,8 @@ computeExposureChangeP(
   sccsData,
   studyPopulation,
   exposureEraId = NULL,
-  bounds = log(c(0.5, 2))
+  bounds = log(c(0.5, 2)),
+  ignoreExposureStarts = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,10 @@ assumed to be the one exposure for which the data was loaded from
 the database.}
 
 \item{bounds}{Bounds for the null of no change in the exposure rate.}
+
+\item{ignoreExposureStarts}{Ignore exposure starts when computing the diagnostic. This makes the
+diagnostic robust against the outcome temporarily preventing exposure
+starting, which should be dealt with by the pre-exposure window.}
 }
 \value{
 The p-value

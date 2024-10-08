@@ -55,7 +55,7 @@ writeLines(sprintf("Number of simulation scenarios: %d", length(scenarios)))
 # Run simulations ----------------------------------------------------------------------------------
 folder <- "e:/SccsEdeSimulations100"
 
-scenario = scenarios[[30]]
+scenario = scenarios[[34]]
 scenario$censorType
 
 simulateOne <- function(seed, scenario) {
@@ -180,6 +180,7 @@ simulateOne <- function(seed, scenario) {
   idx2 <- which(estimates$covariateId == 1001)
   p <- computeExposureChangeP(sccsData, studyPop, 1)
   p
+  p2 <- computeExposureChangeP(sccsData, studyPop, 1, ignoreExposureStarts = FALSE)
   # plotExposureCentered(studyPop, sccsData, 1)
   # plotOutcomeCentered(studyPop, sccsData, 1)
 
@@ -187,7 +188,8 @@ simulateOne <- function(seed, scenario) {
                 ci95Lb = exp(estimates$logLb95[idx1]),
                 ci95Ub = exp(estimates$logUb95[idx1]),
                 diagnosticEstimate = exp(estimates$logRr[idx2]),
-                diagnosticP = p)
+                diagnosticP = p,
+                diagnosticP2 = p2)
   return(row)
 }
 
@@ -213,11 +215,13 @@ for (i in seq_along(scenarios)) {
   metrics <- results |>
     mutate(coverage = ci95Lb < scenario$trueRr & ci95Ub > scenario$trueRr,
            diagnosticEstimate = log(diagnosticEstimate),
-           failDiagnostic = diagnosticP < 0.05) |>
+           failDiagnostic = diagnosticP < 0.05,
+           failDiagnostic2 = diagnosticP2 < 0.05) |>
     summarise(coverage = mean(coverage, na.rm = TRUE),
               bias = mean(logRr - log(scenario$trueRr), na.rm = TRUE),
               meanDiagnosticEstimate = exp(mean(diagnosticEstimate, na.rm = TRUE)),
-              fractionFailingDiagnostic = mean(failDiagnostic, na.rm = TRUE))
+              fractionFailingDiagnostic = mean(failDiagnostic, na.rm = TRUE),
+              fractionFailingDiagnostic2 = mean(failDiagnostic2, na.rm = TRUE))
   metrics
   row <- as_tibble(scenarioKey) |>
     bind_cols(metrics)
