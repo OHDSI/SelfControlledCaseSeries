@@ -809,50 +809,35 @@ plotOutcomeCentered <- function(studyPopulation,
       stop("No exposure ID specified, but multiple exposures found")
     }
   }
+  timeWindows <- tibble(windowId = -26:25) |>
+    mutate(
+      startDay = .data$windowId * 7,
+      endDay = .data$windowId * 7 + 7
+    )
+
   data <- computeExposureDaysToEvent(studyPopulation = studyPopulation,
                                      sccsData = sccsData,
-                                     exposureEraId = exposureEraId)
-  if (is.null(data)) {
-    return(NULL)
-  }
-
-  weeks <- dplyr::tibble(number = -26:25) |>
-    mutate(
-      start = .data$number * 7,
-      end = .data$number * 7 + 7
-    )
-
-  exposureDaysPerWeek <- weeks |>
-    cross_join(data$exposureDeltas) |>
-    mutate(daysExposure = pmax(0, pmin(end, deltaExposureEnd) - pmax(start, deltaExposureStart))) |>
-    group_by(.data$number, .data$start, .data$end) |>
-    summarise(
-      daysExposure = sum(daysExposure),
-      .groups = "drop"
-    )
-
-  observationDaysPerWeek <- weeks |>
-    cross_join(data$observationPeriodDeltas) |>
-    mutate(daysObserved = pmax(0, pmin(end, deltaEnd) - pmax(start, deltaStart))) |>
-    group_by(.data$number, .data$start, .data$end) |>
-    summarise(
-      daysObserved = sum(daysObserved),
-      .groups = "drop"
-    )
+                                     exposureEraId = exposureEraId,
+                                     timeWindows = timeWindows)
+  data <- data |>
+    group_by(.data$startDay, .data$endDay) |>
+    summarise(daysObserved = sum(.data$daysObserved),
+              daysExposed = sum(.data$daysExposed),
+              .groups = "drop")
 
   vizData <- bind_rows(
-    exposureDaysPerWeek |>
-      select(start, end, count = daysExposure) |>
+    data |>
+      select("startDay", "endDay", count = "daysExposed") |>
       mutate(type = "Days exposed"),
-    observationDaysPerWeek |>
-      select(start, end, count = daysObserved) |>
+    data |>
+      select("startDay", "endDay", count = "daysObserved") |>
       mutate(type = "Days observed")
   )
 
   breaks <- seq(-150, 150, 30)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
   themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(vizData, ggplot2::aes(x = .data$start, xmin = .data$start, xmax = .data$end, ymax = .data$count, ymin = 0)) +
+  plot <- ggplot2::ggplot(vizData, ggplot2::aes(x = .data$startDay, xmin = .data$startDay, xmax = .data$endDay, ymax = .data$count, ymin = 0)) +
     ggplot2::geom_rect(fill = rgb(0, 0, 0.8), alpha = 0.8) +
     ggplot2::geom_vline(xintercept = 0, colour = "#000000", lty = 1, linewidth = 1) +
     ggplot2::scale_x_continuous("Days since first outcome", breaks = breaks, labels = breaks) +

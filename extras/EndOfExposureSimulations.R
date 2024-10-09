@@ -55,7 +55,7 @@ writeLines(sprintf("Number of simulation scenarios: %d", length(scenarios)))
 # Run simulations ----------------------------------------------------------------------------------
 folder <- "e:/SccsEdeSimulations100"
 
-scenario = scenarios[[6]]
+scenario = scenarios[[1]]
 scenario$censorType
 
 simulateOne <- function(seed, scenario) {
