@@ -55,7 +55,7 @@ writeLines(sprintf("Number of simulation scenarios: %d", length(scenarios)))
 # Run simulations ----------------------------------------------------------------------------------
 folder <- "e:/SccsEdeSimulations100"
 
-scenario = scenarios[[1]]
+scenario = scenarios[[6]]
 scenario$censorType
 
 simulateOne <- function(seed, scenario) {
@@ -178,9 +178,9 @@ simulateOne <- function(seed, scenario) {
   studyPopulation = studyPop
   idx1 <- which(estimates$covariateId == 1000)
   idx2 <- which(estimates$covariateId == 1001)
-  p <- computeExposureChangeP(sccsData, studyPop, 1)
+  p <- computeExposureChangeP(sccsData, studyPop, 1, ignoreExposureStarts = TRUE)
   p
-  p2 <- computeExposureChangeP(sccsData, studyPop, 1, ignoreExposureStarts = FALSE)
+  p2 <- computeExposureChangeP(sccsData, studyPop, 1)
   p2
   # plotExposureCentered(studyPop, sccsData, 1)
   # plotOutcomeCentered(studyPop, sccsData, 1)
