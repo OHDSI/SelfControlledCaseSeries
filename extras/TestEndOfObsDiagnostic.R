@@ -99,7 +99,7 @@ cohorts <- ROhdsiWebApi::exportCohortDefinitionSet(baseUrl = Sys.getenv("baseUrl
 
 connection <- DatabaseConnector::connect(connectionDetails)
 
-dbi = 1
+dbi = 8
 for (dbi in 1:nrow(databases)) {
   database <- databases[dbi, ]
   writeLines(sprintf("*** Creating outcomes in %s ***", database$name))
@@ -131,110 +131,120 @@ if (!file.exists(folder))
   dir.create(folder)
 connection <- DatabaseConnector::connect(connectionDetails)
 
+outcome = outcomes[1, ]
+fitAndSaveModel <- function(outcome, database, folder, aspirin) {
+  fileName <- file.path(folder, sprintf("SccsModel_o%d_%s.rds", outcome$outcomeId, database$name))
+  if (!file.exists(fileName)) {
+    if (outcome$covid) {
+      sccsDataFileName <- file.path(folder, sprintf("SccsDataCovid_%s.zip", database$name))
+      d <- loadSccsData(sccsDataFileName)
+    } else {
+      sccsDataFileName <- file.path(folder, sprintf("SccsDataNonCovid_%s.zip", database$name))
+      d <- loadSccsData(sccsDataFileName)
+    }
+    studyPop <- createStudyPopulation(sccsData = d,
+                                      outcomeId = outcome$outcomeId,
+                                      firstOutcomeOnly = outcome$firstOnly,
+                                      naivePeriod = 180)
+    covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
+                                               includeEraIds = aspirin,
+                                               start = 0,
+                                               end = 0,
+                                               endAnchor = "era end")
+    covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
+                                                  includeEraIds = aspirin,
+                                                  start = -60,
+                                                  end = -1,
+                                                  endAnchor = "era start")
+    sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
+                                               d,
+                                               seasonalityCovariateSettings = createSeasonalityCovariateSettings(),
+                                               calendarTimeCovariateSettings = createCalendarTimeCovariateSettings(),
+                                               eraCovariateSettings = list(covarPreAspirin, covarAspirin),
+                                               endOfObservationEraLength = 30)
+    control <- createControl(cvType = "auto",
+                             selectorType = "byPid",
+                             startingVariance = 0.1,
+                             seed = 1,
+                             resetCoefficients = TRUE,
+                             noiseLevel = "quiet",
+                             threads = 2)
+    model <- fitSccsModel(sccsIntervalData, control = control, profileBounds = NULL)
+    saveRDS(model, fileName)
+  }
+}
+
+
 for (dbi in 1:nrow(databases)) {
   database <- databases[dbi, ]
-  writeLines(sprintf("***Performing analyses in %s ***", database$name))
-  fileName <- file.path(folder, sprintf("SccsDataCovid_%s.zip", database$name))
-  if (!file.exists(fileName)) {
-    sccsDataCovid <- getDbSccsData(connectionDetails = connectionDetails,
-                                   cdmDatabaseSchema = database$cdmDatabaseSchema,
-                                   outcomeDatabaseSchema = database$cohortDatabaseSchema,
-                                   outcomeTable = database$cohortTable,
-                                   outcomeIds = outcomes$outcomeId[outcomes$covid],
-                                   exposureDatabaseSchema = database$cdmDatabaseSchema,
-                                   exposureTable = "drug_era",
-                                   exposureIds = aspirin,
-                                   studyStartDates = "20200101",
-                                   studyEndDates = "20221231",
-                                   maxCasesPerOutcome = 100000)
-    saveSccsData(sccsDataCovid, fileName)
-  }
-  sccsDataCovid <- loadSccsData(fileName)
+  resultsFileName <- file.path(folder, sprintf("Results_%s.rds", database$name))
+  if (!file.exists(resultsFileName)) {
+    writeLines(sprintf("***Performing analyses in %s ***", database$name))
+    fileName <- file.path(folder, sprintf("SccsDataCovid_%s.zip", database$name))
+    if (!file.exists(fileName)) {
+      sccsDataCovid <- getDbSccsData(connectionDetails = connectionDetails,
+                                     cdmDatabaseSchema = database$cdmDatabaseSchema,
+                                     outcomeDatabaseSchema = database$cohortDatabaseSchema,
+                                     outcomeTable = database$cohortTable,
+                                     outcomeIds = outcomes$outcomeId[outcomes$covid],
+                                     exposureDatabaseSchema = database$cdmDatabaseSchema,
+                                     exposureTable = "drug_era",
+                                     exposureIds = aspirin,
+                                     studyStartDates = "20200101",
+                                     studyEndDates = "20221231",
+                                     maxCasesPerOutcome = 100000)
+      saveSccsData(sccsDataCovid, fileName)
+    }
 
-  fileName <- file.path(folder, sprintf("SccsDataNonCovid_%s.zip", database$name))
-  if (!file.exists(fileName)) {
-    sccsDataNonCovid <- getDbSccsData(connectionDetails = connectionDetails,
-                                      cdmDatabaseSchema = database$cdmDatabaseSchema,
-                                      outcomeDatabaseSchema = database$cohortDatabaseSchema,
-                                      outcomeTable = database$cohortTable,
-                                      outcomeIds = outcomes$outcomeId[!outcomes$covid],
-                                      exposureDatabaseSchema = database$cdmDatabaseSchema,
-                                      exposureTable = "drug_era",
-                                      exposureIds = aspirin,
-                                      studyStartDates = c("20100101", "20220101"),
-                                      studyEndDates =  c("20191231", "21001231"),
-                                      maxCasesPerOutcome = 100000)
-    saveSccsData(sccsDataNonCovid, fileName)
-  }
-  sccsDataNonCovid <- loadSccsData(fileName)
+    fileName <- file.path(folder, sprintf("SccsDataNonCovid_%s.zip", database$name))
+    if (!file.exists(fileName)) {
+      sccsDataNonCovid <- getDbSccsData(connectionDetails = connectionDetails,
+                                        cdmDatabaseSchema = database$cdmDatabaseSchema,
+                                        outcomeDatabaseSchema = database$cohortDatabaseSchema,
+                                        outcomeTable = database$cohortTable,
+                                        outcomeIds = outcomes$outcomeId[!outcomes$covid],
+                                        exposureDatabaseSchema = database$cdmDatabaseSchema,
+                                        exposureTable = "drug_era",
+                                        exposureIds = aspirin,
+                                        studyStartDates = c("20100101", "20220101"),
+                                        studyEndDates =  c("20191231", "21001231"),
+                                        maxCasesPerOutcome = 100000)
+      saveSccsData(sccsDataNonCovid, fileName)
+    }
 
-  outcomes$p <- NA
-  outcomes$estimate <- NA
-  outcomes$cases <- NA
-  i <- 1
-  for (i in seq_len(nrow(outcomes))) {
-    outcome <- outcomes[i, ]
-    fileName <- file.path(folder, sprintf("SccsModel_o%d_%s.rds", outcome$outcomeId, database$name))
-    if (file.exists(fileName)) {
+    cluster <- ParallelLogger::makeCluster(8)
+    ParallelLogger::clusterRequire(cluster, "SelfControlledCaseSeries")
+    ParallelLogger::clusterApply(cluster, split(outcomes, seq_len(nrow(outcomes))), fitAndSaveModel, database = database, folder = folder, aspirin = aspirin)
+    ParallelLogger::stopCluster(cluster)
+
+
+    outcomes$p <- NA
+    outcomes$estimate <- NA
+    outcomes$cases <- NA
+    i <- 1
+    for (i in seq_len(nrow(outcomes))) {
+      outcome <- outcomes[i, ]
+      fileName <- file.path(folder, sprintf("SccsModel_o%d_%s.rds", outcome$outcomeId, database$name))
       model <- readRDS(fileName)
-    } else {
-      if (outcome$covid) {
-        d <- sccsDataCovid
-      } else {
-        d <- sccsDataNonCovid
+      p <- computeEventDependentObservationP(model)
+      # plotEventObservationDependence(studyPop)
+      # plotEventToCalendarTime(studyPop, model)
+      # stability <- computeTimeStability(studyPop, model)
+      # plotCalendarTimeEffect(model)
+      # plotSeasonality(model)
+      outcomes$p[i] <- sprintf("%0.4f", p)
+      if (!is.null(model$estimates)) {
+        outcomes$estimate[i] <- model$estimates |>
+          filter(covariateId == 99) |>
+          mutate(estimate = sprintf("%0.2f (%0.2f - %0.2f)", exp(logRr), exp(logLb95), exp(logUb95))) |>
+          pull(estimate)
       }
-      studyPop <- createStudyPopulation(sccsData = d,
-                                        outcomeId = outcome$outcomeId,
-                                        firstOutcomeOnly = outcome$firstOnly,
-                                        naivePeriod = 180)
-      covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
-                                                 includeEraIds = aspirin,
-                                                 start = 0,
-                                                 end = 0,
-                                                 endAnchor = "era end")
-      covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
-                                                    includeEraIds = aspirin,
-                                                    start = -60,
-                                                    end = -1,
-                                                    endAnchor = "era start")
-      sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                                 d,
-                                                 seasonalityCovariateSettings = createSeasonalityCovariateSettings(),
-                                                 calendarTimeCovariateSettings = createCalendarTimeCovariateSettings(),
-                                                 eraCovariateSettings = list(covarPreAspirin, covarAspirin),
-                                                 endOfObservationEraLength = 30)
-      control <- createControl(cvType = "auto",
-                               selectorType = "byPid",
-                               startingVariance = 0.1,
-                               seed = 1,
-                               resetCoefficients = TRUE,
-                               noiseLevel = "quiet",
-                               threads = 4)
-      # exclude <- sccsIntervalData$covariateRef |>
-      #   pull(covariateId)
-      # exclude <- c(1000, 1001)#exclude[exclude != 99]
-      # prior <- createPrior(priorType = "laplace", variance = 0.1, exclude = exclude)
-      model <- fitSccsModel(sccsIntervalData, control = control, profileBounds = NULL)
-      saveRDS(model, fileName)
+      outcomes$cases[i] <- min(model$metaData$attrition$outcomeSubjects)
     }
-    p <- computeEventDependentObservationP(model)
-    # plotEventObservationDependence(studyPop)
-    # plotEventToCalendarTime(studyPop, model)
-    # stability <- computeTimeStability(studyPop, model)
-    # plotCalendarTimeEffect(model)
-    # plotSeasonality(model)
-    outcomes$p[i] <- sprintf("%0.4f", p)
-    if (!is.null(model$estimates)) {
-      outcomes$estimate[i] <- model$estimates |>
-        filter(covariateId == 99) |>
-        mutate(estimate = sprintf("%0.2f (%0.2f - %0.2f)", exp(logRr), exp(logLb95), exp(logUb95))) |>
-        pull(estimate)
-    }
-    outcomes$cases[i] <- min(model$metaData$attrition$outcomeSubjects)
+    outcomes <- outcomes |>
+      mutate(database = !!database$name)
+    saveRDS(outcomes, resultsFileName)
   }
-  outcomes <- outcomes |>
-    mutate(database = !!database$name)
-  saveRDS(outcomes, file.path(folder, sprintf("Results_%s.rds", database$name)))
 }
 DatabaseConnector::disconnect(connection)
 
