@@ -9,7 +9,7 @@ computeExposureChangeP(
   studyPopulation,
   exposureEraId = NULL,
   bounds = log(c(0.5, 2)),
-  ignoreExposureStarts = TRUE
+  ignoreExposureStarts = FALSE
 )
 }
 \arguments{
