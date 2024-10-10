@@ -21,6 +21,7 @@ for (trueRr in c(1, 2, 4)) {
           settings <- createSccsSimulationSettings(minBaselineRate = baseLineRate / 10,
                                                    maxBaselineRate = baseLineRate,
                                                    eraIds = 1,
+                                                   patientUsages = 0.8,
                                                    usageRate = if (usageRateSlope < 0) 0.001 - 3000 * usageRateSlope else 0.001,
                                                    usageRateSlope = usageRateSlope,
                                                    simulationRiskWindows = list(rw),
@@ -135,10 +136,8 @@ simulateOne <- function(seed, scenario) {
   model <- fitSccsModel(sccsIntervalData, profileBounds = NULL)
   estimates <- model$estimates
   # estimates
-  # x <- sccsData$eras |> collect()
   idx1 <- which(estimates$covariateId == 1000)
   idx2 <- which(estimates$covariateId == 99)
-
 
   # Create interaction between exposure and censor status:
   censoredCases <- sccsData$cases |>
@@ -169,9 +168,13 @@ simulateOne <- function(seed, scenario) {
                                              endOfObservationEraLength = 0)
 
   model2 <- fitSccsModel(sccsIntervalData, profileBounds = NULL)
-  estimates2 <- model2$estimates
-  idx3 <- which(estimates2$covariateId == 1002)
-
+  if (model2$status != "OK") {
+    estimates2 <- tibble(logRr = NA, logLb95 = NA, logUb95 = NA)
+    idx3 <- 1
+  } else {
+    estimates2 <- model2$estimates
+    idx3 <- which(estimates2$covariateId == 1002)
+  }
   row <- tibble(logRr = estimates$logRr[idx1],
                 ci95Lb = exp(estimates$logLb95[idx1]),
                 ci95Ub = exp(estimates$logUb95[idx1]),
