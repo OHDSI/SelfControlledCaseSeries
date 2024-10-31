@@ -175,11 +175,15 @@ simulateOne <- function(seed, scenario) {
     estimates2 <- model2$estimates
     idx3 <- which(estimates2$covariateId == 1002)
   }
+  edo <- computeEventDependentObservation(model)
+  exposureStability <- computeExposureStability(studyPop, sccsData, 1)
   row <- tibble(logRr = estimates$logRr[idx1],
                 ci95Lb = exp(estimates$logLb95[idx1]),
                 ci95Ub = exp(estimates$logUb95[idx1]),
-                diagnosticEstimate = exp(estimates$logRr[idx2]),
-                diagnosticP = computeEventDependentObservationP(model),
+                diagnosticEstimate = edo$ratio,
+                diagnosticP = edo$p,
+                exposureStabilityEstimate = exposureStability$ratio,
+                exposureStabilityP = exposureStability$p,
                 diagnostic2Estimate = exp(estimates2$logRr[idx3]),
                 diagnostic2Lb = estimates2$logLb95[idx3],
                 diagnostic2Ub = estimates2$logUb95[idx3])

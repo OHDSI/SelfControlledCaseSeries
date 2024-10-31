@@ -423,7 +423,7 @@ computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId,
   exposureDaysPerWindow <- exposuresRelativeToOutcome |>
     cross_join(timeWindows) |>
     filter(.data$deltaExposureEnd >= .data$startDay & .data$deltaExposureStart <= .data$endDay) |>
-    filter(!ignoreExposureStarts | .data$deltaExposureStart <= .data$startDay) |>
+    # filter(!ignoreExposureStarts | .data$deltaExposureStart <= .data$startDay) |>
     mutate(deltaExposureStart = pmax(.data$deltaExposureStart, .data$startDay),
            deltaExposureEnd = pmin(.data$deltaExposureEnd, .data$endDay)) |>
     group_by(.data$caseId, .data$windowId, .data$startDay, .data$endDay) |>
@@ -571,3 +571,140 @@ computeExposureChange <- function(sccsData,
                 p = p,
                 stable = p > alpha))
 }
+
+
+
+
+#' @export
+computeExposureStability <- function(studyPopulation,
+                                     sccsData,
+                                     exposureEraId,
+                                     bounds = log(c(0.5, 2)),
+                                     alpha = 0.05,
+                                     endOfObservationEraLength = 30) {
+  cases <- studyPopulation$cases |>
+    select("caseId", "startDay", "endDay")
+
+  # Keep only exposures that overlap with the observation periods of the study population (also
+  # truncate exposures to the observation period):
+  exposures <- sccsData$eras |>
+    filter(.data$eraId == exposureEraId & .data$eraType == "rx") |>
+    inner_join(cases,
+               by = join_by("caseId", "eraEndDay" >= "startDay", "eraStartDay" < "endDay"),
+               copy = TRUE) |>
+    collect() |>
+    mutate(eraStartDay = pmax(.data$eraStartDay, .data$startDay),
+           eraEndDay = pmin(.data$eraEndDay, .data$endDay))
+
+  # Merge overlapping exposures if needed:
+  exposures <- exposures |>
+    arrange(.data$caseId, .data$eraStartDay) |>
+    group_by(.data$caseId) |>
+    mutate(newGroup = cumsum(lag(.data$eraEndDay, default = first(.data$eraEndDay)) < .data$eraStartDay)) |>
+    group_by(.data$caseId, .data$newGroup) |>
+    summarise(
+      eraStartDay = min(.data$eraStartDay),
+      eraEndDay = max(.data$eraEndDay),
+      .groups = 'drop'
+    ) |>
+    select("caseId", "eraStartDay", "eraEndDay")
+
+
+  # Compute days exposed per window
+  exposuresRelativeToObservationEnd <- exposures |>
+    inner_join(cases, by = join_by("caseId")) |>
+    mutate(deltaExposureStart = .data$eraStartDay - .data$endDay,
+           deltaExposureEnd = .data$eraEndDay - .data$endDay) |>
+    select("caseId", "deltaExposureStart", "deltaExposureEnd")
+
+  timeWindows <- tibble(startDay = c(-9999, -endOfObservationEraLength + 1),
+                        endDay = c(-endOfObservationEraLength , 0),
+                        windowId = c(0,1))
+  exposureDaysPerWindow <- exposuresRelativeToObservationEnd |>
+    cross_join(timeWindows) |>
+    filter(.data$deltaExposureEnd >= .data$startDay & .data$deltaExposureStart <= .data$endDay) |>
+    mutate(deltaExposureStart = pmax(.data$deltaExposureStart, .data$startDay),
+           deltaExposureEnd = pmin(.data$deltaExposureEnd, .data$endDay)) |>
+    group_by(.data$caseId, .data$windowId, .data$startDay, .data$endDay) |>
+    summarise(daysExposed = sum(.data$deltaExposureEnd - .data$deltaExposureStart + 1),
+              .groups = "drop")
+
+  # Compute days observed per window
+  observationRelativeToObservationEnd <- cases |>
+    mutate(deltaObservationStart = .data$startDay - .data$endDay,
+           deltaObservationEnd = 0) |>
+    select("caseId", "deltaObservationStart", "deltaObservationEnd")
+
+  observationDaysPerWindow <- observationRelativeToObservationEnd |>
+    cross_join(timeWindows) |>
+    filter(.data$deltaObservationEnd >= .data$startDay & .data$deltaObservationStart <= .data$endDay) |>
+    # filter(.data$deltaObservationStart < .data$startDay | .data$deltaObservationStart > .data$endDay) |>
+    mutate(deltaObservationStart = pmax(.data$deltaObservationStart, .data$startDay),
+           deltaObservationEnd = pmin(.data$deltaObservationEnd, .data$endDay)) |>
+    group_by(.data$caseId, .data$windowId, .data$startDay, .data$endDay) |>
+    summarise(daysObserved = sum(.data$deltaObservationEnd - .data$deltaObservationStart + 1),
+              .groups = "drop")
+
+  data <- observationDaysPerWindow |>
+    left_join(exposureDaysPerWindow, by = join_by("caseId", "windowId", "startDay", "endDay")) |>
+    mutate(daysExposed = if_else(is.na(.data$daysExposed), 0, .data$daysExposed))
+
+  poissonData <- data |>
+    filter(.data$daysObserved > 0) |>
+    mutate(
+      rowId = row_number(),
+      covariateId = 1
+    ) |>
+    select(
+      "rowId",
+      stratumId = "caseId",
+      "covariateId",
+      covariateValue = "windowId",
+      time = "daysObserved",
+      y = "daysExposed"
+    )
+
+  casesWithExposure <- poissonData |>
+    filter(.data$y > 0) |>
+    pull(.data$stratumId)
+
+  poissonData <- poissonData |>
+    filter(.data$stratumId %in% casesWithExposure)
+
+  if (nrow(poissonData) < 5) {
+    return(NA)
+  }
+
+  cyclopsData <- Cyclops::convertToCyclopsData(outcomes = poissonData,
+                                               covariates = poissonData,
+                                               addIntercept = FALSE,
+                                               modelType = "cpr",
+                                               quiet = TRUE)
+  fit <- Cyclops::fitCyclopsModel(cyclopsData)
+  if (fit$return_flag != "SUCCESS") {
+    return(NA)
+  }
+  logRr <- coef(fit)
+  if (logRr >= bounds[1] && logRr <= bounds[2]) {
+    llNull <- fit$log_likelihood
+  } else {
+    if (logRr < bounds[1]) {
+      nullLogRr <- bounds[1]
+    } else {
+      nullLogRr <- bounds[2]
+    }
+    llNull <- Cyclops::getCyclopsProfileLogLikelihood(
+      object = fit,
+      parm = 1,
+      x = nullLogRr,
+      includePenalty = TRUE
+    )$value
+  }
+  llr <- fit$log_likelihood - llNull
+  p <- pchisq(2 * llr, df = 1, lower.tail = FALSE)
+  return(tibble(ratio = exp(logRr),
+                p = p,
+                stable = p > alpha))
+}
+
+
