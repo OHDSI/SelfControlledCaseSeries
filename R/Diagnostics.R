@@ -219,13 +219,15 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
 #'                            the database.
 #' @template StudyPopulation
 #' @template SccsData
+#' @param alpha             The alpha (type 1 error) used to test for pre-exposure gain
 #'
 #' @return
-#' A one-sided p-value for whether the rate before exposure is higher than after, against
-#' the null of no change.
+#' A tibble with one row and three columns: `ratio` indicates the ratio (rate of outcomes before the first exposure start) /
+#' (rate of outcomes after the first exposure start). `p` is the p-value against the null-hypothesis that the ratio is
+#' smaller than or equal to 1, and `stable` is `TRUE` if `p` is greater than `alpha`.
 #'
 #' @export
-computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = NULL) {
+computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NULL, alpha = 0.05) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
@@ -251,7 +253,9 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
 
   if (nrow(exposures) == 0) {
     warning("No exposures found with era ID ", exposureEraId)
-    return(NA)
+    return(tibble(ratio = NA,
+                  p = NA,
+                  stable = NA))
   }
   firstExposures <- exposures %>%
     group_by(.data$caseId, .data$startDay, .data$endDay) %>%
@@ -321,7 +325,9 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   )
   fit <- Cyclops::fitCyclopsModel(cyclopsData)
   if (fit$return_flag != "SUCCESS") {
-    return(NA)
+    return(tibble(ratio = NA,
+                  p = NA,
+                  stable = NA))
   }
   # compute one-sided p-value:
   llNull <- Cyclops::getCyclopsProfileLogLikelihood(
@@ -332,33 +338,45 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   llr <- fit$log_likelihood - llNull
   p <- EmpiricalCalibration:::computePFromLlr(llr, coef(fit))
   names(p) <- NULL
-  return(p)
+  return(tibble(ratio = exp(coef(fit)),
+                p = p,
+                stable = p > alpha))
 }
 
 #' Compute p-value for event-dependent observation end
 #'
 #' @param sccsModel         A fitted SCCS model as created using [fitSccsModel()].
+#' @param alpha               The alpha (type 1 error) used to test for exposure rate change.
 #'
 #' @return
-#' The p-value
+#' A tibble with one row and three columns: `ratio` indicates the estimates incidence rate ratio for the
+#' probe at the end of observation. `p` is the p-value against the null-hypothesis that the log ratio is
+#' between the `endOfObservationEffectBounds` specified when calling `fitSccsModel()`, and `stable` is
+#' `TRUE` if `p` is greater than `alpha`.
 #'
 #' @export
-computeEventDependentObservationP <- function(sccsModel) {
+computeEventDependentObservation <- function(sccsModel, alpha = 0.05) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   if (is.null(sccsModel$estimates)) {
-    return(NA)
+    return(tibble(ratio = NA,
+                  p = NA,
+                  stable = NA))
   }
-  llr <- sccsModel$estimates |>
+  estimate <- sccsModel$estimates |>
     filter(.data$covariateId == 99) |>
-    pull(llr)
-  if (length(llr) == 0) {
+    select("logRr", "llr")
+  if (length(estimate) == 0) {
     warning("No estimate found for the end of observation probe")
-    return(NA)
+    return(tibble(ratio = NA,
+                  p = NA,
+                  stable = NA))
   }
-  p <- 0.5 * pchisq(2 * llr, df = 0, lower.tail = FALSE) + 0.5 * pchisq(2 * llr, df = 1, lower.tail = FALSE)
-  return(p)
+  p <- 0.5 * pchisq(2 * estimate$llr, df = 0, lower.tail = FALSE) + 0.5 * pchisq(2 * estimate$llr, df = 1, lower.tail = FALSE)
+  return(tibble(ratio = exp(estimate$logRr),
+                p = p,
+                stable = p > alpha))
 }
 
 computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId, timeWindows, ignoreExposureStarts = FALSE) {
@@ -375,6 +393,9 @@ computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId,
     collect() |>
     mutate(eraStartDay = pmax(.data$eraStartDay, .data$startDay),
            eraEndDay = pmin(.data$eraEndDay, .data$endDay))
+  if (nrow(exposures) == 0) {
+    warning("No exposures found with era ID ", exposureEraId)
+  }
 
   # Merge overlapping exposures if needed:
   exposures <- exposures |>
@@ -434,7 +455,7 @@ computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId,
 }
 
 
-#' Compute p for whether exposure probability changed following the outcome
+#' Compute diagnostic whether exposure probability changed following the outcome
 #'
 #' @param exposureEraId       The exposure to create the era data for. If not specified it is
 #'                            assumed to be the one exposure for which the data was loaded from
@@ -442,24 +463,34 @@ computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId,
 #' @template StudyPopulation
 #' @template SccsData
 #' @param bounds              Bounds for the null of no change in the exposure rate.
+#' @param alpha               The alpha (type 1 error) used to test for exposure rate change.
 #' @param ignoreExposureStarts Ignore exposure starts when computing the diagnostic. This makes the
 #'                             diagnostic robust against the outcome temporarily preventing exposure
 #'                             starting, which should be dealt with by the pre-exposure window.
 #'
 #' @return
-#' The p-value
+#' A tibble with one row and three columns: `ratio` indicates the ratio (rate of exposure days after the outcome) /
+#' (rate of exposure days before the outcome). `p` is the p-value against the null-hypothesis that the log ratio is
+#' between the provided `bounds`, and `stable` is `TRUE` if `p` is greater than `alpha`.
 #'
 #' @export
-computeExposureChangeP <- function(sccsData,
-                                   studyPopulation,
-                                   exposureEraId = NULL,
-                                   bounds = log(c(0.5, 2)),
-                                   ignoreExposureStarts = FALSE) {
+computeExposureChange <- function(sccsData,
+                                  studyPopulation,
+                                  exposureEraId = NULL,
+                                  bounds = log(c(0.5, 2)),
+                                  alpha = 0.05,
+                                  ignoreExposureStarts = FALSE) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertInt(exposureEraId, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
+
+  if (nrow(studyPopulation$cases) == 0) {
+    return(tibble(ratio = NA,
+                  p = NA,
+                  stable = NA))
+  }
 
   if (is.null(exposureEraId)) {
     exposureEraId <- attr(sccsData, "metaData")$exposureIds
@@ -502,7 +533,9 @@ computeExposureChangeP <- function(sccsData,
     filter(.data$stratumId %in% casesWithExposure)
 
   if (nrow(poissonData) < 5) {
-    return(NA)
+    return(tibble(ratio = NA,
+                  p = NA,
+                  stable = NA))
   }
 
   cyclopsData <- Cyclops::convertToCyclopsData(outcomes = poissonData,
@@ -512,7 +545,9 @@ computeExposureChangeP <- function(sccsData,
                                                quiet = TRUE)
   fit <- Cyclops::fitCyclopsModel(cyclopsData)
   if (fit$return_flag != "SUCCESS") {
-    return(NA)
+    return(tibble(ratio = NA,
+                  p = NA,
+                  stable = NA))
   }
   logRr <- coef(fit)
   if (logRr >= bounds[1] && logRr <= bounds[2]) {
@@ -532,5 +567,7 @@ computeExposureChangeP <- function(sccsData,
   }
   llr <- fit$log_likelihood - llNull
   p <- pchisq(2 * llr, df = 1, lower.tail = FALSE)
-  return(p)
+  return(tibble(ratio = exp(logRr),
+                p = p,
+                stable = p > alpha))
 }

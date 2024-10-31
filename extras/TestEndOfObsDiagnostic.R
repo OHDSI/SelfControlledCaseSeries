@@ -1,7 +1,7 @@
 library(SelfControlledCaseSeries)
 options(andromedaTempFolder = "e:/andromedaTemp")
 
-folder <- "e:/temp/edoTest"
+folder <- "e:/SccsEdoTestRwd"
 connectionDetails <- createConnectionDetails(
   dbms = "spark",
   connectionString = keyring::key_get("databricksConnectionString"),
@@ -129,12 +129,12 @@ aspirin <- 1112807
 
 if (!file.exists(folder))
   dir.create(folder)
-connection <- DatabaseConnector::connect(connectionDetails)
 
-outcome = outcomes[1, ]
+outcome = outcomes[5, ]
 fitAndSaveModel <- function(outcome, database, folder, aspirin) {
-  fileName <- file.path(folder, sprintf("SccsModel_o%d_%s.rds", outcome$outcomeId, database$name))
-  if (!file.exists(fileName)) {
+  sccsModelFileName <- file.path(folder, sprintf("SccsModel_o%d_%s.rds", outcome$outcomeId, database$name))
+  diagnosticFileName <- file.path(folder, sprintf("Diagnostics_o%d_%s.rds", outcome$outcomeId, database$name))
+  if (!file.exists(sccsModelFileName) || !file.exists(diagnosticFileName)) {
     if (outcome$covid) {
       sccsDataFileName <- file.path(folder, sprintf("SccsDataCovid_%s.zip", database$name))
       d <- loadSccsData(sccsDataFileName)
@@ -146,34 +146,72 @@ fitAndSaveModel <- function(outcome, database, folder, aspirin) {
                                       outcomeId = outcome$outcomeId,
                                       firstOutcomeOnly = outcome$firstOnly,
                                       naivePeriod = 180)
-    covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
-                                               includeEraIds = aspirin,
-                                               start = 0,
-                                               end = 0,
-                                               endAnchor = "era end")
-    covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
-                                                  includeEraIds = aspirin,
-                                                  start = -60,
-                                                  end = -1,
-                                                  endAnchor = "era start")
-    sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                               d,
-                                               seasonalityCovariateSettings = createSeasonalityCovariateSettings(),
-                                               calendarTimeCovariateSettings = createCalendarTimeCovariateSettings(),
-                                               eraCovariateSettings = list(covarPreAspirin, covarAspirin),
-                                               endOfObservationEraLength = 30)
-    control <- createControl(cvType = "auto",
-                             selectorType = "byPid",
-                             startingVariance = 0.1,
-                             seed = 1,
-                             resetCoefficients = TRUE,
-                             noiseLevel = "quiet",
-                             threads = 2)
-    model <- fitSccsModel(sccsIntervalData, control = control, profileBounds = NULL)
-    saveRDS(model, fileName)
+
+    if (file.exists(sccsModelFileName)) {
+      model <- readRDS(sccsModelFileName)
+    } else {
+
+      covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
+                                                 includeEraIds = aspirin,
+                                                 start = 0,
+                                                 end = 0,
+                                                 endAnchor = "era end")
+      covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
+                                                    includeEraIds = aspirin,
+                                                    start = -60,
+                                                    end = -1,
+                                                    endAnchor = "era start")
+      sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
+                                                 d,
+                                                 seasonalityCovariateSettings = createSeasonalityCovariateSettings(),
+                                                 calendarTimeCovariateSettings = createCalendarTimeCovariateSettings(),
+                                                 eraCovariateSettings = list(covarPreAspirin, covarAspirin),
+                                                 endOfObservationEraLength = 30)
+      control <- createControl(cvType = "auto",
+                               selectorType = "byPid",
+                               startingVariance = 0.1,
+                               seed = 1,
+                               resetCoefficients = TRUE,
+                               noiseLevel = "quiet",
+                               threads = 2)
+      model <- fitSccsModel(sccsIntervalData, control = control, profileBounds = NULL)
+      saveRDS(model, sccsModelFileName)
+    }
+    if (!file.exists(diagnosticFileName)) {
+      edo <- computeEventDependentObservation(sccsModel = model)
+      ede <- computeExposureChange(sccsData = d,
+                                   studyPopulation = studyPop,
+                                   exposureEraId = aspirin)
+      ede2 <- computeExposureChange(sccsData = d,
+                                    studyPopulation = studyPop,
+                                    exposureEraId = aspirin,
+                                    ignoreExposureStarts = TRUE)
+      preExposure <- computePreExposureGain(sccsData = d,
+                                            studyPopulation = studyPop,
+                                            exposureEraId = aspirin)
+      timeTrend <- computeTimeStability(studyPopulation = studyPop,
+                                        sccsModel = model)
+      if (model$status != "OK" || !1000 %in% model$estimates$covariateId) {
+        preExposure2 <- tibble(logRr = NA,
+                               logLb95 = NA,
+                               logUb95 = NA)
+      } else {
+        preExposure2 <- model$estimates |>
+          filter(covariateId == 1000) |>
+          select("logRr", "logLb95", "logUb95")
+      }
+      diagnostics <- list(edo = edo,
+                          ede = ede,
+                          ede2 = ede2,
+                          preExposure = preExposure,
+                          preExposure2 = preExposure2,
+                          timeTrend = timeTrend)
+      saveRDS(diagnostics, diagnosticFileName)
+    }
   }
 }
 
+connection <- DatabaseConnector::connect(connectionDetails)
 
 for (dbi in 1:nrow(databases)) {
   database <- databases[dbi, ]
@@ -217,29 +255,56 @@ for (dbi in 1:nrow(databases)) {
     ParallelLogger::clusterApply(cluster, split(outcomes, seq_len(nrow(outcomes))), fitAndSaveModel, database = database, folder = folder, aspirin = aspirin)
     ParallelLogger::stopCluster(cluster)
 
-
-    outcomes$p <- NA
-    outcomes$estimate <- NA
     outcomes$cases <- NA
+    outcomes$edoRatio <- NA
+    outcomes$edoP <- NA
+    outcomes$edeRatio <- NA
+    outcomes$edeP <- NA
+    outcomes$ede2Ratio <- NA
+    outcomes$ede2P <- NA
+    outcomes$preExposureRatio <- NA
+    outcomes$preExposureP <- NA
+    outcomes$preExposure2Rr <- NA
+    outcomes$preExposure2Lb <- NA
+    outcomes$preExposure2Ub <- NA
+    outcomes$timeTrendRatio <- NA
+    outcomes$timeTrendP <- NA
+
     i <- 1
     for (i in seq_len(nrow(outcomes))) {
       outcome <- outcomes[i, ]
       fileName <- file.path(folder, sprintf("SccsModel_o%d_%s.rds", outcome$outcomeId, database$name))
       model <- readRDS(fileName)
-      p <- computeEventDependentObservationP(model)
+      # p <- computeEventDependentObservationP(model)
       # plotEventObservationDependence(studyPop)
       # plotEventToCalendarTime(studyPop, model)
       # stability <- computeTimeStability(studyPop, model)
       # plotCalendarTimeEffect(model)
       # plotSeasonality(model)
-      outcomes$p[i] <- sprintf("%0.4f", p)
-      if (!is.null(model$estimates)) {
-        outcomes$estimate[i] <- model$estimates |>
-          filter(covariateId == 99) |>
-          mutate(estimate = sprintf("%0.2f (%0.2f - %0.2f)", exp(logRr), exp(logLb95), exp(logUb95))) |>
-          pull(estimate)
-      }
+      # outcomes$edoP[i] <- sprintf("%0.4f", p)
+      # if (!is.null(model$estimates)) {
+      #   outcomes$edoEstimate[i] <- model$estimates |>
+      #     filter(covariateId == 99) |>
+      #     mutate(estimate = sprintf("%0.2f (%0.2f - %0.2f)", exp(logRr), exp(logLb95), exp(logUb95))) |>
+      #     pull(estimate)
+      # }
       outcomes$cases[i] <- min(model$metaData$attrition$outcomeSubjects)
+      diagnosticFileName <- file.path(folder, sprintf("Diagnostics_o%d_%s.rds", outcome$outcomeId, database$name))
+      diagnostics <- readRDS(diagnosticFileName)
+      outcomes$edoRatio[i] <- diagnostics$edo$ratio
+      outcomes$edoP[i] <- diagnostics$edo$p
+      outcomes$edeRatio[i] <- diagnostics$ede$ratio
+      outcomes$edeP[i] <- diagnostics$ede$p
+      outcomes$ede2Ratio[i] <- diagnostics$ede2$ratio
+      outcomes$ede2P[i] <- diagnostics$ede2$p
+      outcomes$preExposureRatio[i] <- diagnostics$preExposure$ratio
+      outcomes$preExposureP[i] <- diagnostics$preExposure$p
+      outcomes$preExposure2Rr[i] <- exp(diagnostics$preExposure2$logRr)
+      outcomes$preExposure2Lb[i] <- exp(diagnostics$preExposure2$logLb95)
+      outcomes$preExposure2Ub[i] <- exp(diagnostics$preExposure2$logUb95)
+      outcomes$timeTrendRatio[i] <- diagnostics$timeTrend$ratio
+      outcomes$timeTrendP[i] <- diagnostics$timeTrend$p
+
     }
     outcomes <- outcomes |>
       mutate(database = !!database$name)
