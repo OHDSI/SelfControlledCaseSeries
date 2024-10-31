@@ -215,12 +215,15 @@ for (i in seq_along(scenarios)) {
     mutate(coverage = ci95Lb < scenario$trueRr & ci95Ub > scenario$trueRr,
            diagnosticEstimate = log(diagnosticEstimate),
            failDiagnostic = diagnosticP < 0.05,
+           failDiagnosticAndEs =  diagnosticP < 0.05 & exposureStabilityP < 0.05,
            diagnostic2Estimate = log(diagnostic2Estimate),
            failDiagnostic2 = diagnostic2Lb > log(1.25) | diagnostic2Ub < log(0.75)) |>
     summarise(coverage = mean(coverage, na.rm = TRUE),
               bias = mean(logRr - log(scenario$trueRr), na.rm = TRUE),
               meanDiagnosticEstimate = exp(mean(diagnosticEstimate, na.rm = TRUE)),
               fractionFailingDiagnostic = mean(failDiagnostic, na.rm = TRUE),
+              meanExposureStabilityEstimate = exp(mean(log(exposureStabilityEstimate), na.rm = TRUE)),
+              fractionFailingDiagnosticAndEs = mean(failDiagnosticAndEs, na.rm = TRUE),
               meanDiagnostic2Estimate = exp(mean(diagnostic2Estimate, na.rm = TRUE)),
               fractionFailingDiagnostic2= mean(failDiagnostic2, na.rm = TRUE))
   row <- as_tibble(scenarioKey) |>
