@@ -178,9 +178,9 @@ simulateOne <- function(seed, scenario) {
   studyPopulation = studyPop
   idx1 <- which(estimates$covariateId == 1000)
   idx2 <- which(estimates$covariateId == 1001)
-  p <- computeExposureChangeP(sccsData, studyPop, 1, ignoreExposureStarts = TRUE)
+  p <- computeExposureChange(sccsData, studyPop, 1, ignoreExposureStarts = TRUE)$p
   p
-  p2 <- computeExposureChangeP(sccsData, studyPop, 1)
+  p2 <- computeExposureChange(sccsData, studyPop, 1)$p
   p2
   # plotExposureCentered(studyPop, sccsData, 1)
   # plotOutcomeCentered(studyPop, sccsData, 1)
