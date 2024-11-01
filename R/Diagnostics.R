@@ -379,6 +379,22 @@ computeEventDependentObservation <- function(sccsModel, alpha = 0.05) {
                 stable = p > alpha))
 }
 
+mergeOverlappingExposures <- function(exposures) {
+  # Assumes there is only 1 type of exposure:
+  exposures <- exposures |>
+    arrange(.data$caseId, .data$eraStartDay) |>
+    group_by(.data$caseId) |>
+    mutate(newGroup = cumsum(lag(.data$eraEndDay, default = first(.data$eraEndDay)) < .data$eraStartDay)) |>
+    group_by(.data$caseId, .data$newGroup) |>
+    summarise(
+      eraStartDay = min(.data$eraStartDay),
+      eraEndDay = max(.data$eraEndDay),
+      .groups = 'drop'
+    ) |>
+    select("caseId", "eraStartDay", "eraEndDay")
+  return(exposures)
+}
+
 computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId, timeWindows, ignoreExposureStarts = FALSE) {
   cases <- studyPopulation$cases |>
     select("caseId", "startDay", "endDay")
@@ -397,18 +413,7 @@ computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId,
     warning("No exposures found with era ID ", exposureEraId)
   }
 
-  # Merge overlapping exposures if needed:
-  exposures <- exposures |>
-    arrange(.data$caseId, .data$eraStartDay) |>
-    group_by(.data$caseId) |>
-    mutate(newGroup = cumsum(lag(.data$eraEndDay, default = first(.data$eraEndDay)) < .data$eraStartDay)) |>
-    group_by(.data$caseId, .data$newGroup) |>
-    summarise(
-      eraStartDay = min(.data$eraStartDay),
-      eraEndDay = max(.data$eraEndDay),
-      .groups = 'drop'
-    ) |>
-    select("caseId", "eraStartDay", "eraEndDay")
+  exposures <- mergeOverlappingExposures(exposures)
 
   firstOutcomes <- studyPopulation$outcomes |>
     group_by(.data$caseId) |>
@@ -579,11 +584,12 @@ computeExposureChange <- function(sccsData,
 computeExposureStability <- function(studyPopulation,
                                      sccsData,
                                      exposureEraId,
-                                     bounds = log(c(0.5, 2)),
-                                     alpha = 0.05,
-                                     endOfObservationEraLength = 30) {
+                                     bounds = log(c(2/3, 3/2)),
+                                     alpha = 0.05) {
   cases <- studyPopulation$cases |>
-    select("caseId", "startDay", "endDay")
+    filter(.data$endDay - .data$startDay > 2) |>
+    mutate(midDay = .data$startDay + round((.data$endDay - .data$startDay)/2)) |>
+    select("caseId", "startDay", "midDay", "endDay")
 
   # Keep only exposures that overlap with the observation periods of the study population (also
   # truncate exposures to the observation period):
@@ -596,57 +602,35 @@ computeExposureStability <- function(studyPopulation,
     mutate(eraStartDay = pmax(.data$eraStartDay, .data$startDay),
            eraEndDay = pmin(.data$eraEndDay, .data$endDay))
 
-  # Merge overlapping exposures if needed:
-  exposures <- exposures |>
-    arrange(.data$caseId, .data$eraStartDay) |>
-    group_by(.data$caseId) |>
-    mutate(newGroup = cumsum(lag(.data$eraEndDay, default = first(.data$eraEndDay)) < .data$eraStartDay)) |>
-    group_by(.data$caseId, .data$newGroup) |>
-    summarise(
-      eraStartDay = min(.data$eraStartDay),
-      eraEndDay = max(.data$eraEndDay),
-      .groups = 'drop'
-    ) |>
-    select("caseId", "eraStartDay", "eraEndDay")
+  exposures <- mergeOverlappingExposures(exposures)
 
+  # Pivot cases to windows:
+  timeWindows <- bind_rows(
+    cases |>
+      select("caseId", startDay = "startDay", endDay = "midDay") |>
+      mutate(windowId = 0),
+    cases |>
+      select("caseId", startDay = "midDay", endDay = "endDay") |>
+      mutate(windowId = 1),
+  )
 
   # Compute days exposed per window
-  exposuresRelativeToObservationEnd <- exposures |>
-    inner_join(cases, by = join_by("caseId")) |>
-    mutate(deltaExposureStart = .data$eraStartDay - .data$endDay,
-           deltaExposureEnd = .data$eraEndDay - .data$endDay) |>
-    select("caseId", "deltaExposureStart", "deltaExposureEnd")
-
-  timeWindows <- tibble(startDay = c(-9999, -endOfObservationEraLength + 1),
-                        endDay = c(-endOfObservationEraLength , 0),
-                        windowId = c(0,1))
-  exposureDaysPerWindow <- exposuresRelativeToObservationEnd |>
-    cross_join(timeWindows) |>
-    filter(.data$deltaExposureEnd >= .data$startDay & .data$deltaExposureStart <= .data$endDay) |>
-    mutate(deltaExposureStart = pmax(.data$deltaExposureStart, .data$startDay),
-           deltaExposureEnd = pmin(.data$deltaExposureEnd, .data$endDay)) |>
-    group_by(.data$caseId, .data$windowId, .data$startDay, .data$endDay) |>
-    summarise(daysExposed = sum(.data$deltaExposureEnd - .data$deltaExposureStart + 1),
+  exposureDaysPerWindow <- exposures |>
+    inner_join(timeWindows, by = join_by("caseId"), relationship = "many-to-many") |>
+    filter(.data$eraEndDay >= .data$startDay & .data$eraStartDay <= .data$endDay) |>
+    mutate(eraStartDay = pmax(.data$eraStartDay, .data$startDay),
+           eraEndDay = pmin(.data$eraEndDay, .data$endDay)) |>
+    group_by(.data$caseId, .data$windowId) |>
+    summarise(daysExposed = sum(.data$eraEndDay - .data$eraStartDay + 1),
               .groups = "drop")
 
   # Compute days observed per window
-  observationRelativeToObservationEnd <- cases |>
-    mutate(deltaObservationStart = .data$startDay - .data$endDay,
-           deltaObservationEnd = 0) |>
-    select("caseId", "deltaObservationStart", "deltaObservationEnd")
-
-  observationDaysPerWindow <- observationRelativeToObservationEnd |>
-    cross_join(timeWindows) |>
-    filter(.data$deltaObservationEnd >= .data$startDay & .data$deltaObservationStart <= .data$endDay) |>
-    # filter(.data$deltaObservationStart < .data$startDay | .data$deltaObservationStart > .data$endDay) |>
-    mutate(deltaObservationStart = pmax(.data$deltaObservationStart, .data$startDay),
-           deltaObservationEnd = pmin(.data$deltaObservationEnd, .data$endDay)) |>
-    group_by(.data$caseId, .data$windowId, .data$startDay, .data$endDay) |>
-    summarise(daysObserved = sum(.data$deltaObservationEnd - .data$deltaObservationStart + 1),
-              .groups = "drop")
+  observationDaysPerWindow <- timeWindows |>
+    mutate(daysObserved = .data$endDay - .data$startDay + 1) |>
+    select("caseId", "windowId", "daysObserved")
 
   data <- observationDaysPerWindow |>
-    left_join(exposureDaysPerWindow, by = join_by("caseId", "windowId", "startDay", "endDay")) |>
+    left_join(exposureDaysPerWindow, by = join_by("caseId", "windowId")) |>
     mutate(daysExposed = if_else(is.na(.data$daysExposed), 0, .data$daysExposed))
 
   poissonData <- data |>
@@ -706,5 +690,3 @@ computeExposureStability <- function(studyPopulation,
                 p = p,
                 stable = p > alpha))
 }
-
-
