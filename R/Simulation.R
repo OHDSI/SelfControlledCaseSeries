@@ -340,7 +340,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
     eraEndDay = outcomes$startDay
   )
 
-  # ** Remove non-cases ***
+  # Remove non-cases -------------------------------------------------------------------------------
   caseIds <- unique(outcomes$caseId)
   cases <- cases[cases$caseId %in% caseIds, ]
   eras <- eras[eras$caseId %in% caseIds, ]
@@ -435,7 +435,7 @@ simulateSccsData <- function(nCases, settings) {
     outcomeIds = settings$outcomeId,
     prevalences = tibble(
       outcomeId = settings$outcomeId,
-      outcomeProportion = 0.01,
+      outcomeProportion = nrow(cases) / max(cases$caseId),
       probablyFirstOutcomeOnly = FALSE
     ),
     attrition = tibble(
