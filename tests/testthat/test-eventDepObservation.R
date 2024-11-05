@@ -132,7 +132,8 @@ test_that("Produces same results as SCCS package when using event-dependent obse
   )
   attr(sccsData, "metaData") <- list(
     outcomeIds = 2,
-    attrition = tibble(outcomeId = 2)
+    attrition = tibble(outcomeId = 2),
+    prevalences = tibble(outcomeId = 2)
   )
   class(sccsData) <- "SccsData"
   attr(class(sccsData), "package") <- "SelfControlledCaseSeries"

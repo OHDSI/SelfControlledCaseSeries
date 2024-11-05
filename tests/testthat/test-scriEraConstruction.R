@@ -49,7 +49,8 @@ convertToScriDataWrapper <- function(cases,
   )
   attr(data, "metaData") <- list(
     outcomeIds = 10,
-    attrition = tibble(outcomeId = 10)
+    attrition = tibble(outcomeId = 10),
+    prevalences = tibble(outcomeId = 10)
   )
   class(data) <- "SccsData"
   attr(class(data), "package") <- "SelfControlledCaseSeries"

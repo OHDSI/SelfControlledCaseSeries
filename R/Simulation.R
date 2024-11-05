@@ -433,6 +433,11 @@ simulateSccsData <- function(nCases, settings) {
     calendarTimeFun = calendarTimeFun,
     exposureIds = settings$eraIds,
     outcomeIds = settings$outcomeId,
+    prevalences = tibble(
+      outcomeId = settings$outcomeId,
+      outcomeProportion = 0.01,
+      probablyFirstOutcomeOnly = FALSE
+    ),
     attrition = tibble(
       outcomeId = settings$outcomeId,
       description = "All outcome occurrences",

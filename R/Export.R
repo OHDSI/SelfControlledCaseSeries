@@ -722,11 +722,11 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
     for (j in seq_len(nrow(table))) {
       mdrr <- computeMdrr(object = sccsModel, exposureCovariateId = table$covariateId[j])
       table$mdrr[j] <- mdrr$mdrr
-      preExposureP <- computePreExposureGainP(
+      preExposureP <- computePreExposureGain(
         sccsData = sccsData,
         studyPopulation = studyPop,
         exposureEraId = table$eraId[j]
-      )
+      )$p
       table$preExposureP[j] <- preExposureP
     }
     table <- table %>%

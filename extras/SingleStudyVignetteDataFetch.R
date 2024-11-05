@@ -98,9 +98,9 @@ studyPop <- readRDS(file.path(folder, "studyPop.rds"))
 #
 # getAttritionTable(studyPop)
 #
-# computePreExposureGainP(sccsData = sccsData,
-#                         studyPopulation = studyPop,
-#                         exposureEraId = aspirin)
+# computePreExposureGain(sccsData = sccsData,
+#                        studyPopulation = studyPop,
+#                        exposureEraId = aspirin)
 #
 # stability <- computeTimeStability(studyPop)
 # stability %>%

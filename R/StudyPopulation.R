@@ -92,6 +92,8 @@ createStudyPopulation <- function(sccsData,
       mutate(observationPeriodStartDate = Andromeda::restoreDate(.data$observationPeriodStartDate))
   }
   attrition <- attr(sccsData, "metaData")$attrition
+  prevalence <- attr(sccsData, "metaData")$prevalences |>
+    mutate(definitelyFirstOutcomeOnly = firstOutcomeOnly)
   if (is.null(outcomeId)) {
     if (outcomes %>%
       distinct(.data$eraId) %>%
@@ -104,6 +106,9 @@ createStudyPopulation <- function(sccsData,
       filter(.data$eraId == !!outcomeId)
 
     attrition <- attrition %>%
+      filter(.data$outcomeId == !!outcomeId)
+
+    prevalence <- prevalence %>%
       filter(.data$outcomeId == !!outcomeId)
   }
 
@@ -247,6 +252,7 @@ createStudyPopulation <- function(sccsData,
 
   metaData$outcomeId <- unique(outcomes$eraId)
   metaData$attrition <- attrition
+  metaData$prevalence <- prevalence
 
   # Restrict cases to those that have at least one outcome between start and end:
   cases <- outcomes %>%

@@ -50,6 +50,7 @@ reference:
       Functions for producing various study diagnostics.
     contents:
       - computeMdrr
+      - computePreExposureGain
       - computePreExposureGainP
       - computeTimeStability
       - getAttritionTable

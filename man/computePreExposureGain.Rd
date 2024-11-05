@@ -2,7 +2,7 @@
 % Please edit documentation in R/Diagnostics.R
 \name{computePreExposureGain}
 \alias{computePreExposureGain}
-\title{Compute P for pre-exposure risk gain}
+\title{Compute pre-exposure risk gain diagnostic}
 \usage{
 computePreExposureGain(
   sccsData,
@@ -29,7 +29,7 @@ A tibble with one row and three columns: \code{ratio} indicates the ratio (rate 
 smaller than or equal to 1, and \code{stable} is \code{TRUE} if \code{p} is greater than \code{alpha}.
 }
 \description{
-Compute P for pre-exposure risk gain
+Compute pre-exposure risk gain diagnostic
 }
 \details{
 Compares the rate of the outcome in the 30 days prior to exposure to the rate

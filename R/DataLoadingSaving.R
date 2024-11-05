@@ -302,6 +302,27 @@ getDbSccsData <- function(connectionDetails,
     useNestingCohort = useNestingCohort,
     tempEmulationSchema = tempEmulationSchema)
 
+  # Need to estimate prevalence to evaluate the rare outcome assumption:
+  message("Counting base population for estimating prevalence")
+  sql <- SqlRender::loadRenderTranslateSql("CountBasePopulation.sql",
+                                           packageName = "SelfControlledCaseSeries",
+                                           dbms = connectionDetails$dbms,
+                                           cdm_database_schema = cdmDatabaseSchema,
+                                           use_nesting_cohort = useNestingCohort,
+                                           nesting_cohort_database_schema = nestingCohortDatabaseSchema,
+                                           nesting_cohort_table = nestingCohortTable,
+                                           nesting_cohort_id = nestingCohortId,
+                                           has_study_periods = hasStudyPeriods)
+  basePopulationCount <- DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE)
+  prevalences <- outcomeCounts |>
+    group_by(.data$outcomeId) |>
+    summarise(outcomeSubjects = min(.data$outcomeSubjects),
+              outcomeEvents = min(.data$outcomeEvents)) |>
+    transmute(outcomeId = .data$outcomeId,
+              outcomeProportion = .data$outcomeSubjects / basePopulationCount$windowCount,
+              outcomeRate = .data$outcomeEvents / basePopulationCount$daysCount,
+              probablyFirstOutcomeOnly = .data$outcomeSubjects == .data$outcomeEvents)
+
   sampledCases <- FALSE
   if (maxCasesPerOutcome != 0) {
     for (outcomeId in unique(outcomeCounts$outcomeId)) {
@@ -424,7 +445,8 @@ getDbSccsData <- function(connectionDetails,
     exposureIds = exposureIds,
     outcomeIds = outcomeIds,
     attrition = outcomeCounts,
-    studyPeriods = studyPeriods
+    studyPeriods = studyPeriods,
+    prevalences = prevalences
   )
   class(sccsData) <- "SccsData"
   attr(class(sccsData), "package") <- "SelfControlledCaseSeries"

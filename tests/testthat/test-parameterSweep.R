@@ -59,12 +59,12 @@ test_that("Support functions and diagnostics", {
   diagnostic <- computeTimeStability(studyPop, model)
   expect_is(diagnostic, "data.frame")
 
-  diagnostic <- computePreExposureGainP(
+  diagnostic <- computePreExposureGain(
     sccsData = sccsData,
     studyPopulation = studyPop,
     exposureEraId = 1
   )
-  expect_is(diagnostic, "numeric")
+  expect_is(diagnostic$p, "numeric")
 
   mdrr <- computeMdrr(sccsIntervalData, exposureCovariateId = 1000)
   expect_lt(mdrr$mdrr, Inf)

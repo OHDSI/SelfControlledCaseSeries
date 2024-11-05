@@ -631,11 +631,11 @@ if (folderExists) {
 If the rate just before exposure is higher compared to during exposure, this indicates there might reverse causality: that the outcome, or some precursor of the outcome, increases the probability of having the exposure. To avoid incorrect causal interpretation, we want to detect these situations. We can compute a p-value for whether rate is increased pre-exposure:
 
 ```{r eval=FALSE}
-computePreExposureGainP(sccsData, studyPopulation, exposureEraId = aspirin) 
+computePreExposureGain(sccsData, studyPopulation, exposureEraId = aspirin) 
 ```
 ```{r echo=FALSE,message=FALSE,fig.width=6.5, fig.height=5}
 if (folderExists) {
-  computePreExposureGainP(sccsData, studyPop, exposureEraId = aspirin) 
+  computePreExposureGain(sccsData, studyPop, exposureEraId = aspirin) 
 }
 ```
 If this p-value is lower than a prespecified threshold (e.g. p < 0.05), we can decide to reject the null hypothesis that the rate is not increased, and we probably should not trust our analysis to produce reliable estimates.

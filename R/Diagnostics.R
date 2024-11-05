@@ -151,7 +151,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
   checkmate::assertNumeric(maxRatio, lower = 1, len = 1, add = errorMessages)
-  checkmate::assertNumeric(alpha, lower = 0, upper = 1, len = 1, add = errorMessages)
+  checkmate::assertNumber(alpha, lower = 0, upper = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
@@ -203,8 +203,30 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   return(result)
 }
 
-
 #' Compute P for pre-exposure risk gain
+#'
+#' @param exposureEraId       The exposure to create the era data for. If not specified it is
+#'                            assumed to be the one exposure for which the data was loaded from
+#'                            the database.
+#' @template StudyPopulation
+#' @template SccsData
+#'
+#' @description
+#' This function is deprecated. Use `computePreExposureGain()` instead.
+#'
+#'
+#' @return
+#' A one-sided p-value for whether the rate before exposure is higher than after, against
+#' the null of no change.#'
+#'
+#' @export
+computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = NULL) {
+  .Deprecated("computePreExposureGain")
+  return(computePreExposureGain(sccsData, studyPopulation, exposureEraId)$p)
+}
+
+
+#' Compute pre-exposure risk gain diagnostic
 #'
 #' @details
 #' Compares the rate of the outcome in the 30 days prior to exposure to the rate
@@ -231,7 +253,8 @@ computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NU
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  checkmate::assertInt(exposureEraId, add = errorMessages)
+  checkmate::assertInt(exposureEraId, null.ok = TRUE, add = errorMessages)
+  checkmate::assertNumber(alpha, lower = 0, upper = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   if (is.null(exposureEraId)) {
@@ -346,7 +369,7 @@ computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NU
 #' Compute p-value for event-dependent observation end
 #'
 #' @param sccsModel         A fitted SCCS model as created using [fitSccsModel()].
-#' @param alpha               The alpha (type 1 error) used to test for exposure rate change.
+#' @param alpha             The alpha (type 1 error) used to test for exposure rate change.
 #'
 #' @return
 #' A tibble with one row and three columns: `ratio` indicates the estimates incidence rate ratio for the
@@ -358,6 +381,7 @@ computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NU
 computeEventDependentObservation <- function(sccsModel, alpha = 0.05) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
+  checkmate::assertNumber(alpha, lower = 0, upper = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   if (is.null(sccsModel$estimates)) {
     return(tibble(ratio = NA,
@@ -488,7 +512,10 @@ computeExposureChange <- function(sccsData,
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  checkmate::assertInt(exposureEraId, add = errorMessages)
+  checkmate::assertInt(exposureEraId, null.ok = TRUE, add = errorMessages)
+  checkmate::assertNumeric(bounds, len = 2, any.missing = FALSE, sorted = TRUE, add = errorMessages)
+  checkmate::assertNumber(alpha, lower = 0, upper = 1, add = errorMessages)
+  checkmate::assertLogical(ignoreExposureStarts, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   if (nrow(studyPopulation$cases) == 0) {
@@ -689,4 +716,54 @@ computeExposureStability <- function(studyPopulation,
   return(tibble(ratio = exp(logRr),
                 p = p,
                 stable = p > alpha))
+}
+
+#' Check if rare outcome assumption is violated
+#'
+#' @template StudyPopulation
+#' @param firstOutcomeOnly   Was the analysis restricted to the first outcome only? If left at NULL,
+#'                           will be determined by whether `firstOutcomeOnly` was set to `TRUE` when
+#'                           calling `createStudyPopulation()` or whether each person only had one
+#'                           outcome when pulling the data from the server.
+#' @param maxPrevalence      The maximum allowed prevalence (proportion of people with the outcome)
+#'                           allowed when restricting to first outcome only.
+#'
+#' @details
+#' Most SCCS analyses restrict to the first outcome occurrence per person to avoid violating the
+#' assumption that subsequent occurrences are independent. This is fine, as long as the outcome is
+#' rare. According to Farrington et al., the magnitude of the bias from violating this assumption is
+#' 0.5p, where p is the prevalence. By default we set the threshold for p at 0.1, corresponding to
+#' at most 5 percent bias.
+#'
+#' The prevalence was computed in the `getDbSccsData()` function, within the population defined by
+#' the `observation_period` table, and restricted to the study period(s) and nesting cohort if
+#' used.
+#'
+#' @references
+#' Farrington P, Whitaker H, Ghebremichael-Weldeselassie Y, Self-Controlled Case Series Studies: A
+#' Modelling Guide with R, CRC Press, 2018
+#'
+#' @return
+#' A logical value, which is TRUE if the rare outcome assumption is violated. The assumption is
+#' violated when restricting to first outcome only and the prevalence exceeds the pre-defined
+#' threshold.
+#'
+#' @export
+isRareOutcomeAssumptionViolated <- function(studyPopulation,
+                                            firstOutcomeOnly = NULL,
+                                            maxPrevalence = 0.1) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
+  checkmate::assertLogical(firstOutcomeOnly, len = 1, null.ok = TRUE, add = errorMessages)
+  checkmate::assertNumber(maxPrevalence, lower = 0, upper = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+  prevalence <- studyPopulation$metaData$prevalence
+  if (is.null(firstOutcomeOnly)) {
+    firstOutcomeOnly <- prevalence$definitelyFirstOutcomeOnly | prevalence$probablyFirstOutcomeOnly
+  }
+  if (firstOutcomeOnly) {
+    return(prevalence$outcomeProportion > maxPrevalence)
+  } else {
+    return(FALSE)
+  }
 }
