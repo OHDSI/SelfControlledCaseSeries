@@ -197,13 +197,19 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
 
   # Generate eras ----------------------------------------------------------------------------------
   cumulativeIntensity <- function(t, usageRate, usageRateSlope) {
-    usageRate * t + 0.5 * usageRateSlope * t^2
+    if (usageRateSlope < 0) {
+      t <- pmin(-usageRate / usageRateSlope, t)
+    }
+    return(usageRate * t + 0.5 * usageRateSlope * t^2)
   }
 
   inverseCumulativeIntensity <- function(u, usageRate, usageRateSlope, days) {
     if (usageRateSlope == 0) {
       t <- u * days
     } else {
+      if (usageRateSlope < 0) {
+        days <- pmin(-usageRate / usageRateSlope, days)
+      }
       lambdaT <- usageRate * days + 0.5 * usageRateSlope * days^2
       t <- (-usageRate + sqrt(usageRate^2 + 2 * usageRateSlope * u * lambdaT)) / usageRateSlope
     }
@@ -218,8 +224,8 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
       u <- runif(nEvents)
       startDay <- sapply(u,
                          inverseCumulativeIntensity,
-                         usageRate = settings$usageRate[i],
-                         usageRateSlope = settings$usageRateSlope[i],
+                         usageRate = usageRate,
+                         usageRateSlope = usageRateSlope,
                          days = observationDays[idx]) |>
         round() |>
         unique() |>
