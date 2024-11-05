@@ -744,14 +744,15 @@ computeExposureStability <- function(studyPopulation,
 #' Modelling Guide with R, CRC Press, 2018
 #'
 #' @return
-#' A logical value, which is TRUE if the rare outcome assumption is violated. The assumption is
-#' violated when restricting to first outcome only and the prevalence exceeds the pre-defined
-#' threshold.
+#' A tibble with one row and three columns: `outcomeProportion` indicates the proportion of people
+#' having the outcome at least once. `firstOutcomeOnly` indicated whether the analysis was restricted
+#' to the first outcome only. `rare` is TRUE if the rare outcome assumption is met, or the analysis
+#' was not restricted to the first outcome.
 #'
 #' @export
-isRareOutcomeAssumptionViolated <- function(studyPopulation,
-                                            firstOutcomeOnly = NULL,
-                                            maxPrevalence = 0.1) {
+checkRareOutcomeAssumption <- function(studyPopulation,
+                                       firstOutcomeOnly = NULL,
+                                       maxPrevalence = 0.1) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertLogical(firstOutcomeOnly, len = 1, null.ok = TRUE, add = errorMessages)
@@ -762,8 +763,11 @@ isRareOutcomeAssumptionViolated <- function(studyPopulation,
     firstOutcomeOnly <- prevalence$definitelyFirstOutcomeOnly | prevalence$probablyFirstOutcomeOnly
   }
   if (firstOutcomeOnly) {
-    return(prevalence$outcomeProportion > maxPrevalence)
+    rare <- prevalence$outcomeProportion <= maxPrevalence
   } else {
-    return(FALSE)
+    rare <- TRUE
   }
+  return(tibble(outcomeProportion = prevalence$outcomeProportion,
+                firstOutcomeOnly = firstOutcomeOnly,
+                rare = rare))
 }
