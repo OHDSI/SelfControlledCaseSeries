@@ -506,7 +506,7 @@ computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId,
 computeExposureChange <- function(sccsData,
                                   studyPopulation,
                                   exposureEraId = NULL,
-                                  bounds = log(c(0.5, 2)),
+                                  bounds = log(c(1/1.25, 1.25)),
                                   alpha = 0.05,
                                   ignoreExposureStarts = FALSE) {
   errorMessages <- checkmate::makeAssertCollection()
@@ -533,8 +533,8 @@ computeExposureChange <- function(sccsData,
 
   timeWindows <- tibble(
     windowId = c(0, 1),
-    startDay = c(-30, 0),
-    endDay = c(-1, 29)
+    startDay = c(-60, 0),
+    endDay = c(-1, 59)
   )
   data <- computeExposureDaysToEvent(studyPopulation = studyPopulation,
                                      sccsData = sccsData,
@@ -611,7 +611,7 @@ computeExposureChange <- function(sccsData,
 computeExposureStability <- function(studyPopulation,
                                      sccsData,
                                      exposureEraId,
-                                     bounds = log(c(2/3, 3/2)),
+                                     bounds = log(c(1/1.25, 1.25)),
                                      alpha = 0.05) {
   cases <- studyPopulation$cases |>
     filter(.data$endDay - .data$startDay > 2) |>
@@ -683,7 +683,9 @@ computeExposureStability <- function(studyPopulation,
     filter(.data$stratumId %in% casesWithExposure)
 
   if (nrow(poissonData) < 5) {
-    return(NA)
+    return(tibble(ratio = NA,
+                  p = NA,
+                  stable = TRUE))
   }
 
   cyclopsData <- Cyclops::convertToCyclopsData(outcomes = poissonData,
@@ -693,7 +695,9 @@ computeExposureStability <- function(studyPopulation,
                                                quiet = TRUE)
   fit <- Cyclops::fitCyclopsModel(cyclopsData)
   if (fit$return_flag != "SUCCESS") {
-    return(NA)
+    return(tibble(ratio = NA,
+                  p = NA,
+                  stable = TRUE))
   }
   logRr <- coef(fit)
   if (logRr >= bounds[1] && logRr <= bounds[2]) {

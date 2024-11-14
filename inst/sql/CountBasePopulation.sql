@@ -23,7 +23,7 @@ limitations under the License.
 {DEFAULT @nesting_cohort_id = ''}
 
 SELECT COUNT(*) AS window_count,
-  SUM(CAST(end_date - start_date + 1 AS BIGINT)) AS days_count
+  SUM(CAST(DATEDIFF(DAY, start_date, end_date) + 1 AS BIGINT)) AS days_count
 FROM (
 {@use_nesting_cohort} ? {
   SELECT person_id,
