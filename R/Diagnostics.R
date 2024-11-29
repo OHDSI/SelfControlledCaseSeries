@@ -452,7 +452,7 @@ computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId,
   exposureDaysPerWindow <- exposuresRelativeToOutcome |>
     cross_join(timeWindows) |>
     filter(.data$deltaExposureEnd >= .data$startDay & .data$deltaExposureStart <= .data$endDay) |>
-    # filter(!ignoreExposureStarts | .data$deltaExposureStart <= .data$startDay) |>
+    filter(!ignoreExposureStarts | .data$deltaExposureStart <= .data$startDay) |>
     mutate(deltaExposureStart = pmax(.data$deltaExposureStart, .data$startDay),
            deltaExposureEnd = pmin(.data$deltaExposureEnd, .data$endDay)) |>
     group_by(.data$caseId, .data$windowId, .data$startDay, .data$endDay) |>
