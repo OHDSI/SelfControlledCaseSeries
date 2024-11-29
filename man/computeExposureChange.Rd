@@ -8,7 +8,7 @@ computeExposureChange(
   sccsData,
   studyPopulation,
   exposureEraId = NULL,
-  bounds = log(c(0.5, 2)),
+  bounds = log(c(1/1.25, 1.25)),
   alpha = 0.05,
   ignoreExposureStarts = FALSE
 )
