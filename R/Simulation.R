@@ -406,6 +406,7 @@ simulateSccsData <- function(nCases, settings) {
       if (!increasing) {
         calendarTimeRisk <- -calendarTimeRisk
       }
+      calendarTimeRisk <- calendarTimeRisk - mean(calendarTimeRisk)
     }
     calendarTimeFun <- splinefun(as.numeric(calendarTime), calendarTimeRisk)
   } else {
