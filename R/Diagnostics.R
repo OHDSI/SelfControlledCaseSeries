@@ -163,6 +163,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   }
   o <- data$observedCount
   e <- data$observedCount / data$adjustedRatio
+  e[e == 0] <- .Machine$double.eps
 
   # logLikelihood <- function(x) {
   #   return(-sum(log(dpois(o, e*x) + dpois(o, e/x))))
