@@ -492,6 +492,11 @@ countOutcomesInDb <- function(connection, hasStudyPeriods, useNestingCohort, tem
 }
 
 ensureAgePositive <- function(sccsData) {
+  # If there are no cases, some platforms will convert ageAtObsStart to logical,
+  # which will throw an error when compared to 0 on DuckDb:
+  if (pull(count(sccsData$cases)) == 0) {
+    return(sccsData)
+  }
   countNegativeAges <- sccsData$cases %>%
     filter(.data$ageAtObsStart < 0) %>%
     count() %>%
