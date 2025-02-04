@@ -109,19 +109,22 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
                                       1))) %>%
       summarize(month = !!month,
                 expectedCount = sum(.data$weight * .data$rate),
-                adjustedExpectedCount = sum(.data$weight * .data$rate * monthAdjustment$totalRr / .data$correction),
+                adjustedExpectedCount = if_else(monthAdjustment$totalRr == 0,
+                                                0,
+                                                sum(.data$weight * .data$rate * monthAdjustment$totalRr / .data$correction)),
                 observationPeriodCount = sum(.data$weight)) %>%
       return()
   }
   expectedCounts <- bind_rows(lapply(split(monthAdjustments, seq_len(nrow(monthAdjustments))), computeExpected))
 
-  data <- observedCounts %>%
-    inner_join(expectedCounts, by = join_by("month")) %>%
-    mutate(ratio = .data$observedCount / .data$expectedCount)  %>%
-    mutate(adjustedRatio = .data$observedCount / .data$adjustedExpectedCount)  %>%
+  data <- expectedCounts %>%
+    left_join(observedCounts, by = join_by("month")) %>%
+    mutate(observedCount = if_else(is.na(.data$observedCount), 0, .data$observedCount)) %>%
+    mutate(ratio = if_else(.data$observedCount == 0, .data$expectedCount == 0, 1, .data$observedCount / .data$expectedCount))  %>%
+    mutate(adjustedRatio = if_else(.data$observedCount == 0, .data$adjustedExpectedCount == 0, 1, .data$observedCount / .data$adjustedExpectedCount))  %>%
     mutate(monthStartDate = convertMonthToStartDate(.data$month),
            monthEndDate = convertMonthToEndDate(.data$month)) %>%
-    select(-"expectedCount", -"adjustedExpectedCount")
+    select(-"expectedCount")
   return(data)
 }
 
@@ -162,7 +165,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
     return(result)
   }
   o <- data$observedCount
-  e <- data$observedCount / data$adjustedRatio
+  e <- data$adjustedExpectedCount
   e[e == 0] <- .Machine$double.eps
 
   # logLikelihood <- function(x) {
