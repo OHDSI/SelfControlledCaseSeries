@@ -382,14 +382,14 @@ simulateSccsData <- function(nCases, settings) {
 
   if (settings$includeAgeEffect) {
     age <- seq(settings$minAge, settings$maxAge, length.out = settings$ageKnots)
-    ageRisk <- runif(settings$ageKnots, -2, 2)
+    ageRisk <- rnorm(settings$ageKnots, 0, 2)
     ageFun <- splinefun(age, ageRisk)
   } else {
     ageFun <- NULL
   }
   if (settings$includeSeasonality) {
     seasonKnots <- seq(1, 366, length.out = settings$seasonKnots)
-    seasonRisk <- runif(settings$seasonKnots - 1, -2, 2)
+    seasonRisk <- rnorm(settings$seasonKnots - 1, 0, 2)
     seasonFun <- function(x) {
       designMatrix <- cyclicSplineDesign(x, seasonKnots)
       return(apply(designMatrix %*% seasonRisk, 1, sum))
@@ -399,14 +399,17 @@ simulateSccsData <- function(nCases, settings) {
   }
   if (settings$includeCalendarTimeEffect) {
     calendarTime <- seq(settings$minCalendarTime, settings$maxCalendarTime, length.out = settings$calendarTimeKnots)
-    calendarTimeRisk <- runif(settings$calendarTimeKnots, -2, 2)
     if (settings$calenderTimeMonotonic) {
-      increasing <- calendarTimeRisk[1] > 0
-      calendarTimeRisk <- cumsum(abs(calendarTimeRisk))
-      if (!increasing) {
-        calendarTimeRisk <- -calendarTimeRisk
+      increasing <- rbinom(1, 1, 0.5) == 1
+      calendarTimeRisk <- rnorm(settings$calendarTimeKnots, 0, 0.5)
+      if (increasing) {
+        calendarTimeRisk <- cumsum(abs(calendarTimeRisk))
+      } else {
+        calendarTimeRisk <- cumsum(-abs(calendarTimeRisk))
       }
       calendarTimeRisk <- calendarTimeRisk - mean(calendarTimeRisk)
+    } else {
+      calendarTimeRisk <- rnorm(settings$calendarTimeKnots, 0, 1)
     }
     calendarTimeFun <- splinefun(as.numeric(calendarTime), calendarTimeRisk)
   } else {
