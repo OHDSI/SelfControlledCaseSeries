@@ -189,9 +189,15 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   maxX <- x[max(which(!is.na(ll) & !is.infinite(ll)))]
   minX <- x[min(which(!is.na(ll) & !is.infinite(ll)))]
   xHat <- optim(1.5, logLikelihood, lower = minX, upper = maxX, method = "L-BFGS-B")$par
-  l0 <- integrate(vectorLikelihood, lower = 1, upper = maxRatio)$value
-  l1 <- integrate(vectorLikelihood, lower = maxRatio, upper = Inf)$value
-  llr <- 2*(log(l1) - log(l0))
+  llr <- tryCatch({
+    l0 <- integrate(vectorLikelihood, lower = 1, upper = maxRatio)$value
+    l1 <- integrate(vectorLikelihood, lower = maxRatio, upper = Inf)$value
+    llr <- 2*(log(l1) - log(l0))
+    llr
+  },
+  error = function(e) {
+    NaN
+  })
   if (is.nan(llr)) {
     if (xHat > maxRatio) {
       p <- 0
