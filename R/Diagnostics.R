@@ -168,36 +168,19 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
   e <- data$adjustedExpectedCount
   e[e == 0] <- .Machine$double.eps
 
-  # logLikelihood <- function(x) {
-  #   return(-sum(log(dpois(o, e*x) + dpois(o, e/x))))
-  # }
-  # From https://cdsmithus.medium.com/the-logarithm-of-a-sum-69dd76199790
-  smoothMax <- function(x, y) {
-    return(ifelse(abs(x-y) > 100, pmax(x,y), x + log(1 + exp(y-x))))
-  }
   logLikelihood <- function(x) {
-    return(-sum(smoothMax(dpois(o, e*x, log = TRUE), dpois(o, e/x, log = TRUE))))
-  }
-  likelihood <- function(x) {
-    return(exp(-logLikelihood(x)))
-  }
-  vectorLikelihood <- function(x) {
-    return(sapply(x, likelihood))
+    return(-sum(log(dpois(o, e*x) + dpois(o, e/x))))
   }
   x <- seq(1, 10, by = 0.1)
   ll <- sapply(x, logLikelihood)
   maxX <- x[max(which(!is.na(ll) & !is.infinite(ll)))]
   minX <- x[min(which(!is.na(ll) & !is.infinite(ll)))]
   xHat <- optim(1.5, logLikelihood, lower = minX, upper = maxX, method = "L-BFGS-B")$par
-  llr <- tryCatch({
-    l0 <- integrate(vectorLikelihood, lower = 1, upper = maxRatio)$value
-    l1 <- integrate(vectorLikelihood, lower = maxRatio, upper = Inf)$value
-    llr <- 2*(log(l1) - log(l0))
-    llr
-  },
-  error = function(e) {
-    NaN
-  })
+  x0 <- if (xHat > maxRatio) maxRatio else xHat
+  x1 <- if (xHat < maxRatio) maxRatio else xHat
+  ll0 <- logLikelihood(x0)
+  ll1 <- logLikelihood(x1)
+  llr <- 2 * (ll1 - ll0)
   if (is.nan(llr)) {
     if (xHat > maxRatio) {
       p <- 0
