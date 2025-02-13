@@ -35,9 +35,6 @@
 #'                              the likelihood for coefficient of variables is sampled. See details.
 #' @param profileBounds         The bounds (on the log relative risk scale) for the adaptive sampling
 #'                              of the likelihood function.
-#' @param endOfObservationEffectBounds The bounds on the estimated effect for the end-of-observation probe. A p-value
-#'                                     will be computed against the null that the effect is within these bounds.
-#'
 #'
 #' @return
 #' An object of type `SccsModel`. Generic functions `print`, `coef`, and
@@ -60,8 +57,7 @@ fitSccsModel <- function(sccsIntervalData,
                            noiseLevel = "quiet"
                          ),
                          profileGrid = NULL,
-                         profileBounds = c(log(0.1), log(10)),
-                         endOfObservationEffectBounds = c(log(0.5), log(2.0))) {
+                         profileBounds = c(log(0.1), log(10))) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsIntervalData, "SccsIntervalData", null.ok = TRUE, add = errorMessages)
   checkmate::assertClass(prior, "cyclopsPrior", add = errorMessages)
@@ -158,11 +154,11 @@ fitSccsModel <- function(sccsIntervalData,
       prior$exclude <- intersect(nonRegularized, covariateIds)
     }
     cyclopsData <- Cyclops::convertToCyclopsData(sccsIntervalData$outcomes,
-      sccsIntervalData$covariates,
-      modelType = "cpr",
-      addIntercept = FALSE,
-      checkRowIds = FALSE,
-      quiet = TRUE
+                                                 sccsIntervalData$covariates,
+                                                 modelType = "cpr",
+                                                 addIntercept = FALSE,
+                                                 checkRowIds = FALSE,
+                                                 quiet = TRUE
     )
     fit <- tryCatch(
       {
@@ -232,32 +228,12 @@ fitSccsModel <- function(sccsIntervalData,
           estimates <- merge(estimates, ci, by.x = "covariateId", by.y = "covariate", all.x = TRUE)
           estimates$seLogRr <- (estimates$logUb95 - estimates$logLb95) / (2 * qnorm(0.975))
           for (param in intersect(needCi, estimates$covariateId)) {
-            if (needTestForEndofObservation && param == metaData$endOfObservationEra$endOfObservationCovariateId) {
-              # We use a different NULL for the end-of-observation probe:
-              logRr <- estimates$logRr[estimates$covariateId == param]
-              if (logRr >= endOfObservationEffectBounds[1] && logRr <= endOfObservationEffectBounds[2]) {
-                llNull <- fit$log_likelihood
-              } else {
-                if (logRr < endOfObservationEffectBounds[1]) {
-                  nullLogRr <- endOfObservationEffectBounds[1]
-                } else {
-                  nullLogRr <- endOfObservationEffectBounds[2]
-                }
-                llNull <- Cyclops::getCyclopsProfileLogLikelihood(
-                  object = fit,
-                  parm = param,
-                  x = nullLogRr,
-                  includePenalty = TRUE
-                )$value
-              }
-            } else {
-              llNull <- Cyclops::getCyclopsProfileLogLikelihood(
-                object = fit,
-                parm = param,
-                x = 0,
-                includePenalty = TRUE
-              )$value
-            }
+            llNull <- Cyclops::getCyclopsProfileLogLikelihood(
+              object = fit,
+              parm = param,
+              x = 0,
+              includePenalty = TRUE
+            )$value
             estimates$llr[estimates$covariateId == param] <- fit$log_likelihood - llNull
           }
         }

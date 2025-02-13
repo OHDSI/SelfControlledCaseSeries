@@ -149,7 +149,7 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
 #' if `p` is greater than `alpha`.
 #'
 #' @export
-computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.25, alpha = 0.05) {
+computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.10, alpha = 0.05) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
@@ -362,38 +362,40 @@ computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NU
 #' Compute p-value for event-dependent observation end
 #'
 #' @param sccsModel         A fitted SCCS model as created using [fitSccsModel()].
-#' @param alpha             The alpha (type 1 error) used to test for exposure rate change.
+#' @param nullBounds        The bounds for the null hypothesis on the incidence rate ratio scale.
 #'
 #' @return
-#' A tibble with one row and three columns: `ratio` indicates the estimates incidence rate ratio for the
-#' probe at the end of observation. `p` is the p-value against the null-hypothesis that the log ratio is
-#' between the `endOfObservationEffectBounds` specified when calling `fitSccsModel()`, and `stable` is
-#' `TRUE` if `p` is greater than `alpha`.
+#' A tibble with one row and four columns: `ratio` indicates the estimates incidence rate ratio for the
+#' probe at the end of observation. `lb` and `ub` represent the upper and lower bounds of the 95 percent
+#' confidence interval, and `stable` is `TRUE` if the confidence interval insersects the null bounds.
 #'
 #' @export
-computeEventDependentObservation <- function(sccsModel, alpha = 0.05) {
+computeEventDependentObservation <- function(sccsModel, nullBounds <- c(0.5, 2.0)) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
   checkmate::assertNumber(alpha, lower = 0, upper = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   if (is.null(sccsModel$estimates)) {
     return(tibble(ratio = NA,
-                  p = NA,
+                  lb = NA,
+                  ub = NA,
                   stable = NA))
   }
   estimate <- sccsModel$estimates |>
     filter(.data$covariateId == 99) |>
-    select("logRr", "llr")
+    select("logRr", "logLb95", "logUb95")
   if (length(estimate) == 0) {
     warning("No estimate found for the end of observation probe")
     return(tibble(ratio = NA,
-                  p = NA,
+                  lb = NA,
+                  ub = NA,
                   stable = NA))
   }
-  p <- 0.5 * pchisq(2 * estimate$llr, df = 0, lower.tail = FALSE) + 0.5 * pchisq(2 * estimate$llr, df = 1, lower.tail = FALSE)
-  return(tibble(ratio = exp(estimate$logRr),
-                p = p,
-                stable = p > alpha))
+  result <- tibble(ratio = exp(estimate$logRr),
+                   lb = exp(estimate$logLb95),
+                   ub = exp(estimate$logUb95)) |>
+    mutate(stable = lb <= nullBounds[2] & ub >= nullBounds[1])
+  return(result)
 }
 
 mergeOverlappingExposures <- function(exposures) {
@@ -596,8 +598,6 @@ computeExposureChange <- function(sccsData,
                 p = p,
                 stable = p > alpha))
 }
-
-
 
 
 #' @export
