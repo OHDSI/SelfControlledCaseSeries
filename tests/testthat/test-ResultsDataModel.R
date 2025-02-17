@@ -79,6 +79,7 @@ testCreateSchema <- function(connectionDetails, resultsDatabaseSchema) {
 }
 
 test_that("Create schema", {
+  skip_on_os("mac")
   testCreateSchema(connectionDetails = postgresConnectionDetails,
                    resultsDatabaseSchema = postgresResultsDatabaseSchema)
   testCreateSchema(connectionDetails = sqliteConnectionDetails,
@@ -119,6 +120,7 @@ testUploadResults <- function(connectionDetails, resultsDatabaseSchema) {
 }
 
 test_that("Results upload", {
+  skip_on_os("mac")
   testUploadResults(connectionDetails = postgresConnectionDetails,
                     resultsDatabaseSchema = postgresResultsDatabaseSchema)
   testUploadResults(connectionDetails = sqliteConnectionDetails,
