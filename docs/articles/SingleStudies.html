@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SelfControlledCaseSeries</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">5.3.1</span>
       </span>
     </div>
 
@@ -91,7 +91,7 @@ SelfControlledCaseSeries package</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie, Marc A. Suchard and Patrick Ryan</h4>
             
-            <h4 data-toc-skip class="date">2024-08-15</h4>
+            <h4 data-toc-skip class="date">2025-02-17</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/SingleStudies.Rmd" class="external-link"><code>vignettes/SingleStudies.Rmd</code></a></small>
       <div class="hidden name"><code>SingleStudies.Rmd</code></div>
@@ -297,7 +297,7 @@ necessary data for our analysis:</p>
 <span>                          studyStartDates <span class="op">=</span> <span class="st">"20100101"</span>,</span>
 <span>                          studyEndDates <span class="op">=</span> <span class="st">"21000101"</span><span class="op">)</span></span>
 <span><span class="va">sccsData</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: Low disk space in 'C:\Users\ADMIN_~3\AppData\Local\Temp\2\RtmpUPw4jH'. Only 7.7 GB left.</span></span>
+<pre><code><span><span class="co">## Warning: Low disk space in 'C:\Users\ADMIN_~2\AppData\Local\Temp\2\Rtmp638uHF'. Only 4.6 GB left.</span></span>
 <span><span class="co">## <span style="color: #949494;">Use options(warnDiskSpaceThreshold = &lt;n&gt;) to set the number of bytes for this warning to trigger.</span></span></span>
 <span><span class="co">## <span style="color: #949494;">This warning will not be shown for this file location again during this R session.</span></span></span></code></pre>
 <pre><code><span><span class="co">## <span style="color: #949494;"># SccsData object</span></span></span>
@@ -307,7 +307,7 @@ necessary data for our analysis:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\RtmpUPw4jH\file38244dc91a1.sqlite</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmp638uHF\file17cc509a66f9.sqlite</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)</span></span>
@@ -339,11 +339,11 @@ more information of the data we extracted:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Outcome counts:</span></span>
 <span><span class="co">##     Outcome Subjects Outcome Events Outcome Observation Periods</span></span>
-<span><span class="co">## 356            99702         157218                       1e+05</span></span>
+<span><span class="co">## 356            99241         160554                       1e+05</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Eras:</span></span>
 <span><span class="co">## Number of era types: 2</span></span>
-<span><span class="co">## Number of eras: 168013</span></span></code></pre>
+<span><span class="co">## Number of eras: 169643</span></span></code></pre>
 <div class="section level4">
 <h4 id="saving-the-data-to-file">Saving the data to file<a class="anchor" aria-label="anchor" href="#saving-the-data-to-file"></a>
 </h4>
@@ -384,10 +384,10 @@ restrictions we imposed:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/getAttritionTable.html">getAttritionTable</a></span><span class="op">(</span><span class="va">studyPop</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   outcomeId outcomeSubjects outcomeEvents outcomeObsPeriods observedDays</span></span>
-<span><span class="co">## 1       356          882260       1386052            908691   3367212134</span></span>
-<span><span class="co">## 2       356          779787       1221258            797988   2844636018</span></span>
-<span><span class="co">## 3       356           99702        157218            100000    367899811</span></span>
-<span><span class="co">## 4       356           89269        138585             89470    320619597</span></span>
+<span><span class="co">## 1       356          325890        507256            331800   1211954076</span></span>
+<span><span class="co">## 2       356          207698        323114            211321    573067241</span></span>
+<span><span class="co">## 3       356           99241        160554            100000    284391344</span></span>
+<span><span class="co">## 4       356           87831        135456             88403    239436530</span></span>
 <span><span class="co">##                       description</span></span>
 <span><span class="co">## 1         All outcome occurrences</span></span>
 <span><span class="co">## 2     Outcomes in study period(s)</span></span>
@@ -416,11 +416,11 @@ restrictions we imposed:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Outcome cohort ID: 356</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Number of cases (observation periods): 3609</span></span>
-<span><span class="co">## Number of eras (spans of time): 7218</span></span>
-<span><span class="co">## Number of outcomes: 5808</span></span>
+<span><span class="co">## Number of cases (observation periods): 3724</span></span>
+<span><span class="co">## Number of eras (spans of time): 7448</span></span>
+<span><span class="co">## Number of outcomes: 6079</span></span>
 <span><span class="co">## Number of covariates: 1</span></span>
-<span><span class="co">## Number of non-zero covariate values: 3609</span></span></code></pre>
+<span><span class="co">## Number of non-zero covariate values: 3724</span></span></code></pre>
 <p>In this example, we use the <code>createEraCovariateSettings</code>
 to define a single covariate: exposure to aspirin. We specify that the
 risk window is from start of exposure to the end by setting start and
@@ -447,13 +447,13 @@ covariates and outcomes per interval.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Outcome count:</span></span>
 <span><span class="co">##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays</span></span>
-<span><span class="co">## 356            3609          5808              3609      9511023</span></span>
+<span><span class="co">## 356            3721          6079              3724      7609195</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Estimates:</span></span>
-<span><span class="co">## <span style="color: #949494;"># A tibble: 1 x 7</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 7</span></span></span>
 <span><span class="co">##   Name                    ID Estimate LB95CI UB95CI LogRr SeLogRr</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.48   1.38   1.60 0.395  0.037<span style="text-decoration: underline;">8</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.40   1.29   1.52 0.338  0.042<span style="text-decoration: underline;">3</span></span></span></code></pre>
 <p>This tells us what the estimated relative risk (the incidence rate
 ratio) is during exposure to aspirin compared to non-exposed time.</p>
 </div>
@@ -498,14 +498,14 @@ Again, we can take a look at the results:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Outcome count:</span></span>
 <span><span class="co">##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays</span></span>
-<span><span class="co">## 356            3609          5808              3609      9511023</span></span>
+<span><span class="co">## 356            3721          6079              3724      7609195</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Estimates:</span></span>
-<span><span class="co">## <span style="color: #949494;"># A tibble: 2 x 7</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># A tibble: 2 × 7</span></span></span>
 <span><span class="co">##   Name                    ID Estimate LB95CI UB95CI LogRr SeLogRr</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.54   1.43   1.66 0.432  0.038<span style="text-decoration: underline;">5</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> Pre-exposure          <span style="text-decoration: underline;">1</span>001     1.32   1.19   1.46 0.279  0.053<span style="text-decoration: underline;">1</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.45   1.34   1.58 0.374  0.042<span style="text-decoration: underline;">8</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Pre-exposure          <span style="text-decoration: underline;">1</span>001     1.33   1.19   1.48 0.283  0.054<span style="text-decoration: underline;">4</span></span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="including-seasonality-and-calendar-time">Including seasonality, and calendar time<a class="anchor" aria-label="anchor" href="#including-seasonality-and-calendar-time"></a>
@@ -558,23 +558,23 @@ and calendar time, like this:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Outcome count:</span></span>
 <span><span class="co">##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays</span></span>
-<span><span class="co">## 356           13242         20596             13244     30396567</span></span>
+<span><span class="co">## 356           13331         20896             13343     23672997</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Estimates:</span></span>
-<span><span class="co">## <span style="color: #949494;"># A tibble: 11 x 7</span></span></span>
-<span><span class="co">##    Name                               ID Estimate LB95CI UB95CI    LogRr SeLogRr</span></span>
-<span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 1</span> Seasonality spline component 1    200    1.02   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.022<span style="text-decoration: underline;">8</span>  <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 2</span> Seasonality spline component 2    201    1.43   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.359   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 3</span> Seasonality spline component 3    202    1.00   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.004<span style="text-decoration: underline;">64</span> <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 4</span> Seasonality spline component 4    203    0.969  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.031</span><span style="color: #BB0000; text-decoration: underline;">9</span>  <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 5</span> Calendar time spline component~   300    1.13   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.125   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 6</span> Calendar time spline component~   301    1.11   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.102   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 7</span> Calendar time spline component~   302    1.29   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.253   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 8</span> Calendar time spline component~   303    0.980  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.020</span><span style="color: #BB0000; text-decoration: underline;">5</span>  <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 9</span> Calendar time spline component~   304    1.21   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.192   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">10</span> Exposure of interest             <span style="text-decoration: underline;">1</span>000    1.54    1.43   1.66  0.431    0.038<span style="text-decoration: underline;">5</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">11</span> Pre-exposure                     <span style="text-decoration: underline;">1</span>001    1.32    1.19   1.46  0.278    0.053<span style="text-decoration: underline;">1</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #949494;"># A tibble: 11 × 7</span></span></span>
+<span><span class="co">##    Name                                ID Estimate LB95CI UB95CI   LogRr SeLogRr</span></span>
+<span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 1</span> Seasonality spline component 1     200    1.33   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.281  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 2</span> Seasonality spline component 2     201    1.67   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.510  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 3</span> Seasonality spline component 3     202    1.17   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.156  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 4</span> Seasonality spline component 4     203    0.844  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.170</span>  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 5</span> Calendar time spline component 1   300    0.914  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.089</span><span style="color: #BB0000; text-decoration: underline;">5</span> <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 6</span> Calendar time spline component 2   301    1.36   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.310  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 7</span> Calendar time spline component 3   302    1.78   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.578  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 8</span> Calendar time spline component 4   303    2.40   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.875  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 9</span> Calendar time spline component 5   304    2.59   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.953  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">10</span> Exposure of interest              <span style="text-decoration: underline;">1</span>000    1.41    1.29   1.53  0.342   0.042<span style="text-decoration: underline;">6</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">11</span> Pre-exposure                      <span style="text-decoration: underline;">1</span>001    1.30    1.17   1.44  0.263   0.054<span style="text-decoration: underline;">4</span></span></span></code></pre>
 <p>We see that our estimates for exposed and pre-exposure time have not
 changes much. We can plot the spline curves for season, and calendar
 time to learn more:</p>
@@ -670,14 +670,14 @@ so for now it is best to keep the model simple:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Outcome count:</span></span>
 <span><span class="co">##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays</span></span>
-<span><span class="co">## 356            2910          4504              2923      2167829</span></span>
+<span><span class="co">## 356            3611          5729              3616      1591706</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Estimates:</span></span>
-<span><span class="co">## <span style="color: #949494;"># A tibble: 2 x 7</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># A tibble: 2 × 7</span></span></span>
 <span><span class="co">##   Name                    ID Estimate LB95CI UB95CI LogRr SeLogRr</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.47   1.35   1.60 0.387  0.043<span style="text-decoration: underline;">4</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> Pre-exposure          <span style="text-decoration: underline;">1</span>001     1.42   1.27   1.58 0.348  0.055<span style="text-decoration: underline;">7</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Exposure of interest  <span style="text-decoration: underline;">1</span>000     1.25   1.15   1.37 0.226  0.044<span style="text-decoration: underline;">0</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Pre-exposure          <span style="text-decoration: underline;">1</span>001     1.21   1.09   1.35 0.192  0.054<span style="text-decoration: underline;">6</span></span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -716,7 +716,7 @@ have to retrieve the information on SSRI exposure from the database:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="color: #949494;">Inherits from Andromeda:</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\RtmpUPw4jH\file38241c635026.sqlite</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># Physical location:  C:\Users\admin_mschuemi\AppData\Local\Temp\2\Rtmp638uHF\file17ccf9523f.sqlite</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)</span></span>
@@ -760,25 +760,25 @@ model. Again, we can inspect the model:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Outcome count:</span></span>
 <span><span class="co">##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays</span></span>
-<span><span class="co">## 356           21185         31914             21293     39699113</span></span>
+<span><span class="co">## 356           31012         47526             31095     52544293</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Estimates:</span></span>
-<span><span class="co">## <span style="color: #949494;"># A tibble: 13 x 7</span></span></span>
-<span><span class="co">##    Name                               ID Estimate LB95CI UB95CI    LogRr SeLogRr</span></span>
-<span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 1</span> Seasonality spline component 1    200    1.03   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.027<span style="text-decoration: underline;">4</span>  <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 2</span> Seasonality spline component 2    201    1.45   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.372   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 3</span> Seasonality spline component 3    202    1.02   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.020<span style="text-decoration: underline;">3</span>  <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 4</span> Seasonality spline component 4    203    0.956  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.044</span><span style="color: #BB0000; text-decoration: underline;">5</span>  <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 5</span> Calendar time spline component~   300    1.04   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.034<span style="text-decoration: underline;">5</span>  <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 6</span> Calendar time spline component~   301    0.904  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.101</span>   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 7</span> Calendar time spline component~   302    0.986  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.014</span><span style="color: #BB0000; text-decoration: underline;">2</span>  <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 8</span> Calendar time spline component~   303    0.942  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.059</span><span style="color: #BB0000; text-decoration: underline;">3</span>  <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 9</span> Calendar time spline component~   304    0.996  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.003</span><span style="color: #BB0000; text-decoration: underline;">65</span> <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">10</span> Calendar time spline component~   305    1.01   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.008<span style="text-decoration: underline;">86</span> <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">11</span> Exposure of interest             <span style="text-decoration: underline;">1</span>000    1.58    1.46   1.72  0.459    0.042<span style="text-decoration: underline;">0</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">12</span> Pre-exposure                     <span style="text-decoration: underline;">1</span>001    1.31    1.17   1.46  0.271    0.056<span style="text-decoration: underline;">4</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">13</span> SSRIs                            <span style="text-decoration: underline;">1</span>002    1.21    1.15   1.26  0.188    0.022<span style="text-decoration: underline;">7</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #949494;"># A tibble: 13 × 7</span></span></span>
+<span><span class="co">##    Name                                ID Estimate LB95CI UB95CI   LogRr SeLogRr</span></span>
+<span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 1</span> Seasonality spline component 1     200    1.23   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.210  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 2</span> Seasonality spline component 2     201    1.59   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.462  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 3</span> Seasonality spline component 3     202    1.17   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.159  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 4</span> Seasonality spline component 4     203    0.841  <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>    -<span style="color: #BB0000;">0.173</span>  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 5</span> Calendar time spline component 1   300    1.04   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.038<span style="text-decoration: underline;">2</span> <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 6</span> Calendar time spline component 2   301    1.30   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.263  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 7</span> Calendar time spline component 3   302    1.70   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.530  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 8</span> Calendar time spline component 4   303    2.07   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.729  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 9</span> Calendar time spline component 5   304    2.30   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.832  <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">10</span> Calendar time spline component 6   305    1.03   <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>     0.031<span style="text-decoration: underline;">5</span> <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">11</span> Exposure of interest              <span style="text-decoration: underline;">1</span>000    1.41    1.30   1.54  0.345   0.042<span style="text-decoration: underline;">9</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">12</span> Pre-exposure                      <span style="text-decoration: underline;">1</span>001    1.22    1.09   1.35  0.197   0.054<span style="text-decoration: underline;">7</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">13</span> SSRIs                             <span style="text-decoration: underline;">1</span>002    1.04    1.01   1.07  0.037<span style="text-decoration: underline;">9</span>  0.016<span style="text-decoration: underline;">0</span></span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="adding-all-drugs">Adding all drugs<a class="anchor" aria-label="anchor" href="#adding-all-drugs"></a>
@@ -805,6 +805,7 @@ Next, we simply create a new set of covariates, and fit the model:</p>
 <span>                                  naivePeriod <span class="op">=</span> <span class="fl">180</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">covarAllDrugs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createEraCovariateSettings.html">createEraCovariateSettings</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"Other exposures"</span>,</span>
+<span>                                            includeEraIds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>                                            excludeEraIds <span class="op">=</span> <span class="va">aspirin</span>,</span>
 <span>                                            stratifyById <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                                            start <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -841,12 +842,12 @@ to a data frame using <code><a href="../reference/getModel.html">getModel()</a><
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getModel.html">getModel</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
 <span><span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op">==</span> <span class="va">aspirin</span>, <span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 2 x 10</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 2 × 10</span></span></span>
 <span><span class="co">##   name     id estimate lb95Ci ub95Ci logRr seLogRr originalEraId originalEraType</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> Expo~  <span style="text-decoration: underline;">1</span>000     1.37   1.26   1.50 0.317  0.044<span style="text-decoration: underline;">0</span>       1<span style="text-decoration: underline;">112</span>807 <span style="color: #949494;">""</span>             </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> Pre-~  <span style="text-decoration: underline;">1</span>001     1.23   1.09   1.38 0.205  0.059<span style="text-decoration: underline;">1</span>       1<span style="text-decoration: underline;">112</span>807 <span style="color: #949494;">""</span>             </span></span>
-<span><span class="co">## <span style="color: #949494;"># i 1 more variable: originalEraName &lt;chr&gt;</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Expo…  <span style="text-decoration: underline;">1</span>000     1.28   1.14   1.43 0.247  0.057<span style="text-decoration: underline;">3</span>       1<span style="text-decoration: underline;">112</span>807 <span style="color: #949494;">""</span>             </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Pre-…  <span style="text-decoration: underline;">1</span>001     1.23   1.10   1.38 0.211  0.059<span style="text-decoration: underline;">1</span>       1<span style="text-decoration: underline;">112</span>807 <span style="color: #949494;">""</span>             </span></span>
+<span><span class="co">## <span style="color: #949494;"># ℹ 1 more variable: originalEraName &lt;chr&gt;</span></span></span></code></pre>
 <p>Here we see that despite the extensive adjustments that are made in
 the model, the effect estimates for aspirin have remained nearly the
 same.</p>
@@ -854,14 +855,15 @@ same.</p>
 the SSRIs:</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ssris</span>, <span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 4 x 10</span></span></span>
-<span><span class="co">##   name                    id estimate lb95Ci ub95Ci  logRr seLogRr originalEraId</span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> Other exposures: ci~  <span style="text-decoration: underline;">1</span>148     1.10     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> 0.092<span style="text-decoration: underline;">9</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">797</span>617</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> Other exposures: se~  <span style="text-decoration: underline;">1</span>470     1.10     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> 0.096<span style="text-decoration: underline;">1</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">739</span>138</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> Other exposures: es~  <span style="text-decoration: underline;">1</span>850     1.05     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> 0.048<span style="text-decoration: underline;">4</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">715</span>939</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">4</span> Other exposures: fl~  <span style="text-decoration: underline;">2</span>128     1.19     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> 0.171       <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">755</span>695</span></span>
-<span><span class="co">## <span style="color: #949494;"># i 2 more variables: originalEraType &lt;chr&gt;, originalEraName &lt;chr&gt;</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 5 × 10</span></span></span>
+<span><span class="co">##   name                  id estimate lb95Ci ub95Ci    logRr seLogRr originalEraId</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Other exposures: …  <span style="text-decoration: underline;">1</span>074    1.01      <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>  0.012<span style="text-decoration: underline;">6</span>       <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">722</span>031</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Other exposures: …  <span style="text-decoration: underline;">1</span>364    0.996     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.003</span><span style="color: #BB0000; text-decoration: underline;">73</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">715</span>939</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> Other exposures: …  <span style="text-decoration: underline;">2</span>047    0.991     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.008</span><span style="color: #BB0000; text-decoration: underline;">79</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">739</span>138</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> Other exposures: …  <span style="text-decoration: underline;">2</span>432    0.996     <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.004</span><span style="color: #BB0000; text-decoration: underline;">13</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">797</span>617</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span> Other exposures: …  <span style="text-decoration: underline;">2</span>709    1.02      <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>  0.018<span style="text-decoration: underline;">7</span>       <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">755</span>695</span></span>
+<span><span class="co">## <span style="color: #949494;"># ℹ 2 more variables: originalEraType &lt;chr&gt;, originalEraName &lt;chr&gt;</span></span></span></code></pre>
 <p>Note that because we used regularization, we are not able to compute
 the confidence intervals for these estimates.</p>
 </div>
@@ -891,10 +893,10 @@ compute the minimum detectable relative risk (MDRR) instead:</p>
 <span>            power <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>            twoSided <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>            method <span class="op">=</span> <span class="st">"binomial"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 x 5</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 5</span></span></span>
 <span><span class="co">##   timeExposed timeTotal propTimeExposed events  mdrr</span></span>
 <span><span class="co">##         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span>     2<span style="text-decoration: underline;">038</span>397  11<span style="text-decoration: underline;">069</span>291           0.184   <span style="text-decoration: underline;">5</span>808  1.10</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>     1<span style="text-decoration: underline;">111</span>172  10<span style="text-decoration: underline;">377</span>263           0.107   <span style="text-decoration: underline;">6</span>079  1.12</span></span></code></pre>
 <p>Note that we have to provide the covariate ID of the exposure of
 interest, which we learned by calling <code>summary</code> on
 <code>sccsIntervalData</code> earlier. This is because we may have many
@@ -921,7 +923,7 @@ to detect these situations. We can compute a p-value for whether rate is
 increased pre-exposure:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/computePreExposureGainP.html">computePreExposureGainP</a></span><span class="op">(</span><span class="va">sccsData</span>, <span class="va">studyPopulation</span>, exposureEraId <span class="op">=</span> <span class="va">aspirin</span><span class="op">)</span> </span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.6306886</span></span></code></pre>
+<pre><code><span><span class="co">## [1] 0.6611594</span></span></code></pre>
 <p>If this p-value is lower than a prespecified threshold (e.g. p &lt;
 0.05), we can decide to reject the null hypothesis that the rate is not
 increased, and we probably should not trust our analysis to produce
@@ -934,7 +936,7 @@ reliable estimates.</p>
 observation time:</p>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotAgeSpans.html">plotAgeSpans</a></span><span class="op">(</span><span class="va">studyPop</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in plotAgeSpans(studyPop): There are 89470 cases. Random sampling 10000</span></span>
+<pre><code><span><span class="co">## Warning in plotAgeSpans(studyPop): There are 88403 cases. Random sampling 10000</span></span>
 <span><span class="co">## cases.</span></span></code></pre>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-57-1.png" width="700"></p>
 <p>Here we see that most observation periods span only a small age
@@ -975,10 +977,10 @@ ratio seems stable. We can perform a formal test for stability:</p>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/computeTimeStability.html">computeTimeStability</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>                     sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 x 3</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 3</span></span></span>
 <span><span class="co">##   ratio     p stable</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span>  1.12     1 TRUE</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>  1.06     1 TRUE</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -990,9 +992,9 @@ ratio seems stable. We can perform a formal test for stability:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"SelfControlledCaseSeries"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## To cite package 'SelfControlledCaseSeries' in publications use:</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2024).</span></span>
+<span><span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2025).</span></span>
 <span><span class="co">##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package</span></span>
-<span><span class="co">##   version 5.3.0, https://github.com/OHDSI/SelfControlledCaseSeries,</span></span>
+<span><span class="co">##   version 5.3.1, https://github.com/OHDSI/SelfControlledCaseSeries,</span></span>
 <span><span class="co">##   &lt;https://ohdsi.github.io/SelfControlledCaseSeries/&gt;.</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## A BibTeX entry for LaTeX users is</span></span>
@@ -1000,8 +1002,8 @@ ratio seems stable. We can perform a formal test for stability:</p>
 <span><span class="co">##   @Manual{,</span></span>
 <span><span class="co">##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},</span></span>
 <span><span class="co">##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},</span></span>
-<span><span class="co">##     year = {2024},</span></span>
-<span><span class="co">##     note = {R package version 5.3.0, </span></span>
+<span><span class="co">##     year = {2025},</span></span>
+<span><span class="co">##     note = {R package version 5.3.1, </span></span>
 <span><span class="co">## https://github.com/OHDSI/SelfControlledCaseSeries},</span></span>
 <span><span class="co">##     url = {https://ohdsi.github.io/SelfControlledCaseSeries/},</span></span>
 <span><span class="co">##   }</span></span></code></pre>
@@ -1051,7 +1053,7 @@ Foundation grant IIS 1251151.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
       </footer>
