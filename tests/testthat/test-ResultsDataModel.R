@@ -79,6 +79,10 @@ testCreateSchema <- function(connectionDetails, resultsDatabaseSchema) {
 }
 
 test_that("Create schema", {
+  # Skipping to avoid 'vector memory limit of 16.0 Gb reached' error on MacOS in GitHub Actions.
+  # Possible caused by large chunk size in ResultModelManager: https://github.com/OHDSI/ResultModelManager/blob/15f3a81acd8b23a571881ddb31e24507688efe83/R/DataModel.R#L507
+  # This test does not throw an error on local MacOS machine with same OS and R version, so guessing this is due to limits of GA VM.
+  # Note: this test did not throw an error before Nov 2024, and RMM code hasn't changed, so may be related to some updates in tidyverse?
   skip_on_os("mac")
   testCreateSchema(connectionDetails = postgresConnectionDetails,
                    resultsDatabaseSchema = postgresResultsDatabaseSchema)
@@ -120,6 +124,7 @@ testUploadResults <- function(connectionDetails, resultsDatabaseSchema) {
 }
 
 test_that("Results upload", {
+  # Skipping for reasons described above:
   skip_on_os("mac")
   testUploadResults(connectionDetails = postgresConnectionDetails,
                     resultsDatabaseSchema = postgresResultsDatabaseSchema)
