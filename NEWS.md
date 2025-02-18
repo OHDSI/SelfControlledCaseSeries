@@ -5,6 +5,8 @@ Bugfixes
 
 1. Fixed (near) infinite loop when using end-of-observation dependence correction and weighting function is poorly integrable. 
 
+2. Changed computation of p-value for time-trend to be more robust against extreme time trends.
+
 
 SelfControlledCaseSeries 5.3.0
 ==============================
