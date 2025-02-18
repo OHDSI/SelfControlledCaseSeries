@@ -19,6 +19,9 @@ vignette: >
 library(SelfControlledCaseSeries)
 outputFolder <- "e:/temp/vignetteSccs"
 folderExists <- dir.exists(outputFolder)
+if (folderExists) {
+  options(andromedaTempFolder = "e:/andromedaTemp")
+}
 ```
 # Introduction
 
@@ -645,20 +648,7 @@ if (folderExists) {
 
 Diagnostic: The mean monthly absolute observed to expected ratio should not be significantly greater than 1.10.
 
-To assess the accuracy of our calendar time and seasonality modeling, we compare the expected number of outcomes under the model to the observed number of outcomes for each month. This helps identify potential miscalibrations in the model’s ability to capture temporal patterns in event occurrence. We can plot the observed to expected count per month:
-
-```{r eval=FALSE}
-plotEventToCalendarTime(studyPopulation = studyPop,
-                        sccsModel = model)
-```
-```{r echo=FALSE,message=FALSE}
-if (folderExists) {
-  plot <- readRDS(file.path(outputFolder, "stabilityPlot2.rds"))
-  print(plot)
-}
-```
-
-We can also perform a statistal test against the pre-defined threshold to verify we meet the assumption:
+To assess the accuracy of our calendar time and seasonality modeling, we compare the expected number of outcomes under the model to the observed number of outcomes for each month. This helps identify potential miscalibrations in the model’s ability to capture temporal patterns in event occurrence. Before, we showed how `plotEventToCalendarTime()` can be used to plot the observed to expected ratio per month, with or without the effect of the spline adjustments. We can also perform a statistical test against the pre-defined threshold to verify we meet the assumption:
 
 ```{r eval=FALSE}
 checkTimeStabilityAssumption(studyPopulation = studyPop,
@@ -666,8 +656,7 @@ checkTimeStabilityAssumption(studyPopulation = studyPop,
 ```
 ```{r echo=FALSE,message=FALSE}
 if (folderExists) {
-  checkTimeStabilityAssumption(studyPopulation = studyPop,
-                               sccsModel = model)
+  readRDS(file.path(outputFolder, "stability2.rds"))
 }
 ```
 

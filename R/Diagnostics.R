@@ -120,8 +120,8 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
   data <- expectedCounts |>
     left_join(observedCounts, by = join_by("month")) |>
     mutate(observedCount = if_else(is.na(.data$observedCount), 0, .data$observedCount)) |>
-    mutate(ratio = if_else(.data$observedCount == 0, .data$expectedCount == 0, 1, .data$observedCount / .data$expectedCount))  |>
-    mutate(adjustedRatio = if_else(.data$observedCount == 0, .data$adjustedExpectedCount == 0, 1, .data$observedCount / .data$adjustedExpectedCount))  |>
+    mutate(ratio = if_else(.data$expectedCount == 0, 0, .data$observedCount / .data$expectedCount))  |>
+    mutate(adjustedRatio = if_else(.data$adjustedExpectedCount == 0, 0, .data$observedCount / .data$adjustedExpectedCount))  |>
     mutate(monthStartDate = convertMonthToStartDate(.data$month),
            monthEndDate = convertMonthToEndDate(.data$month)) |>
     select(-"expectedCount")

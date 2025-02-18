@@ -58,7 +58,6 @@ DatabaseConnector::disconnect(connection)
 # Simple model -----------------------------------------------------------------
 aspirin <- 1112807
 epistaxis <- 356
-stroke <- 70
 
 if (!file.exists(folder))
   dir.create(folder)
@@ -105,7 +104,7 @@ studyPop <- readRDS(file.path(folder, "studyPop.rds"))
 # stability <- computeTimeStability(studyPop)
 # stability |>
 #   filter(!stable)
-checkRareOutcomeAssumption(studyPop)
+# checkRareOutcomeAssumption(studyPop)
 
 covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
                                           includeEraIds = aspirin,
@@ -125,34 +124,6 @@ metaData$endOfObservationEra
 model <- fitSccsModel(sccsIntervalData)
 saveRDS(model, file.path(folder, "simpleModel.rds"))
 model
-
-# Stroke model -----------------------------------------------------------------
-sccsDataStroke <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = cohortTable,
-                          outcomeIds = epistaxis,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          exposureIds = aspirin,
-                          studyStartDates = "20100101",
-                          studyEndDates = "21000101",
-                          maxCasesPerOutcome = 100000)
-saveSccsData(sccsDataStroke, file.path(folder, "data1Stroke.zip"))
-sccsDataStroke <- loadSccsData(file.path(folder, "data1Stroke.zip"))
-
-studyPop <- createStudyPopulation(sccsData = sccsDataStroke,
-                                  outcomeId = stroke,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
-sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                           sccsDataStroke,
-                                           eraCovariateSettings = covarAspirin,
-                                           eventDependentObservation = F)
-model <- fitSccsModel(sccsIntervalData)
-model
-
-computeEventDependentObservationP(model)
 
 # Pre-exposure -----------------------------------------------------------------
 covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
@@ -202,10 +173,10 @@ plotCalendarTimeEffect(model)
 plot <- plotEventToCalendarTime(studyPopulation = studyPop,
                                 sccsModel = model)
 saveRDS(plot, file.path(folder, "stabilityPlot.rds"))
-stability <- computeTimeStability(studyPopulation = studyPop)
+stability <- checkTimeStabilityAssumption(studyPopulation = studyPop)
 saveRDS(stability, file.path(folder, "stabilityA.rds"))
 
-stability <- computeTimeStability(studyPopulation = studyPop,
+stability <- checkTimeStabilityAssumption(studyPopulation = studyPop,
                                   sccsModel = model)
 saveRDS(stability, file.path(folder, "stabilityB.rds"))
 stability
