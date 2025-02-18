@@ -249,8 +249,8 @@ runSccsAnalyses <- function(connectionDetails,
   sccsDataObjectsToCreate <- list()
   for (sccsDataFileName in unique(referenceTable$sccsDataFile)) {
     if (!file.exists(file.path(outputFolder, sccsDataFileName))) {
-      referenceRow <- referenceTable %>%
-        filter(.data$sccsDataFile == sccsDataFileName) %>%
+      referenceRow <- referenceTable |>
+        filter(.data$sccsDataFile == sccsDataFileName) |>
         head(1)
 
       loadConcepts <- loadConceptsPerLoad[[referenceRow$loadId]]
@@ -497,15 +497,15 @@ createReferenceTable <- function(sccsAnalysisList,
       values[idx + 4] <- exposure$exposureId
     }
     names(values) <- names
-    as_tibble(t(values)) %>%
-      return()
+    table <- as_tibble(t(values))
+    return(table)
   }
   eos <- bind_rows(lapply(seq_along(exposuresOutcomeList), convertExposuresOutcomeToTable))
   if (any(duplicated(eos$exposuresOutcomeSetId))) {
     stop("Collision detected for exposuresOutcomeSetId. Are all exposures-outcome-nesting objects unique?")
   }
 
-  referenceTable <- eos %>%
+  referenceTable <- eos |>
     cross_join(analyses)
 
   # Determine if loading calls can be combined for efficiency ------------------
@@ -703,7 +703,7 @@ createReferenceTable <- function(sccsAnalysisList,
     }
     analysesToExclude <- analysesToExclude[, matchingColumns]
     countBefore <- nrow(referenceTable)
-    referenceTable <- referenceTable %>%
+    referenceTable <- referenceTable |>
       anti_join(analysesToExclude, by = matchingColumns)
     countAfter <- nrow(referenceTable)
     message(sprintf(
@@ -855,13 +855,13 @@ summarizeResults <- function(referenceTable,
           if (is.null(sccsModel$metaData$covariateStatistics)) {
             covariateStatistics <- tibble()
           } else {
-            covariateStatistics <- sccsModel$metaData$covariateStatistics %>%
+            covariateStatistics <- sccsModel$metaData$covariateStatistics |>
               filter(.data$covariateId == covariateSettings$outputIds[j])
           }
           if (is.null(sccsModel$estimates)) {
             estimate <- tibble()
           } else {
-            estimate <- sccsModel$estimates %>%
+            estimate <- sccsModel$estimates |>
               filter(.data$covariateId == covariateSettings$outputIds[j])
           }
           if (nrow(estimate) == 0) {

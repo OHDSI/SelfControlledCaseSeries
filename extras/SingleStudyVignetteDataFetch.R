@@ -103,8 +103,9 @@ studyPop <- readRDS(file.path(folder, "studyPop.rds"))
 #                        exposureEraId = aspirin)
 #
 # stability <- computeTimeStability(studyPop)
-# stability %>%
+# stability |>
 #   filter(!stable)
+checkRareOutcomeAssumption(studyPop)
 
 covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
                                           includeEraIds = aspirin,
@@ -158,7 +159,8 @@ covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
                                               includeEraIds = aspirin,
                                               start = -60,
                                               end = -1,
-                                              endAnchor = "era start")
+                                              endAnchor = "era start",
+                                              preExposure = TRUE)
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData,
                                            eraCovariateSettings = list(covarAspirin,

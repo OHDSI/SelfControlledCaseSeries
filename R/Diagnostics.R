@@ -30,25 +30,25 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
       ratio = 1.0,
       adjustedRatio = 1.0,
       monthStartDate = as.Date("2000-01-01"),
-      monthEndDate = as.Date("2000-01-01")) %>%
+      monthEndDate = as.Date("2000-01-01")) |>
       filter(month == 0)
     return(result)
   }
-  cases <- studyPopulation$cases %>%
+  cases <- studyPopulation$cases |>
     mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
-           endDate = .data$observationPeriodStartDate + .data$endDay) %>%
+           endDate = .data$observationPeriodStartDate + .data$endDay) |>
     mutate(startMonth = convertDateToMonth(.data$startDate),
            endMonth = convertDateToMonth(.data$endDate),
            startMonthFraction = computeMonthFraction(.data$startDate, TRUE),
-           endMonthFraction = computeMonthFraction(.data$endDate))  %>%
-    select("caseId", "startMonth", "endMonth", "startMonthFraction", "endMonthFraction") %>%
+           endMonthFraction = computeMonthFraction(.data$endDate))  |>
+    select("caseId", "startMonth", "endMonth", "startMonthFraction", "endMonthFraction") |>
     left_join(
-      studyPopulation$outcomes %>%
-        group_by(.data$caseId) %>%
+      studyPopulation$outcomes |>
+        group_by(.data$caseId) |>
         summarize(outcomeCount = n()),
       by = join_by("caseId")
-    ) %>%
-    mutate(outcomeCount = if_else(is.na(.data$outcomeCount), 0, .data$outcomeCount)) %>%
+    ) |>
+    mutate(outcomeCount = if_else(is.na(.data$outcomeCount), 0, .data$outcomeCount)) |>
     mutate(rate = .data$outcomeCount / (.data$endMonth - .data$startMonth + .data$startMonthFraction + .data$endMonthFraction))
   hasAdjustment <- FALSE
   monthAdjustments <- tibble(month = seq(min(cases$startMonth), max(cases$endMonth)),
@@ -60,8 +60,8 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
     calendarTimeKnotsInPeriods <- sccsModel$metaData$calendarTime$calendarTimeKnotsInPeriods
     designMatrix <- createMultiSegmentDesignMatrix(x = monthAdjustments$month,
                                                    knotsPerSegment = calendarTimeKnotsInPeriods)
-    monthAdjustments <- monthAdjustments %>%
-      mutate(calendarTimeRr = exp(apply(designMatrix %*% splineCoefs, 1, sum))) %>%
+    monthAdjustments <- monthAdjustments |>
+      mutate(calendarTimeRr = exp(apply(designMatrix %*% splineCoefs, 1, sum))) |>
       mutate(totalRr = .data$totalRr * .data$calendarTimeRr)
   }
   if (!is.null(sccsModel) && hasSeasonality(sccsModel)) {
@@ -72,63 +72,86 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
     season <- 1:12
     seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
     logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
-    monthAdjustments <- monthAdjustments %>%
-      mutate(monthOfYear = .data$month %% 12 + 1) %>%
+    monthAdjustments <- monthAdjustments |>
+      mutate(monthOfYear = .data$month %% 12 + 1) |>
       inner_join(
         tibble(
           monthOfYear = season,
           seasonRr = exp(logRr)
         ),
         by = join_by("monthOfYear")
-      ) %>%
-      select(-"monthOfYear") %>%
+      ) |>
+      select(-"monthOfYear") |>
       mutate(totalRr = .data$totalRr * .data$seasonRr)
   }
   if (hasAdjustment) {
     # Need to correct for the fact that a person may have seen only part of the spline, so
     # techincally has a different intercept:
-    cases <- cases %>%
+    cases <- cases |>
       mutate(correction = computeCorrections(cases, monthAdjustments))
   } else {
-    cases <- cases %>%
+    cases <- cases |>
       mutate(correction = 1)
   }
-  observedCounts <- studyPopulation$outcomes %>%
-    inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
-    transmute(month = convertDateToMonth(.data$observationPeriodStartDate + .data$outcomeDay)) %>%
-    group_by(.data$month) %>%
+  observedCounts <- studyPopulation$outcomes |>
+    inner_join(studyPopulation$cases, by = join_by("caseId")) |>
+    transmute(month = convertDateToMonth(.data$observationPeriodStartDate + .data$outcomeDay)) |>
+    group_by(.data$month) |>
     summarise(observedCount = n())
   computeExpected <- function(monthAdjustment) {
     month <- monthAdjustment$month
-    cases %>%
-      filter(month >= .data$startMonth & month <= .data$endMonth) %>%
+    expected <- cases |>
+      filter(month >= .data$startMonth & month <= .data$endMonth) |>
       mutate(weight = if_else(month == .data$startMonth,
                               .data$startMonthFraction,
                               if_else(month == .data$endMonth,
                                       .data$endMonthFraction,
-                                      1))) %>%
+                                      1))) |>
       summarize(month = !!month,
                 expectedCount = sum(.data$weight * .data$rate),
                 adjustedExpectedCount = if_else(monthAdjustment$totalRr == 0,
                                                 0,
                                                 sum(.data$weight * .data$rate * monthAdjustment$totalRr / .data$correction)),
-                observationPeriodCount = sum(.data$weight)) %>%
-      return()
+                observationPeriodCount = sum(.data$weight))
+    return(expected)
   }
   expectedCounts <- bind_rows(lapply(split(monthAdjustments, seq_len(nrow(monthAdjustments))), computeExpected))
 
-  data <- expectedCounts %>%
-    left_join(observedCounts, by = join_by("month")) %>%
-    mutate(observedCount = if_else(is.na(.data$observedCount), 0, .data$observedCount)) %>%
-    mutate(ratio = if_else(.data$observedCount == 0, .data$expectedCount == 0, 1, .data$observedCount / .data$expectedCount))  %>%
-    mutate(adjustedRatio = if_else(.data$observedCount == 0, .data$adjustedExpectedCount == 0, 1, .data$observedCount / .data$adjustedExpectedCount))  %>%
+  data <- expectedCounts |>
+    left_join(observedCounts, by = join_by("month")) |>
+    mutate(observedCount = if_else(is.na(.data$observedCount), 0, .data$observedCount)) |>
+    mutate(ratio = if_else(.data$observedCount == 0, .data$expectedCount == 0, 1, .data$observedCount / .data$expectedCount))  |>
+    mutate(adjustedRatio = if_else(.data$observedCount == 0, .data$adjustedExpectedCount == 0, 1, .data$observedCount / .data$adjustedExpectedCount))  |>
     mutate(monthStartDate = convertMonthToStartDate(.data$month),
-           monthEndDate = convertMonthToEndDate(.data$month)) %>%
+           monthEndDate = convertMonthToEndDate(.data$month)) |>
     select(-"expectedCount")
   return(data)
 }
 
-#' Compute stability of outcome rate over time
+#' Check stability of outcome rate over time
+#'
+#' @details
+#' DEPRECATED. Use `checkTimeStabilityAssumption()` instead.
+#'
+#' @template StudyPopulation
+#' @param sccsModel         Optional: A fitted SCCS model as created using [fitSccsModel()]. If the
+#'                          model contains splines for seasonality and or calendar time these will be adjusted
+#'                          for before computing stability.
+#' @param maxRatio          The maximum global ratio between the observed and expected count.
+#' @param alpha             The alpha (type 1 error) used to test for stability.
+#'
+#' @return
+#' A tibble with one row and three columns: `ratio` indicates the estimated mean ratio between observed and expected.
+#' `p` is the p-value against the null-hypothesis that the ratio is smaller than `maxRatio`, and `stable` is `TRUE`
+#' if `p` is greater than `alpha`.
+#'
+#' @export
+computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.10, alpha = 0.05) {
+  .Deprecated("checkTimeStabilityAssumption")
+  return(checkTimeStabilityAssumption(studyPopulation, sccsModel, maxRatio, alpha))
+}
+
+#' Check stability of outcome rate over time
 #'
 #' @details
 #' Computes for each month the observed and expected count, and computes the (weighted) mean ratio between the two. If
@@ -149,7 +172,7 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
 #' if `p` is greater than `alpha`.
 #'
 #' @export
-computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.10, alpha = 0.05) {
+checkTimeStabilityAssumption <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.10, alpha = 0.05) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
@@ -214,40 +237,11 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
 #'
 #' @export
 computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = NULL) {
-  .Deprecated("computePreExposureGain")
-  return(computePreExposureGain(sccsData, studyPopulation, exposureEraId)$p)
-}
-
-
-#' Compute pre-exposure risk gain diagnostic
-#'
-#' @details
-#' Compares the rate of the outcome in the 30 days prior to exposure to the rate
-#' of the outcome in the 30 days following exposure. If the rate before exposure
-#' is higher, this indicates there might reverse causality, that the outcome, or
-#' some precursor of the outcome, increases the probability of having the exposure.
-#'
-#' The resulting p-value is computed using a Poisson model conditioned on the person.
-#'
-#' @param exposureEraId       The exposure to create the era data for. If not specified it is
-#'                            assumed to be the one exposure for which the data was loaded from
-#'                            the database.
-#' @template StudyPopulation
-#' @template SccsData
-#' @param alpha             The alpha (type 1 error) used to test for pre-exposure gain
-#'
-#' @return
-#' A tibble with one row and three columns: `ratio` indicates the ratio (rate of outcomes before the first exposure start) /
-#' (rate of outcomes after the first exposure start). `p` is the p-value against the null-hypothesis that the ratio is
-#' smaller than or equal to 1, and `stable` is `TRUE` if `p` is greater than `alpha`.
-#'
-#' @export
-computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NULL, alpha = 0.05) {
+  .Deprecated("checkEventExposureIndependenceAssumption")
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertInt(exposureEraId, null.ok = TRUE, add = errorMessages)
-  checkmate::assertNumber(alpha, lower = 0, upper = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   if (is.null(exposureEraId)) {
@@ -257,73 +251,71 @@ computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NU
     }
   }
 
-  cases <- studyPopulation$cases %>%
+  cases <- studyPopulation$cases |>
     select("caseId", "startDay", "endDay")
 
-  exposures <- sccsData$eras %>%
-    filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
+  exposures <- sccsData$eras |>
+    filter(.data$eraId == exposureEraId & .data$eraType == "rx") |>
     inner_join(cases,
                by = join_by("caseId", "eraStartDay" >= "startDay", "eraStartDay" < "endDay"),
-               copy = TRUE) %>%
+               copy = TRUE) |>
     collect()
 
   if (nrow(exposures) == 0) {
     warning("No exposures found with era ID ", exposureEraId)
-    return(tibble(ratio = NA,
-                  p = NA,
-                  stable = NA))
+    return(as.numeric(NA))
   }
-  firstExposures <- exposures %>%
-    group_by(.data$caseId, .data$startDay, .data$endDay) %>%
+  firstExposures <- exposures |>
+    group_by(.data$caseId, .data$startDay, .data$endDay) |>
     summarise(
       eraStartDay = min(.data$eraStartDay, na.rm = TRUE),
       eraEndDay = min(.data$eraEndDay, na.rm = TRUE),
       .groups = "drop"
     )
 
-  outcomes <- studyPopulation$outcomes %>%
-    inner_join(firstExposures, by = join_by("caseId")) %>%
-    mutate(delta = .data$outcomeDay - .data$eraStartDay) %>%
+  outcomes <- studyPopulation$outcomes |>
+    inner_join(firstExposures, by = join_by("caseId")) |>
+    mutate(delta = .data$outcomeDay - .data$eraStartDay) |>
     select("caseId", "outcomeDay", "delta")
 
   # Restrict to 30 days before and after exposure start:
-  outcomes <- outcomes %>%
-    filter(.data$delta >= -30 & .data$delta <= 30) %>%
+  outcomes <- outcomes |>
+    filter(.data$delta >= -30 & .data$delta <= 30) |>
     mutate(
       beforeExposure = .data$delta < 0,
       y = 1
-    ) %>%
-    group_by(.data$caseId, .data$beforeExposure) %>%
+    ) |>
+    group_by(.data$caseId, .data$beforeExposure) |>
     summarize(
       y = sum(.data$y),
       .groups = "drop"
     )
 
   observed <- bind_rows(
-    firstExposures %>%
-      mutate(daysBeforeExposure = .data$eraStartDay - .data$startDay) %>%
+    firstExposures |>
+      mutate(daysBeforeExposure = .data$eraStartDay - .data$startDay) |>
       mutate(
         daysObserved = if_else(.data$daysBeforeExposure > 30, 30, .data$daysBeforeExposure),
         beforeExposure = TRUE
-      ) %>%
+      ) |>
       select("caseId", "daysObserved", "beforeExposure"),
-    firstExposures %>%
-      mutate(daysAfterExposure = .data$endDay - .data$eraStartDay) %>%
+    firstExposures |>
+      mutate(daysAfterExposure = .data$endDay - .data$eraStartDay) |>
       mutate(
         daysObserved = if_else(.data$daysAfterExposure > 30, 30, .data$daysAfterExposure),
         beforeExposure = FALSE
-      ) %>%
+      ) |>
       select("caseId", "daysObserved", "beforeExposure")
-  ) %>%
+  ) |>
     filter(.data$daysObserved > 0)
 
-  poissonData <- observed %>%
-    left_join(outcomes, by = join_by("caseId", "beforeExposure")) %>%
+  poissonData <- observed |>
+    left_join(outcomes, by = join_by("caseId", "beforeExposure")) |>
     mutate(
       rowId = row_number(),
       y = if_else(is.na(.data$y), 0, .data$y),
       covariateId = 1
-    ) %>%
+    ) |>
     select(
       "rowId",
       stratumId = "caseId",
@@ -341,9 +333,7 @@ computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NU
   )
   fit <- Cyclops::fitCyclopsModel(cyclopsData)
   if (fit$return_flag != "SUCCESS") {
-    return(tibble(ratio = NA,
-                  p = NA,
-                  stable = NA))
+    return(as.numeric(NA))
   }
   # compute one-sided p-value:
   llNull <- Cyclops::getCyclopsProfileLogLikelihood(
@@ -354,12 +344,27 @@ computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NU
   llr <- fit$log_likelihood - llNull
   p <- EmpiricalCalibration:::computePFromLlr(llr, coef(fit))
   names(p) <- NULL
-  return(tibble(ratio = exp(coef(fit)),
-                p = p,
-                stable = p > alpha))
+  return(p)
 }
 
-#' Compute p-value for event-dependent observation end
+getNaDiagnostic <- function() {
+  return(tibble(ratio = NA,
+                lb = NA,
+                ub = NA,
+                stable = NA))
+}
+
+#' Check diagnostic for event-dependent observation end
+#'
+#' @description
+#' This diagnostic tests whether there is a dependency between the event and the end of observation.
+#' It does so by adding a probe window at the end of observation, and checking whether the rate of
+#' the outcome is elevated (or decreased) during this window.
+#'
+#' The end of observation probe window will automatically be added to the model by the
+#' `createSccsIntervalData()` function, unless the `endOfObservationEraLength` argument is set to 0.
+#' This function extracts the estimate for that window from the model, and compares it to the
+#' `nullBounds`.#'
 #'
 #' @param sccsModel         A fitted SCCS model as created using [fitSccsModel()].
 #' @param nullBounds        The bounds for the null hypothesis on the incidence rate ratio scale.
@@ -367,352 +372,78 @@ computePreExposureGain <- function(sccsData, studyPopulation, exposureEraId = NU
 #' @return
 #' A tibble with one row and four columns: `ratio` indicates the estimates incidence rate ratio for the
 #' probe at the end of observation. `lb` and `ub` represent the upper and lower bounds of the 95 percent
-#' confidence interval, and `stable` is `TRUE` if the confidence interval insersects the null bounds.
+#' confidence interval, and `stable` is `TRUE` if the confidence interval intersects the null bounds.
 #'
 #' @export
-computeEventDependentObservation <- function(sccsModel, nullBounds <- c(0.5, 2.0)) {
+checkEventObservationIndependenceAssumption <- function(sccsModel, nullBounds = c(0.5, 2.0)) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
-  checkmate::assertNumber(alpha, lower = 0, upper = 1, add = errorMessages)
+  checkmate::assertNumeric(nullBounds, lower = 0, len = 2, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   if (is.null(sccsModel$estimates)) {
-    return(tibble(ratio = NA,
-                  lb = NA,
-                  ub = NA,
-                  stable = NA))
+    return(getNaDiagnostic())
   }
   estimate <- sccsModel$estimates |>
     filter(.data$covariateId == 99) |>
     select("logRr", "logLb95", "logUb95")
   if (length(estimate) == 0) {
-    warning("No estimate found for the end of observation probe")
-    return(tibble(ratio = NA,
-                  lb = NA,
-                  ub = NA,
-                  stable = NA))
+    warning("No estimate found for the end of observation probe. ",
+            "Did you set endOfObservationEraLength = 0 when calling createSccsIntervalData()?")
+    return(getNaDiagnostic())
   }
   result <- tibble(ratio = exp(estimate$logRr),
                    lb = exp(estimate$logLb95),
                    ub = exp(estimate$logUb95)) |>
-    mutate(stable = lb <= nullBounds[2] & ub >= nullBounds[1])
+    mutate(stable = .data$lb <= nullBounds[2] & .data$ub >= nullBounds[1])
   return(result)
 }
 
-mergeOverlappingExposures <- function(exposures) {
-  # Assumes there is only 1 type of exposure:
-  exposures <- exposures |>
-    arrange(.data$caseId, .data$eraStartDay) |>
-    group_by(.data$caseId) |>
-    mutate(newGroup = cumsum(lag(.data$eraEndDay, default = first(.data$eraEndDay)) < .data$eraStartDay)) |>
-    group_by(.data$caseId, .data$newGroup) |>
-    summarise(
-      eraStartDay = min(.data$eraStartDay),
-      eraEndDay = max(.data$eraEndDay),
-      .groups = 'drop'
-    ) |>
-    select("caseId", "eraStartDay", "eraEndDay")
-  return(exposures)
-}
-
-computeExposureDaysToEvent <- function(studyPopulation, sccsData, exposureEraId, timeWindows, ignoreExposureStarts = FALSE) {
-  cases <- studyPopulation$cases |>
-    select("caseId", "startDay", "endDay")
-
-  # Keep only exposures that overlap with the observation periods of the study population (also
-  # truncate exposures to the observation period):
-  exposures <- sccsData$eras |>
-    filter(.data$eraId == exposureEraId & .data$eraType == "rx") |>
-    inner_join(cases,
-               by = join_by("caseId", "eraEndDay" >= "startDay", "eraStartDay" < "endDay"),
-               copy = TRUE) |>
-    collect() |>
-    mutate(eraStartDay = pmax(.data$eraStartDay, .data$startDay),
-           eraEndDay = pmin(.data$eraEndDay, .data$endDay))
-  if (nrow(exposures) == 0) {
-    warning("No exposures found with era ID ", exposureEraId)
-  }
-
-  exposures <- mergeOverlappingExposures(exposures)
-
-  firstOutcomes <- studyPopulation$outcomes |>
-    group_by(.data$caseId) |>
-    filter(row_number(.data$outcomeDay) == 1)
-
-  # Compute days exposed per window
-  exposuresRelativeToOutcome <- exposures |>
-    inner_join(firstOutcomes, by = join_by("caseId")) |>
-    mutate(deltaExposureStart = .data$eraStartDay - .data$outcomeDay,
-           deltaExposureEnd = .data$eraEndDay - .data$outcomeDay)
-
-  exposureDaysPerWindow <- exposuresRelativeToOutcome |>
-    cross_join(timeWindows) |>
-    filter(.data$deltaExposureEnd >= .data$startDay & .data$deltaExposureStart <= .data$endDay) |>
-    filter(!ignoreExposureStarts | .data$deltaExposureStart <= .data$startDay) |>
-    mutate(deltaExposureStart = pmax(.data$deltaExposureStart, .data$startDay),
-           deltaExposureEnd = pmin(.data$deltaExposureEnd, .data$endDay)) |>
-    group_by(.data$caseId, .data$windowId, .data$startDay, .data$endDay) |>
-    summarise(daysExposed = sum(.data$deltaExposureEnd - .data$deltaExposureStart + 1),
-              .groups = "drop")
-
-  # Compute days observed per window
-  observationRelativeToOutcome <- firstOutcomes |>
-    inner_join(studyPopulation$cases, by = join_by("caseId")) |>
-    mutate(deltaObservationStart = .data$startDay - .data$outcomeDay,
-           deltaObservationEnd = .data$endDay - .data$outcomeDay) |>
-    select("caseId", "deltaObservationStart", "deltaObservationEnd")
-
-  observationDaysPerWindow <- observationRelativeToOutcome |>
-    cross_join(timeWindows) |>
-    filter(.data$deltaObservationEnd >= .data$startDay & .data$deltaObservationStart <= .data$endDay) |>
-    filter(.data$deltaObservationStart < .data$startDay | .data$deltaObservationStart > .data$endDay) |>
-    mutate(deltaObservationStart = pmax(.data$deltaObservationStart, .data$startDay),
-           deltaObservationEnd = pmin(.data$deltaObservationEnd, .data$endDay)) |>
-    group_by(.data$caseId, .data$windowId, .data$startDay, .data$endDay) |>
-    summarise(daysObserved = sum(.data$deltaObservationEnd - .data$deltaObservationStart + 1),
-              .groups = "drop")
-
-  data <- observationDaysPerWindow |>
-    left_join(exposureDaysPerWindow, by = join_by("caseId", "windowId", "startDay", "endDay")) |>
-    mutate(daysExposed = if_else(is.na(.data$daysExposed), 0, .data$daysExposed))
-
-  return(data)
-}
-
-
-#' Compute diagnostic whether exposure probability changed following the outcome
+#' Check diagnostic for event-dependent exposure
 #'
-#' @param exposureEraId       The exposure to create the era data for. If not specified it is
-#'                            assumed to be the one exposure for which the data was loaded from
-#'                            the database.
-#' @template StudyPopulation
-#' @template SccsData
-#' @param bounds              Bounds for the null of no change in the exposure rate.
-#' @param alpha               The alpha (type 1 error) used to test for exposure rate change.
-#' @param ignoreExposureStarts Ignore exposure starts when computing the diagnostic. This makes the
-#'                             diagnostic robust against the outcome temporarily preventing exposure
-#'                             starting, which should be dealt with by the pre-exposure window.
+#' @description
+#' This diagnostic tests whether there is a dependency between the event and subsequent exposures.
+#' This requires you have indicated one of the era covariates to be a pre-exposure window. This
+#' function simply checks whether the confidence interval for the effect estimate of that pre-
+#' exposure window overlaps with the `nullBounds`.
+#'
+#' To designate an era covariate to be the pre-exposure window, set `preExposure = TRUE` when
+#' calling `createEraCovariateSettings()`. Note that, by default, `preExposure` will be `TRUE` if
+#' `start` is smaller than 0.
+#'
+#' @param sccsModel         A fitted SCCS model as created using [fitSccsModel()].
+#' @param nullBounds        The bounds for the null hypothesis on the incidence rate ratio scale.
 #'
 #' @return
-#' A tibble with one row and three columns: `ratio` indicates the ratio (rate of exposure days after the outcome) /
-#' (rate of exposure days before the outcome). `p` is the p-value against the null-hypothesis that the log ratio is
-#' between the provided `bounds`, and `stable` is `TRUE` if `p` is greater than `alpha`.
+#' A tibble with one row per pre-exposure window and four columns: `ratio` indicates the estimates
+#' incidence rate ratio for the pre-exposure window. `lb` and `ub` represent the upper and lower
+#' bounds of the 95 percent confidence interval, and `stable` is `TRUE` if the confidence interval
+#' intersects the null bounds.
 #'
 #' @export
-computeExposureChange <- function(sccsData,
-                                  studyPopulation,
-                                  exposureEraId = NULL,
-                                  bounds = log(c(1/1.25, 1.25)),
-                                  alpha = 0.05,
-                                  ignoreExposureStarts = FALSE) {
+checkEventExposureIndependenceAssumption <- function(sccsModel, nullBounds = c(0.8, 1.25)) {
   errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
-  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  checkmate::assertInt(exposureEraId, null.ok = TRUE, add = errorMessages)
-  checkmate::assertNumeric(bounds, len = 2, any.missing = FALSE, sorted = TRUE, add = errorMessages)
-  checkmate::assertNumber(alpha, lower = 0, upper = 1, add = errorMessages)
-  checkmate::assertLogical(ignoreExposureStarts, len = 1, add = errorMessages)
+  checkmate::assertClass(sccsModel, "SccsModel", null.ok = TRUE, add = errorMessages)
+  checkmate::assertNumeric(nullBounds, lower = 0, len = 2, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-
-  if (nrow(studyPopulation$cases) == 0) {
-    return(tibble(ratio = NA,
-                  p = NA,
-                  stable = NA))
+  if (is.null(sccsModel$estimates)) {
+    return(getNaDiagnostic())
   }
-
-  if (is.null(exposureEraId)) {
-    exposureEraId <- attr(sccsData, "metaData")$exposureIds
-    if (length(exposureEraId) != 1) {
-      stop("No exposure ID specified, but multiple exposures found")
-    }
+  estimate <- sccsModel$estimates |>
+    inner_join(sccsModel$metaData$covariateRef |>
+                 select("covariateId", "preExposure"),
+               by = join_by("covariateId", "preExposure")) |>
+    filter(.data$preExposure == 1) |>
+    select("logRr", "logLb95", "logUb95")
+  if (length(estimate) == 0) {
+    warning("No estimate found for the pre-exposure period. ",
+            "Make sure to use at least one createEraCovariateSettings() where preExposure = TRUE")
+    return(getNaDiagnostic())
   }
-
-  timeWindows <- tibble(
-    windowId = c(0, 1),
-    startDay = c(-60, 0),
-    endDay = c(-1, 59)
-  )
-  data <- computeExposureDaysToEvent(studyPopulation = studyPopulation,
-                                     sccsData = sccsData,
-                                     exposureEraId = exposureEraId,
-                                     timeWindows = timeWindows,
-                                     ignoreExposureStarts = ignoreExposureStarts)
-
-  poissonData <- data |>
-    filter(.data$daysObserved > 0) |>
-    mutate(
-      rowId = row_number(),
-      covariateId = 1
-    ) |>
-    select(
-      "rowId",
-      stratumId = "caseId",
-      "covariateId",
-      covariateValue = "windowId",
-      time = "daysObserved",
-      y = "daysExposed"
-    )
-
-  casesWithExposure <- poissonData |>
-    filter(.data$y > 0) |>
-    pull(.data$stratumId)
-
-  poissonData <- poissonData |>
-    filter(.data$stratumId %in% casesWithExposure)
-
-  if (nrow(poissonData) < 5) {
-    return(tibble(ratio = NA,
-                  p = NA,
-                  stable = NA))
-  }
-
-  cyclopsData <- Cyclops::convertToCyclopsData(outcomes = poissonData,
-                                               covariates = poissonData,
-                                               addIntercept = FALSE,
-                                               modelType = "cpr",
-                                               quiet = TRUE)
-  fit <- Cyclops::fitCyclopsModel(cyclopsData)
-  if (fit$return_flag != "SUCCESS") {
-    return(tibble(ratio = NA,
-                  p = NA,
-                  stable = NA))
-  }
-  logRr <- coef(fit)
-  if (logRr >= bounds[1] && logRr <= bounds[2]) {
-    llNull <- fit$log_likelihood
-  } else {
-    if (logRr < bounds[1]) {
-      nullLogRr <- bounds[1]
-    } else {
-      nullLogRr <- bounds[2]
-    }
-    llNull <- Cyclops::getCyclopsProfileLogLikelihood(
-      object = fit,
-      parm = 1,
-      x = nullLogRr,
-      includePenalty = TRUE
-    )$value
-  }
-  llr <- fit$log_likelihood - llNull
-  p <- pchisq(2 * llr, df = 1, lower.tail = FALSE)
-  return(tibble(ratio = exp(logRr),
-                p = p,
-                stable = p > alpha))
-}
-
-
-#' @export
-computeExposureStability <- function(studyPopulation,
-                                     sccsData,
-                                     exposureEraId,
-                                     bounds = log(c(1/1.25, 1.25)),
-                                     alpha = 0.05) {
-  cases <- studyPopulation$cases |>
-    filter(.data$endDay - .data$startDay > 2) |>
-    mutate(midDay = .data$startDay + round((.data$endDay - .data$startDay)/2)) |>
-    select("caseId", "startDay", "midDay", "endDay")
-
-  # Keep only exposures that overlap with the observation periods of the study population (also
-  # truncate exposures to the observation period):
-  exposures <- sccsData$eras |>
-    filter(.data$eraId == exposureEraId & .data$eraType == "rx") |>
-    inner_join(cases,
-               by = join_by("caseId", "eraEndDay" >= "startDay", "eraStartDay" < "endDay"),
-               copy = TRUE) |>
-    collect() |>
-    mutate(eraStartDay = pmax(.data$eraStartDay, .data$startDay),
-           eraEndDay = pmin(.data$eraEndDay, .data$endDay))
-
-  exposures <- mergeOverlappingExposures(exposures)
-
-  # Pivot cases to windows:
-  timeWindows <- bind_rows(
-    cases |>
-      select("caseId", startDay = "startDay", endDay = "midDay") |>
-      mutate(windowId = 0),
-    cases |>
-      select("caseId", startDay = "midDay", endDay = "endDay") |>
-      mutate(windowId = 1),
-  )
-
-  # Compute days exposed per window
-  exposureDaysPerWindow <- exposures |>
-    inner_join(timeWindows, by = join_by("caseId"), relationship = "many-to-many") |>
-    filter(.data$eraEndDay >= .data$startDay & .data$eraStartDay <= .data$endDay) |>
-    mutate(eraStartDay = pmax(.data$eraStartDay, .data$startDay),
-           eraEndDay = pmin(.data$eraEndDay, .data$endDay)) |>
-    group_by(.data$caseId, .data$windowId) |>
-    summarise(daysExposed = sum(.data$eraEndDay - .data$eraStartDay + 1),
-              .groups = "drop")
-
-  # Compute days observed per window
-  observationDaysPerWindow <- timeWindows |>
-    mutate(daysObserved = .data$endDay - .data$startDay + 1) |>
-    select("caseId", "windowId", "daysObserved")
-
-  data <- observationDaysPerWindow |>
-    left_join(exposureDaysPerWindow, by = join_by("caseId", "windowId")) |>
-    mutate(daysExposed = if_else(is.na(.data$daysExposed), 0, .data$daysExposed))
-
-  poissonData <- data |>
-    filter(.data$daysObserved > 0) |>
-    mutate(
-      rowId = row_number(),
-      covariateId = 1
-    ) |>
-    select(
-      "rowId",
-      stratumId = "caseId",
-      "covariateId",
-      covariateValue = "windowId",
-      time = "daysObserved",
-      y = "daysExposed"
-    )
-
-  casesWithExposure <- poissonData |>
-    filter(.data$y > 0) |>
-    pull(.data$stratumId)
-
-  poissonData <- poissonData |>
-    filter(.data$stratumId %in% casesWithExposure)
-
-  if (nrow(poissonData) < 5) {
-    return(tibble(ratio = NA,
-                  p = NA,
-                  stable = TRUE))
-  }
-
-  cyclopsData <- Cyclops::convertToCyclopsData(outcomes = poissonData,
-                                               covariates = poissonData,
-                                               addIntercept = FALSE,
-                                               modelType = "cpr",
-                                               quiet = TRUE)
-  fit <- Cyclops::fitCyclopsModel(cyclopsData)
-  if (fit$return_flag != "SUCCESS") {
-    return(tibble(ratio = NA,
-                  p = NA,
-                  stable = TRUE))
-  }
-  logRr <- coef(fit)
-  if (logRr >= bounds[1] && logRr <= bounds[2]) {
-    llNull <- fit$log_likelihood
-  } else {
-    if (logRr < bounds[1]) {
-      nullLogRr <- bounds[1]
-    } else {
-      nullLogRr <- bounds[2]
-    }
-    llNull <- Cyclops::getCyclopsProfileLogLikelihood(
-      object = fit,
-      parm = 1,
-      x = nullLogRr,
-      includePenalty = TRUE
-    )$value
-  }
-  llr <- fit$log_likelihood - llNull
-  p <- pchisq(2 * llr, df = 1, lower.tail = FALSE)
-  return(tibble(ratio = exp(logRr),
-                p = p,
-                stable = p > alpha))
+  result <- tibble(ratio = exp(estimate$logRr),
+                   lb = exp(estimate$logLb95),
+                   ub = exp(estimate$logUb95)) |>
+    mutate(stable = .data$lb <= nullBounds[2] & .data$ub >= nullBounds[1])
+  return(result)
 }
 
 #' Check if rare outcome assumption is violated

@@ -21,6 +21,7 @@ test_that("Support functions and diagnostics", {
   expect_equal(s$caseCount, sampleSize)
 
   covar <- createEraCovariateSettings(includeEraIds = c(1, 2), endAnchor = "era end")
+  preExp <- createEraCovariateSettings(includeEraIds = c(1, 2), start = -30, end = -1, preExposure = TRUE)
   ageSettings <- createAgeCovariateSettings(allowRegularization = TRUE)
   seasonSettings <- createSeasonalityCovariateSettings(allowRegularization = TRUE)
   calendarTimeSettings <- createCalendarTimeCovariateSettings(allowRegularization = TRUE)
@@ -31,7 +32,7 @@ test_that("Support functions and diagnostics", {
   sccsIntervalData <- createSccsIntervalData(
     studyPopulation = studyPop,
     sccsData = sccsData,
-    eraCovariateSettings = covar,
+    eraCovariateSettings = list(covar, preExp),
     ageCovariateSettings = ageSettings,
     seasonalityCovariateSettings = seasonSettings,
     calendarTimeCovariateSettings = calendarTimeSettings
@@ -56,15 +57,19 @@ test_that("Support functions and diagnostics", {
   p <- plotEventToCalendarTime(studyPop, model)
   expect_is(p, "ggplot")
 
-  diagnostic <- computeTimeStability(studyPop, model)
+  expect_warning(computeTimeStability(studyPop, model), "deprecated")
+  diagnostic <- checkTimeStabilityAssumption(studyPop, model)
   expect_is(diagnostic, "data.frame")
 
-  diagnostic <- computePreExposureGain(
-    sccsData = sccsData,
-    studyPopulation = studyPop,
-    exposureEraId = 1
-  )
-  expect_is(diagnostic$p, "numeric")
+  expect_warning(computePreExposureGainP(sccsData, studyPop, 1), "deprecated")
+  diagnostic <- checkEventExposureIndependenceAssumption(model)
+  expect_is(diagnostic, "data.frame")
+
+  diagnostic <- checkEventObservationIndependenceAssumption(model)
+  expect_is(diagnostic, "data.frame")
+
+  diagnostic <- checkRareOutcomeAssumption(studyPop)
+  expect_is(diagnostic, "data.frame")
 
   mdrr <- computeMdrr(sccsIntervalData, exposureCovariateId = 1000)
   expect_lt(mdrr$mdrr, Inf)

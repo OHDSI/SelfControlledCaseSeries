@@ -31,12 +31,12 @@ convertToSccsDataWrapper <- function(cases,
   } else {
     covariateIds <- covariateSettings$includeEraIds
   }
-  eraRef <- eras %>%
-    distinct(.data$eraId, .data$eraType) %>%
+  eraRef <- eras |>
+    distinct(.data$eraId, .data$eraType) |>
     mutate(eraName = "")
 
   data <- Andromeda::andromeda(
-    cases = cases %>%
+    cases = cases |>
       mutate(observationPeriodStartDate = observationPeriodStartDate),
     eras = eras,
     eraRef = eraRef
@@ -515,7 +515,7 @@ test_that("Removal of risk windows where end before start", {
       )
     )
   })
-  expect_equal(result$outcomes %>% count() %>% pull(), 0)
+  expect_equal(result$outcomes |> count() |> pull(), 0)
 })
 
 test_that("Aggregates on large set", {
@@ -536,63 +536,63 @@ test_that("Aggregates on large set", {
     )
   )
 
-  x <- sccsData$eras %>%
-    filter(.data$eraId == 1) %>%
+  x <- sccsData$eras |>
+    filter(.data$eraId == 1) |>
     collect()
-  y <- sccsData$eras %>%
-    filter(.data$eraId == 10) %>%
+  y <- sccsData$eras |>
+    filter(.data$eraId == 10) |>
     collect()
-  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") %>%
-    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) %>%
-    distinct(.data$caseId) %>%
+  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") |>
+    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) |>
+    distinct(.data$caseId) |>
     pull()
 
-  x <- sccsIntervalData$covariates %>%
-    filter(.data$covariateId == 1000) %>%
+  x <- sccsIntervalData$covariates |>
+    filter(.data$covariateId == 1000) |>
     collect()
-  y <- sccsIntervalData$outcomes %>%
-    filter(.data$y != 0) %>%
+  y <- sccsIntervalData$outcomes |>
+    filter(.data$y != 0) |>
     collect()
-  z2 <- inner_join(x, y, by = join_by("rowId")) %>%
-    distinct(.data$stratumId.x) %>%
+  z2 <- inner_join(x, y, by = join_by("rowId")) |>
+    distinct(.data$stratumId.x) |>
     pull()
 
   # Same people have the event during exposure to 1:
   expect_equal(z, z2)
 
-  x <- sccsData$eras %>%
-    filter(.data$eraId == 2) %>%
+  x <- sccsData$eras |>
+    filter(.data$eraId == 2) |>
     collect()
-  y <- sccsData$eras %>%
-    filter(.data$eraId == 10) %>%
+  y <- sccsData$eras |>
+    filter(.data$eraId == 10) |>
     collect()
-  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") %>%
-    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) %>%
-    distinct(.data$caseId) %>%
+  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") |>
+    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) |>
+    distinct(.data$caseId) |>
     pull()
 
-  x <- sccsIntervalData$covariates %>%
-    filter(.data$covariateId == 1001) %>%
+  x <- sccsIntervalData$covariates |>
+    filter(.data$covariateId == 1001) |>
     collect()
-  y <- sccsIntervalData$outcomes %>%
-    filter(.data$y != 0) %>%
+  y <- sccsIntervalData$outcomes |>
+    filter(.data$y != 0) |>
     collect()
-  z2 <- inner_join(x, y, by = join_by("rowId")) %>%
-    distinct(.data$stratumId.x) %>%
+  z2 <- inner_join(x, y, by = join_by("rowId")) |>
+    distinct(.data$stratumId.x) |>
     pull()
 
   # Same people have the event during exposure to 2:
   expect_equal(z, z2)
 
 
-  outcomes <- sccsIntervalData$outcomes %>%
-    group_by(.data$stratumId) %>%
-    summarise(time = sum(.data$time, na.rm = TRUE)) %>%
+  outcomes <- sccsIntervalData$outcomes |>
+    group_by(.data$stratumId) |>
+    summarise(time = sum(.data$time, na.rm = TRUE)) |>
     collect()
 
-  z3 <- sccsData$cases %>%
-    select(stratumId = "caseId", "endDay") %>%
-    inner_join(outcomes, by = join_by("stratumId"), copy = TRUE) %>%
+  z3 <- sccsData$cases |>
+    select(stratumId = "caseId", "endDay") |>
+    inner_join(outcomes, by = join_by("stratumId"), copy = TRUE) |>
     collect()
 
   # Same amount of times before and after conversion to concomitant eras:

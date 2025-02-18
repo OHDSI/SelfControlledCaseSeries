@@ -10,8 +10,7 @@ fitSccsModel(
   control = createControl(cvType = "auto", selectorType = "byPid", startingVariance =
     0.1, seed = 1, resetCoefficients = TRUE, noiseLevel = "quiet"),
   profileGrid = NULL,
-  profileBounds = c(log(0.1), log(10)),
-  endOfObservationEffectBounds = c(log(0.5), log(2))
+  profileBounds = c(log(0.1), log(10))
 )
 }
 \arguments{
@@ -30,9 +29,6 @@ the likelihood for coefficient of variables is sampled. See details.}
 
 \item{profileBounds}{The bounds (on the log relative risk scale) for the adaptive sampling
 of the likelihood function.}
-
-\item{endOfObservationEffectBounds}{The bounds on the estimated effect for the end-of-observation probe. A p-value
-will be computed against the null that the effect is within these bounds.}
 }
 \value{
 An object of type \code{SccsModel}. Generic functions \code{print}, \code{coef}, and

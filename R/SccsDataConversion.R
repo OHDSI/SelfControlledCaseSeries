@@ -215,10 +215,10 @@ addAgeSettings <- function(settings,
     return(settings)
   } else {
     if (length(ageCovariateSettings$ageKnots) == 1) {
-      ageKnots <- studyPopulation$outcomes %>%
-        inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
-        transmute(outcomeAge = .data$outcomeDay + .data$ageAtObsStart) %>%
-        pull() %>%
+      ageKnots <- studyPopulation$outcomes |>
+        inner_join(studyPopulation$cases, by = join_by("caseId")) |>
+        transmute(outcomeAge = .data$outcomeDay + .data$ageAtObsStart) |>
+        pull() |>
         quantile(seq(0.01, 0.99, length.out = ageCovariateSettings$ageKnots))
       ageKnots <- ageKnots[!duplicated(ageKnots)]
     } else {
@@ -244,7 +244,9 @@ addAgeSettings <- function(settings,
       ),
       originalEraId = 0,
       originalEraType = "",
-      originalEraName = ""
+      originalEraName = "",
+      isControlInterval = FALSE,
+      preExposure = FALSE
     )
     settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
     age <- list(
@@ -279,7 +281,9 @@ addSeasonalitySettings <- function(settings, seasonalityCovariateSettings, sccsD
       ),
       originalEraId = 0,
       originalEraType = "",
-      originalEraName = ""
+      originalEraName = "",
+      isControlInterval = FALSE,
+      preExposure = FALSE
     )
     settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
     seasonality <- list(
@@ -312,23 +316,23 @@ addCalendarTimeSettings <- function(settings,
     return(settings)
   } else {
     if (length(calendarTimeCovariateSettings$calendarTimeKnots) == 1) {
-      observationPeriodCounts <- computeObservedPerMonth(studyPopulation) %>%
+      observationPeriodCounts <- computeObservedPerMonth(studyPopulation) |>
         arrange(.data$month)
       total <- sum(observationPeriodCounts$observationPeriodCount)
       studyPeriods <- attr(sccsData, "metaData")$studyPeriods
       if (is.null(studyPeriods)) {
         studyPeriods <- tibble(studyStartMonth = -Inf, studyEndMonth = Inf)
       } else {
-        studyPeriods <- studyPeriods %>%
+        studyPeriods <- studyPeriods |>
           transmute(studyStartMonth = convertDateToMonth(.data$studyStartDate),
-                    studyEndMonth =  convertDateToMonth(.data$studyEndDate)) %>%
+                    studyEndMonth =  convertDateToMonth(.data$studyEndDate)) |>
           arrange(.data$studyStartMonth)
       }
       calendarTimeKnotsInPeriods <- list()
       for (i in seq_len(nrow(studyPeriods))) {
-        countsInPeriod <- observationPeriodCounts %>%
+        countsInPeriod <- observationPeriodCounts |>
           filter(.data$month >= studyPeriods$studyStartMonth[i],
-                 .data$month <= studyPeriods$studyEndMonth[i]) %>%
+                 .data$month <= studyPeriods$studyEndMonth[i]) |>
           mutate(cumCount = cumsum(.data$observationPeriodCount))
         totalInPeriod <- sum(countsInPeriod$observationPeriodCount)
         if (totalInPeriod > 0) {
@@ -364,7 +368,9 @@ addCalendarTimeSettings <- function(settings,
       ),
       originalEraId = 0,
       originalEraType = "",
-      originalEraName = ""
+      originalEraName = "",
+      isControlInterval = FALSE,
+      preExposure = FALSE
     )
     settings$covariateRef <- bind_rows(settings$covariateRef, splineCovariateRef)
     calendarTime <- list(
@@ -459,28 +465,28 @@ convertMonthToEndDate <- function(month) {
 }
 
 computeObservedPerMonth <- function(studyPopulation) {
-  observationPeriods <- studyPopulation$cases %>%
+  observationPeriods <- studyPopulation$cases |>
     mutate(
       startDate = .data$observationPeriodStartDate + .data$startDay,
       endDate = .data$observationPeriodStartDate + .data$endDay
-    ) %>%
+    ) |>
     mutate(
       startMonth = convertDateToMonth(.data$startDate),
       endMonth = convertDateToMonth(.data$endDate) + 1
-    ) %>%
+    ) |>
     select("startMonth", "endMonth")
 
   months <- full_join(
-    observationPeriods %>%
-      group_by(.data$startMonth) %>%
-      summarise(startCount = n()) %>%
+    observationPeriods |>
+      group_by(.data$startMonth) |>
+      summarise(startCount = n()) |>
       rename(month = "startMonth"),
-    observationPeriods %>%
-      group_by(.data$endMonth) %>%
-      summarise(endCount = n()) %>%
+    observationPeriods |>
+      group_by(.data$endMonth) |>
+      summarise(endCount = n()) |>
       rename(month = "endMonth"),
     by = "month"
-  ) %>%
+  ) |>
     mutate(
       startCount = ifelse(is.na(.data$startCount), 0, .data$startCount),
       endCount = ifelse(is.na(.data$endCount), 0, .data$endCount)
@@ -488,21 +494,21 @@ computeObservedPerMonth <- function(studyPopulation) {
 
   # Adding months with no starts and ends:
   if (nrow(months) > 0) {
-    months <- months %>%
-      full_join(tibble(month = min(months$month):max(months$month)), by = "month") %>%
+    months <- months |>
+      full_join(tibble(month = min(months$month):max(months$month)), by = "month") |>
       mutate(
         startCount = if_else(is.na(.data$startCount), 0, .data$startCount),
         endCount = if_else(is.na(.data$endCount), 0, .data$endCount)
       )
   }
-  months <- months %>%
-    arrange(.data$month) %>%
+  months <- months |>
+    arrange(.data$month) |>
     mutate(
       cumStarts = cumsum(.data$startCount),
       cumEnds = cumsum(.data$endCount)
-    ) %>%
-    mutate(observationPeriodCount = .data$cumStarts - .data$cumEnds) %>%
-    select("month", "observationPeriodCount") %>%
+    ) |>
+    mutate(observationPeriodCount = .data$cumStarts - .data$cumEnds) |>
+    select("month", "observationPeriodCount") |>
     head(-1)
 
   return(months)
@@ -515,10 +521,10 @@ addEventDependentObservationSettings <- function(settings,
   if (!eventDependentObservation) {
     settings$censorModel <- list(model = 0, p = c(0))
   } else {
-    data <- studyPopulation$outcomes %>%
-      group_by(.data$caseId) %>%
-      summarise(outcomeDay = min(.data$outcomeDay)) %>%
-      inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
+    data <- studyPopulation$outcomes |>
+      group_by(.data$caseId) |>
+      summarise(outcomeDay = min(.data$outcomeDay)) |>
+      inner_join(studyPopulation$cases, by = join_by("caseId")) |>
       transmute(
         astart = .data$ageAtObsStart + .data$startDay,
         aend = .data$ageAtObsStart + .data$endDay + 1,
@@ -537,7 +543,8 @@ addEventDependentObservationSettings <- function(settings,
     originalEraId = 0,
     originalEraType = "",
     originalEraName = "",
-    isControlInterval = FALSE
+    isControlInterval = FALSE,
+    preExposure = FALSE
   )
   settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
   settings$metaData$endOfObservationEra <- list(
@@ -552,7 +559,7 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
   } else {
     eraCovariateSettingsList <- list(eraCovariateSettings)
   }
-  eraRef <- sccsData$eraRef %>%
+  eraRef <- sccsData$eraRef |>
     collect()
 
   # Iterate over different covariate settings. Assign unique IDs, and store in covariateRef:
@@ -565,9 +572,9 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
       covariateSettings$label <- "Covariate"
     }
     if (is.null(covariateSettings$includeEraIds) || length(covariateSettings$includeEraIds) == 0) {
-      covariateSettings$eraIds <- eraRef %>%
-        filter(.data$eraType != "hoi") %>%
-        select("eraId") %>%
+      covariateSettings$eraIds <- eraRef |>
+        filter(.data$eraType != "hoi") |>
+        select("eraId") |>
         pull()
     } else {
       covariateSettings$eraIds <- covariateSettings$includeEraIds
@@ -593,7 +600,8 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
           originalEraId = originalEraId,
           originalEraType = "",
           originalEraName = "",
-          isControlInterval = covariateSettings$isControlInterval
+          isControlInterval = covariateSettings$isControlInterval,
+          preExposure = covariateSettings$preExposure
         )
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
       }
@@ -608,7 +616,7 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
       if (nrow(varNames) == 0) {
         warning(paste0("Could not find era with ID ", covariateSettings$eraIds, " in data"))
       } else {
-        varNames <- varNames %>%
+        varNames <- varNames |>
           transmute(
             originalEraId = .data$eraId,
             originalEraType = .data$eraType,
@@ -617,14 +625,15 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
                                   .data$eraName,
                                   sep = ": "
             ),
-            isControlInterval = FALSE
+            isControlInterval = FALSE,
+            preExposure = covariateSettings$preExposure
           )
 
         newCovariateRef <- tibble(
           covariateId = outputIds,
           covariateAnalysisId = i,
           originalEraId = covariateSettings$eraIds
-        ) %>%
+        ) |>
           left_join(varNames, by = join_by("originalEraId"))
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)
       }
@@ -678,20 +687,20 @@ cyclicSplineDesign <- function(x, knots, ord = 3) {
 }
 
 countOutcomesIntervalData <- function(data, sccsData, outcomeId) {
-  data$outcomes %>%
-    inner_join(select(sccsData$cases, stratumId = "caseId", "personId"), by = join_by("stratumId"), copy = TRUE) %>%
+  counts <- data$outcomes |>
+    inner_join(select(sccsData$cases, stratumId = "caseId", "personId"), by = join_by("stratumId"), copy = TRUE) |>
     summarize(
       outcomeSubjects = n_distinct(.data$personId),
       outcomeEvents = sum(.data$y, na.rm = TRUE),
       outcomeObsPeriods = n_distinct(.data$stratumId),
       observedDays = sum(.data$time, na.rm = TRUE)
-    ) %>%
-    collect() %>%
+    ) |>
+    collect() |>
     mutate(
       outcomeId = !!outcomeId,
       description = "Having at least one covariate",
       outcomeEvents = ifelse(is.na(.data$outcomeEvents), 0, .data$outcomeEvents),
       observedDays = ifelse(is.na(.data$observedDays), 0, .data$observedDays)
-    ) %>%
-    return()
+    )
+  return(counts)
 }

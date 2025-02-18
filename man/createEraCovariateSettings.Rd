@@ -16,7 +16,8 @@ createEraCovariateSettings(
   firstOccurrenceOnly = FALSE,
   allowRegularization = FALSE,
   profileLikelihood = FALSE,
-  exposureOfInterest = FALSE
+  exposureOfInterest = FALSE,
+  preExposure = start < 0
 )
 }
 \arguments{
@@ -59,6 +60,8 @@ while to compute.}
 \item{exposureOfInterest}{If TRUE, the fitted coefficient for this variable will be reported when
 using \code{runSccsAnalyses()}. Requires \code{includeEraIds} to be a exposure
 reference ID as defined in \code{createExposure()}.}
+
+\item{preExposure}{If TRUE, this variable will be used for the pre-exposure diagnostic.}
 }
 \value{
 An object of type \code{EraCovariateSettings}.

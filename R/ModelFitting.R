@@ -71,7 +71,7 @@ fitSccsModel <- function(sccsIntervalData,
 
   ParallelLogger::logTrace("Fitting SCCS model")
   metaData <- attr(sccsIntervalData, "metaData")
-  metaData$covariateRef <- sccsIntervalData$covariateRef %>%
+  metaData$covariateRef <- sccsIntervalData$covariateRef |>
     collect()
   if (!is.null(metaData$error)) {
     result <- list(
@@ -86,7 +86,7 @@ fitSccsModel <- function(sccsIntervalData,
   priorVariance <- 0
   logLikelihood <- NA
   logLikelihoodProfiles <- NULL
-  if (sccsIntervalData$outcomes %>% count() %>% pull() == 0) {
+  if (sccsIntervalData$outcomes |> count() |> pull() == 0) {
     coefficients <- c(0)
     status <- "Could not estimate because there was no data"
   } else {
@@ -148,8 +148,8 @@ fitSccsModel <- function(sccsIntervalData,
     if (!needRegularization) {
       prior <- createPrior("none")
     } else {
-      covariateIds <- sccsIntervalData$covariates %>%
-        distinct(.data$covariateId) %>%
+      covariateIds <- sccsIntervalData$covariates |>
+        distinct(.data$covariateId) |>
         pull()
       prior$exclude <- intersect(nonRegularized, covariateIds)
     }
@@ -198,9 +198,9 @@ fitSccsModel <- function(sccsIntervalData,
       } else {
         status <- "OK"
         estimates <- coef(fit)
-        estimates <- tibble(logRr = estimates, covariateId = as.numeric(names(estimates))) %>%
+        estimates <- tibble(logRr = estimates, covariateId = as.numeric(names(estimates))) |>
           left_join(
-            sccsIntervalData$covariateRef %>%
+            sccsIntervalData$covariateRef |>
               collect(),
             by = join_by("covariateId")
           )
@@ -267,7 +267,7 @@ coef.SccsModel <- function(object, ...) {
 
 #' @export
 confint.SccsModel <- function(object, ...) {
-  return(object$estimates %>% select("covariateId", "logLb95", "logUb95"))
+  return(object$estimates |> select("covariateId", "logLb95", "logUb95"))
 }
 
 #' @export

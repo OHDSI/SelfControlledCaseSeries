@@ -110,20 +110,20 @@ setMethod("summary", "SccsIntervalData", function(object) {
     stop("Object is not valid. Probably the Andromeda object was closed.")
   }
 
-  caseCount <- object$outcomes %>%
-    summarise(n = n_distinct(.data$stratumId)) %>%
+  caseCount <- object$outcomes |>
+    summarise(n = n_distinct(.data$stratumId)) |>
     pull()
-  eraCount <- object$outcomes %>%
-    count() %>%
+  eraCount <- object$outcomes |>
+    count() |>
     pull()
-  outcomeCount <- object$outcomes %>%
-    summarise(n = sum(.data$y, na.rm = TRUE)) %>%
+  outcomeCount <- object$outcomes |>
+    summarise(n = sum(.data$y, na.rm = TRUE)) |>
     pull()
-  covariateCount <- object$covariateRef %>%
-    count() %>%
+  covariateCount <- object$covariateRef |>
+    count() |>
     pull()
-  covariateValueCount <- object$covariates %>%
-    count() %>%
+  covariateValueCount <- object$covariates |>
+    count() |>
     pull()
 
   result <- list(

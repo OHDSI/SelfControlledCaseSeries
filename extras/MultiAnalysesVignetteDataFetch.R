@@ -347,8 +347,8 @@ resultDatabaseDetails <- list(
 )
 estimationModule <- ShinyAppBuilder::createDefaultEstimationConfig()
 aboutModule <- ShinyAppBuilder::createDefaultAboutConfig()
-shinyAppConfig <- ShinyAppBuilder::initializeModuleConfig() %>%
-  ShinyAppBuilder::addModuleConfig(aboutModule) %>%
+shinyAppConfig <- ShinyAppBuilder::initializeModuleConfig() |>
+  ShinyAppBuilder::addModuleConfig(aboutModule) |>
   ShinyAppBuilder::addModuleConfig(estimationModule)
 connectionHandler <- ResultModelManager::ConnectionHandler$new(connectionDetails)
 ShinyAppBuilder::viewShiny(shinyAppConfig, connectionHandler)

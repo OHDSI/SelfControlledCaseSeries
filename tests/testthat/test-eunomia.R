@@ -81,7 +81,8 @@ test_that("Running multiple analyses against Eunomia", {
     start = -30,
     end = -1,
     endAnchor = "era start",
-    exposureOfInterest = FALSE
+    exposureOfInterest = FALSE,
+    preExposure = TRUE
   )
 
   createSccsIntervalDataArgs <- createCreateSccsIntervalDataArgs(
@@ -196,7 +197,7 @@ test_that("Running multiple analyses against Eunomia", {
   specs <- readr::read_csv(
     file = system.file("csv", "resultsDataModelSpecification.csv", package = "SelfControlledCaseSeries"),
     show_col_types = FALSE
-  ) %>%
+  ) |>
     SqlRender::snakeCaseToCamelCaseNames()
 
   specs <- split(specs, specs$tableName)

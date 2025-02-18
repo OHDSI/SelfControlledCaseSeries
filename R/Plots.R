@@ -42,10 +42,10 @@ plotAgeSpans <- function(studyPopulation,
   checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  cases <- studyPopulation$cases %>%
+  cases <- studyPopulation$cases |>
     transmute(startAge = .data$ageAtObsStart + .data$startDay,
-              endAge = .data$ageAtObsStart + .data$endDay) %>%
-    arrange(.data$startAge, .data$endAge) %>%
+              endAge = .data$ageAtObsStart + .data$endDay) |>
+    arrange(.data$startAge, .data$endAge) |>
     mutate(rank = row_number())
 
   ageLabels <- floor(min(cases$startAge) / 365.25):ceiling(max(cases$endAge) / 365.25)
@@ -88,10 +88,10 @@ plotAgeSpans <- function(studyPopulation,
 }
 
 computeTimeToObsEnd <- function(studyPopulation) {
-  outcomes <- studyPopulation$outcomes %>%
-    group_by(.data$caseId) %>%
-    summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
-    inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
+  outcomes <- studyPopulation$outcomes |>
+    group_by(.data$caseId) |>
+    summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") |>
+    inner_join(studyPopulation$cases, by = join_by("caseId")) |>
     transmute(
       daysFromEvent = .data$endDay - .data$outcomeDay,
       censoring = case_when(
@@ -179,82 +179,82 @@ plotEventObservationDependence <- function(studyPopulation,
 computeTimeToEvent <- function(studyPopulation,
                                sccsData,
                                exposureEraId) {
-  cases <- studyPopulation$cases %>%
+  cases <- studyPopulation$cases |>
     select("caseId", "startDay", "endDay")
 
-  exposures <- sccsData$eras %>%
-    filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
+  exposures <- sccsData$eras |>
+    filter(.data$eraId == exposureEraId & .data$eraType == "rx") |>
     inner_join(cases,
                by = join_by("caseId", "eraStartDay" >= "startDay", "eraStartDay" < "endDay"),
-               copy = TRUE) %>%
+               copy = TRUE) |>
     collect()
 
   if (nrow(exposures) == 0) {
     warning("No exposures found with era ID ", exposureEraId)
-    tibble(
+    result <- tibble(
       number = 1,
       start = 1.0,
       end = 1.0,
       observed = 1,
       eventsExposed = 1.0,
       eventsUnexposed = 1.0
-    ) %>%
-      filter(.data$number == -1) %>%
-      return()
+    ) |>
+      filter(.data$number == -1)
+    return(result)
   }
-  firstExposures <- exposures %>%
-    group_by(.data$caseId, .data$startDay, .data$endDay) %>%
+  firstExposures <- exposures |>
+    group_by(.data$caseId, .data$startDay, .data$endDay) |>
     summarise(
       eraStartDay = min(.data$eraStartDay, na.rm = TRUE),
       eraEndDay = min(.data$eraEndDay, na.rm = TRUE),
       .groups = "drop"
     )
 
-  outcomes <- studyPopulation$outcomes %>%
-    inner_join(firstExposures, by = join_by("caseId")) %>%
-    mutate(delta = .data$outcomeDay - .data$eraStartDay) %>%
+  outcomes <- studyPopulation$outcomes |>
+    inner_join(firstExposures, by = join_by("caseId")) |>
+    mutate(delta = .data$outcomeDay - .data$eraStartDay) |>
     select("caseId", "outcomeDay", "delta")
 
-  exposedoutcomes <- exposures %>%
-    inner_join(outcomes, by = join_by("caseId"), relationship = "many-to-many") %>%
+  exposedoutcomes <- exposures |>
+    inner_join(outcomes, by = join_by("caseId"), relationship = "many-to-many") |>
     filter(
       .data$outcomeDay >= .data$eraStartDay,
       .data$outcomeDay <= .data$eraEndDay
-    ) %>%
-    select("caseId", "delta") %>%
+    ) |>
+    select("caseId", "delta") |>
     mutate(exposed = 1)
 
-  outcomes <- outcomes %>%
-    left_join(exposedoutcomes, by = join_by("caseId", "delta"), relationship = "many-to-many") %>%
+  outcomes <- outcomes |>
+    left_join(exposedoutcomes, by = join_by("caseId", "delta"), relationship = "many-to-many") |>
     mutate(exposed = coalesce(.data$exposed, 0))
 
-  weeks <- dplyr::tibble(number = -26:25) %>%
+  weeks <- dplyr::tibble(number = -26:25) |>
     mutate(
       start = .data$number * 7,
       end = .data$number * 7 + 7
     )
 
-  events <- weeks %>%
-    cross_join(select(outcomes, "delta", "exposed")) %>%
-    filter(.data$delta >= .data$start, .data$delta < .data$end) %>%
-    group_by(.data$number, .data$start, .data$end) %>%
+  events <- weeks |>
+    cross_join(select(outcomes, "delta", "exposed")) |>
+    filter(.data$delta >= .data$start, .data$delta < .data$end) |>
+    group_by(.data$number, .data$start, .data$end) |>
     summarise(
       eventsExposed = sum(.data$exposed),
       eventsUnexposed = n() - sum(.data$exposed),
       .groups = "drop"
     )
 
-  observed <- weeks %>%
-    cross_join(transmute(firstExposures, startDelta = .data$startDay -.data$eraStartDay , endDelta = .data$endDay - .data$eraStartDay)) %>%
-    filter(.data$endDelta >= .data$start, .data$startDelta < .data$end) %>%
-    group_by(.data$number, .data$start, .data$end) %>%
+  observed <- weeks |>
+    cross_join(transmute(firstExposures, startDelta = .data$startDay -.data$eraStartDay , endDelta = .data$endDay - .data$eraStartDay)) |>
+    filter(.data$endDelta >= .data$start, .data$startDelta < .data$end) |>
+    group_by(.data$number, .data$start, .data$end) |>
     summarise(
       observed = n(),
       .groups = "drop"
     )
 
-  result <- observed %>%
-    left_join(events, by = join_by("number", "start", "end")) %>%
+  result <- observed |>
+    left_join(events, by = join_by("number", "start", "end")) |>
     mutate(
       eventsExposed = if_else(is.na(.data$eventsExposed), 0, .data$eventsExposed),
       eventsUnexposed = if_else(is.na(.data$eventsUnexposed), 0, .data$eventsUnexposed)
@@ -312,7 +312,7 @@ plotExposureCentered <- function(studyPopulation,
   }
 
   if (highlightExposedEvents) {
-    events <- data %>%
+    events <- data |>
       transmute(.data$start,
                 .data$end,
                 type = "Events",
@@ -320,7 +320,7 @@ plotExposureCentered <- function(studyPopulation,
                 count2 = .data$eventsExposed
       )
   } else {
-    events <- data %>%
+    events <- data |>
       transmute(.data$start,
                 .data$end,
                 type = "Events",
@@ -328,7 +328,7 @@ plotExposureCentered <- function(studyPopulation,
                 count2 = NA
       )
   }
-  observed <- data %>%
+  observed <- data |>
     transmute(.data$start,
               .data$end,
               type = "Subjects under observation",
@@ -401,8 +401,8 @@ plotEventToCalendarTime <- function(studyPopulation,
   checkmate::reportAssertions(collection = errorMessages)
 
   data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
-  plotData <- data %>%
-    select("month", "monthStartDate", "monthEndDate", value = "ratio") %>%
+  plotData <- data |>
+    select("month", "monthStartDate", "monthEndDate", value = "ratio") |>
     mutate(type = "Assuming constant rate")
   levels <- c("Assuming constant rate")
 
@@ -411,7 +411,7 @@ plotEventToCalendarTime <- function(studyPopulation,
     type <- paste("Adj. for", paste(types, collapse = " and "))
     plotData <- bind_rows(
       plotData,
-      select(data, "month", "monthStartDate", "monthEndDate", value = "adjustedRatio") %>%
+      select(data, "month", "monthStartDate", "monthEndDate", value = "adjustedRatio") |>
         mutate(type = !!type),
     )
     levels <- c(levels, type)
@@ -572,7 +572,7 @@ plotSeasonality <- function(sccsModel,
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
   data <- tibble(season = season, rr = rr)
-  knotData <- data %>%
+  knotData <- data |>
     filter(.data$season %in% seasonKnots)
 
 
@@ -641,11 +641,11 @@ plotCalendarTimeSpans <- function(studyPopulation,
   checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  cases <- studyPopulation$cases %>%
+  cases <- studyPopulation$cases |>
     mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
-           endDate = .data$observationPeriodStartDate + .data$endDay) %>%
-    select("startDate", "endDate") %>%
-    arrange(.data$startDate, .data$endDate) %>%
+           endDate = .data$observationPeriodStartDate + .data$endDay) |>
+    select("startDate", "endDate") |>
+    arrange(.data$startDate, .data$endDate) |>
     mutate(rank = row_number())
   if (nrow(cases) > maxPersons) {
     warning("There are ", nrow(cases), " cases. Random sampling ", maxPersons, " cases.")
@@ -727,15 +727,15 @@ plotCalendarTimeEffect <- function(sccsModel,
                  segment = 0)
   for (i in seq_along(calendarTimeKnotsInPeriods)) {
     knots <- calendarTimeKnotsInPeriods[[i]]
-    data <- data %>%
+    data <- data |>
       mutate(segment = if_else(.data$calendarTime >= min(knots) & .data$calendarTime <= max(knots),
                                i,
                                .data$segment))
   }
-  data <- data %>%
+  data <- data |>
     filter(.data$segment > 0)
-  knotData <- data %>%
-    filter(.data$calendarTime %in% allKnots) %>%
+  knotData <- data |>
+    filter(.data$calendarTime %in% allKnots) |>
     arrange(.data$calendarTime)
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
@@ -772,97 +772,3 @@ plotCalendarTimeEffect <- function(sccsModel,
   }
   return(plot)
 }
-
-
-#' Plot exposure days relative to the first outcome
-#'
-#' @param exposureEraId       The exposure to create the era data for. If not specified it is
-#'                            assumed to be the one exposure for which the data was loaded from
-#'                            the database.
-#' @template StudyPopulation
-#' @template SccsData
-#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
-#'                          See the function [ggplot2::ggsave()] for supported file formats.
-#' @param title             Optional: the main title for the plot
-#'
-#' @return
-#' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
-#' format.
-#'
-#' @export
-plotOutcomeCentered <- function(studyPopulation,
-                                sccsData,
-                                exposureEraId = NULL,
-                                title = NULL,
-                                fileName = NULL) {
-  errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
-  checkmate::assertInt(exposureEraId, null.ok = TRUE, add = errorMessages)
-  checkmate::assertCharacter(title, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::reportAssertions(collection = errorMessages)
-
-  if (is.null(exposureEraId)) {
-    exposureEraId <- attr(sccsData, "metaData")$exposureIds
-    if (length(exposureEraId) != 1) {
-      stop("No exposure ID specified, but multiple exposures found")
-    }
-  }
-  timeWindows <- tibble(windowId = -26:25) |>
-    mutate(
-      startDay = .data$windowId * 7,
-      endDay = .data$windowId * 7 + 7
-    )
-
-  data <- computeExposureDaysToEvent(studyPopulation = studyPopulation,
-                                     sccsData = sccsData,
-                                     exposureEraId = exposureEraId,
-                                     timeWindows = timeWindows)
-  data <- data |>
-    group_by(.data$startDay, .data$endDay) |>
-    summarise(daysObserved = sum(.data$daysObserved),
-              daysExposed = sum(.data$daysExposed),
-              .groups = "drop")
-
-  vizData <- bind_rows(
-    data |>
-      select("startDay", "endDay", count = "daysExposed") |>
-      mutate(type = "Days exposed"),
-    data |>
-      select("startDay", "endDay", count = "daysObserved") |>
-      mutate(type = "Days observed")
-  )
-
-  breaks <- seq(-150, 150, 30)
-  theme <- ggplot2::element_text(colour = "#000000", size = 12)
-  themeRA <- ggplot2::element_text(colour = "#000000", size = 12, hjust = 1)
-  plot <- ggplot2::ggplot(vizData, ggplot2::aes(x = .data$startDay, xmin = .data$startDay, xmax = .data$endDay, ymax = .data$count, ymin = 0)) +
-    ggplot2::geom_rect(fill = rgb(0, 0, 0.8), alpha = 0.8) +
-    ggplot2::geom_vline(xintercept = 0, colour = "#000000", lty = 1, linewidth = 1) +
-    ggplot2::scale_x_continuous("Days since first outcome", breaks = breaks, labels = breaks) +
-    ggplot2::scale_y_continuous("Count") +
-    ggplot2::facet_grid(type ~ ., scales = "free_y") +
-    ggplot2::theme(
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.background = ggplot2::element_rect(fill = "#FAFAFA", colour = NA),
-      panel.grid.major = ggplot2::element_line(colour = "#AAAAAA"),
-      axis.ticks = ggplot2::element_blank(),
-      axis.text.y = themeRA,
-      axis.text.x = theme,
-      strip.text.y = theme,
-      strip.background = ggplot2::element_blank(),
-      plot.title = ggplot2::element_text(hjust = 0.5),
-      legend.title = ggplot2::element_blank(),
-      legend.position = "top"
-    )
-  plot
-  if (!is.null(title)) {
-    plot <- plot + ggplot2::ggtitle(title)
-  }
-  if (!is.null(fileName)) {
-    ggplot2::ggsave(fileName, plot, width = 7, height = 5, dpi = 400)
-  }
-  return(plot)
-}
-

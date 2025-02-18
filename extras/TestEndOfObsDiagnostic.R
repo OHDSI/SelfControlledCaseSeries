@@ -186,7 +186,7 @@ fitAndSaveModel <- function(outcome, database, folder, aspirin) {
                                     studyPopulation = studyPop,
                                     exposureEraId = aspirin,
                                     ignoreExposureStarts = TRUE)
-      preExposure <- computePreExposureGain(sccsData = d,
+      preExposure <- computePreExposureGainP(sccsData = d,
                                             studyPopulation = studyPop,
                                             exposureEraId = aspirin)
       timeTrend <- computeTimeStability(studyPopulation = studyPop,

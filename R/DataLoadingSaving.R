@@ -248,9 +248,9 @@ getDbSccsData <- function(connectionDetails,
   } else {
     hasStudyPeriods <- TRUE
     studyPeriods <- tibble(studyStartDate = studyStartDates,
-                           studyEndDate = studyEndDates) %>%
+                           studyEndDate = studyEndDates) |>
       mutate(studyStartDate = if_else(.data$studyStartDate == "", "18000101", .data$studyStartDate),
-             studyEndDate = if_else(.data$studyEndDate == "", "220000101", .data$studyEndDate)) %>%
+             studyEndDate = if_else(.data$studyEndDate == "", "220000101", .data$studyEndDate)) |>
       mutate(studyStartDate = as.Date(.data$studyStartDate, format = "%Y%m%d"),
              studyEndDate = as.Date(.data$studyEndDate, format = "%Y%m%d"))
     DatabaseConnector::insertTable(conn,
@@ -381,7 +381,7 @@ getDbSccsData <- function(connectionDetails,
     andromedaTableName = "cases",
     snakeCaseToCamelCase = TRUE
   )
-  ParallelLogger::logDebug("Fetched ", sccsData$cases %>% count() %>% pull(), " cases from server")
+  ParallelLogger::logDebug("Fetched ", sccsData$cases |> count() |> pull(), " cases from server")
   sccsData <- ensureAgePositive(sccsData)
 
   sql <- SqlRender::loadRenderTranslateSql("QueryEras.sql",
@@ -421,19 +421,19 @@ getDbSccsData <- function(connectionDetails,
   DatabaseConnector::executeSql(conn, sql, progressBar = FALSE, reportOverallTime = FALSE)
 
   if (sampledCases) {
-    sampledCounts <- sccsData$eras %>%
-      filter(.data$eraType == "hoi") %>%
-      inner_join(sccsData$cases, by = join_by("caseId")) %>%
-      group_by(.data$eraId) %>%
+    sampledCounts <- sccsData$eras |>
+      filter(.data$eraType == "hoi") |>
+      inner_join(sccsData$cases, by = join_by("caseId")) |>
+      group_by(.data$eraId) |>
       summarise(
         outcomeSubjects = n_distinct(.data$personId),
         outcomeEvents = count(),
         outcomeObsPeriods = n_distinct(.data$observationPeriodId),
         observedDays = sum(.data$endDay - .data$startDay + 1, na.rm = TRUE),
         .groups = "drop_last"
-      ) %>%
-      rename(outcomeId = "eraId") %>%
-      mutate(description = "Random sample") %>%
+      ) |>
+      rename(outcomeId = "eraId") |>
+      mutate(description = "Random sample") |>
       collect()
     if (nrow(sampledCounts) > 0) {
       # If no rows then description becomes a logical, causing an error here:
@@ -462,7 +462,7 @@ countOutcomesInDb <- function(connection, hasStudyPeriods, useNestingCohort, tem
                                            dbms = DatabaseConnector::dbms(connection),
                                            tempEmulationSchema = tempEmulationSchema,
                                            case_table = "#cases")
-  outcomeCounts <- DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE) %>%
+  outcomeCounts <- DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE) |>
     mutate(description = "All outcome occurrences")
   if (hasStudyPeriods) {
     sql <- SqlRender::loadRenderTranslateSql("CountOutcomes.sql",
@@ -470,9 +470,9 @@ countOutcomesInDb <- function(connection, hasStudyPeriods, useNestingCohort, tem
                                              dbms = DatabaseConnector::dbms(connection),
                                              tempEmulationSchema = tempEmulationSchema,
                                              case_table = "#cases_in_periods")
-    outcomeCounts <- outcomeCounts %>%
+    outcomeCounts <- outcomeCounts |>
       bind_rows(
-        DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE) %>%
+        DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE) |>
           mutate(description = "Outcomes in study period(s)")
       )
   }
@@ -482,9 +482,9 @@ countOutcomesInDb <- function(connection, hasStudyPeriods, useNestingCohort, tem
                                              dbms = DatabaseConnector::dbms(connection),
                                              tempEmulationSchema = tempEmulationSchema,
                                              case_table = "#cases_in_nesting")
-    outcomeCounts <- outcomeCounts %>%
+    outcomeCounts <- outcomeCounts |>
       bind_rows(
-        DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE) %>%
+        DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE) |>
           mutate(description = "Outcomes in nesting cohort")
       )
   }
@@ -497,14 +497,14 @@ ensureAgePositive <- function(sccsData) {
   if (pull(count(sccsData$cases)) == 0) {
     return(sccsData)
   }
-  countNegativeAges <- sccsData$cases %>%
-    filter(.data$ageAtObsStart < 0) %>%
-    count() %>%
+  countNegativeAges <- sccsData$cases |>
+    filter(.data$ageAtObsStart < 0) |>
+    count() |>
     pull()
 
   if (countNegativeAges > 0) {
     warning("There are ", countNegativeAges, " cases with negative ages at observation start. Setting their starting age to 0. Please review your data.")
-    sccsData$cases <- sccsData$cases %>%
+    sccsData$cases <- sccsData$cases |>
       mutate(ageAtObsStart = case_when(
         .data$ageAtObsStart < 0 ~ 0,
         TRUE ~ .data$ageAtObsStart

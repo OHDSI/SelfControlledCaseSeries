@@ -121,8 +121,8 @@ test_that("Produces same results as SCCS package when using event-dependent obse
   eras <- rbind(heiEras, hoiEras)
   eras <- eras[order(eras$caseId), ]
 
-  eraRef <- eras %>%
-    distinct(.data$eraId, .data$eraType) %>%
+  eraRef <- eras |>
+    distinct(.data$eraId, .data$eraType) |>
     mutate(eraName = "")
 
   sccsData <- Andromeda::andromeda(

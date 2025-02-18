@@ -1,3 +1,20 @@
+SelfControlledCaseSeries 6.0.0
+==============================
+
+Changes
+
+1. Deprecated `computeTimeStability()` and `computePreExposureGainP()` functions.
+
+2. Added the `checkTimeStabilityAssumption()`, `checkEventObservationIndependenceAssumption()`, `checkEventExposureIndependenceAssumption()` and `checkRareOutcomeAssumption()` functions. These implement diagnostics for the four major assumptions of the SCCS design.
+
+3. Added the `endOfObservationEraLength` argument to the `createSccsIntervalData()` function, which defaults to 30. This adds a probe window at the end of the observation period. The estimate for this window is used by the `checkEventExposureIndependenceAssumption()` diagnostic.
+
+4. Added the `preExposure` argument to the `createEraCovariateSettings()` function, which defaults to `start < 0`. This can be used to designate one or more windows as the pre-exposure window, used by the `checkEventExposureIndependenceAssumption()` diagnostic.
+
+
+
+
+
 SelfControlledCaseSeries 5.3.1
 ==============================
 

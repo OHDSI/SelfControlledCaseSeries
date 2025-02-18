@@ -64,7 +64,7 @@ computeMdrr <- function(object,
   }
 
   if (!is.null(covariateStatistics)) {
-    covariateStatistics <- covariateStatistics %>%
+    covariateStatistics <- covariateStatistics |>
       filter(.data$covariateId == exposureCovariateId)
   }
   if (is.null(covariateStatistics) || nrow(covariateStatistics) == 0) {

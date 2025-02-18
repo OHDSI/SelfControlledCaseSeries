@@ -47,6 +47,7 @@
 #' @param exposureOfInterest    If TRUE, the fitted coefficient for this variable will be reported when
 #'                              using `runSccsAnalyses()`. Requires `includeEraIds` to be a exposure
 #'                              reference ID as defined in `createExposure()`.
+#' @param preExposure           If TRUE, this variable will be used for the pre-exposure diagnostic.
 #'
 #' @return
 #' An object of type `EraCovariateSettings`.
@@ -63,7 +64,8 @@ createEraCovariateSettings <- function(includeEraIds,
                                        firstOccurrenceOnly = FALSE,
                                        allowRegularization = FALSE,
                                        profileLikelihood = FALSE,
-                                       exposureOfInterest = FALSE) {
+                                       exposureOfInterest = FALSE,
+                                       preExposure = start < 0) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is.character(includeEraIds)) {
     checkmate::assertCharacter(includeEraIds, add = errorMessages)
@@ -85,6 +87,7 @@ createEraCovariateSettings <- function(includeEraIds,
   checkmate::assertLogical(allowRegularization, len = 1, add = errorMessages)
   checkmate::assertLogical(profileLikelihood, len = 1, add = errorMessages)
   checkmate::assertLogical(exposureOfInterest, len = 1, add = errorMessages)
+  checkmate::assertLogical(exposureOfInterest, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   if (allowRegularization && profileLikelihood) {
     stop("Cannot profile the likelihood of regularized covariates")
@@ -98,7 +101,6 @@ createEraCovariateSettings <- function(includeEraIds,
       "contains a single exposure reference ID as defined in createExposure()."
     )
   }
-
   analysis <- list()
   for (name in names(formals(createEraCovariateSettings))) {
     analysis[[name]] <- get(name)
@@ -332,7 +334,8 @@ createControlIntervalSettings <- function(includeEraIds = NULL,
     end = end,
     endAnchor = endAnchor,
     firstOccurrenceOnly = firstOccurrenceOnly,
-    allowRegularization = FALSE
+    allowRegularization = FALSE,
+    preExposure = FALSE
   )
   analysis$isControlInterval <- TRUE
   class(analysis) <- "ControlIntervalSettings"

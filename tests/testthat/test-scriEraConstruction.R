@@ -37,12 +37,12 @@ convertToScriDataWrapper <- function(cases,
   } else {
     covariateIds <- covariateSettings$includeEraIds
   }
-  eraRef <- eras %>%
-    distinct(.data$eraId, .data$eraType) %>%
+  eraRef <- eras |>
+    distinct(.data$eraId, .data$eraType) |>
     mutate(eraName = "")
 
   data <- Andromeda::andromeda(
-    cases = cases %>%
+    cases = cases |>
       mutate(observationPeriodStartDate = observationPeriodStartDate),
     eras = eras,
     eraRef = eraRef
