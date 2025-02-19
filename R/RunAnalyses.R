@@ -160,6 +160,8 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
 #' @param sccsMultiThreadingSettings       An object of type `SccsMultiThreadingSettings` as created using
 #'                                         the [createSccsMultiThreadingSettings()] or
 #'                                         [createDefaultSccsMultiThreadingSettings()] functions.
+#' @param sccsDiagnosticThresholds         An object of type `SccsDiagnosticThresholds` as created using
+#'                                         [createSccsDiagnosticThresholds()].
 #' @param controlType                      Type of negative (and positive) controls. Can be "outcome" or
 #'                                         "exposure". When set to "outcome", controls with the
 #'                                         same exposure (and nesting cohort) are grouped together for
@@ -189,6 +191,7 @@ runSccsAnalyses <- function(connectionDetails,
                             analysesToExclude = NULL,
                             combineDataFetchAcrossOutcomes = FALSE,
                             sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
+                            sccsDiagnosticThresholds = createSccsDiagnosticThresholds(),
                             controlType = "outcome") {
   errorMessages <- checkmate::makeAssertCollection()
   if (is(connectionDetails, "connectionDetails")) {
@@ -219,6 +222,7 @@ runSccsAnalyses <- function(connectionDetails,
   checkmate::assertDataFrame(analysesToExclude, null.ok = TRUE, add = errorMessages)
   checkmate::assertLogical(combineDataFetchAcrossOutcomes, len = 1, add = errorMessages)
   checkmate::assertClass(sccsMultiThreadingSettings, "SccsMultiThreadingSettings", add = errorMessages)
+  checkmate::assertR6(sccsDiagnosticThresholds, "SccsDiagnosticThresholds", add = errorMessages)
   checkmate::assertChoice(controlType, c("outcome", "exposure"), add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
@@ -447,12 +451,15 @@ runSccsAnalyses <- function(connectionDetails,
   mainFileName <- file.path(outputFolder, "resultsSummary.rds")
   if (!file.exists(mainFileName)) {
     message("*** Summarizing results ***")
+    diagnosticsSummaryFileName <- file.path(outputFolder, "diagnosticsSummary.rds")
     summarizeResults(
       referenceTable = referenceTable,
       exposuresOutcomeList = exposuresOutcomeList,
       outputFolder = outputFolder,
       mainFileName = mainFileName,
+      diagnosticsSummaryFileName = diagnosticsSummaryFileName,
       calibrationThreads = sccsMultiThreadingSettings$calibrationThreads,
+      sccsDiagnosticThresholds = sccsDiagnosticThresholds,
       controlType = controlType
     )
   }
@@ -833,25 +840,55 @@ createSccsModelObject <- function(params) {
   }
 }
 
+.passBooleanToString <- function(pass) {
+  case_when(
+    is.na(pass) ~ "NOT EVALUATED",
+    pass ~ "PASS",
+    TRUE ~ "FAIL"
+  )
+}
+
+# referenceTable = getFileReference(outputFolder)
 summarizeResults <- function(referenceTable,
                              exposuresOutcomeList,
                              outputFolder,
                              mainFileName,
-                             calibrationThreads = 1,
+                             diagnosticsSummaryFileName,
+                             calibrationThreads,
+                             sccsDiagnosticThresholds,
                              controlType) {
   rows <- list()
-  # i = 1
+  # i = 3
   pb <- txtProgressBar(style = 3)
   for (i in seq_len(nrow(referenceTable))) {
     refRow <- referenceTable[i, ]
     sccsModel <- readRDS(file.path(outputFolder, as.character(refRow$sccsModelFile)))
     attrition <- as.data.frame(sccsModel$metaData$attrition)
     attrition <- attrition[nrow(attrition), ]
+    studyPop <- readRDS(file.path(outputFolder, as.character(refRow$studyPopFile)))
+    timeStabilityDiagnostic <- checkTimeStabilityAssumption(
+      studyPopulation = studyPop,
+      sccsModel = sccsModel,
+      maxRatio = sccsDiagnosticThresholds$timeTrendMaxRatio
+    )
+    eventExposureIndependenceDiagnostic <- checkEventExposureIndependenceAssumption(
+      sccsModel = sccsModel,
+      nullBounds = sccsDiagnosticThresholds$eventExposureDependenceNullBounds
+    )
+    eventObservationIndependenceDiagnostic <- checkEventObservationIndependenceAssumption(
+      sccsModel = sccsModel,
+      nullBounds = sccsDiagnosticThresholds$eventObservationDependenceNullBounds
+    )
+    rareOutcomeDiagnostics <- checkRareOutcomeAssumption(
+      studyPopulation = studyPop,
+      maxPrevalence = sccsDiagnosticThresholds$rareOutcomeMaxPrevalence
+    )
     # covariateSettings = sccsModel$metaData$covariateSettingsList[[1]]
     for (covariateSettings in sccsModel$metaData$covariateSettingsList) {
       if (covariateSettings$exposureOfInterest) {
         # j = 1
         for (j in seq_along(covariateSettings$outputIds)) {
+          mdrr <- computeMdrr(object = sccsModel, exposureCovariateId = covariateSettings$outputIds[j])
           if (is.null(sccsModel$metaData$covariateStatistics)) {
             covariateStatistics <- tibble()
           } else {
@@ -911,7 +948,19 @@ summarizeResults <- function(referenceTable,
             oneSidedP = oneSidedP,
             logRr = ifelse(nrow(estimate) == 0, NA, estimate$logRr),
             seLogRr = ifelse(nrow(estimate) == 0, NA, estimate$seLogRr),
-            llr = ifelse(nrow(estimate) == 0, NA, estimate$llr)
+            llr = ifelse(nrow(estimate) == 0, NA, estimate$llr),
+            timeStabilityP = timeStabilityDiagnostic$p,
+            timeStabilityDiagnostics = .passBooleanToString(timeStabilityDiagnostic$pass),
+            eventExposureLb = eventExposureIndependenceDiagnostic$lb,
+            eventExposureUb = eventExposureIndependenceDiagnostic$ub,
+            eventExposureDiagnostics = .passBooleanToString(eventExposureIndependenceDiagnostic$pass),
+            eventObservationLb = eventObservationIndependenceDiagnostic$lb,
+            eventObservationUb = eventObservationIndependenceDiagnostic$lb,
+            eventObservationDiagnostics = .passBooleanToString(eventObservationIndependenceDiagnostic$pass),
+            rareOutcomePrevalence = rareOutcomeDiagnostics$outcomeProportion,
+            rareOutcomeDiagnostics = .passBooleanToString(rareOutcomeDiagnostics$pass),
+            mdrr = mdrr$mdrr,
+            mdrrDiagnostics = .passBooleanToString(mdrr < sccsDiagnosticThresholds$mdrrThreshold)
           )
           rows[[length(rows) + 1]] <- row
         }
@@ -920,20 +969,89 @@ summarizeResults <- function(referenceTable,
     setTxtProgressBar(pb, i / nrow(referenceTable))
   }
   close(pb)
-  mainResults <- bind_rows(rows)
-  mainResults <- calibrateEstimates(
-    results = mainResults,
+  allResults <- bind_rows(rows)
+  allResults <- calibrateEstimates(
+    results = allResults,
     calibrationThreads = calibrationThreads,
     controlType = controlType
   )
-  saveRDS(mainResults, mainFileName)
+  resultsSummary <- allResults |>
+    select("exposuresOutcomeSetId",
+           "nestingCohortId",
+           "outcomeId",
+           "analysisId",
+           "covariateAnalysisId",
+           "covariateId",
+           "covariateName",
+           "eraId",
+           "trueEffectSize",
+           "outcomeSubjects",
+           "outcomeEvents",
+           "outcomeObservationPeriods",
+           "observedDays",
+           "covariateSubjects",
+           "covariateDays",
+           "covariateEras",
+           "covariateOutcomes",
+           "rr",
+           "ci95Lb",
+           "ci95Ub",
+           "p",
+           "oneSidedP",
+           "logRr",
+           "seLogRr",
+           "llr",
+           "calibratedRr",
+           "calibratedCi95Lb",
+           "calibratedCi95Ub",
+           "calibratedP",
+           "calibratedOneSidedP",
+           "calibratedLogRr",
+           "calibratedSeLogRr")
+  saveRDS(resultsSummary, mainFileName)
+
+  diagnosticsSummary <- allResults |>
+    mutate(easeDiagnostics = .passBooleanToString(.data$ease < sccsDiagnosticThresholds$easeThreshold)) |>
+    mutate(unblindForEvidenceSynthesis = .data$unblindForCalibration & easeDiagnostics != "FAIL") |>
+    mutate(unblind = .data$unblindForEvidenceSynthesis & mdrrDiagnostics != "FAIL") |>
+  select("exposuresOutcomeSetId",
+         "nestingCohortId",
+         "outcomeId",
+         "analysisId",
+         "covariateAnalysisId",
+         "covariateId",
+         "covariateName",
+         "eraId",
+         "timeStabilityP",
+         "timeStabilityDiagnostics",
+         "eventExposureLb",
+         "eventExposureUb",
+         "eventExposureDiagnostics",
+         "eventObservationLb",
+         "eventObservationUb",
+         "eventObservationDiagnostics",
+         "rareOutcomePrevalence",
+         "rareOutcomeDiagnostics",
+         "mdrr",
+         "mdrrDiagnostics",
+         "ease",
+         "easeDiagnostics",
+         "unblind",
+         "unblindForEvidenceSynthesis")
+  saveRDS(diagnosticsSummary, diagnosticsSummaryFileName)
 }
 
-calibrateEstimates <- function(results, calibrationThreads, controlType) {
+calibrateEstimates <- function(results, calibrationThreads, diagnosticsSummary = diagnosticsSummary, controlType) {
   if (nrow(results) == 0) {
     return(results)
   }
   message("Calibrating estimates")
+
+  results <- results |>
+    mutate(unblindForCalibration = .data$timeStabilityDiagnostics != "FAIL" &
+             .data$eventExposureDiagnostics != "FAIL" &
+             .data$eventObservationDiagnostics != "FAIL" &
+             .data$rareOutcomeDiagnostics != "FAIL")
   if (controlType == "outcome") {
     groups <- split(results, paste(results$eraId, results$nestingCohortId, results$covariateId, results$analysisId))
   } else {
@@ -948,8 +1066,8 @@ calibrateEstimates <- function(results, calibrationThreads, controlType) {
 
 # group = groups[[1]]
 calibrateGroup <- function(group) {
-  ncs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize == 1 & !is.na(group$seLogRr), ]
-  pcs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize != 1 & !is.na(group$seLogRr), ]
+  ncs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize == 1 & !is.na(group$seLogRr) & group$unblindForCalibration, ]
+  pcs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize != 1 & !is.na(group$seLogRr) & group$unblindForCalibration, ]
   if (nrow(ncs) >= 5) {
     null <- EmpiricalCalibration::fitMcmcNull(logRr = ncs$logRr, seLogRr = ncs$seLogRr)
     ease <- EmpiricalCalibration::computeExpectedAbsoluteSystematicError(null)
@@ -1027,3 +1145,21 @@ getResultsSummary <- function(outputFolder) {
   results <- readRDS(file.path(outputFolder, "resultsSummary.rds"))
   return(results)
 }
+
+#' Get a summary report of the analyses diagnostics
+#'
+#' @param outputFolder       Name of the folder where all the outputs have been written to.
+#'
+#' @return
+#' A tibble containing summary diagnostics for each outcome-covariate-analysis combination.
+#'
+#' @export
+getDiagnosticsSummary <- function(outputFolder) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+  outputFolder <- normalizePath(outputFolder)
+  results <- readRDS(file.path(outputFolder, "diagnosticsSummary.rds"))
+  return(results)
+}
+

@@ -210,3 +210,92 @@ loadExposuresOutcomeList <- function(file) {
   checkmate::reportAssertions(collection = errorMessages)
   return(ParallelLogger::loadSettingsFromJson(file))
 }
+
+#' Create SCCS diagnostics thresholds
+#'
+#' @description
+#' Threshold used when calling [exportToCsv()] to determine if we pass or fail diagnostics.
+#'
+#' @param mdrrThreshold What is the maximum allowed minimum detectable relative risk (MDRR)?
+#' @param easeThreshold What is the maximum allowed expected absolute systematic error (EASE).
+#' @param rareOutcomeMaxPrevalence The maximum allowed prevalence (proportion of people with the
+#'                                 outcome) allowed when restricting to first outcome only.
+#' @param eventObservationDependenceNullBounds The bounds for the null hypothesis on the incidence
+#'                                             rate ratio scale.
+#' @param eventExposureDependenceNullBounds The bounds for the null hypothesis on the incidence rate
+#'                                          ratio scale.
+#'
+#' @return
+#' An object of type `SccsDiagnosticThresholds`.
+#'
+#' @export
+createSccsDiagnosticThresholds <- function(mdrrThreshold = 10,
+                                           easeThreshold = 0.25,
+                                           timeTrendMaxRatio = 1.1,
+                                           rareOutcomeMaxPrevalence = 0.1,
+                                           eventObservationDependenceNullBounds = c(0.5, 2.0),
+                                           eventExposureDependenceNullBounds = c(0.8, 1.25)) {
+  return(do.call(what = SccsDiagnosticThresholds$new, args = as.list(formals())))
+}
+
+SccsDiagnosticThresholds <- R6::R6Class(
+  "SccsDiagnosticThresholds",
+  public = list(
+    mdrrThreshold = NULL,
+    easeThreshold = NULL,
+    timeTrendMaxRatio = NULL,
+    rareOutcomeMaxPrevalence = NULL,
+    eventObservationDependenceNullBounds = NULL,
+    eventExposureDependenceNullBounds = NULL,
+
+    initialize = function(...) {
+      args <- list(...)
+      if (length(args) == 1 && names(args)[1] == "json") {
+        self$fromJson(args[[1]])
+      } else {
+        for (name in names(args)) {
+          if (name %in% names(self)) {
+            self[[name]] <- args[[name]]
+          }
+        }
+      }
+      self$validate()
+    },
+
+    validate = function() {
+      errorMessages <- checkmate::makeAssertCollection()
+      checkmate::assertNumber(self$mdrrThreshold, lower = 1, add = errorMessages)
+      checkmate::assertNumber(self$easeThreshold, lower = 0, add = errorMessages)
+      checkmate::assertNumber(self$timeTrendMaxRatio, lower = 1, add = errorMessages)
+      checkmate::assertNumber(self$rareOutcomeMaxPrevalence, lower = 0, upper = 1, add = errorMessages)
+      checkmate::assertNumeric(self$eventObservationDependenceNullBounds, len = 2, lower = 0, sorted = TRUE, add = errorMessages)
+      checkmate::assertNumeric(self$eventExposureDependenceNullBounds, len = 2, lower = 0, sorted = TRUE, add = errorMessages)
+      checkmate::reportAssertions(collection = errorMessages)
+    },
+
+    toJson = function() {
+      jsonlite::toJSON(list(
+        mdrrThreshold = self$mdrrThreshold,
+        easeThreshold = self$easeThreshold,
+        timeTrendMaxRatio = self$timeTrendMaxRatio,
+        rareOutcomeMaxPrevalence = self$rareOutcomeMaxPrevalence,
+        eventObservationDependenceNullBounds = self$eventObservationDependenceNullBounds,
+        eventExposureDependenceNullBounds = self$eventExposureDependenceNullBounds
+      ), auto_unbox = TRUE)
+    },
+
+    fromJson = function(json) {
+      data <- jsonlite::fromJSON(json)
+      do.call(self$initialize, data)
+    }
+  )
+)
+
+# sccsDiagnosticThresholds = createSccsDiagnosticThresholds()
+# json <- sccsDiagnosticThresholds$toJson()
+# o2 <- SccsDiagnosticThresholds$new(json = json)
+#
+# public_vars <- ls(sccsDiagnosticThresholds)
+# public_vars <- public_vars[!sapply(public_vars, function(x) is.function(sccsDiagnosticThresholds[[x]]))]
+# print(public_vars)
+

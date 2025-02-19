@@ -536,6 +536,7 @@ addEventDependentObservationSettings <- function(settings,
   }
   settings$endOfObservationEraLength <- endOfObservationEraLength
   settings$endOfObservationCovariateId <- 99
+  settings$endOfObservationAnalysisId <- 99
   newCovariateRef <- tibble(
     covariateId = settings$endOfObservationCovariateId,
     covariateName = "End of observation period",

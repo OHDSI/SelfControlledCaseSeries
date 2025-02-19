@@ -14,7 +14,7 @@ checkEventObservationIndependenceAssumption(sccsModel, nullBounds = c(0.5, 2))
 \value{
 A tibble with one row and four columns: \code{ratio} indicates the estimates incidence rate ratio for the
 probe at the end of observation. \code{lb} and \code{ub} represent the upper and lower bounds of the 95 percent
-confidence interval, and \code{stable} is \code{TRUE} if the confidence interval intersects the null bounds.
+confidence interval, and \code{pass} is \code{TRUE} if the confidence interval intersects the null bounds.
 }
 \description{
 This diagnostic tests whether there is a dependency between the event and the end of observation.

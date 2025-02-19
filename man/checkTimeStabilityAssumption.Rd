@@ -24,7 +24,7 @@ for before computing stability.}
 }
 \value{
 A tibble with one row and three columns: \code{ratio} indicates the estimated mean ratio between observed and expected.
-\code{p} is the p-value against the null-hypothesis that the ratio is smaller than \code{maxRatio}, and \code{stable} is \code{TRUE}
+\code{p} is the p-value against the null-hypothesis that the ratio is smaller than \code{maxRatio}, and \code{pass} is \code{TRUE}
 if \code{p} is greater than \code{alpha}.
 }
 \description{

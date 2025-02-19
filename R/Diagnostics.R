@@ -142,13 +142,15 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
 #'
 #' @return
 #' A tibble with one row and three columns: `ratio` indicates the estimated mean ratio between observed and expected.
-#' `p` is the p-value against the null-hypothesis that the ratio is smaller than `maxRatio`, and `stable` is `TRUE`
+#' `p` is the p-value against the null-hypothesis that the ratio is smaller than `maxRatio`, and `pass` is `TRUE`
 #' if `p` is greater than `alpha`.
 #'
 #' @export
 computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1.10, alpha = 0.05) {
   .Deprecated("checkTimeStabilityAssumption")
-  return(checkTimeStabilityAssumption(studyPopulation, sccsModel, maxRatio, alpha))
+  result <- checkTimeStabilityAssumption(studyPopulation, sccsModel, maxRatio, alpha)
+  result <- result |>
+    rename(stable = "pass")
 }
 
 #' Check stability of outcome rate over time
@@ -168,7 +170,7 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
 #'
 #' @return
 #' A tibble with one row and three columns: `ratio` indicates the estimated mean ratio between observed and expected.
-#' `p` is the p-value against the null-hypothesis that the ratio is smaller than `maxRatio`, and `stable` is `TRUE`
+#' `p` is the p-value against the null-hypothesis that the ratio is smaller than `maxRatio`, and `pass` is `TRUE`
 #' if `p` is greater than `alpha`.
 #'
 #' @export
@@ -184,7 +186,7 @@ checkTimeStabilityAssumption <- function(studyPopulation, sccsModel = NULL, maxR
   if (nrow(data) < 2) {
     result <- tibble(ratio = NA,
                      p = 1,
-                     stable = TRUE)
+                     pass = TRUE)
     return(result)
   }
   o <- data$observedCount
@@ -215,7 +217,7 @@ checkTimeStabilityAssumption <- function(studyPopulation, sccsModel = NULL, maxR
   }
   result <- tibble(ratio = xHat,
                    p = p,
-                   stable = p > alpha)
+                   pass = p > alpha)
   return(result)
 }
 
@@ -351,7 +353,7 @@ getNaDiagnostic <- function() {
   return(tibble(ratio = NA,
                 lb = NA,
                 ub = NA,
-                stable = NA))
+                pass = NA))
 }
 
 #' Check diagnostic for event-dependent observation end
@@ -372,7 +374,7 @@ getNaDiagnostic <- function() {
 #' @return
 #' A tibble with one row and four columns: `ratio` indicates the estimates incidence rate ratio for the
 #' probe at the end of observation. `lb` and `ub` represent the upper and lower bounds of the 95 percent
-#' confidence interval, and `stable` is `TRUE` if the confidence interval intersects the null bounds.
+#' confidence interval, and `pass` is `TRUE` if the confidence interval intersects the null bounds.
 #'
 #' @export
 checkEventObservationIndependenceAssumption <- function(sccsModel, nullBounds = c(0.5, 2.0)) {
@@ -394,7 +396,7 @@ checkEventObservationIndependenceAssumption <- function(sccsModel, nullBounds = 
   result <- tibble(ratio = exp(estimate$logRr),
                    lb = exp(estimate$logLb95),
                    ub = exp(estimate$logUb95)) |>
-    mutate(stable = .data$lb <= nullBounds[2] & .data$ub >= nullBounds[1])
+    mutate(pass = .data$lb <= nullBounds[2] & .data$ub >= nullBounds[1])
   return(result)
 }
 
@@ -416,7 +418,7 @@ checkEventObservationIndependenceAssumption <- function(sccsModel, nullBounds = 
 #' @return
 #' A tibble with one row per pre-exposure window and four columns: `ratio` indicates the estimates
 #' incidence rate ratio for the pre-exposure window. `lb` and `ub` represent the upper and lower
-#' bounds of the 95 percent confidence interval, and `stable` is `TRUE` if the confidence interval
+#' bounds of the 95 percent confidence interval, and `pass` is `TRUE` if the confidence interval
 #' intersects the null bounds.
 #'
 #' @export
@@ -442,7 +444,7 @@ checkEventExposureIndependenceAssumption <- function(sccsModel, nullBounds = c(0
   result <- tibble(ratio = exp(estimate$logRr),
                    lb = exp(estimate$logLb95),
                    ub = exp(estimate$logUb95)) |>
-    mutate(stable = .data$lb <= nullBounds[2] & .data$ub >= nullBounds[1])
+    mutate(pass = .data$lb <= nullBounds[2] & .data$ub >= nullBounds[1])
   return(result)
 }
 
@@ -491,11 +493,11 @@ checkRareOutcomeAssumption <- function(studyPopulation,
     firstOutcomeOnly <- prevalence$definitelyFirstOutcomeOnly | prevalence$probablyFirstOutcomeOnly
   }
   if (firstOutcomeOnly) {
-    rare <- prevalence$outcomeProportion <= maxPrevalence
+    pass <- prevalence$outcomeProportion <= maxPrevalence
   } else {
-    rare <- TRUE
+    pass <- TRUE
   }
   return(tibble(outcomeProportion = prevalence$outcomeProportion,
                 firstOutcomeOnly = firstOutcomeOnly,
-                rare = rare))
+                pass = pass))
 }

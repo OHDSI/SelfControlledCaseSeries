@@ -14,7 +14,7 @@ checkEventExposureIndependenceAssumption(sccsModel, nullBounds = c(0.8, 1.25))
 \value{
 A tibble with one row per pre-exposure window and four columns: \code{ratio} indicates the estimates
 incidence rate ratio for the pre-exposure window. \code{lb} and \code{ub} represent the upper and lower
-bounds of the 95 percent confidence interval, and \code{stable} is \code{TRUE} if the confidence interval
+bounds of the 95 percent confidence interval, and \code{pass} is \code{TRUE} if the confidence interval
 intersects the null bounds.
 }
 \description{

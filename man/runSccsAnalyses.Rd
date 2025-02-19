@@ -23,6 +23,7 @@ runSccsAnalyses(
   analysesToExclude = NULL,
   combineDataFetchAcrossOutcomes = FALSE,
   sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
+  sccsDiagnosticThresholds = createSccsDiagnosticThresholds(),
   controlType = "outcome"
 )
 }
@@ -89,6 +90,9 @@ the subjects that have the different outcomes.}
 \item{sccsMultiThreadingSettings}{An object of type \code{SccsMultiThreadingSettings} as created using
 the \code{\link[=createSccsMultiThreadingSettings]{createSccsMultiThreadingSettings()}} or
 \code{\link[=createDefaultSccsMultiThreadingSettings]{createDefaultSccsMultiThreadingSettings()}} functions.}
+
+\item{sccsDiagnosticThresholds}{An object of type \code{SccsDiagnosticThresholds} as created using
+\code{\link[=createSccsDiagnosticThresholds]{createSccsDiagnosticThresholds()}}.}
 
 \item{controlType}{Type of negative (and positive) controls. Can be "outcome" or
 "exposure". When set to "outcome", controls with the

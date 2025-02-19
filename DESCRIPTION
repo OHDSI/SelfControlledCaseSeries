@@ -43,7 +43,8 @@ Imports:
 	ResultModelManager,
 	zip,
 	jsonlite,
-	digest
+	digest,
+	R6
 Suggests:
 	testthat,
 	knitr,

@@ -103,7 +103,7 @@ studyPop <- readRDS(file.path(folder, "studyPop.rds"))
 #
 # stability <- computeTimeStability(studyPop)
 # stability |>
-#   filter(!stable)
+#   filter(!pass)
 # checkRareOutcomeAssumption(studyPop)
 
 covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",

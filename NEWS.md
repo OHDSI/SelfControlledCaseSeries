@@ -11,7 +11,11 @@ Changes
 
 4. Added the `preExposure` argument to the `createEraCovariateSettings()` function, which defaults to `start < 0`. This can be used to designate one or more windows as the pre-exposure window, used by the `checkEventExposureIndependenceAssumption()` diagnostic.
 
+5. Moved the `sccsDiagnosticThresholds` from `exportToCsv()` to `runSccsAnalyses()`.
 
+6. Estimates that fail diagnostics are now removed before empirical calibration, not afterwards. This in general should lead to narrower calibrated confidence intervals.
+
+7. Added the `getDiagnosticsSummary()` function.
 
 
 

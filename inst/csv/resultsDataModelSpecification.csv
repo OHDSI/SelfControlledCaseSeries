@@ -6,6 +6,8 @@ sccs_covariate_analysis,analysis_id,int,Yes,Yes,No,A foreign key referencing the
 sccs_covariate_analysis,covariate_analysis_id,int,Yes,Yes,No,A unique identifier for a covariate analysis.
 sccs_covariate_analysis,covariate_analysis_name,varchar,Yes,No,No,"A name for a covariate analysis, e.g. 'Pre-exposure'."
 sccs_covariate_analysis,variable_of_interest,int,Yes,No,No,"Is the variable of interest (1 = yes, 0 = no)."
+sccs_covariate_analysis,pre_exposure,int,Yes,No,No,"Does the variable represent a pre-exposure period (1 = yes, 0 = no)."
+sccs_covariate_analysis,end_of_observation_period,int,Yes,No,No,"Does the variable represent the end of the observation period (1 = yes, 0 = no)."
 sccs_covariate,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_covariate,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_covariate,covariate_id,int,Yes,Yes,No,A unique identifier for a covariate.
@@ -113,12 +115,6 @@ sccs_calendar_time_spanning,database_id,varchar,Yes,Yes,No,Foreign key referenci
 sccs_calendar_time_spanning,calendar_year,int,Yes,Yes,No,Calendar year (e.g. 2022)
 sccs_calendar_time_spanning,calendar_month,int,Yes,Yes,No,Calendar month (e.g. 1 is January).
 sccs_calendar_time_spanning,cover_before_after_subjects,int,Yes,No,Yes,Number of subjects whose observation period covers this month as well as the one before and after.
-sccs_event_dep_observation,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_event_dep_observation,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_event_dep_observation,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_event_dep_observation,months_to_end,int,Yes,Yes,No,Number of months until observation end.
-sccs_event_dep_observation,censored,int,Yes,Yes,No,"Whether the observation is censored (meaning, not equal to the end of database time). (1 = censored, 0 = not censored)."
-sccs_event_dep_observation,outcomes,int,Yes,No,Yes,Number of outcomes observed during the month.
 sccs_diagnostics_summary,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
 sccs_diagnostics_summary,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_diagnostics_summary,covariate_id,int,Yes,Yes,No,The identifier for the covariate of interest.
