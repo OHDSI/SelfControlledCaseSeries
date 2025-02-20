@@ -78,8 +78,7 @@ sccsData <- getDbSccsData(
   exposureIds = 3,
   nestingCohortDatabaseSchema = "main",
   nestingCohortTable = "cohort",
-  nestingCohortId = 1,
-  useNestingCohort = TRUE
+  nestingCohortId = 1
 )
 
 test_that("getDbSccsData correctly handles nesting", {

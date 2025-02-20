@@ -14,17 +14,13 @@ getDbSccsData(
   exposureDatabaseSchema = cdmDatabaseSchema,
   exposureTable = "drug_era",
   exposureIds = c(),
-  useCustomCovariates = FALSE,
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort",
   customCovariateIds = c(),
-  useNestingCohort = FALSE,
   nestingCohortDatabaseSchema = cdmDatabaseSchema,
   nestingCohortTable = "cohort",
   nestingCohortId = NULL,
   deleteCovariatesSmallCount = 0,
-  studyStartDate = "",
-  studyEndDate = "",
   studyStartDates = c(),
   studyEndDates = c(),
   cdmVersion = "5",
@@ -74,8 +70,6 @@ If \code{exposureTable = "drug_era"}, \code{exposureIds} is used to select
 the \code{drug_concept_id}. If no exposure IDs are provided, all drugs
 or cohorts in the \code{exposureTable} are included as exposures.}
 
-\item{useCustomCovariates}{DEPRECATED. Set \code{customCovariateIds} to non-null value to use custom cohorts.}
-
 \item{customCovariateDatabaseSchema}{The name of the database schema that is the location where
 the custom covariate data is available.}
 
@@ -85,8 +79,6 @@ should have the same structure as the cohort table (see details).}
 \item{customCovariateIds}{A list of cohort definition IDs identifying the records in
 the \code{customCovariateTable} to use for building custom
 covariates.}
-
-\item{useNestingCohort}{DEPRECATED. Set \code{nestingCohortId} to non-null value to use a nesting cohort.}
 
 \item{nestingCohortDatabaseSchema}{The name of the database schema that is the location
 where the nesting cohort is defined.}
@@ -99,10 +91,6 @@ should have the same structure as the cohort table (see details).}
 
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be
 kept.}
-
-\item{studyStartDate}{DEPRECATED. Use \code{studyStartDates} instead.}
-
-\item{studyEndDate}{DEPRECATED. Use \code{studyEndDates} instead.}
 
 \item{studyStartDates}{A character object specifying the minimum dates where data is
 used. Date format is 'yyyymmdd'. Use "" to indicate all time

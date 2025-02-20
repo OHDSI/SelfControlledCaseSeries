@@ -5,12 +5,8 @@
 \title{Create a parameter object for the function getDbSccsData}
 \usage{
 createGetDbSccsDataArgs(
-  useCustomCovariates = FALSE,
-  useNestingCohort = FALSE,
   nestingCohortId = NULL,
   deleteCovariatesSmallCount = 0,
-  studyStartDate = "",
-  studyEndDate = "",
   studyStartDates = c(),
   studyEndDates = c(),
   maxCasesPerOutcome = 0,
@@ -19,17 +15,9 @@ createGetDbSccsDataArgs(
 )
 }
 \arguments{
-\item{useCustomCovariates}{DEPRECATED. Set customCovariateIds to non-null value to use custom cohorts.}
-
-\item{useNestingCohort}{DEPRECATED. Set nestingCohortId to non-null value to use a nesting cohort.}
-
 \item{nestingCohortId}{A cohort definition ID identifying the records in the nestingCohortTable to use as nesting cohort.}
 
 \item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be kept.}
-
-\item{studyStartDate}{DEPRECATED. Use studyStartDates instead.}
-
-\item{studyEndDate}{DEPRECATED. Use studyEndDates instead.}
 
 \item{studyStartDates}{A character object specifying the minimum dates where data is used. Date format is 'yyyymmdd'. Use "" to indicate all time prior. See section for more information.}
 

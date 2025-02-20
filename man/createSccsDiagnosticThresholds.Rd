@@ -18,18 +18,21 @@ createSccsDiagnosticThresholds(
 
 \item{easeThreshold}{What is the maximum allowed expected absolute systematic error (EASE).}
 
+\item{timeTrendMaxRatio}{The maximum global ratio between the observed and expected count for the
+time stability diagnostic.}
+
 \item{rareOutcomeMaxPrevalence}{The maximum allowed prevalence (proportion of people with the
 outcome) allowed when restricting to first outcome only.}
 
-\item{eventObservationDependenceNullBounds}{The bounds for the null hypothesis on the incidence
-rate ratio scale.}
+\item{eventObservationDependenceNullBounds}{The bounds for the null hypothesis for the incidence
+rate ratio of the end-of-observation probe window.}
 
-\item{eventExposureDependenceNullBounds}{The bounds for the null hypothesis on the incidence rate
-ratio scale.}
+\item{eventExposureDependenceNullBounds}{The bounds for the null hypothesis for the incidence
+rate of the pre-exposure window.}
 }
 \value{
 An object of type \code{SccsDiagnosticThresholds}.
 }
 \description{
-Threshold used when calling \code{\link[=exportToCsv]{exportToCsv()}} to determine if we pass or fail diagnostics.
+Threshold used when calling \code{\link[=runSccsAnalyses]{runSccsAnalyses()}} to determine if we pass or fail diagnostics.
 }

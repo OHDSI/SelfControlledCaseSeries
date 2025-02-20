@@ -17,6 +17,9 @@ Changes
 
 7. Added the `getDiagnosticsSummary()` function.
 
+8. Removing deprecated `useCustomCovariates`, `useNestingCohort`, `studyStartDate`, and `studyEndDate` arguments of `getDbSccsData()` and `createGetDbSccsDataArgs()`.
+
+9. Removing deprecated `minCasesForAgeSeason` of `createSccsIntervalData()` and `createCreateSccsIntervalDataArgs()`.
 
 
 SelfControlledCaseSeries 5.3.1

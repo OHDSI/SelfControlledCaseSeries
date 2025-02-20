@@ -280,13 +280,9 @@ runSccsAnalyses <- function(connectionDetails,
         cdmVersion = cdmVersion,
         exposureIds = loadConcepts$exposureIds,
         outcomeIds = loadConcepts$outcomeIds,
-        useCustomCovariates = useCustomCovariates,
         customCovariateIds = loadConcepts$customCovariateIds,
-        useNestingCohort = loadConcepts$nestingCohortId != -1,
         nestingCohortId = loadConcepts$nestingCohortId,
         deleteCovariatesSmallCount = loadConcepts$deleteCovariatesSmallCount,
-        studyStartDate = loadConcepts$studyStartDate,
-        studyEndDate = loadConcepts$studyEndDate,
         studyStartDates = loadConcepts$studyStartDates,
         studyEndDates = loadConcepts$studyEndDates,
         maxCasesPerOutcome = loadConcepts$maxCasesPerOutcome
@@ -878,14 +874,14 @@ summarizeResults <- function(referenceTable,
     # There could be multiple pre-exposure windows. Pick one, and make sure to pick a failing one
     # if exists:
     eventExposureIndependenceDiagnostic <- eventExposureIndependenceDiagnostic |>
-      arrange(pass) |>
+      arrange(.data$pass) |>
       head(1)
 
     eventObservationIndependenceDiagnostic <- checkEventObservationIndependenceAssumption(
       sccsModel = sccsModel,
       nullBounds = sccsDiagnosticThresholds$eventObservationDependenceNullBounds
     )
-    rareOutcomeDiagnostics <- checkRareOutcomeAssumption(
+    rareOutcomeDiagnostic <- checkRareOutcomeAssumption(
       studyPopulation = studyPop,
       maxPrevalence = sccsDiagnosticThresholds$rareOutcomeMaxPrevalence
     )
@@ -956,17 +952,17 @@ summarizeResults <- function(referenceTable,
             seLogRr = ifelse(nrow(estimate) == 0, NA, estimate$seLogRr),
             llr = ifelse(nrow(estimate) == 0, NA, estimate$llr),
             timeStabilityP = timeStabilityDiagnostic$p,
-            timeStabilityDiagnostics = .passBooleanToString(timeStabilityDiagnostic$pass),
+            timeStabilityDiagnostic = .passBooleanToString(timeStabilityDiagnostic$pass),
             eventExposureLb = eventExposureIndependenceDiagnostic$lb,
             eventExposureUb = eventExposureIndependenceDiagnostic$ub,
-            eventExposureDiagnostics = .passBooleanToString(eventExposureIndependenceDiagnostic$pass),
+            eventExposureDiagnostic = .passBooleanToString(eventExposureIndependenceDiagnostic$pass),
             eventObservationLb = eventObservationIndependenceDiagnostic$lb,
             eventObservationUb = eventObservationIndependenceDiagnostic$lb,
-            eventObservationDiagnostics = .passBooleanToString(eventObservationIndependenceDiagnostic$pass),
-            rareOutcomePrevalence = rareOutcomeDiagnostics$outcomeProportion,
-            rareOutcomeDiagnostics = .passBooleanToString(rareOutcomeDiagnostics$pass),
+            eventObservationDiagnostic = .passBooleanToString(eventObservationIndependenceDiagnostic$pass),
+            rareOutcomePrevalence = rareOutcomeDiagnostic$outcomeProportion,
+            rareOutcomeDiagnostic = .passBooleanToString(rareOutcomeDiagnostic$pass),
             mdrr = mdrr$mdrr,
-            mdrrDiagnostics = .passBooleanToString(mdrr < sccsDiagnosticThresholds$mdrrThreshold)
+            mdrrDiagnostic = .passBooleanToString(mdrr < sccsDiagnosticThresholds$mdrrThreshold)
           )
           rows[[length(rows) + 1]] <- row
         }
@@ -1017,9 +1013,9 @@ summarizeResults <- function(referenceTable,
   saveRDS(resultsSummary, mainFileName)
 
   diagnosticsSummary <- allResults |>
-    mutate(easeDiagnostics = .passBooleanToString(.data$ease < sccsDiagnosticThresholds$easeThreshold)) |>
-    mutate(unblindForEvidenceSynthesis = .data$unblindForCalibration & easeDiagnostics != "FAIL") |>
-    mutate(unblind = .data$unblindForEvidenceSynthesis & mdrrDiagnostics != "FAIL") |>
+    mutate(easeDiagnostic = .passBooleanToString(.data$ease < sccsDiagnosticThresholds$easeThreshold)) |>
+    mutate(unblindForEvidenceSynthesis = .data$unblindForCalibration & .data$easeDiagnostic != "FAIL") |>
+    mutate(unblind = .data$unblindForEvidenceSynthesis & .data$mdrrDiagnostic != "FAIL") |>
   select("exposuresOutcomeSetId",
          "nestingCohortId",
          "outcomeId",
@@ -1029,19 +1025,19 @@ summarizeResults <- function(referenceTable,
          "covariateName",
          "eraId",
          "timeStabilityP",
-         "timeStabilityDiagnostics",
+         "timeStabilityDiagnostic",
          "eventExposureLb",
          "eventExposureUb",
-         "eventExposureDiagnostics",
+         "eventExposureDiagnostic",
          "eventObservationLb",
          "eventObservationUb",
-         "eventObservationDiagnostics",
+         "eventObservationDiagnostic",
          "rareOutcomePrevalence",
-         "rareOutcomeDiagnostics",
+         "rareOutcomeDiagnostic",
          "mdrr",
-         "mdrrDiagnostics",
+         "mdrrDiagnostic",
          "ease",
-         "easeDiagnostics",
+         "easeDiagnostic",
          "unblind",
          "unblindForEvidenceSynthesis")
   saveRDS(diagnosticsSummary, diagnosticsSummaryFileName)
@@ -1054,10 +1050,10 @@ calibrateEstimates <- function(results, calibrationThreads, diagnosticsSummary =
   message("Calibrating estimates")
 
   results <- results |>
-    mutate(unblindForCalibration = .data$timeStabilityDiagnostics != "FAIL" &
-             .data$eventExposureDiagnostics != "FAIL" &
-             .data$eventObservationDiagnostics != "FAIL" &
-             .data$rareOutcomeDiagnostics != "FAIL")
+    mutate(unblindForCalibration = .data$timeStabilityDiagnostic != "FAIL" &
+             .data$eventExposureDiagnostic != "FAIL" &
+             .data$eventObservationDiagnostic != "FAIL" &
+             .data$rareOutcomeDiagnostic != "FAIL")
   if (controlType == "outcome") {
     groups <- split(results, paste(results$eraId, results$nestingCohortId, results$covariateId, results$analysisId))
   } else {

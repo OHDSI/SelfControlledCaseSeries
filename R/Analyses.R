@@ -218,12 +218,14 @@ loadExposuresOutcomeList <- function(file) {
 #'
 #' @param mdrrThreshold What is the maximum allowed minimum detectable relative risk (MDRR)?
 #' @param easeThreshold What is the maximum allowed expected absolute systematic error (EASE).
+#' @param timeTrendMaxRatio The maximum global ratio between the observed and expected count for the
+#'                          time stability diagnostic.
 #' @param rareOutcomeMaxPrevalence The maximum allowed prevalence (proportion of people with the
 #'                                 outcome) allowed when restricting to first outcome only.
-#' @param eventObservationDependenceNullBounds The bounds for the null hypothesis on the incidence
-#'                                             rate ratio scale.
-#' @param eventExposureDependenceNullBounds The bounds for the null hypothesis on the incidence rate
-#'                                          ratio scale.
+#' @param eventObservationDependenceNullBounds The bounds for the null hypothesis for the incidence
+#'                                             rate ratio of the end-of-observation probe window.
+#' @param eventExposureDependenceNullBounds The bounds for the null hypothesis for the incidence
+#'                                          rate of the pre-exposure window.
 #'
 #' @return
 #' An object of type `SccsDiagnosticThresholds`.
@@ -238,7 +240,7 @@ createSccsDiagnosticThresholds <- function(mdrrThreshold = 10,
   return(do.call(what = SccsDiagnosticThresholds$new, args = as.list(formals())))
 }
 
-SccsDiagnosticThresholds <- R6::R6Class(
+SccsDiagnosticThresholds <- R6Class(
   "SccsDiagnosticThresholds",
   public = list(
     mdrrThreshold = NULL,

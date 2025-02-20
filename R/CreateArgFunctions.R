@@ -5,12 +5,8 @@
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param useCustomCovariates  DEPRECATED. Set customCovariateIds to non-null value to use custom cohorts.
-#' @param useNestingCohort  DEPRECATED. Set nestingCohortId to non-null value to use a nesting cohort.
 #' @param nestingCohortId  A cohort definition ID identifying the records in the nestingCohortTable to use as nesting cohort.
 #' @param deleteCovariatesSmallCount  The minimum count for a covariate to appear in the data to be kept.
-#' @param studyStartDate  DEPRECATED. Use studyStartDates instead.
-#' @param studyEndDate  DEPRECATED. Use studyEndDates instead.
 #' @param studyStartDates  A character object specifying the minimum dates where data is used. Date format is 'yyyymmdd'. Use "" to indicate all time prior. See section for more information.
 #' @param studyEndDates  A character object specifying the maximum dates where data is used. Date format is 'yyyymmdd'. Use "" to indicate to the end of observation. See section for more information.
 #' @param maxCasesPerOutcome  If there are more than this number of cases for a single outcome cases will be sampled to this size. maxCasesPerOutcome = 0 indicates no maximum size.
@@ -18,12 +14,8 @@
 #' @param customCovariateIds  A list of cohort definition IDs identifying the records in the customCovariateTable to use for building custom covariates.
 #'
 #' @export
-createGetDbSccsDataArgs <- function(useCustomCovariates = FALSE,
-                                    useNestingCohort = FALSE,
-                                    nestingCohortId = NULL,
+createGetDbSccsDataArgs <- function(nestingCohortId = NULL,
                                     deleteCovariatesSmallCount = 0,
-                                    studyStartDate = "",
-                                    studyEndDate = "",
                                     studyStartDates = c(),
                                     studyEndDates = c(),
                                     maxCasesPerOutcome = 0,
@@ -73,7 +65,6 @@ createCreateStudyPopulationArgs <- function(firstOutcomeOnly = FALSE,
 #' @param ageCovariateSettings  An object of type ageCovariateSettings as created using the createAgeCovariateSettings() function.
 #' @param seasonalityCovariateSettings  An object of type seasonalityCovariateSettings as created using the createSeasonalityCovariateSettings() function.
 #' @param calendarTimeCovariateSettings  An object of type calendarTimeCovariateSettings as created using the createCalendarTimeCovariateSettings() function.
-#' @param minCasesForAgeSeason  DEPRECATED: Use minCasesForTimeCovariates instead.
 #' @param minCasesForTimeCovariates  Minimum number of cases to use to fit age, season and calendar time splines. If needed (and available), cases that are not exposed will be included.
 #' @param eventDependentObservation  Should the extension proposed by Farrington et al. be used to adjust for event-dependent observation time?
 #'
@@ -82,7 +73,6 @@ createCreateSccsIntervalDataArgs <- function(eraCovariateSettings,
                                              ageCovariateSettings = NULL,
                                              seasonalityCovariateSettings = NULL,
                                              calendarTimeCovariateSettings = NULL,
-                                             minCasesForAgeSeason = NULL,
                                              minCasesForTimeCovariates = 10000,
                                              eventDependentObservation = FALSE) {
   analysis <- list()

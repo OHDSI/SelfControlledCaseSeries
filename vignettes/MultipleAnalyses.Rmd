@@ -132,7 +132,6 @@ The second group of arguments are not specific to a hypothesis of interest, and 
 
 ```{r eval=TRUE}
 getDbSccsDataArgs <- createGetDbSccsDataArgs(
-  useCustomCovariates = FALSE,
   deleteCovariatesSmallCount = 100,
   exposureIds = c(),
   maxCasesPerOutcome = 100000

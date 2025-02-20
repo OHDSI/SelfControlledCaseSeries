@@ -33,7 +33,6 @@
 #'                                    [createSeasonalityCovariateSettings()] function.
 #' @param calendarTimeCovariateSettings An object of type `calendarTimeCovariateSettings` as created using the
 #'                                    [createCalendarTimeCovariateSettings()] function.
-#' @param minCasesForAgeSeason        DEPRECATED: Use `minCasesForTimeCovariates` instead.
 #' @param minCasesForTimeCovariates   Minimum number of cases to use to fit age, season and calendar time splines. If
 #'                                    needed (and available), cases that are not exposed will be included.
 #' @param endOfObservationEraLength   Length in days of the probe that is inserted at the end of a patient's
@@ -57,7 +56,6 @@ createSccsIntervalData <- function(studyPopulation,
                                    ageCovariateSettings = NULL,
                                    seasonalityCovariateSettings = NULL,
                                    calendarTimeCovariateSettings = NULL,
-                                   minCasesForAgeSeason = NULL,
                                    minCasesForTimeCovariates = 10000,
                                    endOfObservationEraLength = 30,
                                    eventDependentObservation = FALSE) {
@@ -75,14 +73,9 @@ createSccsIntervalData <- function(studyPopulation,
   checkmate::assertClass(ageCovariateSettings, "ageSettings", null.ok = TRUE, add = errorMessages)
   checkmate::assertClass(seasonalityCovariateSettings, "SeasonalityCovariateSettings", null.ok = TRUE, add = errorMessages)
   checkmate::assertClass(calendarTimeCovariateSettings, "CalendarTimeCovariateSettings", null.ok = TRUE, add = errorMessages)
-  checkmate::assertInt(minCasesForAgeSeason, lower = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(minCasesForTimeCovariates, lower = 1, add = errorMessages)
   checkmate::assertLogical(eventDependentObservation, len = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (!is.null(minCasesForAgeSeason)) {
-    warning("Argument 'minCasesForAgeSeason' in 'createSccsIntervalData()' is deprecated. Use 'minCasesForTimeCovariates' instead.")
-    minCasesForTimeCovariates <- minCasesForAgeSeason
-  }
 
   start <- Sys.time()
 

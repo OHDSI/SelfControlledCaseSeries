@@ -436,7 +436,7 @@ checkEventExposureIndependenceAssumption <- function(sccsModel, nullBounds = c(0
                by = join_by("covariateId", "preExposure")) |>
     filter(.data$preExposure == 1) |>
     select("logRr", "logLb95", "logUb95")
-  if (length(estimate) == 0) {
+  if (nrow(estimate) == 0) {
     warning("No estimate found for the pre-exposure period. ",
             "Make sure to use at least one createEraCovariateSettings() where preExposure = TRUE")
     return(getNaDiagnostic())

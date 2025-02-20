@@ -28,6 +28,7 @@
 #' @import dplyr
 #' @import Cyclops
 #' @import DatabaseConnector
+#' @import R6
 #' @useDynLib SelfControlledCaseSeries
 NULL
 

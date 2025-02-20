@@ -83,7 +83,6 @@
 #'                                        If `exposureTable = "drug_era"`, `exposureIds` is used to select
 #'                                        the `drug_concept_id`. If no exposure IDs are provided, all drugs
 #'                                        or cohorts in the `exposureTable` are included as exposures.
-#' @param useCustomCovariates             DEPRECATED. Set `customCovariateIds` to non-null value to use custom cohorts.
 #' @param customCovariateDatabaseSchema   The name of the database schema that is the location where
 #'                                        the custom covariate data is available.
 #' @param customCovariateTable            Name of the table holding the custom covariates. This table
@@ -91,7 +90,6 @@
 #' @param customCovariateIds              A list of cohort definition IDs identifying the records in
 #'                                        the `customCovariateTable` to use for building custom
 #'                                        covariates.
-#' @param useNestingCohort                DEPRECATED. Set `nestingCohortId` to non-null value to use a nesting cohort.
 #' @param nestingCohortDatabaseSchema     The name of the database schema that is the location
 #'                                        where the nesting cohort is defined.
 #' @param nestingCohortTable              Name of the table holding the nesting cohort. This table
@@ -100,8 +98,6 @@
 #'                                        `nestingCohortTable` to use as nesting cohort.
 #' @param deleteCovariatesSmallCount      The minimum count for a covariate to appear in the data to be
 #'                                        kept.
-#' @param studyStartDate                  DEPRECATED. Use `studyStartDates` instead.
-#' @param studyEndDate                    DEPRECATED. Use `studyEndDates` instead.
 #' @param studyStartDates                 A character object specifying the minimum dates where data is
 #'                                        used. Date format is 'yyyymmdd'. Use "" to indicate all time
 #'                                        prior. See section for more information.
@@ -123,17 +119,13 @@ getDbSccsData <- function(connectionDetails,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
                           exposureIds = c(),
-                          useCustomCovariates = FALSE,
                           customCovariateDatabaseSchema = cdmDatabaseSchema,
                           customCovariateTable = "cohort",
                           customCovariateIds = c(),
-                          useNestingCohort = FALSE,
                           nestingCohortDatabaseSchema = cdmDatabaseSchema,
                           nestingCohortTable = "cohort",
                           nestingCohortId = NULL,
                           deleteCovariatesSmallCount = 0,
-                          studyStartDate = "",
-                          studyEndDate = "",
                           studyStartDates = c(),
                           studyEndDates = c(),
                           cdmVersion = "5",
@@ -159,21 +151,11 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertCharacter(nestingCohortTable, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(nestingCohortId, null.ok = TRUE, add = errorMessages)
   checkmate::assertInt(deleteCovariatesSmallCount, lower = 0, add = errorMessages)
-  checkmate::assertCharacter(studyStartDate, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertCharacter(studyEndDate, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(studyStartDates, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(studyEndDates, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
   checkmate::assertInt(maxCasesPerOutcome, lower = 0, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (!is.null(studyStartDate) && studyStartDate != "") {
-    warning("The studyStartDate argument is deprecated. Use studyStartDates instead.")
-    studyStartDates <- studyStartDate
-  }
-  if (!is.null(studyEndDate) && studyEndDate != "") {
-    warning("The studyEndDate argument is deprecated. Use studyEndDates instead.")
-    studyEndDates <- studyEndDate
-  }
   if (length(studyStartDates) != length(studyEndDates)) {
     stop("The studyStartDates and studyEndDates arguments must be of equal length")
   }
@@ -190,14 +172,8 @@ getDbSccsData <- function(connectionDetails,
   if (cdmVersion == "4") {
     stop("CDM version 4 is no longer supported")
   }
-  if (isTRUE(useCustomCovariates)) {
-    warning("The useCustomCovariates is deprecated. Set customCovariateIds to non-null value to use custom cohorts. ")
-  }
-  useCustomCovariates <- !is.null(customCovariateIds)
-  if (isTRUE(useNestingCohort)) {
-    warning("The useNestingCohort is deprecated. Set nestingCohortId to non-null value to use a nesting cohort. ")
-  }
   useNestingCohort <- !is.null(nestingCohortId)
+  useCustomCovariates <- !is.null(customCovariateIds)
   DatabaseConnector::assertTempEmulationSchemaSet(dbms = connectionDetails$dbms,
                                                   tempEmulationSchema = tempEmulationSchema)
 
