@@ -214,7 +214,7 @@ loadExposuresOutcomeList <- function(file) {
 #' Create SCCS diagnostics thresholds
 #'
 #' @description
-#' Threshold used when calling [exportToCsv()] to determine if we pass or fail diagnostics.
+#' Threshold used when calling [runSccsAnalyses()] to determine if we pass or fail diagnostics.
 #'
 #' @param mdrrThreshold What is the maximum allowed minimum detectable relative risk (MDRR)?
 #' @param easeThreshold What is the maximum allowed expected absolute systematic error (EASE).
@@ -274,19 +274,27 @@ SccsDiagnosticThresholds <- R6::R6Class(
     },
 
     toJson = function() {
-      jsonlite::toJSON(list(
-        mdrrThreshold = self$mdrrThreshold,
-        easeThreshold = self$easeThreshold,
-        timeTrendMaxRatio = self$timeTrendMaxRatio,
-        rareOutcomeMaxPrevalence = self$rareOutcomeMaxPrevalence,
-        eventObservationDependenceNullBounds = self$eventObservationDependenceNullBounds,
-        eventExposureDependenceNullBounds = self$eventExposureDependenceNullBounds
-      ), auto_unbox = TRUE)
+      jsonlite::toJSON(
+        list(
+          mdrrThreshold = self$mdrrThreshold,
+          easeThreshold = self$easeThreshold,
+          timeTrendMaxRatio = self$timeTrendMaxRatio,
+          rareOutcomeMaxPrevalence = self$rareOutcomeMaxPrevalence,
+          eventObservationDependenceNullBounds = self$eventObservationDependenceNullBounds,
+          eventExposureDependenceNullBounds = self$eventExposureDependenceNullBounds
+        ),
+        auto_unbox = TRUE,
+        pretty = TRUE
+      )
     },
 
     fromJson = function(json) {
-      data <- jsonlite::fromJSON(json)
-      do.call(self$initialize, data)
+      args <- jsonlite::fromJSON(json)
+      for (name in names(args)) {
+        if (name %in% names(self)) {
+          self[[name]] <- args[[name]]
+        }
+      }
     }
   )
 )

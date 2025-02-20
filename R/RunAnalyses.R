@@ -875,6 +875,12 @@ summarizeResults <- function(referenceTable,
       sccsModel = sccsModel,
       nullBounds = sccsDiagnosticThresholds$eventExposureDependenceNullBounds
     )
+    # There could be multiple pre-exposure windows. Pick one, and make sure to pick a failing one
+    # if exists:
+    eventExposureIndependenceDiagnostic <- eventExposureIndependenceDiagnostic |>
+      arrange(pass) |>
+      head(1)
+
     eventObservationIndependenceDiagnostic <- checkEventObservationIndependenceAssumption(
       sccsModel = sccsModel,
       nullBounds = sccsDiagnosticThresholds$eventObservationDependenceNullBounds

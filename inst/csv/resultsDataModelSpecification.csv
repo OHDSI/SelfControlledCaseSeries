@@ -119,13 +119,19 @@ sccs_diagnostics_summary,analysis_id,int,Yes,Yes,No,A foreign key referencing th
 sccs_diagnostics_summary,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
 sccs_diagnostics_summary,covariate_id,int,Yes,Yes,No,The identifier for the covariate of interest.
 sccs_diagnostics_summary,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_diagnostics_summary,mdrr,float,No,No,No,The minimum detectable relative risk.
+sccs_diagnostics_summary,time_stability_p,float,No,No,No,The p for whether the mean monthly ratio between observed and expected exceeds the specified threshold.
+sccs_diagnostics_summary,time_stability_diagnostics,varchar(20),Yes,No,No,Pass / fail / not evaluated classification of the time stability diagnostic.
+sccs_diagnostics_summary,event_exposure_lb,float,No,No,No,Lower bound of the 95% CI for the pre-expososure estimate
+sccs_diagnostics_summary,event_exposure_ub,float,No,No,No,Upper bound of the 95% CI for the pre-expososure estimate
+sccs_diagnostics_summary,event_exposure_diagnostics,varchar(20),Yes,No,No,Pass / fail / not evaluated classification of the event-exposure independence diagnostic.
+sccs_diagnostics_summary,event_observation_lb,float,No,No,No,Lower bound of the 95% CI for the end of observation probe estimate
+sccs_diagnostics_summary,event_observation_ub,float,No,No,No,Upper bound of the 95% CI for the end of observation probe estimate
+sccs_diagnostics_summary,event_observation_diagnostics,varchar(20),Yes,No,No,Pass / fail / not evaluated classification of the event-observation period dependence diagnostic.
+sccs_diagnostics_summary,rare_outcome_prevalence,float,No,No,No,The proportion of people in the underlying population who have the outcome at least once.
+sccs_diagnostics_summary,rare_outcome_diagnostics,varchar(20),Yes,No,No,Pass / fail / not evaluated classification of the rare outcome diagnostic.
 sccs_diagnostics_summary,ease,float,No,No,No,The expected absolute systematic error.
-sccs_diagnostics_summary,time_trend_p,float,No,No,No,The p for whether the mean monthly ratio between observed and expected is no greater than 1.25.
-sccs_diagnostics_summary,pre_exposure_p,float,No,No,No,"One-sided p-value for whether the rate before expore is higher than after, against the null of no difference."
-sccs_diagnostics_summary,mdrr_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the MDRR diagnostic.
 sccs_diagnostics_summary,ease_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the EASE diagnostic.
-sccs_diagnostics_summary,time_trend_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the time trend (unstalbe months) diagnostic.
-sccs_diagnostics_summary,pre_exposure_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the time trend (unstalbe months) diagnostic.
+sccs_diagnostics_summary,mdrr,float,No,No,No,The minimum detectable relative risk.
+sccs_diagnostics_summary,mdrr_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the MDRR diagnostic.
 sccs_diagnostics_summary,unblind,int,Yes,No,No,"Is unblinding the result recommended? (1 = yes, 0 = no)"
 sccs_diagnostics_summary,unblind_for_evidence_synthesis,int,Yes,No,No,"Is unblinding the result for inclusion in evidence synthesis recommended? This ignores the MDRR diagnostic. (1 = yes, 0 = no)"
