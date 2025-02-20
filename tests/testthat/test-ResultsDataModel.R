@@ -70,6 +70,15 @@ testCreateSchema <- function(connectionDetails, resultsDatabaseSchema) {
     expect_true(DatabaseConnector::existsTable(connection = connection,
                                                databaseSchema = resultsDatabaseSchema,
                                                tableName = tableName))
+    row <- DatabaseConnector::renderTranslateQuerySql(
+      connection = connection,
+      sql = "SELECT TOP 1 * FROM @database_schema.@table;",
+      database_schema = resultsDatabaseSchema,
+      table = tableName
+    )
+    observedFields <- sort(tolower(names(row)))
+    expectedFields <- sort(tolower(specifications$columnName[specifications$tableName == tableName]))
+    expect_equal(observedFields, expectedFields)
   }
   # Bad schema name
   expect_error(createResultsDataModel(

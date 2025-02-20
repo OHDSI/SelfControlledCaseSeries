@@ -678,3 +678,32 @@ test_that("Pre-exposure window", {
   expect_equal(result$covariates$stratumId, c(1, 1))
   expect_equal(result$covariates$covariateId, c(1000, 1001))
 })
+
+test_that("End of observation era", {
+  cases <- tibble(
+    observationPeriodId = "1000",
+    caseId = 1,
+    personId = "1",
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
+    startDay = 1,
+    endDay = 100,
+    noninformativeEndCensor = 0
+  )
+  eras <- tibble(
+    eraType = c("hoi", "rx"),
+    caseId = c(1, 1),
+    eraId = c(10, 11),
+    eraValue = c(1, 1),
+    eraStartDay = c(50, 20),
+    eraEndDay = c(50, 40)
+  )
+  result <- convertToSccsDataWrapper(cases, eras, exposureId = 11, endOfObservationEraLength = 30)
+  expect_equal(result$outcomes$rowId, c(0, 1, 2))
+  expect_equal(result$outcomes$stratumId, c(1, 1, 1))
+  expect_equal(result$outcomes$time, c(49, 30, 21))
+  expect_equal(result$outcomes$y, c(1, 0, 0))
+  expect_equal(result$covariates$rowId, c(1, 2))
+  expect_equal(result$covariates$stratumId, c(1, 1))
+  expect_equal(result$covariates$covariateId, c(99, 1000))
+})

@@ -1,137 +1,151 @@
-table_name,column_name,data_type,is_required,primary_key,min_cell_count,description
-sccs_analysis,analysis_id,int,Yes,Yes,No,A unique identifier for an analysis.
-sccs_analysis,description,varchar,Yes,No,No,"A description for an analysis, e.g. 'Correcting for age and season'."
-sccs_analysis,definition,varchar,Yes,No,No,A JSON object specifying the analysis.
-sccs_covariate_analysis,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_covariate_analysis,covariate_analysis_id,int,Yes,Yes,No,A unique identifier for a covariate analysis.
-sccs_covariate_analysis,covariate_analysis_name,varchar,Yes,No,No,"A name for a covariate analysis, e.g. 'Pre-exposure'."
-sccs_covariate_analysis,variable_of_interest,int,Yes,No,No,"Is the variable of interest (1 = yes, 0 = no)."
-sccs_covariate_analysis,pre_exposure,int,Yes,No,No,"Does the variable represent a pre-exposure period (1 = yes, 0 = no)."
-sccs_covariate_analysis,end_of_observation_period,int,Yes,No,No,"Does the variable represent the end of the observation period (1 = yes, 0 = no)."
-sccs_covariate,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_covariate,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_covariate,covariate_id,int,Yes,Yes,No,A unique identifier for a covariate.
-sccs_covariate,covariate_name,varchar,Yes,No,No,A description for the covariate.
-sccs_covariate,era_id,int,Yes,No,No,A foreign key referencing the sccs_era table.
-sccs_covariate,covariate_analysis_id,int,No,No,No,A foreign key referencing the sccs_covariate_analysis table.
-sccs_covariate,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_era,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_era,analysis_id,int,Yes,Yes,No,A unique identifier for an analysis.
-sccs_era,era_type,varchar,Yes,Yes,No,The type of era (e.g. 'rx' for drugs).
-sccs_era,era_id,int,Yes,Yes,No,"A unique identifier, corresponding to the ID in the source table (e.g. cohort_definition_id in a cohort table, or the drug_concept_id in the drug_era table)."
-sccs_era,era_name,varchar,No,No,No,A name for the era. Is NULL for eras derived from cohorts.
-sccs_era,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_exposures_outcome_set,exposures_outcome_set_id,int,Yes,Yes,No,A unique identifier for a set of exposures and an outcome.
-sccs_exposures_outcome_set,outcome_id,int,Yes,No,No,A cohort ID.
-sccs_exposures_outcome_set,nesting_cohort_id,int,No,No,No,A cohort ID.
-sccs_exposure,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_exposure,era_id,int,Yes,Yes,No,A foreign key referencing the sccs_era table.
-sccs_exposure,true_effect_size,float,No,No,No,"If known, the true effect size. For negatitive controls this equals 1."
-sccs_spline,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_spline,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_spline,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_spline,spline_type,varchar,Yes,Yes,No,"Either 'age', 'season', or 'calendar time'."
-sccs_spline,knot_month,float,Yes,Yes,No,"Location of the knot. For age, the month since birth. For season, the month of the year. For calendar time, the month since 1-1-1970."
-sccs_spline,rr,float,No,No,No,The estimated relative risk (i.e. the incidence rate ratio).
-sccs_censor_model,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_censor_model,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_censor_model,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_censor_model,parameter_id,int,Yes,Yes,No,The parameter number in the censor model (starting at 1).
-sccs_censor_model,parameter_value,float,No,No,No,The fitted parameter value.
-sccs_censor_model,model_type,varchar,Yes,No,No,"The type of censor model. Can be 'Weibull-Age'. 'Weibull-Interval', 'Gamma-Age', or 'Gamma-Interval'."
-sccs_result,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_result,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_result,covariate_id,int,Yes,Yes,No,A foreign key referencing the sccs_covariate table. The identifier for the covariate of interest.
-sccs_result,rr,float,No,No,No,The estimated relative risk (i.e. the incidence rate ratio).
-sccs_result,ci_95_lb,float,No,No,No,The lower bound of the 95% confidence interval of the relative risk.
-sccs_result,ci_95_ub,float,No,No,No,The upper bound of the 95% confidence interval of the relative risk.
-sccs_result,p,float,No,No,No,The two-sided p-value considering the null hypothesis of no effect.
-sccs_result,one_sided_p,float,No,No,No,The one-sided p-value considering the null hypothesis of IRR <= 1.
-sccs_result,outcome_subjects,int,Yes,No,Yes,The number of subjects with at least one outcome.
-sccs_result,outcome_events,int,Yes,No,Yes,The number of outcome events.
-sccs_result,outcome_observation_periods,int,Yes,No,Yes,The number of observation periods containing at least one outcome.
-sccs_result,covariate_subjects,int,Yes,No,Yes,The number of subjects having the covariate.
-sccs_result,covariate_days,int,Yes,No,Yes,The total covariate time in days.
-sccs_result,covariate_eras,int,Yes,No,Yes,The number of continuous eras of the covariate.
-sccs_result,covariate_outcomes,int,Yes,No,Yes,The number of outcomes observed during the covariate time.
-sccs_result,observed_days,bigint,Yes,No,Yes,The number of days subjects were observed.
-sccs_result,log_rr,float,No,No,No,The log of the relative risk.
-sccs_result,se_log_rr,float,No,No,No,The standard error of the log of the relative risk.
-sccs_result,llr,float,No,No,No,The log of the likelihood ratio (of the MLE vs the null hypothesis of no effect).
-sccs_result,calibrated_rr,float,No,No,No,The calibrated relative risk.
-sccs_result,calibrated_ci_95_lb,float,No,No,No,The lower bound of the calibrated 95% confidence interval of the relative risk.
-sccs_result,calibrated_ci_95_ub,float,No,No,No,The upper bound of the calibrated 95% confidence interval of the relative risk.
-sccs_result,calibrated_p,float,No,No,No,The calibrated two-sided p-value.
-sccs_result,calibrated_one_sided_p,float,No,No,No,The calibrated one-sided p-value considering the null hypothesis of IRR <= 1.
-sccs_result,calibrated_log_rr,float,No,No,No,The log of the calibrated relative risk.
-sccs_result,calibrated_se_log_rr,float,No,No,No,The standard error of the log of the calibrated relative risk.
-sccs_result,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_covariate_result,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_covariate_result,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_covariate_result,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_covariate_result,covariate_id,int,Yes,Yes,No,The identifier for the covariate.
-sccs_covariate_result,rr,float,No,No,No,The estimated relative risk (i.e. the incidence rate ratio).
-sccs_covariate_result,ci_95_lb,float,No,No,No,The lower bound of the 95% confidence interval of the relative risk.
-sccs_covariate_result,ci_95_ub,float,No,No,No,The upper bound of the 95% confidence interval of the relative risk.
-sccs_attrition,sequence_number,int,Yes,Yes,No,The place in the sequence of steps defining the final analysis cohort. 1 indicates the original exposed population without any inclusion criteria.
-sccs_attrition,description,varchar,Yes,No,No,"A description of the last restriction, e.g. 'Removing persons with the outcome prior'."
-sccs_attrition,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_attrition,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_attrition,covariate_id,int,Yes,Yes,No,A foreign key referencing the sccs_covariate table. The identifier for the covariate of interest.
-sccs_attrition,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_attrition,outcome_subjects,int,Yes,No,Yes,The number of subjects with at least one outcome.
-sccs_attrition,outcome_events,int,Yes,No,Yes,The number of outcome events.
-sccs_attrition,outcome_observation_periods,int,Yes,No,Yes,The number of observation periods containing at least one outcome.
-sccs_attrition,observed_days,bigint,Yes,No,Yes,The number of days subjects were observed.
-sccs_likelihood_profile,log_rr,float,Yes,Yes,No,The log of the relative risk where the likelihood is sampled.
-sccs_likelihood_profile,log_likelihood,float,Yes,No,No,The normalized log likelihood.
-sccs_likelihood_profile,covariate_id,int,Yes,Yes,No,The identifier for the covariate of interest.
-sccs_likelihood_profile,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_likelihood_profile,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_likelihood_profile,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_time_trend,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_time_trend,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_time_trend,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_time_trend,calendar_year,int,Yes,Yes,No,The calendar year (e.g. 2022).
-sccs_time_trend,calendar_month,int,Yes,Yes,No,The calendar month (e.g. 1 for January).
-sccs_time_trend,observed_subjects,int,No,No,Yes,Number of people observed during the month.
-sccs_time_trend,ratio,float,No,No,No,"Observed over expected ratio, where the expected count assumes a constant rate over time."
-sccs_time_trend,adjusted_ratio,float,No,No,No,"Observed over expected ratio, where the expected count is adjusted for age, season, or calendar time, as specified in the analysis."
-sccs_time_to_event,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_time_to_event,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_time_to_event,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_time_to_event,era_id,int,Yes,Yes,No,A foreign key referencing the sccs_era table. The identifier for the era of interest.
-sccs_time_to_event,week,int,Yes,Yes,No,The number of the week relative to exposure. Week 0 starts on the day of exposure initiation.
-sccs_time_to_event,observed_subjects,int,Yes,No,Yes,The numer of people observed during the week.
-sccs_time_to_event,outcomes,int,Yes,No,Yes,The number of outcomes observed durig the week.
-sccs_age_spanning,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_age_spanning,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_age_spanning,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_age_spanning,age_month,int,Yes,Yes,No,Age in months since birth.
-sccs_age_spanning,cover_before_after_subjects,int,Yes,No,Yes,Number of subjects whose observation period covers this month as well as the one before and after.
-sccs_calendar_time_spanning,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_calendar_time_spanning,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_calendar_time_spanning,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_calendar_time_spanning,calendar_year,int,Yes,Yes,No,Calendar year (e.g. 2022)
-sccs_calendar_time_spanning,calendar_month,int,Yes,Yes,No,Calendar month (e.g. 1 is January).
-sccs_calendar_time_spanning,cover_before_after_subjects,int,Yes,No,Yes,Number of subjects whose observation period covers this month as well as the one before and after.
-sccs_diagnostics_summary,analysis_id,int,Yes,Yes,No,A foreign key referencing the sccs_analysis table.
-sccs_diagnostics_summary,exposures_outcome_set_id,int,Yes,Yes,No,A foreign key referencing the sccs_exposures_outcome_set table.
-sccs_diagnostics_summary,covariate_id,int,Yes,Yes,No,The identifier for the covariate of interest.
-sccs_diagnostics_summary,database_id,varchar,Yes,Yes,No,Foreign key referencing the database.
-sccs_diagnostics_summary,time_stability_p,float,No,No,No,The p for whether the mean monthly ratio between observed and expected exceeds the specified threshold.
-sccs_diagnostics_summary,time_stability_diagnostic,varchar(20),Yes,No,No,Pass / fail / not evaluated classification of the time stability diagnostic.
-sccs_diagnostics_summary,event_exposure_lb,float,No,No,No,Lower bound of the 95% CI for the pre-expososure estimate
-sccs_diagnostics_summary,event_exposure_ub,float,No,No,No,Upper bound of the 95% CI for the pre-expososure estimate
-sccs_diagnostics_summary,event_exposure_diagnostic,varchar(20),Yes,No,No,Pass / fail / not evaluated classification of the event-exposure independence diagnostic.
-sccs_diagnostics_summary,event_observation_lb,float,No,No,No,Lower bound of the 95% CI for the end of observation probe estimate
-sccs_diagnostics_summary,event_observation_ub,float,No,No,No,Upper bound of the 95% CI for the end of observation probe estimate
-sccs_diagnostics_summary,event_observation_diagnostic,varchar(20),Yes,No,No,Pass / fail / not evaluated classification of the event-observation period dependence diagnostic.
-sccs_diagnostics_summary,rare_outcome_prevalence,float,No,No,No,The proportion of people in the underlying population who have the outcome at least once.
-sccs_diagnostics_summary,rare_outcome_diagnostic,varchar(20),Yes,No,No,Pass / fail / not evaluated classification of the rare outcome diagnostic.
-sccs_diagnostics_summary,ease,float,No,No,No,The expected absolute systematic error.
-sccs_diagnostics_summary,ease_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the EASE diagnostic.
-sccs_diagnostics_summary,mdrr,float,No,No,No,The minimum detectable relative risk.
-sccs_diagnostics_summary,mdrr_diagnostic,varchar(20),Yes,No,No,Pass / warning / fail / not evaluated classification of the MDRR diagnostic.
-sccs_diagnostics_summary,unblind,int,Yes,No,No,"Is unblinding the result recommended? (1 = yes, 0 = no)"
-sccs_diagnostics_summary,unblind_for_evidence_synthesis,int,Yes,No,No,"Is unblinding the result for inclusion in evidence synthesis recommended? This ignores the MDRR diagnostic. (1 = yes, 0 = no)"
+table_name,column_name,data_type,is_required,primary_key,min_cell_count,deprecated,description
+sccs_analysis,analysis_id,int,Yes,Yes,No,No,A unique identifier for an analysis.
+sccs_analysis,description,varchar,Yes,No,No,No,"A description for an analysis, e.g. 'Correcting for age and season'."
+sccs_analysis,definition,varchar,Yes,No,No,No,A JSON object specifying the analysis.
+sccs_covariate_analysis,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_covariate_analysis,covariate_analysis_id,int,Yes,Yes,No,No,A unique identifier for a covariate analysis.
+sccs_covariate_analysis,covariate_analysis_name,varchar,Yes,No,No,No,"A name for a covariate analysis, e.g. 'Pre-exposure'."
+sccs_covariate_analysis,variable_of_interest,int,Yes,No,No,No,"Is the variable of interest (1 = yes, 0 = no)."
+sccs_covariate_analysis,pre_exposure,int,Yes,No,No,No,"Does the variable represent a pre-exposure period (1 = yes, 0 = no)."
+sccs_covariate_analysis,end_of_observation_period,int,Yes,No,No,No,"Does the variable represent the end of the observation period (1 = yes, 0 = no)."
+sccs_covariate,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_covariate,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_covariate,covariate_id,int,Yes,Yes,No,No,A unique identifier for a covariate.
+sccs_covariate,covariate_name,varchar,Yes,No,No,No,A description for the covariate.
+sccs_covariate,era_id,int,Yes,No,No,No,A foreign key referencing the sccs_era table.
+sccs_covariate,covariate_analysis_id,int,No,No,No,No,A foreign key referencing the sccs_covariate_analysis table.
+sccs_covariate,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_era,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_era,analysis_id,int,Yes,Yes,No,No,A unique identifier for an analysis.
+sccs_era,era_type,varchar,Yes,Yes,No,No,The type of era (e.g. 'rx' for drugs).
+sccs_era,era_id,int,Yes,Yes,No,No,"A unique identifier, corresponding to the ID in the source table (e.g. cohort_definition_id in a cohort table, or the drug_concept_id in the drug_era table)."
+sccs_era,era_name,varchar,No,No,No,No,A name for the era. Is NULL for eras derived from cohorts.
+sccs_era,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_exposures_outcome_set,exposures_outcome_set_id,int,Yes,Yes,No,No,A unique identifier for a set of exposures and an outcome.
+sccs_exposures_outcome_set,outcome_id,int,Yes,No,No,No,A cohort ID.
+sccs_exposures_outcome_set,nesting_cohort_id,int,No,No,No,No,A cohort ID.
+sccs_exposure,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_exposure,era_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_era table.
+sccs_exposure,true_effect_size,float,No,No,No,No,"If known, the true effect size. For negatitive controls this equals 1."
+sccs_spline,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_spline,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_spline,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_spline,spline_type,varchar,Yes,Yes,No,No,"Either 'age', 'season', or 'calendar time'."
+sccs_spline,knot_month,float,Yes,Yes,No,No,"Location of the knot. For age, the month since birth. For season, the month of the year. For calendar time, the month since 1-1-1970."
+sccs_spline,rr,float,No,No,No,No,The estimated relative risk (i.e. the incidence rate ratio).
+sccs_censor_model,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_censor_model,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_censor_model,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_censor_model,parameter_id,int,Yes,Yes,No,No,The parameter number in the censor model (starting at 1).
+sccs_censor_model,parameter_value,float,No,No,No,No,The fitted parameter value.
+sccs_censor_model,model_type,varchar,Yes,No,No,No,"The type of censor model. Can be 'Weibull-Age'. 'Weibull-Interval', 'Gamma-Age', or 'Gamma-Interval'."
+sccs_result,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_result,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_result,covariate_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_covariate table. The identifier for the covariate of interest.
+sccs_result,rr,float,No,No,No,No,The estimated relative risk (i.e. the incidence rate ratio).
+sccs_result,ci_95_lb,float,No,No,No,No,The lower bound of the 95% confidence interval of the relative risk.
+sccs_result,ci_95_ub,float,No,No,No,No,The upper bound of the 95% confidence interval of the relative risk.
+sccs_result,p,float,No,No,No,No,The two-sided p-value considering the null hypothesis of no effect.
+sccs_result,one_sided_p,float,No,No,No,No,The one-sided p-value considering the null hypothesis of IRR <= 1.
+sccs_result,outcome_subjects,int,Yes,No,Yes,No,The number of subjects with at least one outcome.
+sccs_result,outcome_events,int,Yes,No,Yes,No,The number of outcome events.
+sccs_result,outcome_observation_periods,int,Yes,No,Yes,No,The number of observation periods containing at least one outcome.
+sccs_result,covariate_subjects,int,Yes,No,Yes,No,The number of subjects having the covariate.
+sccs_result,covariate_days,int,Yes,No,Yes,No,The total covariate time in days.
+sccs_result,covariate_eras,int,Yes,No,Yes,No,The number of continuous eras of the covariate.
+sccs_result,covariate_outcomes,int,Yes,No,Yes,No,The number of outcomes observed during the covariate time.
+sccs_result,observed_days,bigint,Yes,No,Yes,No,The number of days subjects were observed.
+sccs_result,log_rr,float,No,No,No,No,The log of the relative risk.
+sccs_result,se_log_rr,float,No,No,No,No,The standard error of the log of the relative risk.
+sccs_result,llr,float,No,No,No,No,The log of the likelihood ratio (of the MLE vs the null hypothesis of no effect).
+sccs_result,calibrated_rr,float,No,No,No,No,The calibrated relative risk.
+sccs_result,calibrated_ci_95_lb,float,No,No,No,No,The lower bound of the calibrated 95% confidence interval of the relative risk.
+sccs_result,calibrated_ci_95_ub,float,No,No,No,No,The upper bound of the calibrated 95% confidence interval of the relative risk.
+sccs_result,calibrated_p,float,No,No,No,No,The calibrated two-sided p-value.
+sccs_result,calibrated_one_sided_p,float,No,No,No,No,The calibrated one-sided p-value considering the null hypothesis of IRR <= 1.
+sccs_result,calibrated_log_rr,float,No,No,No,No,The log of the calibrated relative risk.
+sccs_result,calibrated_se_log_rr,float,No,No,No,No,The standard error of the log of the calibrated relative risk.
+sccs_result,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_covariate_result,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_covariate_result,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_covariate_result,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_covariate_result,covariate_id,int,Yes,Yes,No,No,The identifier for the covariate.
+sccs_covariate_result,rr,float,No,No,No,No,The estimated relative risk (i.e. the incidence rate ratio).
+sccs_covariate_result,ci_95_lb,float,No,No,No,No,The lower bound of the 95% confidence interval of the relative risk.
+sccs_covariate_result,ci_95_ub,float,No,No,No,No,The upper bound of the 95% confidence interval of the relative risk.
+sccs_attrition,sequence_number,int,Yes,Yes,No,No,The place in the sequence of steps defining the final analysis cohort. 1 indicates the original exposed population without any inclusion criteria.
+sccs_attrition,description,varchar,Yes,No,No,No,"A description of the last restriction, e.g. 'Removing persons with the outcome prior'."
+sccs_attrition,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_attrition,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_attrition,covariate_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_covariate table. The identifier for the covariate of interest.
+sccs_attrition,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_attrition,outcome_subjects,int,Yes,No,Yes,No,The number of subjects with at least one outcome.
+sccs_attrition,outcome_events,int,Yes,No,Yes,No,The number of outcome events.
+sccs_attrition,outcome_observation_periods,int,Yes,No,Yes,No,The number of observation periods containing at least one outcome.
+sccs_attrition,observed_days,bigint,Yes,No,Yes,No,The number of days subjects were observed.
+sccs_likelihood_profile,log_rr,float,Yes,Yes,No,No,The log of the relative risk where the likelihood is sampled.
+sccs_likelihood_profile,log_likelihood,float,Yes,No,No,No,The normalized log likelihood.
+sccs_likelihood_profile,covariate_id,int,Yes,Yes,No,No,The identifier for the covariate of interest.
+sccs_likelihood_profile,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_likelihood_profile,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_likelihood_profile,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_time_trend,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_time_trend,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_time_trend,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_time_trend,calendar_year,int,Yes,Yes,No,No,The calendar year (e.g. 2022).
+sccs_time_trend,calendar_month,int,Yes,Yes,No,No,The calendar month (e.g. 1 for January).
+sccs_time_trend,observed_subjects,int,No,No,Yes,No,Number of people observed during the month.
+sccs_time_trend,ratio,float,No,No,No,No,"Observed over expected ratio, where the expected count assumes a constant rate over time."
+sccs_time_trend,adjusted_ratio,float,No,No,No,No,"Observed over expected ratio, where the expected count is adjusted for age, season, or calendar time, as specified in the analysis."
+sccs_time_to_event,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_time_to_event,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_time_to_event,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_time_to_event,era_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_era table. The identifier for the era of interest.
+sccs_time_to_event,week,int,Yes,Yes,No,No,The number of the week relative to exposure. Week 0 starts on the day of exposure initiation.
+sccs_time_to_event,observed_subjects,int,Yes,No,Yes,No,The numer of people observed during the week.
+sccs_time_to_event,outcomes,int,Yes,No,Yes,No,The number of outcomes observed durig the week.
+sccs_age_spanning,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_age_spanning,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_age_spanning,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_age_spanning,age_month,int,Yes,Yes,No,No,Age in months since birth.
+sccs_age_spanning,cover_before_after_subjects,int,Yes,No,Yes,No,Number of subjects whose observation period covers this month as well as the one before and after.
+sccs_calendar_time_spanning,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_calendar_time_spanning,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_calendar_time_spanning,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_calendar_time_spanning,calendar_year,int,Yes,Yes,No,No,Calendar year (e.g. 2022)
+sccs_calendar_time_spanning,calendar_month,int,Yes,Yes,No,No,Calendar month (e.g. 1 is January).
+sccs_calendar_time_spanning,cover_before_after_subjects,int,Yes,No,Yes,No,Number of subjects whose observation period covers this month as well as the one before and after.
+sccs_diagnostics_summary,analysis_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_analysis table.
+sccs_diagnostics_summary,exposures_outcome_set_id,int,Yes,Yes,No,No,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_diagnostics_summary,covariate_id,int,Yes,Yes,No,No,The identifier for the covariate of interest.
+sccs_diagnostics_summary,database_id,varchar,Yes,Yes,No,No,Foreign key referencing the database.
+sccs_diagnostics_summary,time_stability_p,float,No,No,No,No,The p for whether the mean monthly ratio between observed and expected exceeds the specified threshold.
+sccs_diagnostics_summary,time_stability_diagnostic,varchar(20),Yes,No,No,No,Pass / fail / not evaluated classification of the time stability diagnostic.
+sccs_diagnostics_summary,event_exposure_lb,float,No,No,No,No,Lower bound of the 95% CI for the pre-expososure estimate
+sccs_diagnostics_summary,event_exposure_ub,float,No,No,No,No,Upper bound of the 95% CI for the pre-expososure estimate
+sccs_diagnostics_summary,event_exposure_diagnostic,varchar(20),Yes,No,No,No,Pass / fail / not evaluated classification of the event-exposure independence diagnostic.
+sccs_diagnostics_summary,event_observation_lb,float,No,No,No,No,Lower bound of the 95% CI for the end of observation probe estimate
+sccs_diagnostics_summary,event_observation_ub,float,No,No,No,No,Upper bound of the 95% CI for the end of observation probe estimate
+sccs_diagnostics_summary,event_observation_diagnostic,varchar(20),Yes,No,No,No,Pass / fail / not evaluated classification of the event-observation period dependence diagnostic.
+sccs_diagnostics_summary,rare_outcome_prevalence,float,No,No,No,No,The proportion of people in the underlying population who have the outcome at least once.
+sccs_diagnostics_summary,rare_outcome_diagnostic,varchar(20),Yes,No,No,No,Pass / fail / not evaluated classification of the rare outcome diagnostic.
+sccs_diagnostics_summary,ease,float,No,No,No,No,The expected absolute systematic error.
+sccs_diagnostics_summary,ease_diagnostic,varchar(20),Yes,No,No,No,Pass / warning / fail / not evaluated classification of the EASE diagnostic.
+sccs_diagnostics_summary,mdrr,float,No,No,No,No,The minimum detectable relative risk.
+sccs_diagnostics_summary,mdrr_diagnostic,varchar(20),Yes,No,No,No,Pass / warning / fail / not evaluated classification of the MDRR diagnostic.
+sccs_diagnostics_summary,unblind,int,Yes,No,No,No,"Is unblinding the result recommended? (1 = yes, 0 = no)"
+sccs_diagnostics_summary,unblind_for_evidence_synthesis,int,Yes,No,No,No,"Is unblinding the result for inclusion in evidence synthesis recommended? This ignores the MDRR diagnostic. (1 = yes, 0 = no)"
+sccs_event_dep_observation,analysis_id,int,Yes,Yes,No,Yes,A foreign key referencing the sccs_analysis table.
+sccs_event_dep_observation,exposures_outcome_set_id,int,Yes,Yes,No,Yes,A foreign key referencing the sccs_exposures_outcome_set table.
+sccs_event_dep_observation,database_id,varchar,Yes,Yes,No,Yes,Foreign key referencing the database.
+sccs_event_dep_observation,months_to_end,int,Yes,Yes,No,Yes,Number of months until observation end.
+sccs_event_dep_observation,censored,int,Yes,Yes,No,Yes,"Whether the observation is censored (meaning, not equal to the end of database time). (1 = censored, 0 = not censored)."
+sccs_event_dep_observation,outcomes,int,Yes,No,Yes,Yes,Number of outcomes observed during the month.
+sccs_diagnostics_summary,time_trend_p,float,No,No,No,Yes,The p for whether the mean monthly ratio between observed and expected is no greater than 1.25.
+sccs_diagnostics_summary,pre_exposure_p,float,No,No,No,Yes,"One-sided p-value for whether the rate before expore is higher than after, against the null of no difference."
+sccs_diagnostics_summary,time_trend_diagnostic,varchar(20),Yes,No,No,Yes,Pass / warning / fail / not evaluated classification of the time trend (unstalbe months) diagnostic.
+sccs_diagnostics_summary,pre_exposure_diagnostic,varchar(20),Yes,No,No,Yes,Pass / warning / fail / not evaluated classification of the time trend (unstalbe months) diagnostic.
+sccs_time_trend,outcome_rate,float,No,No,Yes,Yes,Number of outcomes divided by the number of subjects.
+sccs_time_trend,adjusted_rate,float,No,No,Yes,Yes,"The outcome rate, adjusted for age, season, or calendar time, as specified in the analysis."
+sccs_time_trend,stable,int,No,No,No,Yes,"Does the adjusted rate not deviate significantly from the mean? (1 = stable, 0 = unstable)"
+sccs_time_trend,p,float,No,No,No,Yes,The two-sided p-value against the null hypothesis that the rate is equal to the mean.

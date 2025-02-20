@@ -89,6 +89,10 @@ exportToCsv <- function(outputFolder,
     databaseId = databaseId
   )
 
+  exportEventDepObservation(
+    exportFolder = exportFolder
+  )
+
   # Add all to zip file -------------------------------------------------------------------------------
   message("Adding results to zip file")
   zipName <- file.path(exportFolder, sprintf("Results_%s.zip", databaseId))
@@ -660,6 +664,13 @@ exportGroup <- function(group, outputFolder, databaseId) {
       ) |>
       mutate(databaseId = !!databaseId)
 
+    # Add deprecated columns:
+    timeTrendData <- timeTrendData |>
+      mutate(outcomeRate = as.numeric(NA),
+             adjustedRate = as.numeric(NA),
+             stable = as.numeric(NA),
+             p = as.numeric(NA))
+
     sccsTimeTrend[[length(sccsTimeTrend) + 1]] <- refRow |>
       select("analysisId", "exposuresOutcomeSetId") |>
       bind_cols(timeTrendData)
@@ -822,6 +833,21 @@ exportDiagnosticsSummary <- function(outputFolder = outputFolder,
       "unblindForEvidenceSynthesis"
     ) |>
     mutate(databaseId = !!databaseId)
+
+  # Add deprecated columns:
+  results <- results |>
+    mutate(timeTrendP = as.numeric(NA),
+           preExposureP = as.numeric(NA),
+           timeTrendDiagnostic = "NOT EVALUATED",
+           preExposureDiagnostic = "NOT EVALUATED")
+
   fileName <- file.path(exportFolder, "sccs_diagnostics_summary.csv")
   writeToCsv(results, fileName)
+}
+
+exportEventDepObservation <- function(exportFolder = exportFolder){
+  message("- sccs_event_dep_observation table")
+  # Entire table is deprecated
+  fileName <- file.path(exportFolder, "sccs_event_dep_observation.csv")
+  writeToCsv(tibble(), fileName)
 }
