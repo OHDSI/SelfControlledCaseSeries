@@ -188,7 +188,8 @@ covarPreExp <- createEraCovariateSettings(
   includeEraIds = "exposureId",
   start = -30,
   end = -1,
-  endAnchor = "era start"
+  endAnchor = "era start",
+  preExposure = TRUE
 )
 
 covarProphylactics <- createEraCovariateSettings(

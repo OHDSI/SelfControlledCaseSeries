@@ -28,7 +28,7 @@ cdmDatabaseSchema <- "merative_mdcr.cdm_merative_mdcr_v3045"
 cohortDatabaseSchema <- "scratch.scratch_mschuemi"
 cohortTable  <- "sccs_vignette"
 options(sqlRenderTempEmulationSchema = "scratch.scratch_mschuemi")
-outputFolder <- "e:/temp/sccsVignette2"
+outputFolder <- "e:/temp/vignetteSccs2"
 
 
 # Create cohorts ---------------------------------------------------------------
@@ -100,7 +100,6 @@ for (exposureId in c(negativeControls)) {
 }
 
 getDbSccsDataArgs <- createGetDbSccsDataArgs(
-  useCustomCovariates = FALSE,
   deleteCovariatesSmallCount = 100,
   exposureIds = c(),
   maxCasesPerOutcome = 100000
@@ -140,7 +139,8 @@ covarPreExp <- createEraCovariateSettings(
   includeEraIds = "exposureId",
   start = -30,
   end = -1,
-  endAnchor = "era start"
+  endAnchor = "era start",
+  preExposure = TRUE
 )
 
 covarProphylactics <- createEraCovariateSettings(
