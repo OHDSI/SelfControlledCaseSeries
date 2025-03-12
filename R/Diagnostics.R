@@ -194,7 +194,7 @@ checkTimeStabilityAssumption <- function(studyPopulation, sccsModel = NULL, maxR
   e[e == 0] <- .Machine$double.eps
 
   logLikelihood <- function(x) {
-    return(-sum(log(dpois(o, e*x) + dpois(o, e/x))))
+    return(-sum(pmax(-999, log(dpois(o, e*x) + dpois(o, e/x)))))
   }
   x <- seq(1, 10, by = 0.1)
   ll <- sapply(x, logLikelihood)
