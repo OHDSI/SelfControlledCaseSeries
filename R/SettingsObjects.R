@@ -498,7 +498,7 @@ GetDbSccsDataArgs <- R6Class(
       }
       checkmate::assertIntegerish(self$customCovariateIds, null.ok = TRUE, add = errorMessages)
       checkmate::reportAssertions(collection = errorMessages)
-      if (length(elf$estudyStartDates) != length(elf$estudyEndDates)) {
+      if (length(self$estudyStartDates) != length(self$estudyEndDates)) {
         stop("The studyStartDates and studyEndDates arguments must be of equal length")
       }
       for (studyStartDate in self$studyStartDates) {
@@ -584,6 +584,9 @@ CreateStudyPopulationArgs <- R6Class(
 #' @param seasonalityCovariateSettings  An object of type `SeasonalityCovariateSettings` as created using the `createSeasonalityCovariateSettings()` function.
 #' @param calendarTimeCovariateSettings  An object of type `CalendarTimeCovariateSettings` as created using the `createCalendarTimeCovariateSettings()` function.
 #' @param minCasesForTimeCovariates  Minimum number of cases to use to fit age, season and calendar time splines. If needed (and available), cases that are not exposed will be included.
+#' @param endOfObservationEraLength   Length in days of the probe that is inserted at the end of a patient's
+#'                                    observation time. This probe will be used to test whether there is event-
+#'                                    dependent observation end. Set to 0 to not include the probe.
 #' @param eventDependentObservation  Should the extension proposed by Farrington et al. be used to adjust for event-dependent observation time?
 #'
 #' @references
@@ -600,6 +603,7 @@ createCreateSccsIntervalDataArgs <- function(eraCovariateSettings,
                                              seasonalityCovariateSettings = NULL,
                                              calendarTimeCovariateSettings = NULL,
                                              minCasesForTimeCovariates = 10000,
+                                             endOfObservationEraLength = 30,
                                              eventDependentObservation = FALSE) {
   args <- list()
   for (name in names(formals())) {
@@ -617,6 +621,7 @@ CreateSccsIntervalDataArgs <- R6Class(
     seasonalityCovariateSettings = NULL,
     calendarTimeCovariateSettings = NULL,
     minCasesForTimeCovariates = NULL,
+    endOfObservationEraLength = NULL,
     eventDependentObservation = NULL,
     validate = function() {
       errorMessages <- checkmate::makeAssertCollection()
@@ -631,6 +636,7 @@ CreateSccsIntervalDataArgs <- R6Class(
       checkmate::assertClass(self$seasonalityCovariateSettings, "SeasonalityCovariateSettings", null.ok = TRUE, add = errorMessages)
       checkmate::assertClass(self$calendarTimeCovariateSettings, "CalendarTimeCovariateSettings", null.ok = TRUE, add = errorMessages)
       checkmate::assertInt(self$minCasesForTimeCovariates, lower = 1, add = errorMessages)
+      checkmate::assertInt(self$minCasesForTimeCovariates, lower = 0, add = errorMessages)
       checkmate::assertLogical(self$eventDependentObservation, len = 1, add = errorMessages)
       checkmate::reportAssertions(collection = errorMessages)
     },

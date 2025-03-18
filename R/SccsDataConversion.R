@@ -24,68 +24,31 @@
 #'
 #' @template StudyPopulation
 #' @template SccsData
-#' @param eraCovariateSettings        Either an object of type `EraCovariateSettings` as created
-#'                                    using the [createEraCovariateSettings()] function, or a
-#'                                    list of such objects.
-#' @param ageCovariateSettings        An object of type `ageCovariateSettings` as created using the
-#'                                    [createAgeCovariateSettings()] function.
-#' @param seasonalityCovariateSettings An object of type `seasonalityCovariateSettings` as created using the
-#'                                    [createSeasonalityCovariateSettings()] function.
-#' @param calendarTimeCovariateSettings An object of type `calendarTimeCovariateSettings` as created using the
-#'                                    [createCalendarTimeCovariateSettings()] function.
-#' @param minCasesForTimeCovariates   Minimum number of cases to use to fit age, season and calendar time splines. If
-#'                                    needed (and available), cases that are not exposed will be included.
-#' @param endOfObservationEraLength   Length in days of the probe that is inserted at the end of a patient's
-#'                                    observation time. This probe will be used to test whether there is event-
-#'                                    dependent observation end. Set to 0 to not include the probe.
-#' @param eventDependentObservation   Should the extension proposed by Farrington et al. be used to
-#'                                    adjust for event-dependent observation time?
-#'
-#' @references
-#' Farrington, C. P., Anaya-Izquierdo, A., Whitaker, H. J., Hocine, M.N., Douglas, I., and Smeeth, L.
-#' (2011). Self-Controlled case series analysis with event-dependent observation periods. Journal of
-#' the American Statistical Association 106 (494), 417-426
+#' @param createSccsIntervalDataArgs An object of type `CreateSccsIntervalDataArgs` as created by the
+#'                                   `createCreateSccsIntervalDataArgs` function.
 #'
 #' @return
-#' An object of type [SccsIntervalData].
+#' An object of type `SccsIntervalData`.
 #'
 #' @export
 createSccsIntervalData <- function(studyPopulation,
                                    sccsData,
-                                   eraCovariateSettings,
-                                   ageCovariateSettings = NULL,
-                                   seasonalityCovariateSettings = NULL,
-                                   calendarTimeCovariateSettings = NULL,
-                                   minCasesForTimeCovariates = 10000,
-                                   endOfObservationEraLength = 30,
-                                   eventDependentObservation = FALSE) {
+                                   createSccsIntervalDataArgs) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
-  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  if (is.list(eraCovariateSettings) && !is(eraCovariateSettings, "EraCovariateSettings")) {
-    for (i in 1:length(eraCovariateSettings)) {
-      checkmate::assertClass(eraCovariateSettings[[i]], "EraCovariateSettings", add = errorMessages)
-    }
-  } else {
-    checkmate::assertClass(eraCovariateSettings, "EraCovariateSettings", add = errorMessages)
-  }
-  checkmate::assertClass(ageCovariateSettings, "ageSettings", null.ok = TRUE, add = errorMessages)
-  checkmate::assertClass(seasonalityCovariateSettings, "SeasonalityCovariateSettings", null.ok = TRUE, add = errorMessages)
-  checkmate::assertClass(calendarTimeCovariateSettings, "CalendarTimeCovariateSettings", null.ok = TRUE, add = errorMessages)
-  checkmate::assertInt(minCasesForTimeCovariates, lower = 1, add = errorMessages)
-  checkmate::assertLogical(eventDependentObservation, len = 1, add = errorMessages)
+  checkmate::assertClass(createSccsIntervalDataArgs, "CreateSccsIntervalDataArgs", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   start <- Sys.time()
 
   timeCovariateCases <- numeric(0)
-  if (!is.null(ageCovariateSettings) ||
-      !is.null(seasonalityCovariateSettings) ||
-      !is.null(calendarTimeCovariateSettings)) {
-    if (nrow(studyPopulation$cases) > minCasesForTimeCovariates) {
+  if (!is.null(createSccsIntervalDataArgs$ageCovariateSettings) ||
+      !is.null(createSccsIntervalDataArgs$seasonalityCovariateSettings) ||
+      !is.null(createSccsIntervalDataArgs$calendarTimeCovariateSettings)) {
+    if (nrow(studyPopulation$cases) > createSccsIntervalDataArgs$minCasesForTimeCovariates) {
       set.seed(0)
-      timeCovariateCases <- sample(studyPopulation$cases$caseId, minCasesForTimeCovariates, replace = FALSE)
+      timeCovariateCases <- sample(studyPopulation$cases$caseId, createSccsIntervalDataArgs$minCasesForTimeCovariates, replace = FALSE)
     }
   }
 
@@ -94,19 +57,19 @@ createSccsIntervalData <- function(studyPopulation,
   settings$covariateRef <- tibble()
   settings <- addEventDependentObservationSettings(
     settings,
-    eventDependentObservation,
+    createSccsIntervalDataArgs$eventDependentObservation,
     studyPopulation,
-    endOfObservationEraLength
+    createSccsIntervalDataArgs$endOfObservationEraLength
   )
-  if (eventDependentObservation && settings$metaData$censorModel$model %in% c(1, 3) && !is.null(ageCovariateSettings)) {
+  if (createSccsIntervalDataArgs$eventDependentObservation && settings$metaData$censorModel$model %in% c(1, 3) && !is.null(createSccsIntervalDataArgs$ageCovariateSettings)) {
     warning("Optimal censoring model adjusts for age, so removing age as separate covariate.")
-    ageCovariateSettings <- NULL
+    createSccsIntervalDataArgs$ageCovariateSettings <- NULL
   }
-  settings <- addAgeSettings(settings, ageCovariateSettings, studyPopulation)
-  settings <- addSeasonalitySettings(settings, seasonalityCovariateSettings, sccsData)
-  settings <- addCalendarTimeSettings(settings, calendarTimeCovariateSettings, studyPopulation, sccsData)
-  settings <- addEraCovariateSettings(settings, eraCovariateSettings, sccsData)
-  settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
+  settings <- addAgeSettings(settings, createSccsIntervalDataArgs$ageCovariateSettings, studyPopulation)
+  settings <- addSeasonalitySettings(settings, createSccsIntervalDataArgs$seasonalityCovariateSettings, sccsData)
+  settings <- addCalendarTimeSettings(settings, createSccsIntervalDataArgs$calendarTimeCovariateSettings, studyPopulation, sccsData)
+  settings <- addEraCovariateSettings(settings, createSccsIntervalDataArgs$eraCovariateSettings, sccsData)
+  settings$metaData$covariateSettingsList <- settings$covariateSettingsList
   metaData <- append(studyPopulation$metaData, settings$metaData)
   metaData$design <- "SCCS"
 
@@ -141,7 +104,7 @@ createSccsIntervalData <- function(studyPopulation,
     covariateSettingsList = settings$covariateSettingsList,
     endOfObservationEraLength = settings$endOfObservationEraLength,
     endOfObservationCovariateId = settings$endOfObservationCovariateId,
-    eventDependentObservation = eventDependentObservation,
+    eventDependentObservation = createSccsIntervalDataArgs$eventDependentObservation,
     censorModel = settings$censorModel,
     scri = FALSE,
     controlIntervalId = 0,
@@ -559,7 +522,8 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
   # Iterate over different covariate settings. Assign unique IDs, and store in covariateRef:
   outputId <- 1000
   for (i in 1:length(eraCovariateSettingsList)) {
-    covariateSettings <- eraCovariateSettingsList[[i]]
+    covariateSettings <- eraCovariateSettingsList[[i]]$toList()
+    isControlInterval <- is(eraCovariateSettingsList[[i]], "ControlIntervalSettings")
     covariateSettings$covariateAnalysisId <- 1
 
     if (is.null(covariateSettings$label)) {
@@ -580,7 +544,7 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
     if (!covariateSettings$stratifyById) {
       # stratifyById == FALSE
       covariateSettings$outputIds <- as.matrix(outputId)
-      if (!covariateSettings$isControlInterval) {
+      if (!isControlInterval) {
         if (length(covariateSettings$eraIds) == 1) {
           originalEraId <- covariateSettings$eraIds
         } else {
@@ -594,7 +558,7 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
           originalEraId = originalEraId,
           originalEraType = "",
           originalEraName = "",
-          isControlInterval = covariateSettings$isControlInterval,
+          isControlInterval = isControlInterval,
           preExposure = covariateSettings$preExposure
         )
         settings$covariateRef <- bind_rows(settings$covariateRef, newCovariateRef)

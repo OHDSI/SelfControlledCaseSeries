@@ -21,6 +21,12 @@ Changes
 
 9. Removing deprecated `minCasesForAgeSeason` of `createSccsIntervalData()` and `createCreateSccsIntervalDataArgs()`.
 
+10. Removed `cdmVersion` argument from `getDbSccsData()`.
+
+11. All settings objects have been changed to R6 objects. This should make it easier for external developers to generate valid settings JSON files.
+
+12. All individual analytic functions (`getDbSccsData()`, `createStudyPopulationArgs()`, `createSccsIntervalData()`, `createScriIntervalData()`, `fitSccsModel()`) now use the setting objects as arguments. This is to remove code duplication, and increase consistency between single study and multi-analyses frameworks.
+
 
 SelfControlledCaseSeries 5.3.1
 ==============================

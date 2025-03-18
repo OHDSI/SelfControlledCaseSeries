@@ -2,7 +2,7 @@
 % Please edit documentation in R/SettingsObjects.R
 \name{createAgeCovariateSettings}
 \alias{createAgeCovariateSettings}
-\title{Create age covariate settings}
+\title{Create age covariate sesettings#' Create age covariate settings}
 \usage{
 createAgeCovariateSettings(
   ageKnots = 5,
@@ -29,7 +29,7 @@ when \code{allowRegularization = TRUE}.}
 An object of type \code{AgeCovariateSettings}.
 }
 \description{
-Create age covariate settings
+Create age covariate sesettings#' Create age covariate settings
 }
 \details{
 Create an object specifying whether and how age should be included in the model. Age can be

@@ -10,6 +10,7 @@ createCreateSccsIntervalDataArgs(
   seasonalityCovariateSettings = NULL,
   calendarTimeCovariateSettings = NULL,
   minCasesForTimeCovariates = 10000,
+  endOfObservationEraLength = 30,
   eventDependentObservation = FALSE
 )
 }
@@ -23,6 +24,10 @@ createCreateSccsIntervalDataArgs(
 \item{calendarTimeCovariateSettings}{An object of type \code{CalendarTimeCovariateSettings} as created using the \code{createCalendarTimeCovariateSettings()} function.}
 
 \item{minCasesForTimeCovariates}{Minimum number of cases to use to fit age, season and calendar time splines. If needed (and available), cases that are not exposed will be included.}
+
+\item{endOfObservationEraLength}{Length in days of the probe that is inserted at the end of a patient's
+observation time. This probe will be used to test whether there is event-
+dependent observation end. Set to 0 to not include the probe.}
 
 \item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to adjust for event-dependent observation time?}
 }

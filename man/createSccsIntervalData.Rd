@@ -4,17 +4,7 @@
 \alias{createSccsIntervalData}
 \title{Create SCCS era data}
 \usage{
-createSccsIntervalData(
-  studyPopulation,
-  sccsData,
-  eraCovariateSettings,
-  ageCovariateSettings = NULL,
-  seasonalityCovariateSettings = NULL,
-  calendarTimeCovariateSettings = NULL,
-  minCasesForTimeCovariates = 10000,
-  endOfObservationEraLength = 30,
-  eventDependentObservation = FALSE
-)
+createSccsIntervalData(studyPopulation, sccsData, createSccsIntervalDataArgs)
 }
 \arguments{
 \item{studyPopulation}{An object created using the \code{\link[=createStudyPopulation]{createStudyPopulation()}} function.}
@@ -22,31 +12,11 @@ createSccsIntervalData(
 \item{sccsData}{An object of type \link{SccsData} as created using the
 \link{getDbSccsData} function.}
 
-\item{eraCovariateSettings}{Either an object of type \code{EraCovariateSettings} as created
-using the \code{\link[=createEraCovariateSettings]{createEraCovariateSettings()}} function, or a
-list of such objects.}
-
-\item{ageCovariateSettings}{An object of type \code{ageCovariateSettings} as created using the
-\code{\link[=createAgeCovariateSettings]{createAgeCovariateSettings()}} function.}
-
-\item{seasonalityCovariateSettings}{An object of type \code{seasonalityCovariateSettings} as created using the
-\code{\link[=createSeasonalityCovariateSettings]{createSeasonalityCovariateSettings()}} function.}
-
-\item{calendarTimeCovariateSettings}{An object of type \code{calendarTimeCovariateSettings} as created using the
-\code{\link[=createCalendarTimeCovariateSettings]{createCalendarTimeCovariateSettings()}} function.}
-
-\item{minCasesForTimeCovariates}{Minimum number of cases to use to fit age, season and calendar time splines. If
-needed (and available), cases that are not exposed will be included.}
-
-\item{endOfObservationEraLength}{Length in days of the probe that is inserted at the end of a patient's
-observation time. This probe will be used to test whether there is event-
-dependent observation end. Set to 0 to not include the probe.}
-
-\item{eventDependentObservation}{Should the extension proposed by Farrington et al. be used to
-adjust for event-dependent observation time?}
+\item{createSccsIntervalDataArgs}{An object of type \code{CreateSccsIntervalDataArgs} as created by the
+\code{createCreateSccsIntervalDataArgs} function.}
 }
 \value{
-An object of type \link{SccsIntervalData}.
+An object of type \code{SccsIntervalData}.
 }
 \description{
 Create SCCS era data
@@ -56,9 +26,4 @@ This function creates covariates based on the data in the \code{sccsData} argume
 provided settings. It chops patient time into periods during which all covariates remain constant.
 The output details these periods, their durations, and a sparse representation of the covariate
 values.
-}
-\references{
-Farrington, C. P., Anaya-Izquierdo, A., Whitaker, H. J., Hocine, M.N., Douglas, I., and Smeeth, L.
-(2011). Self-Controlled case series analysis with event-dependent observation periods. Journal of
-the American Statistical Association 106 (494), 417-426
 }

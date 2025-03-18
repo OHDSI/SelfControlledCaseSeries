@@ -4,31 +4,13 @@
 \alias{fitSccsModel}
 \title{Fit the SCCS model}
 \usage{
-fitSccsModel(
-  sccsIntervalData,
-  prior = createPrior("laplace", useCrossValidation = TRUE),
-  control = createControl(cvType = "auto", selectorType = "byPid", startingVariance =
-    0.1, seed = 1, resetCoefficients = TRUE, noiseLevel = "quiet"),
-  profileGrid = NULL,
-  profileBounds = c(log(0.1), log(10))
-)
+fitSccsModel(sccsIntervalData, fitSccsModelArgs)
 }
 \arguments{
 \item{sccsIntervalData}{An object of type \link{SccsIntervalData} as created using the
 \link{createSccsIntervalData} function.}
 
-\item{prior}{The prior used to fit the model. See \link[Cyclops:createPrior]{Cyclops::createPrior} for
-details.}
-
-\item{control}{The control object used to control the cross-validation used to determine the
-hyperparameters of the prior (if applicable). See
-\link[Cyclops:createControl]{Cyclops::createControl} for details.}
-
-\item{profileGrid}{A one-dimensional grid of points on the log(relative risk) scale where
-the likelihood for coefficient of variables is sampled. See details.}
-
-\item{profileBounds}{The bounds (on the log relative risk scale) for the adaptive sampling
-of the likelihood function.}
+\item{fitSccsModelArgs}{An object of type \code{FitSccsModelArgs} as created by the \code{createFitSccsModelArgs()} function.}
 }
 \value{
 An object of type \code{SccsModel}. Generic functions \code{print}, \code{coef}, and

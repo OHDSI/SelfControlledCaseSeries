@@ -62,6 +62,13 @@ epistaxis <- 356
 if (!file.exists(folder))
   dir.create(folder)
 
+getDbSccsDataArgs = createGetDbSccsDataArgs(
+  studyStartDates = "20100101",
+  studyEndDates = "21000101",
+  maxCasesPerOutcome = 100000,
+  exposureIds = aspirin
+)
+
 sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           cdmDatabaseSchema = cdmDatabaseSchema,
                           outcomeDatabaseSchema = cohortDatabaseSchema,
@@ -69,19 +76,23 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           outcomeIds = epistaxis,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
-                          exposureIds = aspirin,
-                          studyStartDates = "20100101",
-                          studyEndDates = "21000101",
-                          maxCasesPerOutcome = 100000)
+                          getDbSccsDataArgs = getDbSccsDataArgs)
+
+
 saveSccsData(sccsData, file.path(folder, "data1.zip"))
 sccsData <- loadSccsData(file.path(folder, "data1.zip"))
 sccsData
 summary(sccsData)
 
+
+createStudyPopulationArgs <- createCreateStudyPopulationArgs(
+  firstOutcomeOnly = FALSE,
+  naivePeriod = 180
+)
 studyPop <- createStudyPopulation(sccsData = sccsData,
                                   outcomeId = epistaxis,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+                                  createStudyPopulationArgs = createStudyPopulationArgs
+)
 saveRDS(studyPop, file.path(folder, "studyPop.rds"))
 studyPop <- readRDS(file.path(folder, "studyPop.rds"))
 
@@ -107,21 +118,24 @@ studyPop <- readRDS(file.path(folder, "studyPop.rds"))
 # checkRareOutcomeAssumption(studyPop)
 
 covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
-                                          includeEraIds = aspirin,
-                                          start = 0,
-                                          end = 0,
-                                          endAnchor = "era end")
+                                           includeEraIds = aspirin,
+                                           start = 0,
+                                           end = 0,
+                                           endAnchor = "era end")
+createSccsIntervalDataArgs <- createCreateSccsIntervalDataArgs(
+  eraCovariateSettings = covarAspirin
+)
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData,
-                                           eraCovariateSettings = covarAspirin)
+                                           createSccsIntervalDataArgs = createSccsIntervalDataArgs)
 saveSccsIntervalData(sccsIntervalData, file.path(folder, "intervalData1.zip"))
 sccsIntervalData <- loadSccsIntervalData(file.path(folder, "intervalData1.zip"))
 sccsIntervalData
 summary(sccsIntervalData)
 metaData <- attr(sccsIntervalData, "metaData")
-metaData$endOfObservationEra
 
-model <- fitSccsModel(sccsIntervalData)
+fitSccsModelArgs <- createFitSccsModelArgs()
+model <- fitSccsModel(sccsIntervalData, fitSccsModelArgs)
 saveRDS(model, file.path(folder, "simpleModel.rds"))
 model
 
@@ -132,11 +146,15 @@ covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
                                               end = -1,
                                               endAnchor = "era start",
                                               preExposure = TRUE)
+createSccsIntervalDataArgs <- createCreateSccsIntervalDataArgs(
+  eraCovariateSettings = list(covarAspirin,
+                              covarPreAspirin)
+)
+
 sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
                                            sccsData,
-                                           eraCovariateSettings = list(covarAspirin,
-                                                                       covarPreAspirin))
-model <- fitSccsModel(sccsIntervalData)
+                                           createSccsIntervalDataArgs = createSccsIntervalDataArgs)
+model <- fitSccsModel(sccsIntervalData, fitSccsModelArgs)
 saveRDS(model, file.path(folder, "preExposureModel.rds"))
 model
 
@@ -177,7 +195,7 @@ stability <- checkTimeStabilityAssumption(studyPopulation = studyPop)
 saveRDS(stability, file.path(folder, "stabilityA.rds"))
 
 stability <- checkTimeStabilityAssumption(studyPopulation = studyPop,
-                                  sccsModel = model)
+                                          sccsModel = model)
 saveRDS(stability, file.path(folder, "stabilityB.rds"))
 stability
 

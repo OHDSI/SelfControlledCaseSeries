@@ -26,15 +26,7 @@
 #' When both `profileGrid` and `profileGrid` are `NULL` likelihood profiling is disabled.
 #'
 #' @template SccsIntervalData
-#' @param prior         The prior used to fit the model. See [Cyclops::createPrior] for
-#'                      details.
-#' @param control       The control object used to control the cross-validation used to determine the
-#'                      hyperparameters of the prior (if applicable). See
-#'                      [Cyclops::createControl] for details.
-#' @param profileGrid           A one-dimensional grid of points on the log(relative risk) scale where
-#'                              the likelihood for coefficient of variables is sampled. See details.
-#' @param profileBounds         The bounds (on the log relative risk scale) for the adaptive sampling
-#'                              of the likelihood function.
+#' @param fitSccsModelArgs An object of type `FitSccsModelArgs` as created by the `createFitSccsModelArgs()` function.
 #'
 #' @return
 #' An object of type `SccsModel`. Generic functions `print`, `coef`, and
@@ -47,27 +39,11 @@
 #'
 #' @export
 fitSccsModel <- function(sccsIntervalData,
-                         prior = createPrior("laplace", useCrossValidation = TRUE),
-                         control = createControl(
-                           cvType = "auto",
-                           selectorType = "byPid",
-                           startingVariance = 0.1,
-                           seed = 1,
-                           resetCoefficients = TRUE,
-                           noiseLevel = "quiet"
-                         ),
-                         profileGrid = NULL,
-                         profileBounds = c(log(0.1), log(10))) {
+                         fitSccsModelArgs) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsIntervalData, "SccsIntervalData", null.ok = TRUE, add = errorMessages)
-  checkmate::assertClass(prior, "cyclopsPrior", add = errorMessages)
-  checkmate::assertClass(control, "cyclopsControl", add = errorMessages)
-  checkmate::assertNumeric(profileGrid, null.ok = TRUE, add = errorMessages)
-  checkmate::assertNumeric(profileBounds, null.ok = TRUE, len = 2, add = errorMessages)
+  checkmate::assertClass(fitSccsModelArgs, "FitSccsModelArgs", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (!is.null(profileGrid) && !is.null(profileBounds)) {
-    stop("Specify either profileGrid or profileBounds")
-  }
 
   ParallelLogger::logTrace("Fitting SCCS model")
   metaData <- attr(sccsIntervalData, "metaData")
@@ -151,6 +127,7 @@ fitSccsModel <- function(sccsIntervalData,
       covariateIds <- sccsIntervalData$covariates |>
         distinct(.data$covariateId) |>
         pull()
+      prior <- fitSccsModelArgs$prior
       prior$exclude <- intersect(nonRegularized, covariateIds)
     }
     cyclopsData <- Cyclops::convertToCyclopsData(sccsIntervalData$outcomes,
@@ -162,7 +139,7 @@ fitSccsModel <- function(sccsIntervalData,
     )
     fit <- tryCatch(
       {
-        Cyclops::fitCyclopsModel(cyclopsData, prior = prior, control = control)
+        Cyclops::fitCyclopsModel(cyclopsData, prior = prior, control = fitSccsModelArgs$control)
       },
       error = function(e) {
         e$message
@@ -174,14 +151,14 @@ fitSccsModel <- function(sccsIntervalData,
       priorVariance <- 0
       status <- fit
     } else {
-      if (!is.null(profileGrid) || !is.null(profileBounds)) {
+      if (!is.null(fitSccsModelArgs$profileGrid) || !is.null(fitSccsModelArgs$profileBounds)) {
         covariateIds <- intersect(needProfile, as.numeric(Cyclops::getCovariateIds(cyclopsData)))
         getLikelihoodProfile <- function(covariateId) {
           logLikelihoodProfile <- Cyclops::getCyclopsProfileLogLikelihood(
             object = fit,
             parm = covariateId,
-            x = profileGrid,
-            bounds = profileBounds,
+            x = fitSccsModelArgs$profileGrid,
+            bounds = fitSccsModelArgs$profileBounds,
             tolerance = 0.1,
             includePenalty = TRUE
           )

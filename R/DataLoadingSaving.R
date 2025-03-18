@@ -148,7 +148,7 @@ getDbSccsData <- function(connectionDetails,
   }
   DatabaseConnector::insertTable(conn,
                                  tableName = "#outcome_ids",
-                                 data = data.frame(outcome_id = as.integer(getDbSccsDataArgs$outcomeIds)),
+                                 data = data.frame(outcome_id = as.integer(outcomeIds)),
                                  dropTableIfExists = TRUE,
                                  createTable = TRUE,
                                  tempTable = TRUE,
@@ -249,11 +249,11 @@ getDbSccsData <- function(connectionDetails,
               probablyFirstOutcomeOnly = .data$outcomeSubjects == .data$outcomeEvents)
 
   sampledCases <- FALSE
-  if (maxCasesPerOutcome != 0) {
+  if (getDbSccsDataArgs$maxCasesPerOutcome != 0) {
     for (outcomeId in unique(outcomeCounts$outcomeId)) {
       count <- min(outcomeCounts$outcomeObsPeriods[outcomeCounts$outcomeId == outcomeId])
-      if (count > maxCasesPerOutcome) {
-        message(paste0("Downsampling cases for outcome ID ", outcomeId, " from ", count, " to ", maxCasesPerOutcome))
+      if (count > getDbSccsDataArgs$maxCasesPerOutcome) {
+        message(paste0("Downsampling cases for outcome ID ", outcomeId, " from ", count, " to ", getDbSccsDataArgs$maxCasesPerOutcome))
         sampledCases <- TRUE
       }
     }
@@ -262,7 +262,7 @@ getDbSccsData <- function(connectionDetails,
                                                packageName = "SelfControlledCaseSeries",
                                                dbms = connectionDetails$dbms,
                                                tempEmulationSchema = tempEmulationSchema,
-                                               max_cases_per_outcome = maxCasesPerOutcome,
+                                               max_cases_per_outcome = getDbSccsDataArgs$maxCasesPerOutcome,
                                                case_table = caseTable)
       DatabaseConnector::executeSql(conn, sql)
       caseTable <- "#sampled_cases"
@@ -284,8 +284,8 @@ getDbSccsData <- function(connectionDetails,
                                            custom_covariate_database_schema = customCovariateDatabaseSchema,
                                            custom_covariate_table = customCovariateTable,
                                            has_exposure_ids = hasExposureIds,
-                                           has_custom_covariate_ids = hasCustomCovariateIds,
-                                           delete_covariates_small_count = deleteCovariatesSmallCount,
+                                           has_custom_covariate_ids = useCustomCovariates,
+                                           delete_covariates_small_count = getDbSccsDataArgs$deleteCovariatesSmallCount,
                                            case_table = caseTable
   )
   DatabaseConnector::executeSql(conn, sql)
@@ -341,7 +341,7 @@ getDbSccsData <- function(connectionDetails,
                                            sampled_cases = sampledCases,
                                            has_exposure_ids = hasExposureIds,
                                            use_nesting_cohort = useNestingCohort,
-                                           has_custom_covariate_ids = hasCustomCovariateIds
+                                           has_custom_covariate_ids = useCustomCovariates
   )
   DatabaseConnector::executeSql(conn, sql, progressBar = FALSE, reportOverallTime = FALSE)
 
@@ -367,7 +367,7 @@ getDbSccsData <- function(connectionDetails,
   }
 
   attr(sccsData, "metaData") <- list(
-    exposureIds = exposureIds,
+    exposureIds = getDbSccsDataArgs$exposureIds,
     outcomeIds = outcomeIds,
     attrition = outcomeCounts,
     studyPeriods = studyPeriods,

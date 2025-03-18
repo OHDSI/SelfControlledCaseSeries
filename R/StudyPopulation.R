@@ -23,28 +23,8 @@
 #' @param outcomeId             The outcome to create the era data for. If not specified it is
 #'                              assumed to be the one outcome for which the data was loaded from
 #'                              the database.
-#' @param naivePeriod           The number of days at the start of a patient's observation period
-#'                              that should not be included in the risk calculations. Note that
-#'                              the naive period can be used to determine current covariate
-#'                              status right after the naive period, and whether an outcome is
-#'                              the first one.
-#' @param firstOutcomeOnly      Whether only the first occurrence of an outcome should be
-#'                              considered.
-#' @param minAge                Minimum age at which patient time will be included in the analysis. Note
-#'                              that information prior to the min age is still used to determine exposure
-#'                              status after the minimum age (e.g. when a prescription was started just prior
-#'                              to reaching the minimum age). Also, outcomes occurring before the minimum age
-#'                              is reached will be considered as prior outcomes when using first outcomes only.
-#'                              Age should be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param maxAge                Maximum age at which patient time will be included in the analysis. Age should
-#'                              be specified in years, but non-integer values are allowed. If not
-#'                              specified, no age restriction will be applied.
-#' @param genderConceptIds      Set of gender concept IDs to restrict the population to. If not specified,
-#'                              no restriction on gender will be applied.
-#' @param restrictTimeToEraId   If provided, study time (for all patients) will be restricted to the calender
-#'                              time when that era was observed in the data. For example, if the era ID refers
-#'                              to a drug, study time will be restricted to when the drug was on the market.
+#' @param createStudyPopulationArgs An object of type `CreateStudyPopulationArgs` as created using the
+#'                                  `createCreateStudyPopulationArgs()` function.
 #'
 #' @return
 #' A `list` specifying the study population, with the following items:
@@ -56,26 +36,12 @@
 #' @export
 createStudyPopulation <- function(sccsData,
                                   outcomeId = NULL,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 0,
-                                  minAge = NULL,
-                                  maxAge = NULL,
-                                  genderConceptIds = NULL,
-                                  restrictTimeToEraId = NULL) {
+                                  createStudyPopulationArgs) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertInt(outcomeId, null.ok = TRUE, add = errorMessages)
-  checkmate::assertLogical(firstOutcomeOnly, len = 1, add = errorMessages)
-  checkmate::assertInt(naivePeriod, lower = 0, add = errorMessages)
-  checkmate::assertNumeric(minAge, lower = 0, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertNumeric(maxAge, lower = 0, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertIntegerish(genderConceptIds, lower = 0, null.ok = TRUE, add = errorMessages)
-  checkmate::assertIntegerish(restrictTimeToEraId, lower = 0, null.ok = TRUE, add = errorMessages)
+  checkmate::assertClass(createStudyPopulationArgs, "CreateStudyPopulationArgs", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-
-  if (!is.null(minAge) && !is.null(maxAge) && maxAge < minAge) {
-    stop("Maxinum age should be greater than or equal to minimum age")
-  }
 
   metaData <- list(
     exposureIds = attr(sccsData, "metaData")$exposureIds
@@ -93,7 +59,7 @@ createStudyPopulation <- function(sccsData,
   }
   attrition <- attr(sccsData, "metaData")$attrition
   prevalence <- attr(sccsData, "metaData")$prevalences |>
-    mutate(definitelyFirstOutcomeOnly = firstOutcomeOnly)
+    mutate(definitelyFirstOutcomeOnly = createStudyPopulationArgs$firstOutcomeOnly)
   if (is.null(outcomeId)) {
     if (outcomes |>
       distinct(.data$eraId) |>
@@ -112,7 +78,7 @@ createStudyPopulation <- function(sccsData,
       filter(.data$outcomeId == !!outcomeId)
   }
 
-  if (firstOutcomeOnly) {
+  if (createStudyPopulationArgs$firstOutcomeOnly) {
     outcomes <- outcomes |>
       group_by(.data$caseId) |>
       filter(row_number(.data$eraStartDay ) == 1) |>
@@ -124,11 +90,11 @@ createStudyPopulation <- function(sccsData,
     )
   }
 
-  if (naivePeriod != 0) {
+  if (createStudyPopulationArgs$naivePeriod != 0) {
     cases <- cases |>
       mutate(startDay = ifelse(
-        naivePeriod > .data$startDay,
-        naivePeriod,
+        createStudyPopulationArgs$naivePeriod > .data$startDay,
+        createStudyPopulationArgs$naivePeriod,
         .data$startDay
       )) |>
       filter(.data$startDay < .data$endDay)
@@ -143,14 +109,14 @@ createStudyPopulation <- function(sccsData,
 
     attrition <- bind_rows(
       attrition,
-      countOutcomes(outcomes, cases, sprintf("Requiring %s days naive period", naivePeriod))
+      countOutcomes(outcomes, cases, sprintf("Requiring %s days naive period", createStudyPopulationArgs$naivePeriod))
     )
   }
 
-  if (!is.null(minAge) || !is.null(maxAge)) {
+  if (!is.null(createStudyPopulationArgs$minAge) || !is.null(createStudyPopulationArgs$maxAge)) {
     labels <- c()
-    if (!is.null(minAge) && nrow(cases) > 0) {
-      minAgeInDays <- minAge * 365.25
+    if (!is.null(createStudyPopulationArgs$minAge) && nrow(cases) > 0) {
+      minAgeInDays <- createStudyPopulationArgs$minAge * 365.25
       cases <- cases |>
         mutate(startAge = .data$ageAtObsStart + .data$startDay ,
                endAge = .data$ageAtObsStart + .data$endDay) |>
@@ -162,10 +128,10 @@ createStudyPopulation <- function(sccsData,
         mutate(startDay = .data$startAge - .data$ageAtObsStart,
                endDay = .data$endAge - .data$ageAtObsStart) |>
         select(-"startAge", -"endAge")
-      labels <- c(labels, sprintf("age >= %s", minAge))
+      labels <- c(labels, sprintf("age >= %s", createStudyPopulationArgs$minAge))
     }
-    if (!is.null(maxAge) && nrow(cases) > 0) {
-      maxAgeInDays <- round((maxAge + 1) * 365.25) - 1
+    if (!is.null(createStudyPopulationArgs$maxAge) && nrow(cases) > 0) {
+      maxAgeInDays <- round((createStudyPopulationArgs$maxAge + 1) * 365.25) - 1
       cases <- cases |>
         mutate(startAge = .data$ageAtObsStart + .data$startDay ,
                endAge = .data$ageAtObsStart + .data$endDay) |>
@@ -183,7 +149,7 @@ createStudyPopulation <- function(sccsData,
         mutate(startDay = .data$startAge - .data$ageAtObsStart,
                endDay = .data$endAge - .data$ageAtObsStart) |>
         select(-"startAge", -"endAge")
-      labels <- c(labels, sprintf("age <= %s", maxAge))
+      labels <- c(labels, sprintf("age <= %s", createStudyPopulationArgs$maxAge))
     }
 
     outcomes <- outcomes |>
@@ -197,25 +163,25 @@ createStudyPopulation <- function(sccsData,
     )
   }
 
-  if (!is.null(genderConceptIds)) {
+  if (!is.null(createStudyPopulationArgs$genderConceptIds)) {
     cases <- cases |>
-      filter(.data$genderConceptId %in% genderConceptIds)
+      filter(.data$genderConceptId %in% createStudyPopulationArgs$genderConceptIds)
 
     outcomes <- outcomes  |>
       filter(.data$caseId %in% cases$caseId)
 
     attrition <- bind_rows(
       attrition,
-      countOutcomes(outcomes, cases, sprintf("Restricting gender to concept(s) %s", paste(genderConceptIds, collapse = ", ")))
+      countOutcomes(outcomes, cases, sprintf("Restricting gender to concept(s) %s", paste(createStudyPopulationArgs$genderConceptIds, collapse = ", ")))
     )
   }
 
-  if (!is.null(restrictTimeToEraId)) {
+  if (!is.null(createStudyPopulationArgs$restrictTimeToEraId)) {
     minMaxDates <- sccsData$eraRef |>
-      filter(.data$eraId == restrictTimeToEraId) |>
+      filter(.data$eraId == createStudyPopulationArgs$restrictTimeToEraId) |>
       collect()
     if (nrow(minMaxDates) == 0) {
-      warning(sprintf("Era with ID %d was not observed in the data at all, so cannot restrict time to when it was observed", restrictTimeToEraId))
+      warning(sprintf("Era with ID %d was not observed in the data at all, so cannot restrict time to when it was observed", createStudyPopulationArgs$restrictTimeToEraId))
     } else {
       minDate <- minMaxDates$minObservedDate
       maxDate <- minMaxDates$maxObservedDate
