@@ -145,7 +145,6 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
 #'                                         where the nesting cohort is defined.
 #' @param nestingCohortTable               Name of the table holding the nesting cohort. This table
 #'                                         should have the same structure as the cohort table.
-#' @param cdmVersion                       Define the OMOP CDM version used: currently supports "5".
 #' @param sccsAnalysisList                 A list of objects of `SccsAnalysis` as created
 #'                                         using the [createSccsAnalysis()] function.
 #' @param exposuresOutcomeList             A list of objects of type `ExposuresOutcome` as created
@@ -184,7 +183,6 @@ runSccsAnalyses <- function(connectionDetails,
                             customCovariateTable = "cohort",
                             nestingCohortDatabaseSchema = cdmDatabaseSchema,
                             nestingCohortTable = "cohort",
-                            cdmVersion = "5",
                             outputFolder = "./SccsOutput",
                             sccsAnalysisList,
                             exposuresOutcomeList,
@@ -209,15 +207,14 @@ runSccsAnalyses <- function(connectionDetails,
   checkmate::assertCharacter(customCovariateTable, len = 1, add = errorMessages)
   checkmate::assertCharacter(nestingCohortDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(nestingCohortTable, len = 1, add = errorMessages)
-  checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
   checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
   checkmate::assertList(sccsAnalysisList, min.len = 1, add = errorMessages)
   for (i in 1:length(sccsAnalysisList)) {
-    checkmate::assertClass(sccsAnalysisList[[i]], "SccsAnalysis", add = errorMessages)
+    checkmate::assertR6(sccsAnalysisList[[i]], "SccsAnalysis", add = errorMessages)
   }
   checkmate::assertList(exposuresOutcomeList, min.len = 1, add = errorMessages)
   for (i in 1:length(exposuresOutcomeList)) {
-    checkmate::assertClass(exposuresOutcomeList[[i]], "ExposuresOutcome", add = errorMessages)
+    checkmate::assertR6(exposuresOutcomeList[[i]], "ExposuresOutcome", add = errorMessages)
   }
   checkmate::assertDataFrame(analysesToExclude, null.ok = TRUE, add = errorMessages)
   checkmate::assertLogical(combineDataFetchAcrossOutcomes, len = 1, add = errorMessages)
@@ -226,7 +223,7 @@ runSccsAnalyses <- function(connectionDetails,
   checkmate::assertChoice(controlType, c("outcome", "exposure"), add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  uniqueExposuresOutcomeList <- unique(lapply(lapply(lapply(exposuresOutcomeList, unlist), as.character), paste, collapse = " "))
+  uniqueExposuresOutcomeList <- unique(lapply(exposuresOutcomeList, function(x) x$toJson()))
   if (length(uniqueExposuresOutcomeList) != length(exposuresOutcomeList)) {
     stop("Duplicate exposure-outcomes pairs are not allowed")
   }
@@ -277,15 +274,16 @@ runSccsAnalyses <- function(connectionDetails,
         customCovariateTable = customCovariateTable,
         nestingCohortDatabaseSchema = nestingCohortDatabaseSchema,
         nestingCohortTable = nestingCohortTable,
-        cdmVersion = cdmVersion,
-        exposureIds = loadConcepts$exposureIds,
         outcomeIds = loadConcepts$outcomeIds,
-        customCovariateIds = loadConcepts$customCovariateIds,
-        nestingCohortId = loadConcepts$nestingCohortId,
-        deleteCovariatesSmallCount = loadConcepts$deleteCovariatesSmallCount,
-        studyStartDates = loadConcepts$studyStartDates,
-        studyEndDates = loadConcepts$studyEndDates,
-        maxCasesPerOutcome = loadConcepts$maxCasesPerOutcome
+        getDbSccsDataArgs = createGetDbSccsDataArgs(
+          exposureIds = loadConcepts$exposureIds,
+          customCovariateIds = loadConcepts$customCovariateIds,
+          nestingCohortId = loadConcepts$nestingCohortId,
+          deleteCovariatesSmallCount = loadConcepts$deleteCovariatesSmallCount,
+          studyStartDates = loadConcepts$studyStartDates,
+          studyEndDates = loadConcepts$studyEndDates,
+          maxCasesPerOutcome = loadConcepts$maxCasesPerOutcome
+        )
       )
       sccsDataObjectsToCreate[[length(sccsDataObjectsToCreate) + 1]] <- list(
         args = args,
@@ -300,14 +298,11 @@ runSccsAnalyses <- function(connectionDetails,
   studyPopFilesToCreate <- list()
   for (studyPopFile in uniqueStudyPopFiles) {
     refRow <- referenceTable[referenceTable$studyPopFile == studyPopFile, ][1, ]
-    analysisRow <- ParallelLogger::matchInList(
-      sccsAnalysisList,
-      list(analysisId = refRow$analysisId)
-    )[[1]]
-    args <- analysisRow$createStudyPopulationArgs
+    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysisList)[[1]]
+    args <- list(createStudyPopulationArgs = analysisRow$createStudyPopulationArgs)
     args$outcomeId <- refRow$outcomeId
-    if ("restrictTimeToEraId" %in% names(args) && is.character(args$restrictTimeToEraId)) {
-      args$restrictTimeToEraId <- pull(refRow[, args$restrictTimeToEraId])
+    if (is.character(args$createStudyPopulationArgs$restrictTimeToEraId)) {
+      args$createStudyPopulationArgs$restrictTimeToEraId <- pull(refRow[, args$createStudyPopulationArgs$restrictTimeToEraId])
     }
     studyPopFilesToCreate[[length(studyPopFilesToCreate) + 1]] <- list(
       args = args,
@@ -322,18 +317,14 @@ runSccsAnalyses <- function(connectionDetails,
   sccsIntervalDataObjectsToCreate <- list()
   for (sccsIntervalDataFile in sccsIntervalDataFiles) {
     refRow <- referenceTable[referenceTable$sccsIntervalDataFile == sccsIntervalDataFile, ][1, ]
-    analysisRow <- ParallelLogger::matchInList(
-      sccsAnalysisList,
-      list(analysisId = refRow$analysisId)
-    )[[1]]
-    sccs <- (!"controlIntervalSettings" %in% names(analysisRow$createIntervalDataArgs))
-    args <- analysisRow$createIntervalDataArgs
-    covariateSettings <- args$eraCovariateSettings
+    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysisList)[[1]]
+    sccs <- is(analysisRow$createIntervalDataArgs, "CreateSccsIntervalDataArgs")
+    covariateSettings <- analysisRow$createIntervalDataArgs$eraCovariateSettings
     if (is(covariateSettings, "EraCovariateSettings")) {
       covariateSettings <- list(covariateSettings)
     }
     if (!sccs) {
-      covariateSettings[[length(covariateSettings) + 1]] <- args$controlIntervalSettings
+      covariateSettings[[length(covariateSettings) + 1]] <- analysisRow$createIntervalDataArgs$controlIntervalSettings
     }
     instantiatedSettings <- list()
     for (settings in covariateSettings) {
@@ -368,10 +359,12 @@ runSccsAnalyses <- function(connectionDetails,
       instantiatedSettings[[length(instantiatedSettings) + 1]] <- settings
     }
     if (sccs) {
-      args$eraCovariateSettings <- instantiatedSettings
+      args <- list(createSccsIntervalDataArgs = analysisRow$createIntervalDataArgs)
+      args$createSccsIntervalDataArgs$eraCovariateSettings <- instantiatedSettings
     } else {
-      args$controlIntervalSettings <- instantiatedSettings[[length(instantiatedSettings)]]
-      args$eraCovariateSettings <- instantiatedSettings[1:(length(instantiatedSettings) - 1)]
+      args <- list(createScriIntervalDataArgs = analysisRow$createIntervalDataArgs)
+      args$createScriIntervalDataArgs$controlIntervalSettings <- instantiatedSettings[[length(instantiatedSettings)]]
+      args$createScriIntervalDataArgs$eraCovariateSettings <- instantiatedSettings[1:(length(instantiatedSettings) - 1)]
     }
     sccsDataFileName <- refRow$sccsDataFile
     studyPopFile <- refRow$studyPopFile
@@ -390,12 +383,9 @@ runSccsAnalyses <- function(connectionDetails,
   sccsModelObjectsToCreate <- list()
   for (sccsModelFile in sccsModelFiles) {
     refRow <- referenceTable[referenceTable$sccsModelFile == sccsModelFile, ][1, ]
-    analysisRow <- ParallelLogger::matchInList(
-      sccsAnalysisList,
-      list(analysisId = refRow$analysisId)
-    )[[1]]
-    args <- analysisRow$fitSccsModelArgs
-    args$control$threads <- sccsMultiThreadingSettings$cvThreads
+    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysisList)[[1]]
+    args <- list(fitSccsModelArgs = analysisRow$fitSccsModelArgs)
+    args$fitSccsModelArgs$control$threads <- sccsMultiThreadingSettings$cvThreads
     sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(
       args = args,
       sccsIntervalDataFileName = file.path(outputFolder, refRow$sccsIntervalDataFile),
@@ -545,7 +535,7 @@ createReferenceTable <- function(sccsAnalysisList,
     if (is.na(nestingCohortId)) {
       nestingCohortId <- sccsAnalysis$getDbSccsDataArgs$nestingCohortId
     }
-    instantiatedArgs <- sccsAnalysis$getDbSccsDataArgs
+    instantiatedArgs <- sccsAnalysis$getDbSccsDataArgs$toList()
     instantiatedArgs$outcomeId <- referenceTable$outcomeId[i]
     instantiatedArgs$exposureIds <- exposureIds
     instantiatedArgs$customCovariateIds <- customCovariateIds
@@ -568,8 +558,6 @@ createReferenceTable <- function(sccsAnalysisList,
       c(
         "nestingCohortId",
         "deleteCovariatesSmallCount",
-        "studyStartDate",
-        "studyEndDate",
         "studyStartDates",
         "studyEndDates",
         "maxCasesPerOutcome"
@@ -581,8 +569,6 @@ createReferenceTable <- function(sccsAnalysisList,
       c(
         "nestingCohortId",
         "deleteCovariatesSmallCount",
-        "studyStartDate",
-        "studyEndDate",
         "studyStartDates",
         "studyEndDates",
         "maxCasesPerOutcome",
@@ -598,7 +584,6 @@ createReferenceTable <- function(sccsAnalysisList,
   loadConceptsPerLoad <- list()
   for (loadId in seq_along(uniqueLoadStrings)) {
     uniqueLoadString <- uniqueLoadStrings[[loadId]]
-    # groupables <- ParallelLogger::matchInList(instantiatedArgsPerRow, uniqueLoad)
     rowIds <- which(loadStrings == uniqueLoadString)
     groupables <-instantiatedArgsPerRow[rowIds]
     outcomeIds <- unique(unlist(ParallelLogger::selectFromList(groupables, "outcomeId")))
@@ -615,8 +600,6 @@ createReferenceTable <- function(sccsAnalysisList,
       customCovariateIds = unique(customCovariateIds),
       nestingCohortId = groupables[[1]]$nestingCohortId,
       deleteCovariatesSmallCount = groupables[[1]]$deleteCovariatesSmallCount,
-      studyStartDate = groupables[[1]]$studyStartDate,
-      studyEndDate = groupables[[1]]$studyEndDate,
       studyStartDates = groupables[[1]]$studyStartDates,
       studyEndDates = groupables[[1]]$studyEndDates,
       maxCasesPerOutcome = groupables[[1]]$maxCasesPerOutcome
@@ -771,12 +754,7 @@ createSccsIntervalDataObject <- function(params) {
 createSccsModelObject <- function(params) {
   sccsIntervalData <- loadSccsIntervalData(params$sccsIntervalDataFileName)
   params$args$sccsIntervalData <- sccsIntervalData
-  # sccsModel <- do.call("fitSccsModel", params$args)
-  sccsModel <- fitSccsModel(
-    sccsIntervalData = sccsIntervalData,
-    prior = params$args$prior,
-    control = params$args$control
-  )
+  sccsModel <- do.call("fitSccsModel", params$args)
   saveRDS(sccsModel, params$sccsModelFileName)
   return(NULL)
 }
@@ -914,7 +892,7 @@ summarizeResults <- function(referenceTable,
             exposure <- list(trueEffectSize = NA)
           } else {
             exposuresOutcome <- exposuresOutcomeList[[refRow$exposuresOutcomeSetSeqId]]
-            exposure <- ParallelLogger::matchInList(exposuresOutcome$exposures, list(exposureId = covariateSettings$eraIds[j]))
+            exposure <- Filter(function(x) x$exposureId == covariateSettings$eraIds[j], exposuresOutcome$exposures)
             if (length(exposure) != 1) {
               stop(sprintf("Error finding exposure for covariate ID %d in analysis ID %d", covariateSettings$outputIds[j], refRow$analysisId))
             } else {

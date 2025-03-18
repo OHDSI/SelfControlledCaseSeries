@@ -45,7 +45,7 @@ createScriIntervalData <- function(studyPopulation,
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
-  checkmate::assertClass(createScriIntervalDataArgs, "CreateScriIntervalDataArgs", null.ok = TRUE, add = errorMessages)
+  checkmate::assertR6(createScriIntervalDataArgs, "CreateScriIntervalDataArgs", null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   start <- Sys.time()
@@ -60,7 +60,8 @@ createScriIntervalData <- function(studyPopulation,
   }
   covariateSettings[[length(covariateSettings) + 1]] <- createScriIntervalDataArgs$controlIntervalSettings
   settings <- addEraCovariateSettings(settings, covariateSettings, sccsData)
-  settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
+  controlIntervalId <- settings$covariateSettingsList[[length(settings$covariateSettingsList)]]$outputIds[1, 1]
+  # settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
   metaData <- append(studyPopulation$metaData, settings$metaData)
   metaData$design <- "SCRI"
 
@@ -78,7 +79,6 @@ createScriIntervalData <- function(studyPopulation,
   cases <- studyPopulation$cases[order(studyPopulation$cases$caseId), ]
   outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$caseId), ]
 
-  controlIntervalId <- settings$covariateSettingsList[sapply(settings$covariateSettingsList, function(x) x$isControlInterval)][[1]]$outputIds[1, 1]
   data <- Andromeda::andromeda()
   convertToSccs(
     cases = cases,
@@ -125,13 +125,4 @@ createScriIntervalData <- function(studyPopulation,
   delta <- Sys.time() - start
   message(paste("Generating SCRI interval data took", signif(delta, 3), attr(delta, "units")))
   return(data)
-}
-
-cleanCovariateSettingsList <- function(covariateSettingsList) {
-  # Remove control interval settings and field:
-  noCi <- covariateSettingsList[!sapply(covariateSettingsList, function(x) x$isControlInterval)]
-  return(lapply(noCi, function(x) {
-    x$isControlInterval <- NULL
-    return(x)
-  }))
 }

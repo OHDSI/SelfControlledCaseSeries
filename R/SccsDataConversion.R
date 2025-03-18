@@ -37,7 +37,7 @@ createSccsIntervalData <- function(studyPopulation,
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
-  checkmate::assertClass(createSccsIntervalDataArgs, "CreateSccsIntervalDataArgs", add = errorMessages)
+  checkmate::assertR6(createSccsIntervalDataArgs, "CreateSccsIntervalDataArgs", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   start <- Sys.time()
@@ -541,10 +541,13 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
       covariateSettings$eraIds <- covariateSettings$eraIds[!covariateSettings$eraIds %in% covariateSettings$excludeEraIds]
     }
 
-    if (!covariateSettings$stratifyById) {
+    if (isControlInterval || !covariateSettings$stratifyById) {
       # stratifyById == FALSE
       covariateSettings$outputIds <- as.matrix(outputId)
-      if (!isControlInterval) {
+      if (isControlInterval) {
+        covariateSettings$stratifyById <- FALSE
+        covariateSettings$allowRegularization <- FALSE
+      } else {
         if (length(covariateSettings$eraIds) == 1) {
           originalEraId <- covariateSettings$eraIds
         } else {

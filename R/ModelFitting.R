@@ -42,7 +42,7 @@ fitSccsModel <- function(sccsIntervalData,
                          fitSccsModelArgs) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsIntervalData, "SccsIntervalData", null.ok = TRUE, add = errorMessages)
-  checkmate::assertClass(fitSccsModelArgs, "FitSccsModelArgs", add = errorMessages)
+  checkmate::assertR6(fitSccsModelArgs, "FitSccsModelArgs", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   ParallelLogger::logTrace("Fitting SCCS model")

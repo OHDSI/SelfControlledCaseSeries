@@ -21,7 +21,7 @@ Changes
 
 9. Removing deprecated `minCasesForAgeSeason` of `createSccsIntervalData()` and `createCreateSccsIntervalDataArgs()`.
 
-10. Removed `cdmVersion` argument from `getDbSccsData()`.
+10. Removed `cdmVersion` argument from the `getDbSccsData()` and `runSccsAnalyses()` functions.
 
 11. All settings objects have been changed to R6 objects. This should make it easier for external developers to generate valid settings JSON files.
 

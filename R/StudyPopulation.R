@@ -40,7 +40,7 @@ createStudyPopulation <- function(sccsData,
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
   checkmate::assertInt(outcomeId, null.ok = TRUE, add = errorMessages)
-  checkmate::assertClass(createStudyPopulationArgs, "CreateStudyPopulationArgs", add = errorMessages)
+  checkmate::assertR6(createStudyPopulationArgs, "CreateStudyPopulationArgs", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   metaData <- list(

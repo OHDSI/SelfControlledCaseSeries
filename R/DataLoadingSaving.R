@@ -120,7 +120,7 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertCharacter(customCovariateTable, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(nestingCohortDatabaseSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(nestingCohortTable, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertClass(getDbSccsDataArgs, "GetDbSccsDataArgs", add = errorMessages)
+  checkmate::assertR6(getDbSccsDataArgs, "GetDbSccsDataArgs", add = errorMessages)
   checkmate::assertIntegerish(getDbSccsDataArgs$exposureIds, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 

@@ -132,6 +132,23 @@ test_that("Running multiple analyses against Eunomia", {
     exposureId = c(1),
     outcomeId = c(4)
   )
+  # Remote this---------
+  connectionDetails <- Eunomia::getEunomiaConnectionDetails()
+  Eunomia::createCohorts(connectionDetails)
+  outputFolder <- tempfile(pattern = "sccsOutput")
+  result <- runSccsAnalyses(
+    connectionDetails = connectionDetails,
+    cdmDatabaseSchema = "main",
+    exposureDatabaseSchema = "main",
+    exposureTable = "cohort",
+    outcomeDatabaseSchema = "main",
+    outcomeTable = "cohort",
+    outputFolder = outputFolder,
+    exposuresOutcomeList = exposuresOutcomeList,
+    sccsAnalysisList = sccsAnalysisList,
+    analysesToExclude = analysesToExclude
+  )
+  # -----
 
   # Expect warning because outcome 999 does not exist in data:
   expect_warning(
