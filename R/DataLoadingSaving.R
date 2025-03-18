@@ -78,36 +78,16 @@
 #' @param exposureTable                   The tablename that contains the exposure cohorts.  If
 #'                                        `exposureTable` is not "drug_era", then expectation is `exposureTable`
 #'                                        has format of a cohort table (see details).
-#' @param exposureIds                     A list of identifiers to extract from the exposure table. If
-#'                                        exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
-#'                                        If `exposureTable = "drug_era"`, `exposureIds` is used to select
-#'                                        the `drug_concept_id`. If no exposure IDs are provided, all drugs
-#'                                        or cohorts in the `exposureTable` are included as exposures.
 #' @param customCovariateDatabaseSchema   The name of the database schema that is the location where
 #'                                        the custom covariate data is available.
 #' @param customCovariateTable            Name of the table holding the custom covariates. This table
 #'                                        should have the same structure as the cohort table (see details).
-#' @param customCovariateIds              A list of cohort definition IDs identifying the records in
-#'                                        the `customCovariateTable` to use for building custom
-#'                                        covariates.
 #' @param nestingCohortDatabaseSchema     The name of the database schema that is the location
 #'                                        where the nesting cohort is defined.
 #' @param nestingCohortTable              Name of the table holding the nesting cohort. This table
 #'                                        should have the same structure as the cohort table (see details).
-#' @param nestingCohortId                 A cohort definition ID identifying the records in the
-#'                                        `nestingCohortTable` to use as nesting cohort.
-#' @param deleteCovariatesSmallCount      The minimum count for a covariate to appear in the data to be
-#'                                        kept.
-#' @param studyStartDates                 A character object specifying the minimum dates where data is
-#'                                        used. Date format is 'yyyymmdd'. Use "" to indicate all time
-#'                                        prior. See section for more information.
-#' @param studyEndDates                   A character object specifying the maximum dates where data is
-#'                                        used. Date format is 'yyyymmdd'. Use "" to indicate to the end
-#'                                        of observation. See section for more information.
-#' @param cdmVersion                      Define the OMOP CDM version used: currently supports "5".
-#' @param maxCasesPerOutcome              If there are more than this number of cases for a single
-#'                                        outcome cases will be sampled to this size. `maxCasesPerOutcome = 0`
-#'                                        indicates no maximum size.
+#' @param getDbSccsDataArgs               An object of type `GetDbSccsDataArgs` as created by the `createGetDbSccsDataArgs()`
+#'                                        function.
 #'
 #' @export
 getDbSccsData <- function(connectionDetails,
@@ -118,18 +98,12 @@ getDbSccsData <- function(connectionDetails,
                           outcomeIds,
                           exposureDatabaseSchema = cdmDatabaseSchema,
                           exposureTable = "drug_era",
-                          exposureIds = c(),
                           customCovariateDatabaseSchema = cdmDatabaseSchema,
                           customCovariateTable = "cohort",
-                          customCovariateIds = c(),
                           nestingCohortDatabaseSchema = cdmDatabaseSchema,
                           nestingCohortTable = "cohort",
-                          nestingCohortId = NULL,
-                          deleteCovariatesSmallCount = 0,
-                          studyStartDates = c(),
-                          studyEndDates = c(),
-                          cdmVersion = "5",
-                          maxCasesPerOutcome = 0) {
+                          getDbSccsDataArgs
+) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is(connectionDetails, "connectionDetails")) {
     checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
@@ -140,40 +114,18 @@ getDbSccsData <- function(connectionDetails,
   checkmate::assertCharacter(tempEmulationSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(outcomeDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(outcomeTable, len = 1, add = errorMessages)
-  checkmate::assertIntegerish(outcomeIds, add = errorMessages)
   checkmate::assertCharacter(exposureDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(exposureTable, len = 1, add = errorMessages)
-  checkmate::assertIntegerish(exposureIds, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(customCovariateDatabaseSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(customCovariateTable, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertIntegerish(customCovariateIds, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(nestingCohortDatabaseSchema, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::assertCharacter(nestingCohortTable, len = 1, null.ok = TRUE, add = errorMessages)
-  checkmate::assertInt(nestingCohortId, null.ok = TRUE, add = errorMessages)
-  checkmate::assertInt(deleteCovariatesSmallCount, lower = 0, add = errorMessages)
-  checkmate::assertCharacter(studyStartDates, null.ok = TRUE, add = errorMessages)
-  checkmate::assertCharacter(studyEndDates, null.ok = TRUE, add = errorMessages)
-  checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
-  checkmate::assertInt(maxCasesPerOutcome, lower = 0, add = errorMessages)
+  checkmate::assertClass(getDbSccsDataArgs, "GetDbSccsDataArgs", add = errorMessages)
+  checkmate::assertIntegerish(getDbSccsDataArgs$exposureIds, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (length(studyStartDates) != length(studyEndDates)) {
-    stop("The studyStartDates and studyEndDates arguments must be of equal length")
-  }
-  for (studyStartDate in studyStartDates) {
-    if (regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyStartDate) == -1) {
-      stop("Study start date must have format YYYYMMDD")
-    }
-  }
-  for (studyEndDate in studyEndDates) {
-    if (regexpr("^[12][0-9]{3}[01][0-9][0-3][0-9]$", studyEndDate) == -1) {
-      stop("Study end date must have format YYYYMMDD")
-    }
-  }
-  if (cdmVersion == "4") {
-    stop("CDM version 4 is no longer supported")
-  }
-  useNestingCohort <- !is.null(nestingCohortId)
-  useCustomCovariates <- !is.null(customCovariateIds)
+
+  useNestingCohort <- !is.null(getDbSccsDataArgs$nestingCohortId)
+  useCustomCovariates <- !is.null(getDbSccsDataArgs$customCovariateIds)
   DatabaseConnector::assertTempEmulationSchemaSet(dbms = connectionDetails$dbms,
                                                   tempEmulationSchema = tempEmulationSchema)
 
@@ -181,13 +133,13 @@ getDbSccsData <- function(connectionDetails,
   conn <- DatabaseConnector::connect(connectionDetails)
   on.exit(DatabaseConnector::disconnect(conn))
 
-  if (is.null(exposureIds) || length(exposureIds) == 0) {
+  if (is.null(getDbSccsDataArgs$exposureIds) || length(getDbSccsDataArgs$exposureIds) == 0) {
     hasExposureIds <- FALSE
   } else {
     hasExposureIds <- TRUE
     DatabaseConnector::insertTable(conn,
                                    tableName = "#exposure_ids",
-                                   data = data.frame(concept_id = as.integer(exposureIds)),
+                                   data = data.frame(concept_id = as.integer(getDbSccsDataArgs$exposureIds)),
                                    dropTableIfExists = TRUE,
                                    createTable = TRUE,
                                    tempTable = TRUE,
@@ -196,17 +148,14 @@ getDbSccsData <- function(connectionDetails,
   }
   DatabaseConnector::insertTable(conn,
                                  tableName = "#outcome_ids",
-                                 data = data.frame(outcome_id = as.integer(outcomeIds)),
+                                 data = data.frame(outcome_id = as.integer(getDbSccsDataArgs$outcomeIds)),
                                  dropTableIfExists = TRUE,
                                  createTable = TRUE,
                                  tempTable = TRUE,
                                  tempEmulationSchema = tempEmulationSchema
   )
 
-  if (!useCustomCovariates || is.null(customCovariateIds) || length(customCovariateIds) == 0) {
-    hasCustomCovariateIds <- FALSE
-  } else {
-    hasCustomCovariateIds <- TRUE
+  if (useCustomCovariates) {
     DatabaseConnector::insertTable(conn,
                                    tableName = "#custom_cov_ids",
                                    data = data.frame(concept_id = as.integer(customCovariateIds)),
@@ -218,13 +167,13 @@ getDbSccsData <- function(connectionDetails,
     )
   }
 
-  if (length(studyStartDates) == 0 || (length(studyStartDates) == 1 && (studyStartDates == c("") && studyEndDates == c("")))) {
+  if (length(getDbSccsDataArgs$studyStartDates) == 0) {
     hasStudyPeriods <- FALSE
     studyPeriods <- NULL
   } else {
     hasStudyPeriods <- TRUE
-    studyPeriods <- tibble(studyStartDate = studyStartDates,
-                           studyEndDate = studyEndDates) |>
+    studyPeriods <- tibble(studyStartDate = getDbSccsDataArgs$studyStartDates,
+                           studyEndDate = getDbSccsDataArgs$studyEndDates) |>
       mutate(studyStartDate = if_else(.data$studyStartDate == "", "18000101", .data$studyStartDate),
              studyEndDate = if_else(.data$studyEndDate == "", "220000101", .data$studyEndDate)) |>
       mutate(studyStartDate = as.Date(.data$studyStartDate, format = "%Y%m%d"),
@@ -259,7 +208,7 @@ getDbSccsData <- function(connectionDetails,
                                            use_nesting_cohort = useNestingCohort,
                                            nesting_cohort_database_schema = nestingCohortDatabaseSchema,
                                            nesting_cohort_table = nestingCohortTable,
-                                           nesting_cohort_id = nestingCohortId,
+                                           nesting_cohort_id = getDbSccsDataArgs$nestingCohortId,
                                            has_study_periods = hasStudyPeriods
   )
   if (useNestingCohort) {
@@ -287,7 +236,7 @@ getDbSccsData <- function(connectionDetails,
                                            use_nesting_cohort = useNestingCohort,
                                            nesting_cohort_database_schema = nestingCohortDatabaseSchema,
                                            nesting_cohort_table = nestingCohortTable,
-                                           nesting_cohort_id = nestingCohortId,
+                                           nesting_cohort_id = getDbSccsDataArgs$nestingCohortId,
                                            has_study_periods = hasStudyPeriods)
   basePopulationCount <- DatabaseConnector::querySql(conn, sql, snakeCaseToCamelCase = TRUE)
   prevalences <- outcomeCounts |>

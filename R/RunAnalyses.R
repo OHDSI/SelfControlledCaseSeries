@@ -531,18 +531,14 @@ createReferenceTable <- function(sccsAnalysisList,
       }
     }
     customCovariateIds <- sccsAnalysis$getDbSccsDataArgs$customCovariateIds
-    if (customCovariateIds == "") {
-      customCovariateIds <- c()
-    } else {
-      for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
-        if (is.character(customCovariateId)) {
-          if (!customCovariateId %in% uniqueExposureIdRefs) {
-            stop(paste0("The 'customCovariateIds' argument was set to '", customCovariateId, "' when calling createGetDbSccsDataArgs(), but this exposure label is not found in exposures-outcome sets"))
-          }
-          customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
-        } else {
-          customCovariateIds <- c(customCovariateIds, customCovariateId)
+    for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
+      if (is.character(customCovariateId)) {
+        if (!customCovariateId %in% uniqueExposureIdRefs) {
+          stop(paste0("The 'customCovariateIds' argument was set to '", customCovariateId, "' when calling createGetDbSccsDataArgs(), but this exposure label is not found in exposures-outcome sets"))
         }
+        customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
+      } else {
+        customCovariateIds <- c(customCovariateIds, customCovariateId)
       }
     }
     nestingCohortId <- referenceTable$nestingCohortId[i]
@@ -1016,30 +1012,30 @@ summarizeResults <- function(referenceTable,
     mutate(easeDiagnostic = .passBooleanToString(.data$ease < sccsDiagnosticThresholds$easeThreshold)) |>
     mutate(unblindForEvidenceSynthesis = .data$unblindForCalibration & .data$easeDiagnostic != "FAIL") |>
     mutate(unblind = .data$unblindForEvidenceSynthesis & .data$mdrrDiagnostic != "FAIL") |>
-  select("exposuresOutcomeSetId",
-         "nestingCohortId",
-         "outcomeId",
-         "analysisId",
-         "covariateAnalysisId",
-         "covariateId",
-         "covariateName",
-         "eraId",
-         "timeStabilityP",
-         "timeStabilityDiagnostic",
-         "eventExposureLb",
-         "eventExposureUb",
-         "eventExposureDiagnostic",
-         "eventObservationLb",
-         "eventObservationUb",
-         "eventObservationDiagnostic",
-         "rareOutcomePrevalence",
-         "rareOutcomeDiagnostic",
-         "mdrr",
-         "mdrrDiagnostic",
-         "ease",
-         "easeDiagnostic",
-         "unblind",
-         "unblindForEvidenceSynthesis")
+    select("exposuresOutcomeSetId",
+           "nestingCohortId",
+           "outcomeId",
+           "analysisId",
+           "covariateAnalysisId",
+           "covariateId",
+           "covariateName",
+           "eraId",
+           "timeStabilityP",
+           "timeStabilityDiagnostic",
+           "eventExposureLb",
+           "eventExposureUb",
+           "eventExposureDiagnostic",
+           "eventObservationLb",
+           "eventObservationUb",
+           "eventObservationDiagnostic",
+           "rareOutcomePrevalence",
+           "rareOutcomeDiagnostic",
+           "mdrr",
+           "mdrrDiagnostic",
+           "ease",
+           "easeDiagnostic",
+           "unblind",
+           "unblindForEvidenceSynthesis")
   saveRDS(diagnosticsSummary, diagnosticsSummaryFileName)
 }
 

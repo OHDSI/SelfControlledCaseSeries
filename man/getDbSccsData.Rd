@@ -23,7 +23,6 @@ getDbSccsData(
   deleteCovariatesSmallCount = 0,
   studyStartDates = c(),
   studyEndDates = c(),
-  cdmVersion = "5",
   maxCasesPerOutcome = 0
 )
 }
@@ -99,8 +98,6 @@ prior. See section for more information.}
 \item{studyEndDates}{A character object specifying the maximum dates where data is
 used. Date format is 'yyyymmdd'. Use "" to indicate to the end
 of observation. See section for more information.}
-
-\item{cdmVersion}{Define the OMOP CDM version used: currently supports "5".}
 
 \item{maxCasesPerOutcome}{If there are more than this number of cases for a single
 outcome cases will be sampled to this size. \code{maxCasesPerOutcome = 0}
