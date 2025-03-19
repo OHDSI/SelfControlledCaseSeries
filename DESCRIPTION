@@ -30,7 +30,7 @@ Imports:
 	SqlRender (>= 1.16.0),
 	dplyr (>= 1.0.0),
 	Rcpp (>= 1.0.9),
-	ParallelLogger (>= 3.1.0),
+	ParallelLogger (>= 3.3.2),
 	EmpiricalCalibration,
 	splines,
 	ggplot2 (>= 3.4.0),
@@ -51,6 +51,8 @@ Suggests:
 	rmarkdown,
 	Eunomia,
 	withr
+Remotes:
+  ohdsi/ParallelLogger@develop
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
