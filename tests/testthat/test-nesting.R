@@ -75,10 +75,12 @@ sccsData <- getDbSccsData(
   outcomeIds = 2,
   exposureDatabaseSchema = "main",
   exposureTable = "cohort",
-  exposureIds = 3,
   nestingCohortDatabaseSchema = "main",
   nestingCohortTable = "cohort",
-  nestingCohortId = 1
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    exposureIds = 3,
+    nestingCohortId = 1
+  )
 )
 
 test_that("getDbSccsData correctly handles nesting", {
@@ -115,13 +117,17 @@ test_that("getDbSccsData correctly handles nesting", {
 studyPop <- createStudyPopulation(
   sccsData = sccsData,
   outcomeId = 2,
-  firstOutcomeOnly = FALSE
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE
+  )
 )
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = createEraCovariateSettings(includeEraIds = 3),
-  endOfObservationEraLength = 0
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = createEraCovariateSettings(includeEraIds = 3),
+    endOfObservationEraLength = 0
+  )
 )
 test_that("sccsIntervalData correctly handles nesting", {
   outcomes <- sccsIntervalData$outcomes |>
@@ -140,15 +146,19 @@ sccsData <- getDbSccsData(
   outcomeIds = 2,
   exposureDatabaseSchema = "main",
   exposureTable = "cohort",
-  exposureIds = 3
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    exposureIds = 3
+  )
 )
 
 test_that("Nesting in the period when the drug was on the market", {
   studyPop <- createStudyPopulation(
     sccsData = sccsData,
     outcomeId = 2,
-    firstOutcomeOnly = FALSE,
-    restrictTimeToEraId = 3
+    createStudyPopulationArgs = createCreateStudyPopulationArgs(
+      firstOutcomeOnly = FALSE,
+      restrictTimeToEraId = 3
+    )
   )
   expectedMinMax <- exposureCohort |>
     summarise(minDate = min(.data$cohortStartDate),

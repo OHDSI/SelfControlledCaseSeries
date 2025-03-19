@@ -27,21 +27,29 @@ test_that("Support functions and diagnostics", {
   calendarTimeSettings <- createCalendarTimeCovariateSettings(allowRegularization = TRUE)
   studyPop <- createStudyPopulation(
     sccsData = sccsData,
-    outcomeId = 10
+    outcomeId = 10,
+    createStudyPopulationArgs = createCreateStudyPopulationArgs()
   )
   sccsIntervalData <- createSccsIntervalData(
     studyPopulation = studyPop,
     sccsData = sccsData,
-    eraCovariateSettings = list(covar, preExp),
-    ageCovariateSettings = ageSettings,
-    seasonalityCovariateSettings = seasonSettings,
-    calendarTimeCovariateSettings = calendarTimeSettings
+    createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+      eraCovariateSettings = list(covar, preExp),
+      ageCovariateSettings = ageSettings,
+      seasonalityCovariateSettings = seasonSettings,
+      calendarTimeCovariateSettings = calendarTimeSettings
+    )
   )
 
   s <- summary(sccsIntervalData)
   expect_equal(class(s), "summary.SccsIntervalData")
 
-  model <- fitSccsModel(sccsIntervalData, prior = createPrior("laplace", 0.001))
+  model <- fitSccsModel(
+    sccsIntervalData,
+    fitSccsModelArgs = createFitSccsModelArgs(
+      prior = createPrior("laplace", 0.001)
+    )
+  )
 
   expect_equal(class(model), "SccsModel")
 
@@ -96,22 +104,26 @@ test_that("Parameter sweep", {
             studyPop <- createStudyPopulation(
               sccsData = sccsData,
               outcomeId = 10,
-              naivePeriod = naivePeriod,
-              firstOutcomeOnly = firstOutcomeOnly
+              createStudyPopulationArgs = createCreateStudyPopulationArgs(
+                naivePeriod = naivePeriod,
+                firstOutcomeOnly = firstOutcomeOnly
+              )
             )
             sccsIntervalData <- createSccsIntervalData(
               studyPopulation = studyPop,
               sccsData = sccsData,
-              eraCovariateSettings = covar,
-              ageCovariateSettings = if (includeAgeSeasonAndCalendarTime) ageSettings else NULL,
-              seasonalityCovariateSettings = if (includeAgeSeasonAndCalendarTime) seasonSettings else NULL,
-              calendarTimeCovariateSettings = if (includeAgeSeasonAndCalendarTime) calendarTimeSettings else NULL,
-              eventDependentObservation = eventDependentObservation
+              createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+                eraCovariateSettings = covar,
+                ageCovariateSettings = if (includeAgeSeasonAndCalendarTime) ageSettings else NULL,
+                seasonalityCovariateSettings = if (includeAgeSeasonAndCalendarTime) seasonSettings else NULL,
+                calendarTimeCovariateSettings = if (includeAgeSeasonAndCalendarTime) calendarTimeSettings else NULL,
+                eventDependentObservation = eventDependentObservation
+              )
             )
             expect_equivalent(class(sccsIntervalData), "SccsIntervalData")
             # Not enough data to fit age and season:
             if (!includeAgeSeasonAndCalendarTime) {
-              model <- fitSccsModel(sccsIntervalData)
+              model <- fitSccsModel(sccsIntervalData,fitSccsModelArgs = createFitSccsModelArgs())
               coefs <- c(coefs, coef(model)[1])
             }
           }
@@ -127,8 +139,10 @@ test_that("Plots", {
   studyPop <- createStudyPopulation(
     sccsData = sccsData,
     outcomeId = 10,
-    naivePeriod = 0,
-    firstOutcomeOnly = TRUE
+    createStudyPopulationArgs = createCreateStudyPopulationArgs(
+      naivePeriod = 0,
+      firstOutcomeOnly = TRUE
+    )
   )
 
   plot <- plotAgeSpans(studyPopulation = studyPop)

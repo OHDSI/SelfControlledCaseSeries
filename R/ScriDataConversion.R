@@ -61,7 +61,7 @@ createScriIntervalData <- function(studyPopulation,
   covariateSettings[[length(covariateSettings) + 1]] <- createScriIntervalDataArgs$controlIntervalSettings
   settings <- addEraCovariateSettings(settings, covariateSettings, sccsData)
   controlIntervalId <- settings$covariateSettingsList[[length(settings$covariateSettingsList)]]$outputIds[1, 1]
-  # settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
+  settings$metaData$covariateSettingsList <- Filter(function(x) !is(x, "ControlIntervalSettings"), settings$covariateSettingsList)
   metaData <- append(studyPopulation$metaData, settings$metaData)
   metaData$design <- "SCRI"
 

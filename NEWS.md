@@ -1,7 +1,9 @@
 SelfControlledCaseSeries 6.0.0
 ==============================
 
-Changes
+This major release introduces two overall changes: adding a new set of diagnostics, and new settings objects. 
+
+Changes related to adding new diagnostics:
 
 1. Deprecated `computeTimeStability()` and `computePreExposureGainP()` functions.
 
@@ -17,15 +19,21 @@ Changes
 
 7. Added the `getDiagnosticsSummary()` function.
 
-8. Removing deprecated `useCustomCovariates`, `useNestingCohort`, `studyStartDate`, and `studyEndDate` arguments of `getDbSccsData()` and `createGetDbSccsDataArgs()`.
 
-9. Removing deprecated `minCasesForAgeSeason` of `createSccsIntervalData()` and `createCreateSccsIntervalDataArgs()`.
+Changes related to the new settings objects:
 
-10. Removed `cdmVersion` argument from the `getDbSccsData()` and `runSccsAnalyses()` functions.
+8. All settings objects have been changed to R6 objects. This should make it easier for external developers to generate valid settings JSON files.
 
-11. All settings objects have been changed to R6 objects. This should make it easier for external developers to generate valid settings JSON files.
+9. All individual analytic functions (`getDbSccsData()`, `createStudyPopulationArgs()`, `createSccsIntervalData()`, `createScriIntervalData()`, `fitSccsModel()`) now use the setting objects as arguments. This is to remove code duplication, and increase consistency between single study and multi-analyses frameworks.
 
-12. All individual analytic functions (`getDbSccsData()`, `createStudyPopulationArgs()`, `createSccsIntervalData()`, `createScriIntervalData()`, `fitSccsModel()`) now use the setting objects as arguments. This is to remove code duplication, and increase consistency between single study and multi-analyses frameworks.
+
+Other changes:
+
+10. Removed deprecated `useCustomCovariates`, `useNestingCohort`, `studyStartDate`, and `studyEndDate` arguments of `getDbSccsData()` and `createGetDbSccsDataArgs()`.
+
+11. Removed deprecated `minCasesForAgeSeason` of `createSccsIntervalData()` and `createCreateSccsIntervalDataArgs()`.
+
+12. Removed `cdmVersion` argument from the `getDbSccsData()` and `runSccsAnalyses()` functions.
 
 
 SelfControlledCaseSeries 5.3.1

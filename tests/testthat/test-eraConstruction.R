@@ -52,19 +52,23 @@ convertToSccsDataWrapper <- function(cases,
   studyPop <- createStudyPopulation(
     sccsData = data,
     outcomeId = 10,
-    firstOutcomeOnly = firstOutcomeOnly,
-    naivePeriod = naivePeriod,
-    minAge = minAge,
-    maxAge = maxAge
+    createStudyPopulationArgs = createCreateStudyPopulationArgs(
+      firstOutcomeOnly = firstOutcomeOnly,
+      naivePeriod = naivePeriod,
+      minAge = minAge,
+      maxAge = maxAge
+    )
   )
 
   result <- createSccsIntervalData(
     studyPopulation = studyPop,
     sccsData = data,
-    ageCovariateSettings = ageSettings,
-    seasonalityCovariateSettings = seasonalitySettings,
-    eraCovariateSettings = covariateSettings,
-    endOfObservationEraLength = endOfObservationEraLength
+    createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+      ageCovariateSettings = ageSettings,
+      seasonalityCovariateSettings = seasonalitySettings,
+      eraCovariateSettings = covariateSettings,
+      endOfObservationEraLength = endOfObservationEraLength
+    )
   )
   return(list(outcomes = collect(result$outcomes), covariates = collect(result$covariates)))
 }
@@ -409,13 +413,13 @@ test_that("Start risk window at day 1 not 0", {
     eraEndDay = c(50, 75)
   )
   result <- convertToSccsDataWrapper(cases,
-    eras,
-    covariateSettings = createEraCovariateSettings(
-      includeEraIds = c(11, 12, 13),
-      start = 1,
-      end = 0,
-      endAnchor = "era end"
-    )
+                                     eras,
+                                     covariateSettings = createEraCovariateSettings(
+                                       includeEraIds = c(11, 12, 13),
+                                       start = 1,
+                                       end = 0,
+                                       endAnchor = "era end"
+                                     )
   )
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))
@@ -505,14 +509,14 @@ test_that("Removal of risk windows where end before start", {
   )
   expect_warning({
     result <- convertToSccsDataWrapper(cases,
-      eras,
-      covariateSettings = createEraCovariateSettings(
-        includeEraIds = c(11),
-        start = 0,
-        end = 7,
-        startAnchor = "era end",
-        endAnchor = "era start"
-      )
+                                       eras,
+                                       covariateSettings = createEraCovariateSettings(
+                                         includeEraIds = c(11),
+                                         start = 0,
+                                         end = 7,
+                                         startAnchor = "era end",
+                                         endAnchor = "era start"
+                                       )
     )
   })
   expect_equal(result$outcomes |> count() |> pull(), 0)
@@ -523,16 +527,20 @@ test_that("Aggregates on large set", {
   sccsData <- simulateSccsData(1000, settings)
   studyPop <- createStudyPopulation(
     sccsData = sccsData,
-    naivePeriod = 0,
-    firstOutcomeOnly = FALSE,
+    createStudyPopulationArgs = createCreateStudyPopulationArgs(
+      naivePeriod = 0,
+      firstOutcomeOnly = FALSE
+    )
   )
   sccsIntervalData <- createSccsIntervalData(
     studyPopulation = studyPop,
     sccsData,
-    eraCovariateSettings = createEraCovariateSettings(
-      includeEraIds = c(1, 2),
-      endAnchor = "era end",
-      stratifyById = TRUE,
+    createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+      eraCovariateSettings = createEraCovariateSettings(
+        includeEraIds = c(1, 2),
+        endAnchor = "era end",
+        stratifyById = TRUE,
+      )
     )
   )
 
@@ -619,14 +627,14 @@ test_that("Merging exposures (stratifyById=FALSE)", {
     eraEndDay = c(50, 75, 100)
   )
   result <- convertToSccsDataWrapper(cases,
-    eras,
-    covariateSettings = createEraCovariateSettings(
-      includeEraIds = c(11, 12),
-      stratifyById = FALSE,
-      start = 0,
-      end = 0,
-      endAnchor = "era end"
-    )
+                                     eras,
+                                     covariateSettings = createEraCovariateSettings(
+                                       includeEraIds = c(11, 12),
+                                       stratifyById = FALSE,
+                                       start = 0,
+                                       end = 0,
+                                       endAnchor = "era end"
+                                     )
   )
   expect_equal(result$outcomes$rowId, c(0, 1))
   expect_equal(result$outcomes$stratumId, c(1, 1))

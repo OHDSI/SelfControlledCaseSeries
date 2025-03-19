@@ -31,7 +31,7 @@ data$eventDate[peopleUnexpEvent] <- round(runif(
 ))
 # If day greater than exposure start day, at exposure time so it falls in period post exposure:
 data$eventDate[peopleUnexpEvent & data$eventDate > data$exposureStartDate] <- data$eventDate[peopleUnexpEvent &
-  data$eventDate > data$exposureStartDate] + data$daysExposed[peopleUnexpEvent & data$eventDate > data$exposureStartDate]
+                                                                                               data$eventDate > data$exposureStartDate] + data$daysExposed[peopleUnexpEvent & data$eventDate > data$exposureStartDate]
 
 # For people with event during exposure, and no event in the period prior exposure, randomly pick an
 # event date during exposure:
@@ -63,7 +63,7 @@ data <- data[data$eventDate <= data$censorDate, ]
 
 # Truncate exposure end date at censor date:
 data$exposureEndDate[data$exposureEndDate > data$censorDate] <- data$censorDate[data$exposureEndDate >
-  data$censorDate]
+                                                                                  data$censorDate]
 
 data$censorDate[data$censorDate > observationDays] <- observationDays
 nrow(data)
@@ -138,24 +138,26 @@ test_that("Produces same results as SCCS package when using event-dependent obse
   class(sccsData) <- "SccsData"
   attr(class(sccsData), "package") <- "SelfControlledCaseSeries"
 
-  studyPop <- createStudyPopulation(sccsData = sccsData)
+  studyPop <- createStudyPopulation(sccsData = sccsData, createStudyPopulationArgs = createCreateStudyPopulationArgs())
 
   sccsIntervalData <- createSccsIntervalData(
     studyPopulation = studyPop,
     sccsData = sccsData,
-    eraCovariateSettings = createEraCovariateSettings(
-      includeEraIds = 1,
-      start = 0,
-      end = 0,
-      endAnchor = "era end"
-    ),
-    eventDependentObservation = TRUE,
-    endOfObservationEraLength = 0
+    createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+      eraCovariateSettings = createEraCovariateSettings(
+        includeEraIds = 1,
+        start = 0,
+        end = 0,
+        endAnchor = "era end"
+      ),
+      eventDependentObservation = TRUE,
+      endOfObservationEraLength = 0
+    )
   )
 
   expect_equal(attr(sccsIntervalData, "metaData")$censorModel$aic, min(x$modelfit[2, ]), tolerance = 1e-04)
 
-  fit <- fitSccsModel(sccsIntervalData)
+  fit <- fitSccsModel(sccsIntervalData, fitSccsModelArgs = createFitSccsModelArgs())
 
   expect_equal(x$summary$coefficients[1], as.vector(coef(fit)), tolerance = 1e-04)
 })

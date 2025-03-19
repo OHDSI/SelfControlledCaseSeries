@@ -16,7 +16,6 @@ runSccsAnalyses(
   customCovariateTable = "cohort",
   nestingCohortDatabaseSchema = cdmDatabaseSchema,
   nestingCohortTable = "cohort",
-  cdmVersion = "5",
   outputFolder = "./SccsOutput",
   sccsAnalysisList,
   exposuresOutcomeList,
@@ -68,8 +67,6 @@ where the nesting cohort is defined.}
 
 \item{nestingCohortTable}{Name of the table holding the nesting cohort. This table
 should have the same structure as the cohort table.}
-
-\item{cdmVersion}{Define the OMOP CDM version used: currently supports "5".}
 
 \item{outputFolder}{Name of the folder where all the outputs will written to.}
 

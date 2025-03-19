@@ -158,7 +158,7 @@ getDbSccsData <- function(connectionDetails,
   if (useCustomCovariates) {
     DatabaseConnector::insertTable(conn,
                                    tableName = "#custom_cov_ids",
-                                   data = data.frame(concept_id = as.integer(customCovariateIds)),
+                                   data = data.frame(concept_id = as.integer(getDbSccsDataArgs$customCovariateIds)),
                                    dropTableIfExists = TRUE,
                                    createTable = TRUE,
                                    tempTable = TRUE,
@@ -308,6 +308,7 @@ getDbSccsData <- function(connectionDetails,
   )
   ParallelLogger::logDebug("Fetched ", sccsData$cases |> count() |> pull(), " cases from server")
   sccsData <- ensureAgePositive(sccsData)
+  sccsData <- fixComputedCasesFields(sccsData)
 
   sql <- SqlRender::loadRenderTranslateSql("QueryEras.sql",
                                            packageName = "SelfControlledCaseSeries",
@@ -434,6 +435,25 @@ ensureAgePositive <- function(sccsData) {
         .data$ageAtObsStart < 0 ~ 0,
         TRUE ~ .data$ageAtObsStart
       ))
+  }
+  return(sccsData)
+}
+
+fixComputedCasesFields <- function(sccsData){
+  # On some platforms (specifically: SQLite) the field types of computed fields
+  # are set to logical when there are zero rows. Set explicitly
+  if (sccsData$cases |> count() |> pull() == 0) {
+    cases <- sccsData$cases |>
+      collect()
+    if (!is.numeric(cases$startDay)) {
+      cases <- cases |>
+        mutate(
+          startDay = as.numeric(.data$startDay),
+          endDay = as.numeric(.data$endDay),
+          ageAtObsStart = as.numeric(.data$ageAtObsStart)
+        )
+      sccsData$cases <- cases
+    }
   }
   return(sccsData)
 }

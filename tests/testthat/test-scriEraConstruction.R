@@ -58,17 +58,21 @@ convertToScriDataWrapper <- function(cases,
   studyPop <- createStudyPopulation(
     sccsData = data,
     outcomeId = 10,
-    firstOutcomeOnly = firstOutcomeOnly,
-    naivePeriod = naivePeriod,
-    minAge = minAge,
-    maxAge = maxAge
+    createStudyPopulationArgs = createCreateStudyPopulationArgs(
+      firstOutcomeOnly = firstOutcomeOnly,
+      naivePeriod = naivePeriod,
+      minAge = minAge,
+      maxAge = maxAge
+    )
   )
 
   result <- createScriIntervalData(
     studyPopulation = studyPop,
     sccsData = data,
-    eraCovariateSettings = covariateSettings,
-    controlIntervalSettings = controlIntervalSettings
+    createScriIntervalDataArgs = createCreateScriIntervalDataArgs(
+      eraCovariateSettings = covariateSettings,
+      controlIntervalSettings = controlIntervalSettings
+    )
   )
   return(list(outcomes = collect(result$outcomes), covariates = collect(result$covariates)))
 }

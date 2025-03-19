@@ -158,20 +158,17 @@ exportSccsAnalyses <- function(outputFolder, exportFolder) {
   sccsAnalysisList <- readRDS(sccsAnalysisListFile)
 
   message("- sccs_analysis table")
-  tempFileName <- tempfile()
   sccsAnalysisToRow <- function(sccsAnalysis) {
-    ParallelLogger::saveSettingsToJson(sccsAnalysis, tempFileName)
     row <- tibble(
       analysisId = sccsAnalysis$analysisId,
       description = sccsAnalysis$description,
-      definition = readChar(tempFileName, file.info(tempFileName)$size)
+      definition = as.character(sccsAnalysis$toJson())
     )
     return(row)
   }
   sccsAnalysis <- lapply(sccsAnalysisList, sccsAnalysisToRow)
   sccsAnalysis <- bind_rows(sccsAnalysis) |>
     distinct()
-  unlink(tempFileName)
   fileName <- file.path(exportFolder, "sccs_analysis.csv")
   writeToCsv(sccsAnalysis, fileName)
 

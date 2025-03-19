@@ -547,6 +547,8 @@ addEraCovariateSettings <- function(settings, eraCovariateSettings, sccsData) {
       if (isControlInterval) {
         covariateSettings$stratifyById <- FALSE
         covariateSettings$allowRegularization <- FALSE
+        covariateSettings$exposureOfInterest <- FALSE
+        covariateSettings$profileLikelihood <- FALSE
       } else {
         if (length(covariateSettings$eraIds) == 1) {
           originalEraId <- covariateSettings$eraIds

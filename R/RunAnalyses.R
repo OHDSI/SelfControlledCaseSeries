@@ -328,6 +328,7 @@ runSccsAnalyses <- function(connectionDetails,
     }
     instantiatedSettings <- list()
     for (settings in covariateSettings) {
+      settings <- settings$clone()
       includeEraIds <- c()
       if (length(settings$includeEraIds) != 0) {
         for (includeEraId in settings$includeEraIds) {
@@ -359,10 +360,10 @@ runSccsAnalyses <- function(connectionDetails,
       instantiatedSettings[[length(instantiatedSettings) + 1]] <- settings
     }
     if (sccs) {
-      args <- list(createSccsIntervalDataArgs = analysisRow$createIntervalDataArgs)
+      args <- list(createSccsIntervalDataArgs = analysisRow$createIntervalDataArgs$clone())
       args$createSccsIntervalDataArgs$eraCovariateSettings <- instantiatedSettings
     } else {
-      args <- list(createScriIntervalDataArgs = analysisRow$createIntervalDataArgs)
+      args <- list(createScriIntervalDataArgs = analysisRow$createIntervalDataArgs$clone())
       args$createScriIntervalDataArgs$controlIntervalSettings <- instantiatedSettings[[length(instantiatedSettings)]]
       args$createScriIntervalDataArgs$eraCovariateSettings <- instantiatedSettings[1:(length(instantiatedSettings) - 1)]
     }
