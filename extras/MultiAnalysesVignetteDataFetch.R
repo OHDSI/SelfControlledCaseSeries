@@ -116,7 +116,7 @@ covarExposureOfInt <- createEraCovariateSettings(
   start = 1,
   end = 0,
   endAnchor = "era end",
-  profileLikelihood = TRUE,
+  profileLikelihood = F,
   exposureOfInterest = TRUE
 )
 
@@ -239,14 +239,15 @@ sccsAnalysis5 <- createSccsAnalysis(
   fitSccsModelArgs = fitSccsModelArgs
 )
 
-sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4, sccsAnalysis5)
+# sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4, sccsAnalysis5)
+sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3)
 
-saveExposuresOutcomeList(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.txt"))
-saveSccsAnalysisList(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.txt"))
+saveExposuresOutcomeList(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.json"))
+saveSccsAnalysisList(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.json"))
 
 # Run analyses --------------------------------------------------------
-exposuresOutcomeList <- loadExposuresOutcomeList(file.path(outputFolder, "exposuresOutcomeList.txt"))
-sccsAnalysisList <- loadSccsAnalysisList(file.path(outputFolder, "sccsAnalysisList.txt"))
+exposuresOutcomeList <- loadExposuresOutcomeList(file.path(outputFolder, "exposuresOutcomeList.json"))
+sccsAnalysisList <- loadSccsAnalysisList(file.path(outputFolder, "sccsAnalysisList.json"))
 multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(parallel::detectCores() - 1)
 
 runSccsAnalyses(

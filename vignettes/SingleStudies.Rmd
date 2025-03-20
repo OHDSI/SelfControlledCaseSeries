@@ -128,16 +128,21 @@ Now we can tell `SelfControlledCaseSeries` to extract all necessary data for our
 ```{r eval=FALSE}
 aspirin <- 1112807
 
-sccsData <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = cohortTable,
-                          outcomeIds = epistaxis,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          exposureIds = aspirin,
-                          studyStartDates = "20100101",
-                          studyEndDates = "21000101")
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  outcomeDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = cohortTable,
+  outcomeIds = epistaxis,
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    studyStartDates = "20100101",
+    studyEndDates = "21000101",
+    maxCasesPerOutcome = 100000,
+    exposureIds = aspirin
+  )
+)
 sccsData
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
@@ -182,10 +187,14 @@ We can use the `loadSccsData()` function to load the data in a future session.
 From the data fetched from the server we can now define the population we wish to study. If we retrieved data for multiple outcomes, we should now select only one, and possibly impose further restrictions:
 
 ```{r eval=FALSE}
-studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = epistaxis,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+studyPop <- createStudyPopulation(
+  sccsData = sccsData,
+  outcomeId = epistaxis,
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE,
+    naivePeriod = 180
+  )
+)
 ```
 
 Here we specify we wish to study the outcome with the ID stored in `epistaxis`. Since this was the only outcome for which we fetched the data, we could also have skipped this argument. We furthermore specify that the first 180 days of observation of every person, the so-called 'naive period', will be excluded from the analysis. Note that data in the naive period will be used to determine exposure status at the start of follow-up (after the end of the naive period). We also specify we will use all occurrences of the outcome, not just the first one per person. 
@@ -207,16 +216,20 @@ if (folderExists) {
 Next, we can use the data to define a simple model to fit:
 
 ```{r eval=FALSE}
-covarAspirin <- createEraCovariateSettings(label = "Exposure of interest",
-                                           includeEraIds = aspirin,
-                                           start = 0,
-                                           end = 0,
-                                           endAnchor = "era end")
+covarAspirin <- createEraCovariateSettings(
+  label = "Exposure of interest",
+  includeEraIds = aspirin,
+  start = 0,
+  end = 0,
+  endAnchor = "era end"
+)
 
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
-  sccsData = sccsData,
-  eraCovariateSettings = covarAspirin
+  sccsData,
+  createSccsIntervalDataArgs =  createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = covarAspirin
+  )
 )
 
 summary(sccsIntervalData)
@@ -237,7 +250,10 @@ We then use the covariate definition in the `createSccsIntervalData` function to
 The `fitSccsModel` function is used to fit the model:
 
 ```{r eval=FALSE}
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 ```
 
 We can inspect the resulting model:
@@ -259,21 +275,26 @@ This tells us what the estimated relative risk (the incidence rate ratio) is dur
 The fact that platelet aggregation inhibitors like aspirin can cause epistaxis is well known to doctors, and this knowledge affects prescribing behavior. For example, a patient who has just had a nose bleed is not likely to be prescribed aspirin. This may lead to a violation of one of the key assumptions of the SCCS, and could cause bias. We can add a 'pre-exposure window' to our analysis to check the extend of this problem:
 
 ```{r eval=FALSE}
-covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
-                                              includeEraIds = aspirin,
-                                              start = -60,
-                                              end = -1,
-                                              endAnchor = "era start",
-                                              preExposure = TRUE)
+covarPreAspirin <- createEraCovariateSettings(
+  label = "Pre-exposure",
+  includeEraIds = aspirin,
+  start = -60,
+  end = -1,
+  endAnchor = "era start",
+  preExposure = TRUE
+)
 
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
-  sccsData = sccsData,
-  eraCovariateSettings = list(covarAspirin, 
-                              covarPreAspirin)
+  sccsData,
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin, covarPreAspirin)
+  )
 )
-
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 ```
 
 Here we created a new covariate definition in addition to the first one. We define the risk window to start 60 days prior to exposure, and end on the day just prior to exposure. We designate the covariate as `preExposure = TRUE`, meaning it will be used for the pre-exposure diagnostic evaluating the assumption that event and subsequent exposure are independent. We combine the two covariate settings in a list for the `createSccsIntervalData` function. Again, we can take a look at the results:
@@ -301,20 +322,25 @@ Note that by default all people that have the outcome will be used to estimate t
 
 
 ```{r eval=FALSE}
-seasonalityCovariateSettings <- createSeasonalityCovariateSettings(seasonKnots = 5)
+seasonalityCovariateSettings <- createSeasonalityCovariateSettings()
 
-calendarTimeSettings <- createCalendarTimeCovariateSettings(calendarTimeKnots = 5)
+calendarTimeSettings <- createCalendarTimeCovariateSettings()
 
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarAspirin,
-                              covarPreAspirin),
-  seasonalityCovariateSettings = seasonalityCovariateSettings,
-  calendarTimeCovariateSettings = calendarTimeSettings
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin),
+    seasonalityCovariateSettings = seasonalityCovariateSettings,
+    calendarTimeCovariateSettings = calendarTimeSettings
+  )
 )
 
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 ```
 
 Again, we can inspect the model:
@@ -369,29 +395,43 @@ Here we see that after adjustment, in general, the rate of outcome appears fairl
 The discontinuity in the rate of the outcome during the COVID pandemic could cause bias. For this reason it is probably best to remove this time from the analysis altogether. We can achieve this by defining two separate study periods:
 
 ```{r eval=FALSE}
-sccsData <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = cohortTable,
-                          outcomeIds = epistaxis,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          exposureIds = aspirin,
-                          studyStartDates = c("19000101", "20220101"),
-                          studyEndDates = c("20191231", "21001231"))
-studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = epistaxis,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  outcomeDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = cohortTable,
+  outcomeIds = epistaxis,
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    exposureIds = aspirin,
+    maxCasesPerOutcome = 100000,
+    studyStartDates = c("20100101", "20220101"),
+    studyEndDates = c("20191231", "21001231")
+  )
+)
+studyPop <- createStudyPopulation(
+  sccsData = sccsData,
+  outcomeId = epistaxis,
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE,
+    naivePeriod = 180
+  )
+)
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarAspirin,
-                              covarPreAspirin),
-  seasonalityCovariateSettings = seasonalityCovariateSettings,
-  calendarTimeCovariateSettings = calendarTimeSettings
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin),
+    seasonalityCovariateSettings = seasonalityCovariateSettings,
+    calendarTimeCovariateSettings = calendarTimeSettings
+  )
 )
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 ```
 
 If we plot the outcomes over time, we see the entire time of the COVID pandemic has been removed:
@@ -415,12 +455,16 @@ The SCCS method requires that observation periods are independent of outcome tim
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarAspirin,
-                              covarPreAspirin),
-  eventDependentObservation = TRUE
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin),
+    eventDependentObservation = TRUE)
 )
 
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 ```
 
 Again, we can inspect the model:
@@ -445,17 +489,21 @@ For example, SSRIs might also cause epistaxis, and if aspirin is co-prescribed w
 
 ```{r eval=FALSE}
 ssris <- c(715939, 722031, 739138, 751412, 755695, 797617, 40799195)
-sccsData <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = cohortTable,
-                          outcomeIds = epistaxis,
-                          maxCasesPerOutcome = 100000,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          exposureIds = c(aspirin, ssris),
-                          studyStartDates = c("19000101", "20220101"),
-                          studyEndDates = c("20191231", "21001231"))
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  outcomeDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = cohortTable,
+  outcomeIds = epistaxis,
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    maxCasesPerOutcome = 100000,
+    exposureIds = c(aspirin, ssris),
+    studyStartDates = c("20100101", "20220101"),
+    studyEndDates = c("20191231", "21001231")
+  )
+)
 sccsData
 ```
 ```{r echo=FALSE,message=FALSE,eval=TRUE}
@@ -473,10 +521,14 @@ if (folderExists) {
 Once retrieved, we can use the data to build and fit our model:
 
 ```{r eval=FALSE}
-studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = epistaxis,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+studyPop <- createStudyPopulation(
+  sccsData = sccsData,
+  outcomeId = epistaxis,
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE,
+    naivePeriod = 180
+  )
+)
 covarSsris <- createEraCovariateSettings(label = "SSRIs",
                                          includeEraIds = ssris,
                                          stratifyById = FALSE,
@@ -486,14 +538,19 @@ covarSsris <- createEraCovariateSettings(label = "SSRIs",
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarAspirin,
-                              covarPreAspirin,
-                              covarSsris),
-  seasonalityCovariateSettings = seasonalityCovariateSettings,
-  calendarTimeCovariateSettings = calendarTimeSettings
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin,
+                                covarSsris),
+    seasonalityCovariateSettings = seasonalityCovariateSettings,
+    calendarTimeCovariateSettings = calendarTimeSettings
+  )
 )
 
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 ```
 
 Here, we added a new covariate based on the list of concept IDs for the various SSRIs. In this example we set `stratifyById` to `FALSE`, meaning that we will estimate a single incidence rate ratio for all SSRIs, so one estimate for the entire class of drugs. Note that duplicates will be removed: if a person is exposed to two SSRIs on the same day, this will be counted only once when fitting the model. Again, we can inspect the model:
@@ -513,45 +570,59 @@ if (folderExists) {
 Another approach could be to add all drugs into the model. Again, the first step is to get all the relevant data from the database:
 
 ```{r eval=FALSE}
-sccsData <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = cohortTable,
-                          outcomeIds = 1,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          exposureIds = c(),
-                          cdmVersion = cdmVersion)
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  outcomeDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = cohortTable,
+  outcomeIds = epistaxis,
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    exposureIds = c(),
+    maxCasesPerOutcome = 100000,
+    studyStartDates = c("19000101", "20220101"),
+    studyEndDates = c("20191231", "21001231")
+  )
+)
 ```
 
 Note that the `exposureIds` argument is left empty. This will cause data for all concepts in the exposure table to be retrieved. Next, we simply create a new set of covariates, and fit the model:
 
 ```{r eval=FALSE}
-studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = 1,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
-
-covarAllDrugs <- createEraCovariateSettings(label = "Other exposures",
-                                            includeEraIds = c(),
-                                            excludeEraIds = aspirin,
-                                            stratifyById = TRUE,
-                                            start = 1,
-                                            end = 0,
-                                            endAnchor = "era end",
-                                            allowRegularization = TRUE)
-
+studyPop <- createStudyPopulation(
+  sccsData = sccsData,
+  outcomeId = epistaxis,
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE,
+    naivePeriod = 180
+  )
+)
+covarAllDrugs <- createEraCovariateSettings(
+  label = "Other exposures",
+  includeEraIds = c(),
+  excludeEraIds = aspirin,
+  stratifyById = TRUE,
+  start = 1,
+  end = 0,
+  endAnchor = "era end",
+  allowRegularization = TRUE
+)
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarAspirin,
-                              covarPreAspirin,
-                              covarAllDrugs),
-  seasonalityCovariateSettings = seasonalityCovariateSettings,
-  calendarTimeCovariateSettings = calendarTimeSettings
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin,
+                                covarAllDrugs),
+    seasonalityCovariateSettings = seasonalityCovariateSettings,
+    calendarTimeCovariateSettings = calendarTimeSettings
+  )
 )
-
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 ```
 
 The first thing to note is that we have defined the new covariates to be all drugs except aspirin by not specifying the `includeEraIds` and setting the `excludeEraIds` to the concept ID of aspirin. Furthermore, we have specified that `stratifyById` is TRUE, meaning an estimate will be produced for each drug. 

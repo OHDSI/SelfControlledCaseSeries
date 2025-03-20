@@ -829,7 +829,9 @@ exportDiagnosticsSummary <- function(outputFolder = outputFolder,
       "unblind",
       "unblindForEvidenceSynthesis"
     ) |>
-    mutate(databaseId = !!databaseId)
+    mutate(databaseId = !!databaseId,
+           unblind = as.integer(.data$unblind),
+           unblindForEvidenceSynthesis = as.integer(.data$unblindForEvidenceSynthesis))
 
   # Add deprecated columns:
   results <- results |>
