@@ -30,7 +30,7 @@ Imports:
 	SqlRender (>= 1.16.0),
 	dplyr (>= 1.0.0),
 	Rcpp (>= 1.0.9),
-	ParallelLogger (>= 3.3.2),
+	ParallelLogger (>= 3.4.0),
 	EmpiricalCalibration,
 	splines,
 	ggplot2 (>= 3.4.0),

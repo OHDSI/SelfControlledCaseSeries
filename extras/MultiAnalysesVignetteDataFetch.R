@@ -239,8 +239,8 @@ sccsAnalysis5 <- createSccsAnalysis(
   fitSccsModelArgs = fitSccsModelArgs
 )
 
-# sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4, sccsAnalysis5)
-sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3)
+sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4, sccsAnalysis5)
+# sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3)
 
 saveExposuresOutcomeList(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.json"))
 saveSccsAnalysisList(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.json"))
@@ -249,6 +249,13 @@ saveSccsAnalysisList(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList
 exposuresOutcomeList <- loadExposuresOutcomeList(file.path(outputFolder, "exposuresOutcomeList.json"))
 sccsAnalysisList <- loadSccsAnalysisList(file.path(outputFolder, "sccsAnalysisList.json"))
 multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(parallel::detectCores() - 1)
+
+
+multiThreadingSettings$fitSccsModelThreads = 1
+multiThreadingSettings$cvThreads = 10
+
+ParallelLogger::addDefaultFileLogger(file.path(outputFolder, "log.txt"))
+ParallelLogger::addDefaultErrorReportLogger(file.path(outputFolder, "errorReport.txt"))
 
 runSccsAnalyses(
   connectionDetails = connectionDetails,
