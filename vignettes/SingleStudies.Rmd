@@ -92,7 +92,7 @@ cohortTable <- "my_cohorts"
 options(sqlRenderTempEmulationSchema = NULL)
 ```
 
-The last lines define the `cdmDatabaseSchema`, `cohortDatabaseSchema`, and cohortTable variables. We'll use these later to tell R where the data in CDM format live, where we have stored our cohorts of interest, and what version CDM is used. Note that for Microsoft SQL Server, 'databaseSchemas' need to specify both the database and the schema, so for example `cdmDatabaseSchema <- "my_cdm_data.dbo"`. For database platforms that do not support temp tables, such as Oracle, it is also necessary to provide a schema where the user has write access that can be used to emulate temp tables. PostgreSQL supports temp tables, so we can set `options(sqlRenderTempEmulationSchema = NULL)` (or not set the `sqlRenderTempEmulationSchema` at all.)
+The last lines define the `cdmDatabaseSchema`, `cohortDatabaseSchema`, and `cohortTable` variables. We'll use these later to tell R where the data in CDM format live, where we have stored our cohorts of interest, and what version CDM is used. Note that for Microsoft SQL Server, `databaseSchemas` need to specify both the database and the schema, so for example `cdmDatabaseSchema <- "my_cdm_data.dbo"`. For database platforms that do not support temp tables, such as Oracle, it is also necessary to provide a schema where the user has write access that can be used to emulate temp tables. PostgreSQL supports temp tables, so we can set `options(sqlRenderTempEmulationSchema = NULL)` (or not set the `sqlRenderTempEmulationSchema` at all.)
 
 ## Preparing the exposure and outcome of interest
 
@@ -118,7 +118,6 @@ counts <- CohortGenerator::generateCohortSet(connection = connection,
                                              cohortDefinitionSet = cohortDefinitionSet)
 DatabaseConnector::disconnect(connection)
 ```
-
 
 
 ## Extracting the data from the server
@@ -241,9 +240,9 @@ if (folderExists) {
 }
 ```
 
-In this example, we use the `createEraCovariateSettings` to define a single covariate: exposure to aspirin. We specify that the risk window is from start of exposure to the end by setting start and end to 0, and defining the anchor for the end to be the era end, which for drug eras is the end of exposure. 
+In this example, we use the `createEraCovariateSettings()` function to define a single covariate: exposure to aspirin. We specify that the risk window is from start of exposure to the end by setting start and end to 0, and defining the anchor for the end to be the era end, which for drug eras is the end of exposure. 
 
-We then use the covariate definition in the `createSccsIntervalData` function to generate the `sccsIntervalData`. This represents the data in non-overlapping time intervals, with information on the various covariates and outcomes per interval. 
+We then use the covariate definition in the `createSccsIntervalData()` function to generate the `sccsIntervalData`. This represents the data in non-overlapping time intervals, with information on the various covariates and outcomes per interval. 
 
 ## Model fitting
 
@@ -272,13 +271,13 @@ This tells us what the estimated relative risk (the incidence rate ratio) is dur
 
 ## Adding a pre-exposure window
 
-The fact that platelet aggregation inhibitors like aspirin can cause epistaxis is well known to doctors, and this knowledge affects prescribing behavior. For example, a patient who has just had a nose bleed is not likely to be prescribed aspirin. This may lead to a violation of one of the key assumptions of the SCCS, and could cause bias. We can add a 'pre-exposure window' to our analysis to check the extend of this problem:
+One key assumption of the SCCS design is that the outcome does not change the subsequent probability of exposure. In this case, this assumption may be violated, because doctors may hesitate to prescribe aspirin to someone who is prone to bleeding. To ensure this does not affect our analysis, we must include a window prior to exposure. We can then test whether the rate of the outcome is increased or decreased during this pre-exposure window. Because the exposure hasn't occurred yet, it cannot cause a change in risk. Any observed change must therefore be due to other, possibly confounding factors. We add a 30-day pre-exposure window:
 
 ```{r eval=FALSE}
 covarPreAspirin <- createEraCovariateSettings(
   label = "Pre-exposure",
   includeEraIds = aspirin,
-  start = -60,
+  start = -30,
   end = -1,
   endAnchor = "era start",
   preExposure = TRUE

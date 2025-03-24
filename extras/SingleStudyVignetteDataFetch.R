@@ -140,7 +140,7 @@ model
 covarPreAspirin <- createEraCovariateSettings(
   label = "Pre-exposure",
   includeEraIds = aspirin,
-  start = -60,
+  start = -30,
   end = -1,
   endAnchor = "era start",
   preExposure = TRUE
