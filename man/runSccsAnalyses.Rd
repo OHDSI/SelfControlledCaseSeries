@@ -17,13 +17,8 @@ runSccsAnalyses(
   nestingCohortDatabaseSchema = cdmDatabaseSchema,
   nestingCohortTable = "cohort",
   outputFolder = "./SccsOutput",
-  sccsAnalysisList,
-  exposuresOutcomeList,
-  analysesToExclude = NULL,
-  combineDataFetchAcrossOutcomes = FALSE,
   sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
-  sccsDiagnosticThresholds = createSccsDiagnosticThresholds(),
-  controlType = "outcome"
+  sccsAnalysesSpecifications
 )
 }
 \arguments{
@@ -70,32 +65,12 @@ should have the same structure as the cohort table.}
 
 \item{outputFolder}{Name of the folder where all the outputs will written to.}
 
-\item{sccsAnalysisList}{A list of objects of \code{SccsAnalysis} as created
-using the \code{\link[=createSccsAnalysis]{createSccsAnalysis()}} function.}
-
-\item{exposuresOutcomeList}{A list of objects of type \code{ExposuresOutcome} as created
-using the \code{\link[=createExposuresOutcome]{createExposuresOutcome()}} function.}
-
-\item{analysesToExclude}{Analyses to exclude. See the Analyses to Exclude section for
-details.}
-
-\item{combineDataFetchAcrossOutcomes}{Should fetching data from the database be done one outcome
-at a time, or for all outcomes in one fetch? Combining
-fetches will be more efficient if there is large overlap in
-the subjects that have the different outcomes.}
-
 \item{sccsMultiThreadingSettings}{An object of type \code{SccsMultiThreadingSettings} as created using
 the \code{\link[=createSccsMultiThreadingSettings]{createSccsMultiThreadingSettings()}} or
 \code{\link[=createDefaultSccsMultiThreadingSettings]{createDefaultSccsMultiThreadingSettings()}} functions.}
 
-\item{sccsDiagnosticThresholds}{An object of type \code{SccsDiagnosticThresholds} as created using
-\code{\link[=createSccsDiagnosticThresholds]{createSccsDiagnosticThresholds()}}.}
-
-\item{controlType}{Type of negative (and positive) controls. Can be "outcome" or
-"exposure". When set to "outcome", controls with the
-same exposure (and nesting cohort) are grouped together for
-calibration. When set to "exposure", controls with the same
-outcome are grouped together.}
+\item{sccsAnalysesSpecifications}{An object of type \code{SccsAnalysesSpecifications} as created using
+the \code{\link[=createSccsAnalysesSpecifications]{createSccsAnalysesSpecifications()}} function}
 }
 \value{
 A tibble describing for each exposure-outcome-analysisId combination where the intermediary and

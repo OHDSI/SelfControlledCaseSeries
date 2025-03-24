@@ -58,8 +58,8 @@ methods specifically designed to make use of the profile, but may take a
 while to compute.}
 
 \item{exposureOfInterest}{If TRUE, the fitted coefficient for this variable will be reported when
-using \code{runSccsAnalyses()}. Requires \code{includeEraIds} to be a exposure
-reference ID as defined in \code{createExposure()}.}
+using \code{\link[=runSccsAnalyses]{runSccsAnalyses()}}. Requires \code{includeEraIds} to be a exposure
+reference ID as defined in \code{\link[=createExposure]{createExposure()}}.}
 
 \item{preExposure}{If TRUE, this variable will be used for the pre-exposure diagnostic.}
 }

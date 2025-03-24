@@ -2,7 +2,7 @@
 % Please edit documentation in R/SettingsObjects.R
 \name{createCreateStudyPopulationArgs}
 \alias{createCreateStudyPopulationArgs}
-\title{Create a parameter object for the \code{createStudyPopulation()} function}
+\title{Create a parameter object for the \code{\link[=createStudyPopulation]{createStudyPopulation()}} function}
 \usage{
 createCreateStudyPopulationArgs(
   firstOutcomeOnly = FALSE,
@@ -30,7 +30,7 @@ createCreateStudyPopulationArgs(
 An object of type \code{CreateStudyPopulationArgs}.
 }
 \description{
-Create a parameter object for the \code{createStudyPopulation()} function
+Create a parameter object for the \code{\link[=createStudyPopulation]{createStudyPopulation()}} function
 }
 \details{
 Create an object defining the parameter values.

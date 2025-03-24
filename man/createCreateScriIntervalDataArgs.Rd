@@ -2,20 +2,20 @@
 % Please edit documentation in R/SettingsObjects.R
 \name{createCreateScriIntervalDataArgs}
 \alias{createCreateScriIntervalDataArgs}
-\title{Create a parameter object for the \code{createScriIntervalData()} function}
+\title{Create a parameter object for the \code{\link[=createScriIntervalData]{createScriIntervalData()}} function}
 \usage{
 createCreateScriIntervalDataArgs(eraCovariateSettings, controlIntervalSettings)
 }
 \arguments{
-\item{eraCovariateSettings}{Either an object of type EraCovariateSettings as created using the createEraCovariateSettings() function, or a list of such objects.}
+\item{eraCovariateSettings}{Either an object of type \code{EraCovariateSettings} as created using the \code{\link[=createEraCovariateSettings]{createEraCovariateSettings()}} function, or a list of such objects.}
 
-\item{controlIntervalSettings}{An object of type ControlIntervalSettings as created using the createControlIntervalSettings() function.}
+\item{controlIntervalSettings}{An object of type \code{ControlIntervalSettings} as created using the \code{\link[=createControlIntervalSettings]{createControlIntervalSettings()}} function.}
 }
 \value{
 An object of type \code{CreateScriIntervalDataArgs}.
 }
 \description{
-Create a parameter object for the \code{createScriIntervalData()} function
+Create a parameter object for the \code{\link[=createScriIntervalData]{createScriIntervalData()}} function
 }
 \details{
 Create an object defining the parameter values.

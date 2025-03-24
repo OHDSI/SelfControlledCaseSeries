@@ -7,7 +7,7 @@
 saveExposuresOutcomeList(exposuresOutcomeList, file)
 }
 \arguments{
-\item{exposuresOutcomeList}{The \code{ExposuresOutcome} list to be written to file}
+\item{exposuresOutcomeList}{A list of objects of type \code{ExposuresOutcome} as created using the \code{\link[=createExposuresOutcome]{createExposuresOutcome()}} function.}
 
 \item{file}{The name of the file where the results will be written}
 }

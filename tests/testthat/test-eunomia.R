@@ -132,6 +132,11 @@ test_that("Running multiple analyses against Eunomia", {
     exposureId = c(1),
     outcomeId = c(4)
   )
+  sccsAnalysesSpecifications <- createSccsAnalysesSpecifications(
+    exposuresOutcomeList = exposuresOutcomeList,
+    sccsAnalysisList = sccsAnalysisList,
+    analysesToExclude = analysesToExclude
+  )
 
   # Expect warning because outcome 999 does not exist in data:
   expect_warning(
@@ -144,9 +149,7 @@ test_that("Running multiple analyses against Eunomia", {
         outcomeDatabaseSchema = "main",
         outcomeTable = "cohort",
         outputFolder = outputFolder,
-        exposuresOutcomeList = exposuresOutcomeList,
-        sccsAnalysisList = sccsAnalysisList,
-        analysesToExclude = analysesToExclude
+        sccsAnalysesSpecifications = sccsAnalysesSpecifications
       )
     },
     "No cases left in study population"

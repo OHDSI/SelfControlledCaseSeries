@@ -9,7 +9,7 @@ createExposuresOutcome(outcomeId, exposures, nestingCohortId = NULL)
 \arguments{
 \item{outcomeId}{An integer used to identify the outcome in the outcome cohort table.}
 
-\item{exposures}{A list of object of type \code{Exposure} as created by \code{createExposure()}.}
+\item{exposures}{A list of object of type \code{Exposure} as created by \code{\link[=createExposure]{createExposure()}}.}
 
 \item{nestingCohortId}{(Optional) the nesting cohort ID.}
 }
@@ -20,5 +20,5 @@ An object of type \code{ExposuresOutcome}.
 Create a exposures-outcome combination.
 }
 \details{
-Create a set of hypotheses of interest, to be used with the \code{runSccsAnalyses()} function.
+Create a set of hypotheses of interest, to be used with the \code{\link[=runSccsAnalyses]{runSccsAnalyses()}} function.
 }

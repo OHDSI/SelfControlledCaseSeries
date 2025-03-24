@@ -37,8 +37,8 @@ library(Cyclops)
   }
 }
 
-AbstractSettings <- R6Class(
-  "AbstractSettings",
+AbstractSerializableSettings <- R6Class(
+  "AbstractSerializableSettings",
   public = list(
     initialize = function(typedList, untypedList, json) {
       if (!missing(typedList)) {
@@ -114,8 +114,8 @@ AbstractSettings <- R6Class(
 #'                              methods specifically designed to make use of the profile, but may take a
 #'                              while to compute.
 #' @param exposureOfInterest    If TRUE, the fitted coefficient for this variable will be reported when
-#'                              using `runSccsAnalyses()`. Requires `includeEraIds` to be a exposure
-#'                              reference ID as defined in `createExposure()`.
+#'                              using [runSccsAnalyses()]. Requires `includeEraIds` to be a exposure
+#'                              reference ID as defined in [createExposure()].
 #' @param preExposure           If TRUE, this variable will be used for the pre-exposure diagnostic.
 #'
 #' @return
@@ -144,7 +144,7 @@ createEraCovariateSettings <- function(includeEraIds,
 
 EraCovariateSettings <- R6Class(
   "EraCovariateSettings",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     includeEraIds = NULL,
     excludeEraIds = NULL,
@@ -235,7 +235,7 @@ createAgeCovariateSettings <- function(ageKnots = 5,
 
 AgeCovariateSettings <- R6Class(
   "AgeCovariateSettings",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     ageKnots = NULL,
     allowRegularization = NULL,
@@ -289,7 +289,7 @@ createSeasonalityCovariateSettings <- function(seasonKnots = 5,
 
 SeasonalityCovariateSettings <- R6Class(
   "SeasonalityCovariateSettings",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     seasonKnots = NULL,
     allowRegularization = NULL,
@@ -351,7 +351,7 @@ createCalendarTimeCovariateSettings <- function(calendarTimeKnots = 5,
 
 CalendarTimeCovariateSettings <- R6Class(
   "CalendarTimeCovariateSettings",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     calendarTimeKnots = NULL,
     allowRegularization = NULL,
@@ -408,7 +408,7 @@ createControlIntervalSettings <- function(includeEraIds = NULL,
 
 ControlIntervalSettings <- R6Class(
   "ControlIntervalSettings",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     includeEraIds = NULL,
     excludeEraIds = NULL,
@@ -475,7 +475,7 @@ createGetDbSccsDataArgs <- function(nestingCohortId = NULL,
 
 GetDbSccsDataArgs <- R6Class(
   "GetDbSccsDataArgs",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     nestingCohortId = NULL,
     deleteCovariatesSmallCount = NULL,
@@ -515,7 +515,7 @@ GetDbSccsDataArgs <- R6Class(
   )
 )
 
-#' Create a parameter object for the `createStudyPopulation()` function
+#' Create a parameter object for the [createStudyPopulation()] function
 #'
 #' @details
 #' Create an object defining the parameter values.
@@ -546,7 +546,7 @@ createCreateStudyPopulationArgs <- function(firstOutcomeOnly = FALSE,
 
 CreateStudyPopulationArgs <- R6Class(
   "CreateStudyPopulationArgs",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     firstOutcomeOnly = NULL,
     naivePeriod = NULL,
@@ -574,15 +574,15 @@ CreateStudyPopulationArgs <- R6Class(
   )
 )
 
-#' Create a parameter object for the `createSccsIntervalData()` function
+#' Create a parameter object for the [createSccsIntervalData()] function
 #'
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param eraCovariateSettings  Either an object of type `EraCovariateSettings` as created using the `createEraCovariateSettings()` function, or a list of such objects.
-#' @param ageCovariateSettings  An object of type `AgeCovariateSettings` as created using the `createAgeCovariateSettings()` function.
-#' @param seasonalityCovariateSettings  An object of type `SeasonalityCovariateSettings` as created using the `createSeasonalityCovariateSettings()` function.
-#' @param calendarTimeCovariateSettings  An object of type `CalendarTimeCovariateSettings` as created using the `createCalendarTimeCovariateSettings()` function.
+#' @param eraCovariateSettings  Either an object of type `EraCovariateSettings` as created using the [createEraCovariateSettings()] function, or a list of such objects.
+#' @param ageCovariateSettings  An object of type `AgeCovariateSettings` as created using the [createAgeCovariateSettings()] function.
+#' @param seasonalityCovariateSettings  An object of type `SeasonalityCovariateSettings` as created using the [createSeasonalityCovariateSettings()] function.
+#' @param calendarTimeCovariateSettings  An object of type `CalendarTimeCovariateSettings` as created using the [createCalendarTimeCovariateSettings()] function.
 #' @param minCasesForTimeCovariates  Minimum number of cases to use to fit age, season and calendar time splines. If needed (and available), cases that are not exposed will be included.
 #' @param endOfObservationEraLength   Length in days of the probe that is inserted at the end of a patient's
 #'                                    observation time. This probe will be used to test whether there is event-
@@ -614,7 +614,7 @@ createCreateSccsIntervalDataArgs <- function(eraCovariateSettings,
 
 CreateSccsIntervalDataArgs <- R6Class(
   "CreateSccsIntervalDataArgs",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     eraCovariateSettings = NULL,
     ageCovariateSettings = NULL,
@@ -658,13 +658,13 @@ CreateSccsIntervalDataArgs <- R6Class(
   )
 )
 
-#' Create a parameter object for the `createScriIntervalData()` function
+#' Create a parameter object for the [createScriIntervalData()] function
 #'
 #' @details
 #' Create an object defining the parameter values.
 #'
-#' @param eraCovariateSettings  Either an object of type EraCovariateSettings as created using the createEraCovariateSettings() function, or a list of such objects.
-#' @param controlIntervalSettings  An object of type ControlIntervalSettings as created using the createControlIntervalSettings() function.
+#' @param eraCovariateSettings  Either an object of type `EraCovariateSettings` as created using the [createEraCovariateSettings()] function, or a list of such objects.
+#' @param controlIntervalSettings  An object of type `ControlIntervalSettings` as created using the [createControlIntervalSettings()] function.
 #'
 #' @return
 #' An object of type `CreateScriIntervalDataArgs`.
@@ -682,7 +682,7 @@ createCreateScriIntervalDataArgs <- function(eraCovariateSettings,
 
 CreateScriIntervalDataArgs <- R6Class(
   "CreateScriIntervalDataArgs",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     eraCovariateSettings = NULL,
     controlIntervalSettings = NULL,
@@ -741,7 +741,7 @@ createFitSccsModelArgs <- function(prior = createPrior("laplace", useCrossValida
 
 FitSccsModelArgs <- R6Class(
   "FitSccsModelArgs",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     prior = NULL,
     control = NULL,
@@ -801,7 +801,7 @@ createSccsAnalysis <- function(analysisId = 1,
 
 SccsAnalysis <- R6Class(
   "SccsAnalysis",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     analysisId = NULL,
     description = NULL,
@@ -863,7 +863,7 @@ settings <- createSccsAnalysis(
 #' @description
 #' Write a list of objects of type `SccsAnalysis` to file. The file is in JSON format.
 #'
-#' @param sccsAnalysisList   The `SccsAnalysis` list to be written to file
+#' @param sccsAnalysisList   A list of objects of type `SccsAnalysis` as created using the [createSccsAnalysis()] function.
 #' @param file               The name of the file where the results will be written
 #'
 #' @export
@@ -921,7 +921,7 @@ loadSccsAnalysisList <- function(file) {
 #'
 #' @param exposureId     An integer used to identify the exposure in the exposure cohort table.
 #' @param exposureIdRef  A string used to refer to the exposure when defining covariates using the
-#'                       `createEraCovariateSettings()` function.
+#'                       [createEraCovariateSettings()] function.
 #' @param trueEffectSize For negative and positive controls: the known true effect size. To be
 #'                       used for empirical calibration. Negative controls have
 #'                       `trueEffectSize = 1`. If the true effect size is unknown, use
@@ -941,7 +941,7 @@ createExposure <- function(exposureId, exposureIdRef = "exposureId", trueEffectS
 
 Exposure <- R6Class(
   "Exposure",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     exposureId = NULL,
     exposureIdRef = NULL,
@@ -965,10 +965,10 @@ Exposure <- R6Class(
 #' Create a exposures-outcome combination.
 #'
 #' @details
-#' Create a set of hypotheses of interest, to be used with the `runSccsAnalyses()` function.
+#' Create a set of hypotheses of interest, to be used with the [runSccsAnalyses()] function.
 #'
 #' @param outcomeId       An integer used to identify the outcome in the outcome cohort table.
-#' @param exposures       A list of object of type `Exposure` as created by `createExposure()`.
+#' @param exposures       A list of object of type `Exposure` as created by [createExposure()].
 #' @param nestingCohortId (Optional) the nesting cohort ID.
 #'
 #' @return
@@ -985,7 +985,7 @@ createExposuresOutcome <- function(outcomeId, exposures, nestingCohortId = NULL)
 
 ExposuresOutcome <- R6Class(
   "ExposuresOutcome",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     outcomeId = NULL,
     exposures = NULL,
@@ -1020,7 +1020,7 @@ ExposuresOutcome <- R6Class(
 #' @description
 #' Write a list of objects of type `ExposuresOutcome` to file. The file is in JSON format.
 #'
-#' @param exposuresOutcomeList  The `ExposuresOutcome` list to be written to file
+#' @param exposuresOutcomeList  A list of objects of type `ExposuresOutcome` as created using the [createExposuresOutcome()] function.
 #' @param file                  The name of the file where the results will be written
 #'
 #' @export
@@ -1106,7 +1106,7 @@ createSccsDiagnosticThresholds <- function(mdrrThreshold = 10,
 
 SccsDiagnosticThresholds <- R6Class(
   "SccsDiagnosticThresholds",
-  inherit = AbstractSettings,
+  inherit = AbstractSerializableSettings,
   public = list(
     mdrrThreshold = NULL,
     easeThreshold = NULL,
@@ -1126,3 +1126,128 @@ SccsDiagnosticThresholds <- R6Class(
     }
   )
 )
+
+#' Create SCCS study specifications
+#'
+#' @param sccsAnalysisList               A list of objects of type `SccsAnalysis` as created using the [createSccsAnalysis()] function.
+#' @param exposuresOutcomeList           A list of objects of type `ExposuresOutcome` as created using the [createExposuresOutcome()] function.
+#' @param analysesToExclude              Analyses to exclude. See the Analyses to Exclude section for details.
+#' @param combineDataFetchAcrossOutcomes Should fetching data from the database be done one outcome
+#'                                       at a time, or for all outcomes in one fetch? Combining
+#'                                       fetches will be more efficient if there is large overlap in
+#'                                       the subjects that have the different outcomes.
+##' @param sccsDiagnosticThresholds      An object of type `SccsDiagnosticThresholds` as created using
+#'                                       createSccsDiagnosticThresholds().
+#' @param controlType                    Type of negative (and positive) controls. Can be "outcome" or
+#'                                       "exposure". When set to "outcome", controls with the
+#'                                       same exposure (and nesting cohort) are grouped together for
+#'                                       calibration. When set to "exposure", controls with the same
+#'                                       outcome are grouped together.
+#'
+#' @details
+#' ## Analyses to Exclude
+#'
+#' Normally, `runSccsAnalyses` will run all combinations of exposures-outcome-analyses settings.
+#' However, sometimes we may not need all those combinations. Using the `analysesToExclude` argument,
+#' we can remove certain items from the full matrix. This argument should be a data frame with at least
+#' one of the following columns:
+#'
+#' - exposureId
+#' - outcomeId
+#' - nestingCohortId
+#' - analysisId
+#'
+#' This data frame will be joined to the outcome model reference table before executing, and matching rows
+#' will be removed. For example, if one specifies only one exposure ID and analysis ID, then any analyses with
+#' that exposure and that analysis ID will be skipped.
+#'
+#' @returns
+#' An object of type `SccsAnalysesSpecifications`.
+#'
+#' @export
+createSccsAnalysesSpecifications <- function(sccsAnalysisList,
+                                             exposuresOutcomeList,
+                                             analysesToExclude = NULL,
+                                             combineDataFetchAcrossOutcomes = FALSE,
+                                             sccsDiagnosticThresholds = SelfControlledCaseSeries::createSccsDiagnosticThresholds(),
+                                             controlType = "outcome") {
+  args <- list()
+  for (name in names(formals())) {
+    args[[name]] <- get(name)
+  }
+  return(SccsAnalysesSpecifications$new(typedList = args))
+}
+
+SccsAnalysesSpecifications <- R6Class(
+  "SccsAnalysesSpecifications",
+  inherit = AbstractSerializableSettings,
+  public = list(
+    sccsAnalysisList = NULL,
+    exposuresOutcomeList = NULL,
+    analysesToExclude = NULL,
+    combineDataFetchAcrossOutcomes = NULL,
+    sccsDiagnosticThresholds = NULL,
+    controlType = NULL,
+    validate = function() {
+      errorMessages <- checkmate::makeAssertCollection()
+      checkmate::assertList(self$sccsAnalysisList, min.len = 1, add = errorMessages)
+      for (i in seq_along(self$sccsAnalysisList)) {
+        checkmate::assertClass(self$sccsAnalysisList[[i]], "SccsAnalysis", add = errorMessages)
+      }
+      checkmate::assertList(self$exposuresOutcomeList, min.len = 1, add = errorMessages)
+      for (i in 1:length(self$exposuresOutcomeList)) {
+        checkmate::assertClass(self$exposuresOutcomeList[[i]], "ExposuresOutcome", add = errorMessages)
+      }
+      checkmate::assertDataFrame(self$analysesToExclude, null.ok = TRUE, add = errorMessages)
+      checkmate::assertLogical(self$combineDataFetchAcrossOutcomes, len = 1, add = errorMessages)
+      checkmate::assertR6(self$sccsDiagnosticThresholds, "SccsDiagnosticThresholds", add = errorMessages)
+      checkmate::assertChoice(self$controlType, c("outcome", "exposure"), add = errorMessages)
+      checkmate::reportAssertions(collection = errorMessages)
+      if (!is.null(self$analysesToExclude)) {
+        if (!any(c("exposureId", "outcomeId", "analysisId", "nestingCohortId") %in% colnames(self$analysesToExclude))) {
+          stop("AnalysesToExclude should have at least one of these columns: 'exposureId', 'outcomeId', 'analysisId', or 'nestingCohortId'")
+        }
+      }
+    },
+    fromList = function(list, requireTyping) {
+      super$fromList(list)
+      if (requireTyping) {
+        for (i in seq_along(self$sccsAnalysisList)) {
+          self$sccsAnalysisList[[i]] <- SccsAnalysis$new(untypedList = self$sccsAnalysisList[[i]])
+        }
+        for (i in seq_along(self$exposuresOutcomeList)) {
+          self$exposuresOutcomeList[[i]] <- ExposuresOutcome$new(untypedList = self$exposuresOutcomeList[[i]])
+        }
+        if (!is.null(self$analysesToExclude)) {
+          self$analysesToExclude <- as.data.frame(self$analysesToExclude)
+        }
+        self$sccsDiagnosticThresholds <- SccsDiagnosticThresholds$new(untypedList = self$sccsDiagnosticThresholds)
+      }
+    }
+  )
+)
+
+#' Convert SccsAnalysesSpecifications to JSON
+#'
+#' @param sccsAnalysesSpecifications An object of type `SccsAnalysesSpecifications` as created by the [createSccsAnalysesSpecifications()] function.
+#'
+#' @returns
+#' A string containing the JSON representation.
+#'
+#' @export
+convertSccsAnalysesSpecificationsToJson <- function(sccsAnalysesSpecifications) {
+  return(sccsAnalysesSpecifications$toJson())
+}
+
+#' Convert JSON to SccsAnalysesSpecifications
+#'
+#' @param json A string containing the JSON representation.
+#'
+#' @returns
+#' An object of type `SccsAnalysesSpecifications`.
+#'
+#'
+#' @export
+convertJsonToSccsAnalysesSpecifications <- function(json) {
+  return(SccsAnalysesSpecifications$new(json = json))
+}

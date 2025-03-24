@@ -31,7 +31,7 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
       adjustedRatio = 1.0,
       monthStartDate = as.Date("2000-01-01"),
       monthEndDate = as.Date("2000-01-01")) |>
-      filter(month == 0)
+      filter(.data$month == 0)
     return(result)
   }
   cases <- studyPopulation$cases |>
@@ -99,15 +99,15 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
     group_by(.data$month) |>
     summarise(observedCount = n())
   computeExpected <- function(monthAdjustment) {
-    month <- monthAdjustment$month
+    thisMonth <- monthAdjustment$month
     expected <- cases |>
-      filter(month >= .data$startMonth & month <= .data$endMonth) |>
-      mutate(weight = if_else(month == .data$startMonth,
+      filter(thisMonth >= .data$startMonth & thisMonth <= .data$endMonth) |>
+      mutate(weight = if_else(thisMonth == .data$startMonth,
                               .data$startMonthFraction,
-                              if_else(month == .data$endMonth,
+                              if_else(thisMonth == .data$endMonth,
                                       .data$endMonthFraction,
                                       1))) |>
-      summarize(month = !!month,
+      summarize(month = thisMonth,
                 expectedCount = sum(.data$weight * .data$rate),
                 adjustedExpectedCount = if_else(monthAdjustment$totalRr == 0,
                                                 0,

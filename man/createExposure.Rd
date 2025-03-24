@@ -10,7 +10,7 @@ createExposure(exposureId, exposureIdRef = "exposureId", trueEffectSize = NA)
 \item{exposureId}{An integer used to identify the exposure in the exposure cohort table.}
 
 \item{exposureIdRef}{A string used to refer to the exposure when defining covariates using the
-\code{createEraCovariateSettings()} function.}
+\code{\link[=createEraCovariateSettings]{createEraCovariateSettings()}} function.}
 
 \item{trueEffectSize}{For negative and positive controls: the known true effect size. To be
 used for empirical calibration. Negative controls have

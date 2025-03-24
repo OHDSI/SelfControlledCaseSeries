@@ -2,7 +2,7 @@
 % Please edit documentation in R/SettingsObjects.R
 \name{createCreateSccsIntervalDataArgs}
 \alias{createCreateSccsIntervalDataArgs}
-\title{Create a parameter object for the \code{createSccsIntervalData()} function}
+\title{Create a parameter object for the \code{\link[=createSccsIntervalData]{createSccsIntervalData()}} function}
 \usage{
 createCreateSccsIntervalDataArgs(
   eraCovariateSettings,
@@ -15,13 +15,13 @@ createCreateSccsIntervalDataArgs(
 )
 }
 \arguments{
-\item{eraCovariateSettings}{Either an object of type \code{EraCovariateSettings} as created using the \code{createEraCovariateSettings()} function, or a list of such objects.}
+\item{eraCovariateSettings}{Either an object of type \code{EraCovariateSettings} as created using the \code{\link[=createEraCovariateSettings]{createEraCovariateSettings()}} function, or a list of such objects.}
 
-\item{ageCovariateSettings}{An object of type \code{AgeCovariateSettings} as created using the \code{createAgeCovariateSettings()} function.}
+\item{ageCovariateSettings}{An object of type \code{AgeCovariateSettings} as created using the \code{\link[=createAgeCovariateSettings]{createAgeCovariateSettings()}} function.}
 
-\item{seasonalityCovariateSettings}{An object of type \code{SeasonalityCovariateSettings} as created using the \code{createSeasonalityCovariateSettings()} function.}
+\item{seasonalityCovariateSettings}{An object of type \code{SeasonalityCovariateSettings} as created using the \code{\link[=createSeasonalityCovariateSettings]{createSeasonalityCovariateSettings()}} function.}
 
-\item{calendarTimeCovariateSettings}{An object of type \code{CalendarTimeCovariateSettings} as created using the \code{createCalendarTimeCovariateSettings()} function.}
+\item{calendarTimeCovariateSettings}{An object of type \code{CalendarTimeCovariateSettings} as created using the \code{\link[=createCalendarTimeCovariateSettings]{createCalendarTimeCovariateSettings()}} function.}
 
 \item{minCasesForTimeCovariates}{Minimum number of cases to use to fit age, season and calendar time splines. If needed (and available), cases that are not exposed will be included.}
 
@@ -35,7 +35,7 @@ dependent observation end. Set to 0 to not include the probe.}
 An object of type \code{CreateSccsIntervalDataArgs}.
 }
 \description{
-Create a parameter object for the \code{createSccsIntervalData()} function
+Create a parameter object for the \code{\link[=createSccsIntervalData]{createSccsIntervalData()}} function
 }
 \details{
 Create an object defining the parameter values.

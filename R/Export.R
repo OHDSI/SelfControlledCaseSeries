@@ -46,8 +46,7 @@ exportToCsv <- function(outputFolder,
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
   checkmate::assertDirectoryExists(outputFolder, add = errorMessages)
-  checkmate::assertFileExists(file.path(outputFolder, "sccsAnalysisList.rds"), add = errorMessages)
-  checkmate::assertFileExists(file.path(outputFolder, "exposuresOutcomeList.rds"), add = errorMessages)
+  checkmate::assertFileExists(file.path(outputFolder, "sccsAnalysesSpecifications.rds"), add = errorMessages)
   checkmate::assertFileExists(file.path(outputFolder, "resultsSummary.rds"), add = errorMessages)
   checkmate::assertCharacter(exportFolder, len = 1, add = errorMessages)
   checkmate::assertInt(minCellCount, lower = 0, add = errorMessages)
@@ -154,8 +153,8 @@ createEmptyResult <- function(tableName) {
 }
 
 exportSccsAnalyses <- function(outputFolder, exportFolder) {
-  sccsAnalysisListFile <- file.path(outputFolder, "sccsAnalysisList.rds")
-  sccsAnalysisList <- readRDS(sccsAnalysisListFile)
+  sccsAnalysesSpecificationsFile <- file.path(outputFolder, "sccsAnalysesSpecifications.rds")
+  sccsAnalysesSpecifications <- readRDS(sccsAnalysesSpecificationsFile)
 
   message("- sccs_analysis table")
   sccsAnalysisToRow <- function(sccsAnalysis) {
@@ -166,7 +165,7 @@ exportSccsAnalyses <- function(outputFolder, exportFolder) {
     )
     return(row)
   }
-  sccsAnalysis <- lapply(sccsAnalysisList, sccsAnalysisToRow)
+  sccsAnalysis <- lapply(sccsAnalysesSpecifications$sccsAnalysisList, sccsAnalysisToRow)
   sccsAnalysis <- bind_rows(sccsAnalysis) |>
     distinct()
   fileName <- file.path(exportFolder, "sccs_analysis.csv")
@@ -196,7 +195,7 @@ exportSccsAnalyses <- function(outputFolder, exportFolder) {
     }
     return(bind_rows(rows))
   }
-  sccsCovariateAnalysis <- lapply(sccsAnalysisList, sccsAnalysisToRows)
+  sccsCovariateAnalysis <- lapply(sccsAnalysesSpecifications$sccsAnalysisList, sccsAnalysisToRows)
   sccsCovariateAnalysis <- sccsCovariateAnalysis |>
     bind_rows() |>
     bind_rows(
@@ -216,7 +215,9 @@ exportSccsAnalyses <- function(outputFolder, exportFolder) {
 exportExposuresOutcomes <- function(outputFolder, exportFolder) {
   message("- sccs_exposure and sccs_exposures_outcome_set tables")
 
-  esoList <- readRDS(file.path(outputFolder, "exposuresOutcomeList.rds"))
+  sccsAnalysesSpecificationsFile <- file.path(outputFolder, "sccsAnalysesSpecifications.rds")
+  sccsAnalysesSpecifications <- readRDS(sccsAnalysesSpecificationsFile)
+  esoList <- sccsAnalysesSpecifications$exposuresOutcomeList
   ref <- getFileReference(outputFolder) |>
     distinct(.data$exposuresOutcomeSetId, .data$exposuresOutcomeSetSeqId)
 
@@ -372,7 +373,9 @@ exportGroup <- function(group, outputFolder, databaseId) {
   sccsDataFile <- group$sccsDataFile[1]
   sccsData <- loadSccsData(file.path(outputFolder, sccsDataFile))
   studyPopFile <- ""
-  esoList <- readRDS(file.path(outputFolder, "exposuresOutcomeList.rds"))
+  sccsAnalysesSpecificationsFile <- file.path(outputFolder, "sccsAnalysesSpecifications.rds")
+  sccsAnalysesSpecifications <- readRDS(sccsAnalysesSpecificationsFile)
+  esoList <- sccsAnalysesSpecifications$exposuresOutcomeList
 
   # sccsEra table
   eraRef <- sccsData$eraRef |>

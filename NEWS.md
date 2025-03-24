@@ -26,14 +26,16 @@ Changes related to the new settings objects:
 
 9. All individual analytic functions (`getDbSccsData()`, `createStudyPopulationArgs()`, `createSccsIntervalData()`, `createScriIntervalData()`, `fitSccsModel()`) now use the setting objects as arguments. This is to remove code duplication, and increase consistency between single study and multi-analyses frameworks.
 
+10. The analysis settings of `runSccsAnalyses()` have been combined in a `SccsAnalysesSpecifications` object that can be created using the new `createSccsAnalysesSpecifications()` function.
+
 
 Other changes:
 
-10. Removed deprecated `useCustomCovariates`, `useNestingCohort`, `studyStartDate`, and `studyEndDate` arguments of `getDbSccsData()` and `createGetDbSccsDataArgs()`.
+11. Removed deprecated `useCustomCovariates`, `useNestingCohort`, `studyStartDate`, and `studyEndDate` arguments of `getDbSccsData()` and `createGetDbSccsDataArgs()`.
 
-11. Removed deprecated `minCasesForAgeSeason` of `createSccsIntervalData()` and `createCreateSccsIntervalDataArgs()`.
+12. Removed deprecated `minCasesForAgeSeason` of `createSccsIntervalData()` and `createCreateSccsIntervalDataArgs()`.
 
-12. Removed `cdmVersion` argument from the `getDbSccsData()` and `runSccsAnalyses()` functions.
+13. Removed `cdmVersion` argument from the `getDbSccsData()` and `runSccsAnalyses()` functions.
 
 
 SelfControlledCaseSeries 5.3.1

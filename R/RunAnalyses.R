@@ -145,27 +145,12 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
 #'                                         where the nesting cohort is defined.
 #' @param nestingCohortTable               Name of the table holding the nesting cohort. This table
 #'                                         should have the same structure as the cohort table.
-#' @param sccsAnalysisList                 A list of objects of `SccsAnalysis` as created
-#'                                         using the [createSccsAnalysis()] function.
-#' @param exposuresOutcomeList             A list of objects of type `ExposuresOutcome` as created
-#'                                         using the [createExposuresOutcome()] function.
 #' @param outputFolder                     Name of the folder where all the outputs will written to.
-#' @param combineDataFetchAcrossOutcomes   Should fetching data from the database be done one outcome
-#'                                         at a time, or for all outcomes in one fetch? Combining
-#'                                         fetches will be more efficient if there is large overlap in
-#'                                         the subjects that have the different outcomes.
-#' @param analysesToExclude                Analyses to exclude. See the Analyses to Exclude section for
-#'                                         details.
 #' @param sccsMultiThreadingSettings       An object of type `SccsMultiThreadingSettings` as created using
 #'                                         the [createSccsMultiThreadingSettings()] or
 #'                                         [createDefaultSccsMultiThreadingSettings()] functions.
-#' @param sccsDiagnosticThresholds         An object of type `SccsDiagnosticThresholds` as created using
-#'                                         [createSccsDiagnosticThresholds()].
-#' @param controlType                      Type of negative (and positive) controls. Can be "outcome" or
-#'                                         "exposure". When set to "outcome", controls with the
-#'                                         same exposure (and nesting cohort) are grouped together for
-#'                                         calibration. When set to "exposure", controls with the same
-#'                                         outcome are grouped together.
+#' @param sccsAnalysesSpecifications       An object of type `SccsAnalysesSpecifications` as created using
+#'                                         the [`createSccsAnalysesSpecifications()`] function
 #'
 #' @return
 #' A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
@@ -184,13 +169,8 @@ runSccsAnalyses <- function(connectionDetails,
                             nestingCohortDatabaseSchema = cdmDatabaseSchema,
                             nestingCohortTable = "cohort",
                             outputFolder = "./SccsOutput",
-                            sccsAnalysisList,
-                            exposuresOutcomeList,
-                            analysesToExclude = NULL,
-                            combineDataFetchAcrossOutcomes = FALSE,
                             sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
-                            sccsDiagnosticThresholds = createSccsDiagnosticThresholds(),
-                            controlType = "outcome") {
+                            sccsAnalysesSpecifications) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is(connectionDetails, "connectionDetails")) {
     checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
@@ -208,27 +188,16 @@ runSccsAnalyses <- function(connectionDetails,
   checkmate::assertCharacter(nestingCohortDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(nestingCohortTable, len = 1, add = errorMessages)
   checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
-  checkmate::assertList(sccsAnalysisList, min.len = 1, add = errorMessages)
-  for (i in 1:length(sccsAnalysisList)) {
-    checkmate::assertR6(sccsAnalysisList[[i]], "SccsAnalysis", add = errorMessages)
-  }
-  checkmate::assertList(exposuresOutcomeList, min.len = 1, add = errorMessages)
-  for (i in 1:length(exposuresOutcomeList)) {
-    checkmate::assertR6(exposuresOutcomeList[[i]], "ExposuresOutcome", add = errorMessages)
-  }
-  checkmate::assertDataFrame(analysesToExclude, null.ok = TRUE, add = errorMessages)
-  checkmate::assertLogical(combineDataFetchAcrossOutcomes, len = 1, add = errorMessages)
   checkmate::assertClass(sccsMultiThreadingSettings, "SccsMultiThreadingSettings", add = errorMessages)
-  checkmate::assertR6(sccsDiagnosticThresholds, "SccsDiagnosticThresholds", add = errorMessages)
-  checkmate::assertChoice(controlType, c("outcome", "exposure"), add = errorMessages)
+  checkmate::assertR6(sccsAnalysesSpecifications, "SccsAnalysesSpecifications", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  uniqueExposuresOutcomeList <- unique(lapply(exposuresOutcomeList, function(x) x$toJson()))
-  if (length(uniqueExposuresOutcomeList) != length(exposuresOutcomeList)) {
+  uniqueExposuresOutcomeList <- unique(lapply(sccsAnalysesSpecifications$exposuresOutcomeList, function(x) x$toJson()))
+  if (length(uniqueExposuresOutcomeList) != length(sccsAnalysesSpecifications$exposuresOutcomeList)) {
     stop("Duplicate exposure-outcomes pairs are not allowed")
   }
-  uniqueAnalysisIds <- unlist(unique(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId")))
-  if (length(uniqueAnalysisIds) != length(sccsAnalysisList)) {
+  uniqueAnalysisIds <- unlist(unique(ParallelLogger::selectFromList(sccsAnalysesSpecifications$sccsAnalysisList, "analysisId")))
+  if (length(uniqueAnalysisIds) != length(sccsAnalysesSpecifications$sccsAnalysisList)) {
     stop("Duplicate analysis IDs are not allowed")
   }
 
@@ -237,11 +206,11 @@ runSccsAnalyses <- function(connectionDetails,
   }
 
   referenceTable <- createReferenceTable(
-    sccsAnalysisList,
-    exposuresOutcomeList,
+    sccsAnalysesSpecifications$sccsAnalysisList,
+    sccsAnalysesSpecifications$exposuresOutcomeList,
     outputFolder,
-    combineDataFetchAcrossOutcomes,
-    analysesToExclude
+    sccsAnalysesSpecifications$combineDataFetchAcrossOutcomes,
+    sccsAnalysesSpecifications$analysesToExclude
   )
 
   loadConceptsPerLoad <- attr(referenceTable, "loadConceptsPerLoad")
@@ -298,7 +267,7 @@ runSccsAnalyses <- function(connectionDetails,
   studyPopFilesToCreate <- list()
   for (studyPopFile in uniqueStudyPopFiles) {
     refRow <- referenceTable[referenceTable$studyPopFile == studyPopFile, ][1, ]
-    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysisList)[[1]]
+    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysesSpecifications$sccsAnalysisList)[[1]]
     args <- list(createStudyPopulationArgs = analysisRow$createStudyPopulationArgs)
     args$outcomeId <- refRow$outcomeId
     if (is.character(args$createStudyPopulationArgs$restrictTimeToEraId)) {
@@ -317,7 +286,7 @@ runSccsAnalyses <- function(connectionDetails,
   sccsIntervalDataObjectsToCreate <- list()
   for (sccsIntervalDataFile in sccsIntervalDataFiles) {
     refRow <- referenceTable[referenceTable$sccsIntervalDataFile == sccsIntervalDataFile, ][1, ]
-    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysisList)[[1]]
+    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysesSpecifications$sccsAnalysisList)[[1]]
     sccs <- is(analysisRow$createIntervalDataArgs, "CreateSccsIntervalDataArgs")
     covariateSettings <- analysisRow$createIntervalDataArgs$eraCovariateSettings
     if (is(covariateSettings, "EraCovariateSettings")) {
@@ -384,7 +353,7 @@ runSccsAnalyses <- function(connectionDetails,
   sccsModelObjectsToCreate <- list()
   for (sccsModelFile in sccsModelFiles) {
     refRow <- referenceTable[referenceTable$sccsModelFile == sccsModelFile, ][1, ]
-    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysisList)[[1]]
+    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysesSpecifications$sccsAnalysisList)[[1]]
     args <- list(fitSccsModelArgs = analysisRow$fitSccsModelArgs)
     args$fitSccsModelArgs$control$threads <- sccsMultiThreadingSettings$cvThreads
     sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(
@@ -398,8 +367,7 @@ runSccsAnalyses <- function(connectionDetails,
   referenceTable$studyPopId <- NULL
   attr(referenceTable, "loadConcepts") <- NULL
   saveRDS(referenceTable, file.path(outputFolder, "outcomeModelReference.rds"))
-  saveRDS(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.rds"))
-  saveRDS(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.rds"))
+  saveRDS(sccsAnalysesSpecifications, file.path(outputFolder, "sccsAnalysesSpecifications.rds"))
 
   # Construction of objects -------------------------------------------------------------------------
   if (length(sccsDataObjectsToCreate) != 0) {
@@ -441,13 +409,13 @@ runSccsAnalyses <- function(connectionDetails,
     diagnosticsSummaryFileName <- file.path(outputFolder, "diagnosticsSummary.rds")
     summarizeResults(
       referenceTable = referenceTable,
-      exposuresOutcomeList = exposuresOutcomeList,
+      exposuresOutcomeList = sccsAnalysesSpecifications$exposuresOutcomeList,
       outputFolder = outputFolder,
       mainFileName = mainFileName,
       diagnosticsSummaryFileName = diagnosticsSummaryFileName,
       calibrationThreads = sccsMultiThreadingSettings$calibrationThreads,
-      sccsDiagnosticThresholds = sccsDiagnosticThresholds,
-      controlType = controlType
+      sccsDiagnosticThresholds = sccsAnalysesSpecifications$sccsDiagnosticThresholds,
+      controlType = sccsAnalysesSpecifications$controlType
     )
   }
 
