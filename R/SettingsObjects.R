@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-library(R6)
-library(Cyclops)
+# library(R6)
+# library(Cyclops)
 
 .recurseToList <- function(x) {
   if ("toList" %in% names(x)) {
@@ -858,61 +858,6 @@ settings <- createSccsAnalysis(
   fitSccsModelArgs = createFitSccsModelArgs()
 )
 
-#' Save a list of SccsAnalysis to file
-#'
-#' @description
-#' Write a list of objects of type `SccsAnalysis` to file. The file is in JSON format.
-#'
-#' @param sccsAnalysisList   A list of objects of type `SccsAnalysis` as created using the [createSccsAnalysis()] function.
-#' @param file               The name of the file where the results will be written
-#'
-#' @export
-saveSccsAnalysisList <- function(sccsAnalysisList, file) {
-  errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertList(sccsAnalysisList, min.len = 1, add = errorMessages)
-  for (i in seq_along(sccsAnalysisList)) {
-    checkmate::assertClass(sccsAnalysisList[[i]], "SccsAnalysis", add = errorMessages)
-  }
-  checkmate::assertCharacter(file, len = 1, add = errorMessages)
-  checkmate::reportAssertions(collection = errorMessages)
-
-  for (i in seq_along(sccsAnalysisList)) {
-    sccsAnalysisList[[i]] <- sccsAnalysisList[[i]]$toList()
-  }
-  json <- jsonlite::toJSON(
-    sccsAnalysisList,
-    auto_unbox = TRUE,
-    pretty = TRUE,
-    null = "null"
-  )
-  file <- normalizePath(file, mustWork = FALSE)
-  write(json, file)
-}
-
-#' Load a list of sccsAnalysis from file
-#'
-#' @description
-#' Load a list of objects of type `SccsAnalysis` from file. The file is in JSON format.
-#'
-#' @param file   The name of the file
-#'
-#' @return
-#' A list of objects of type `SccsAnalysis`.
-#'
-#' @export
-loadSccsAnalysisList <- function(file) {
-  errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertCharacter(file, len = 1, add = errorMessages)
-  checkmate::reportAssertions(collection = errorMessages)
-
-  file <- normalizePath(file)
-  json <- readChar(file, file.info(file)$size)
-  sccsAnalysisList <- jsonlite::fromJSON(json, simplifyDataFrame = FALSE)
-  for (i in seq_along(sccsAnalysisList)) {
-    sccsAnalysisList[[i]] <- SccsAnalysis$new(untypedList = sccsAnalysisList[[i]])
-  }
-  return(sccsAnalysisList)
-}
 
 #' Create exposure definition
 #'
@@ -1015,62 +960,6 @@ ExposuresOutcome <- R6Class(
   )
 )
 
-#' Save a list of `ExposuresOutcome` to file
-#'
-#' @description
-#' Write a list of objects of type `ExposuresOutcome` to file. The file is in JSON format.
-#'
-#' @param exposuresOutcomeList  A list of objects of type `ExposuresOutcome` as created using the [createExposuresOutcome()] function.
-#' @param file                  The name of the file where the results will be written
-#'
-#' @export
-saveExposuresOutcomeList <- function(exposuresOutcomeList, file) {
-  errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertList(exposuresOutcomeList, min.len = 1, add = errorMessages)
-  for (i in 1:length(exposuresOutcomeList)) {
-    checkmate::assertClass(exposuresOutcomeList[[i]], "ExposuresOutcome", add = errorMessages)
-  }
-  checkmate::assertCharacter(file, len = 1, add = errorMessages)
-  checkmate::reportAssertions(collection = errorMessages)
-
-  for (i in seq_along(exposuresOutcomeList)) {
-    exposuresOutcomeList[[i]] <- exposuresOutcomeList[[i]]$toList()
-  }
-  json <- jsonlite::toJSON(
-    exposuresOutcomeList,
-    auto_unbox = TRUE,
-    pretty = TRUE,
-    null = "null"
-  )
-  file <- normalizePath(file, mustWork = FALSE)
-  write(json, file)
-}
-
-#' Load a list of `ExposuresOutcome` from file
-#'
-#' @description
-#' Load a list of objects of type `ExposuresOutcome` from file. The file is in JSON format.
-#'
-#' @param file   The name of the file
-#'
-#' @return
-#' A list of objects of type `ExposuresOutcome`.
-#'
-#' @export
-loadExposuresOutcomeList <- function(file) {
-  errorMessages <- checkmate::makeAssertCollection()
-  checkmate::assertCharacter(file, len = 1, add = errorMessages)
-  checkmate::reportAssertions(collection = errorMessages)
-
-  file <- normalizePath(file)
-  json <- readChar(file, file.info(file)$size)
-  exposuresOutcomeList <- jsonlite::fromJSON(json, simplifyDataFrame = FALSE)
-  for (i in seq_along(exposuresOutcomeList)) {
-    exposuresOutcomeList[[i]] <- ExposuresOutcome$new(untypedList = exposuresOutcomeList[[i]])
-  }
-  return(exposuresOutcomeList)
-}
-
 #' Create SCCS diagnostics thresholds
 #'
 #' @description
@@ -1127,7 +1016,7 @@ SccsDiagnosticThresholds <- R6Class(
   )
 )
 
-#' Create SCCS study specifications
+#' Create full SCCS analysis specifications
 #'
 #' @param sccsAnalysisList               A list of objects of type `SccsAnalysis` as created using the [createSccsAnalysis()] function.
 #' @param exposuresOutcomeList           A list of objects of type `ExposuresOutcome` as created using the [createExposuresOutcome()] function.
@@ -1226,6 +1115,120 @@ SccsAnalysesSpecifications <- R6Class(
     }
   )
 )
+
+# Loading, saving, conversion ----------------------------------------------------------------------
+
+#' Save a list of SccsAnalysis to file
+#'
+#' @description
+#' Write a list of objects of type `SccsAnalysis` to file. The file is in JSON format.
+#'
+#' @param sccsAnalysisList   A list of objects of type `SccsAnalysis` as created using the [createSccsAnalysis()] function.
+#' @param file               The name of the file where the results will be written
+#'
+#' @export
+saveSccsAnalysisList <- function(sccsAnalysisList, file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(sccsAnalysisList, min.len = 1, add = errorMessages)
+  for (i in seq_along(sccsAnalysisList)) {
+    checkmate::assertClass(sccsAnalysisList[[i]], "SccsAnalysis", add = errorMessages)
+  }
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
+  for (i in seq_along(sccsAnalysisList)) {
+    sccsAnalysisList[[i]] <- sccsAnalysisList[[i]]$toList()
+  }
+  json <- jsonlite::toJSON(
+    sccsAnalysisList,
+    auto_unbox = TRUE,
+    pretty = TRUE,
+    null = "null"
+  )
+  file <- normalizePath(file, mustWork = FALSE)
+  write(json, file)
+}
+
+#' Load a list of sccsAnalysis from file
+#'
+#' @description
+#' Load a list of objects of type `SccsAnalysis` from file. The file is in JSON format.
+#'
+#' @param file   The name of the file
+#'
+#' @return
+#' A list of objects of type `SccsAnalysis`.
+#'
+#' @export
+loadSccsAnalysisList <- function(file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
+  file <- normalizePath(file)
+  json <- readChar(file, file.info(file)$size)
+  sccsAnalysisList <- jsonlite::fromJSON(json, simplifyDataFrame = FALSE)
+  for (i in seq_along(sccsAnalysisList)) {
+    sccsAnalysisList[[i]] <- SccsAnalysis$new(untypedList = sccsAnalysisList[[i]])
+  }
+  return(sccsAnalysisList)
+}
+
+#' Save a list of `ExposuresOutcome` to file
+#'
+#' @description
+#' Write a list of objects of type `ExposuresOutcome` to file. The file is in JSON format.
+#'
+#' @param exposuresOutcomeList  A list of objects of type `ExposuresOutcome` as created using the [createExposuresOutcome()] function.
+#' @param file                  The name of the file where the results will be written
+#'
+#' @export
+saveExposuresOutcomeList <- function(exposuresOutcomeList, file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertList(exposuresOutcomeList, min.len = 1, add = errorMessages)
+  for (i in 1:length(exposuresOutcomeList)) {
+    checkmate::assertClass(exposuresOutcomeList[[i]], "ExposuresOutcome", add = errorMessages)
+  }
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
+  for (i in seq_along(exposuresOutcomeList)) {
+    exposuresOutcomeList[[i]] <- exposuresOutcomeList[[i]]$toList()
+  }
+  json <- jsonlite::toJSON(
+    exposuresOutcomeList,
+    auto_unbox = TRUE,
+    pretty = TRUE,
+    null = "null"
+  )
+  file <- normalizePath(file, mustWork = FALSE)
+  write(json, file)
+}
+
+#' Load a list of `ExposuresOutcome` from file
+#'
+#' @description
+#' Load a list of objects of type `ExposuresOutcome` from file. The file is in JSON format.
+#'
+#' @param file   The name of the file
+#'
+#' @return
+#' A list of objects of type `ExposuresOutcome`.
+#'
+#' @export
+loadExposuresOutcomeList <- function(file) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(file, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+
+  file <- normalizePath(file)
+  json <- readChar(file, file.info(file)$size)
+  exposuresOutcomeList <- jsonlite::fromJSON(json, simplifyDataFrame = FALSE)
+  for (i in seq_along(exposuresOutcomeList)) {
+    exposuresOutcomeList[[i]] <- ExposuresOutcome$new(untypedList = exposuresOutcomeList[[i]])
+  }
+  return(exposuresOutcomeList)
+}
 
 #' Convert SccsAnalysesSpecifications to JSON
 #'

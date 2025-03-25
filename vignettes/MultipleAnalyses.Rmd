@@ -10,13 +10,13 @@ output:
     number_sections: yes
     toc: yes
 vignette: >
-  %\VignetteIndexEntry{Multiple analyses using SelfControlledCaseSeries}
+%\VignetteIndexEntry{Multiple analyses using SelfControlledCaseSeries}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
----
-
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
+  ---
+  
+  
+  ```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
 library(EmpiricalCalibration)
 outputFolder <- "e:/temp/sccsVignette2"
@@ -48,6 +48,8 @@ The function arguments you need to define have been divided into four groups:
 2. **Analyses**: arguments that are not directly specific to a hypothesis of interest, such as the washout window, whether to adjust for age and seasonality, etc.
 3. Arguments that are the output of a previous function in the `SelfControlledCaseSeries` package, such as the `SccsIntervalData` argument of the `createSccsIntervalData` function. These cannot be specified by the user.
 4. Arguments that are specific to an environment, such as the connection details for connecting to the server, and the name of the schema holding the CDM data.
+
+Arguments in groups 1 and 2 together fully specify the analyses, and sharing these with other sites would allow them to fully reproduce the study. Together, they are therefore refered to as the 'SCCS analysis specifications'.
 
 # Preparation for the example
 
@@ -128,7 +130,7 @@ A convenient way to save `exposuresOutcomeList` to file is by using the `saveExp
 
 # Specifying analyses
 
-The second group of arguments are not specific to a hypothesis of interest, and comprise the majority of arguments. For each function that will be called during the execution of the analyses, a companion function is available that has (almost) the same arguments. For example, for the `fitSccsModel()` function there is the `createFitSccsModelArgs()` function. These companion functions can be used to create the arguments to be used during execution:
+The second group of arguments are not specific to a hypothesis of interest, and comprise the majority of arguments. For each function that will be called during the execution of the analyses there is a companion function that creates the core settings for that function. For example, for the `fitSccsModel()` function there is the `createFitSccsModelArgs()` function. These companion functions can be used to create the arguments to be used during execution:
 
 ```{r eval=TRUE}
 getDbSccsDataArgs <- createGetDbSccsDataArgs(
@@ -159,7 +161,7 @@ createSccsIntervalDataArgs1 <- createCreateSccsIntervalDataArgs(
 fitSccsModelArgs <- createFitSccsModelArgs()
 ```
 
-Any argument that is not explicitly specified by the user will assume the default value specified in the function. Note that for several arguments for concept or cohort definition IDs we can use the `exposureIdRef` (default = `"exposureId"`) in the `Exposure` objects that we used in `createExposuresOutcome()`. In this case, we defined the argument `includeEraIds` to get the value of the `exposureId` variable, meaning it will take the value of the diclofenac concept ID, or any of the negative control IDs. Also note that we set `exposureOfInterest = TRUE`, which will cause the estimate for this covariate to be included in the result summary later on.
+Any argument that is not explicitly specified by the user will assume the default value specified in the companion function. Note that for several arguments for concept or cohort definition IDs we can use the `exposureIdRef` (default = `"exposureId"`) in the `Exposure` objects that we used in `createExposuresOutcome()`. In this case, we defined the argument `includeEraIds` to get the value of the `exposureId` variable, meaning it will take the value of the diclofenac concept ID, or any of the negative control IDs. Also note that we set `exposureOfInterest = TRUE`, which will cause the estimate for this covariate to be included in the result summary later on.
 
 **Important: at least one era covariate in your analysis must have `exposureOfInterest = TRUE`.**
 
@@ -303,9 +305,21 @@ sccsAnalysisList <- list(
 
 A convenient way to save `sccsAnalysisList` to file is by using the `saveSccsAnalysisList` function, and we can load it again using the `loadSccsAnalysisList` function.
 
+We combine the exposures-outcomes and analysis lists into the full `sccsAnalysisSpecifications`:
+
+```{r eval=TRUE}
+sccsAnalysesSpecifications <- createSccsAnalysesSpecifications(
+  sccsAnalysisList = sccsAnalysisList,
+  exposuresOutcomeList = exposuresOutcomeList,
+  controlType = "exposure"
+)
+```
+
+This specifies we will run all analyses against all hypotheses of interest, meaning that the total number of outcome models is `length(sccsAnalysisList) * length(exposuresOutcomeList)`. (If we want, we can skip some of these combinations using the `analysesToExclude` argument of `createSccsAnalysesSpecifications()`.)
+
 # Executing multiple analyses
 
-We can now run the analyses against the hypotheses of interest using the `runSccsAnalyses()` function. This function will run all specified analyses against all hypotheses of interest, meaning that the total number of outcome models is `length(sccsAnalysisList) * length(exposuresOutcomeList)`. (If we want, we can skip some of these combinations using the `analysesToExclude` argument.)
+We can now run the specified analyses using the `runSccsAnalyses()` function:
 
 ```{r eval=FALSE}
 multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(
@@ -320,11 +334,8 @@ referenceTable <- runSccsAnalyses(
   outcomeDatabaseSchema = cohortDatabaseSchema,
   outcomeTable = cohortTable,
   outputFolder = outputFolder,
-  combineDataFetchAcrossOutcomes = TRUE,
-  exposuresOutcomeList = exposuresOutcomeList,
-  sccsAnalysisList = sccsAnalysisList,
   sccsMultiThreadingSettings = multiThreadingSettings,
-  controlType = "exposure"
+  sccsAnalysesSpecifications = sccsAnalysesSpecifications
 )
 ```
 
@@ -342,8 +353,8 @@ The result of the `runSccsAnalyses()` is a data frame with one row per exposures
 
 ```{r eval=FALSE}
 sccsModelFile <- referenceTable$sccsModelFile[result$exposureId == diclofenac &
-  referenceTable$outcomeId == giBleed &
-  referenceTable$analysisId == 1]
+                                                referenceTable$outcomeId == giBleed &
+                                                referenceTable$analysisId == 1]
 sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
 sccsModel
 ```
@@ -351,8 +362,8 @@ sccsModel
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
   referenceTable <- getFileReference(outputFolder)
   sccsModelFile <- referenceTable$sccsModelFile[referenceTable$exposureId == diclofenac &
-    referenceTable$outcomeId == giBleed &
-    referenceTable$analysisId == 1]
+                                                  referenceTable$outcomeId == giBleed &
+                                                  referenceTable$analysisId == 1]
   sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
   sccsModel
 }
@@ -379,44 +390,48 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 
 This tells us, per exposure-outcome-analysis combination (so possible multiple rows per SCCS model) the estimated relative risk and 95% confidence interval, as well as the number of subjects (cases) and the number of events observed for those subjects. The only covariates included in this summary are those we marked with `exposureOfInterest = TRUE` when calling `createEraCovariateSettings()` earlier.
 
+## Diagnostics summary
+
+The `runSccsAnalyses()` function automatically executes diagnostics for the major assumptions of the SCCS design. You can view a summary of the diagnostics results:
+
+```{r eval=FALSE}
+diagnosticsSum <- getDiagnosticsSummary(outputFolder)
+head(diagnosticsSum)
+```
+```{r echo=FALSE,message=FALSE}
+if (file.exists(file.path(outputFolder, "diagnosticsSummary.rds"))) {
+  diagnosticsSum <- getDiagnosticsSummary(outputFolder)
+  head(diagnosticsSum)
+}
+```
+
+For each of the diagnostics, this summary reports whether an analysis failed or passed the diagnostic. The thresholds used can be specified in the `createSccsAnalysesSpecifications()` function.
+
+
 ## Negative control distribution
 
-Now that we have produced estimates for all outcomes including our negative controls, we can look at the distribution of negative controls. In each plot, the blue dots represent our negative control exposures, and the yellow diamond represents our exposure of interest: diclofenac. An unbiased, well-calibrated analysis should have 95% of the negative controls between the dashed lines (ie. 95% should have p > .05). Note that empirical calibration was already automatically performed, and calibrated confidence intervals and p-values are included separately in the analyses summary.
+Now that we have produced estimates for all outcomes including our negative controls, we can look at the distribution of negative controls. In each plot, the blue dots represent our negative control exposures, and the yellow diamond represents our exposure of interest: diclofenac. An unbiased, well-calibrated analysis should have 95% of the negative controls between the dashed lines (ie. 95% should have p > .05). Note that empirical calibration was already automatically performed, and calibrated confidence intervals and p-values are included separately in the analyses summary. 
+
+Before viewing the estimates, we should remove those that fail one of our diagnostics. For the first analysis, that means none of the estimates remain:
 
 ```{r eval=FALSE}
 install.packages("EmpiricalCalibration")
 library(EmpiricalCalibration)
 
 # Analysis 1: Simplest model
-negCons <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId != diclofenac, ]
-ei <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == diclofenac, ]
-null <- fitNull(
-  negCons$logRr,
-  negCons$seLogRr
-)
-plotCalibrationEffect(
-  logRrNegatives = negCons$logRr,
-  seLogRrNegatives = negCons$seLogRr,
-  logRrPositives = ei$logRr,
-  seLogRrPositives = ei$seLogRr,
-  null
-)
+analysis1Estimates <-  resultsSum |>
+  inner_join(diagnosticsSum) |>
+  filter(analysisId == 1 & unblind == 1)
+
+nrow(analysis1Estimates)
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId != diclofenac, ]
-  ei <- resultsSum[resultsSum$analysisId == 1 & resultsSum$eraId == diclofenac, ]
-  null <- fitNull(
-    negCons$logRr,
-    negCons$seLogRr
-  )
-  plotCalibrationEffect(
-    logRrNegatives = negCons$logRr,
-    seLogRrNegatives = negCons$seLogRr,
-    logRrPositives = ei$logRr,
-    seLogRrPositives = ei$seLogRr,
-    null
-  )
+  analysis1Estimates <-  resultsSum |>
+    inner_join(diagnosticsSum) |>
+    filter(analysisId == 1 & unblind == 1)
+  
+  nrow(analysis1Estimates)
 }
 ```
 
