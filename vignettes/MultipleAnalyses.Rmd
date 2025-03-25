@@ -10,13 +10,13 @@ output:
     number_sections: yes
     toc: yes
 vignette: >
-%\VignetteIndexEntry{Multiple analyses using SelfControlledCaseSeries}
+  %\VignetteIndexEntry{Multiple analyses using SelfControlledCaseSeries}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-  ---
+---
   
   
-  ```{r echo = FALSE, message = FALSE, warning = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
 library(EmpiricalCalibration)
 outputFolder <- "e:/temp/sccsVignette2"
