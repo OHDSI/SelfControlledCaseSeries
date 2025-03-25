@@ -100,7 +100,7 @@ DatabaseConnector::disconnect(connection)
 
 The first group of arguments define the exposures and outcome. Here we demonstrate how to create an exposures-outcome set:
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 diclofenac <- 1124300
 negativeControls <- c(
   705178, 705944, 710650, 714785, 719174, 719311, 735340, 742185,
