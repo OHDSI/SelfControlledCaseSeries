@@ -21,31 +21,52 @@ Features
 - Options for constructing different types of covariates and risk windows, including pre-exposure windows (to capture contra-indications).
 - Optionally use regularization on all covariates except the outcome of interest.
 - Also provides the self-controlled risk interval design as a special case of the SCCS.
+- Includes diagnostics for all major assumptions of the SCCS design.
 
 Example
 =======
 
 ```r
-sccsData <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeIds = 192671,
-                          exposureIds = 1124300)
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  outcomeIds = 192671,
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    exposureIds = 1124300
+  )
+)
 
-studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = 192671,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+studyPop <- createStudyPopulation(
+  sccsData = sccsData,
+  outcomeId = 192671,
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE,
+    naivePeriod = 180
+  )
+)
+ 
+  
+covarDiclofenac = createEraCovariateSettings(
+  label = "Exposure of interest",
+  includeEraIds = 1124300,
+  start = 0,
+  end = 0,
+  endAnchor = "era end"
+)
 
-covarDiclofenac = createEraCovariateSettings(label = "Exposure of interest",
-                                             includeEraIds = 1124300,
-                                             start = 0,
-                                             end = 0,
-                                             endAnchor = "era end")
+sccsIntervalData <- createSccsIntervalData(
+  studyPop,
+  sccsData,
+  createSccsIntervalDataArgs =  createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = covarDiclofenac
+  )
+)
 
-sccsIntervalData <- createSccsIntervalData(studyPop,
-                                           sccsData,
-                                           eraCovariateSettings = covarDiclofenac)
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
+
 model
 # SccsModel object
 # 

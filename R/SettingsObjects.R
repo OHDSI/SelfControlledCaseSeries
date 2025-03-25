@@ -525,7 +525,7 @@ GetDbSccsDataArgs <- R6Class(
 #' @param minAge  Minimum age at which patient time will be included in the analysis. Note that information prior to the min age is still used to determine exposure status after the minimum age (e.g. when a prescription was started just prior to reaching the minimum age). Also, outcomes occurring before the minimum age is reached will be considered as prior outcomes when using first outcomes only. Age should be specified in years, but non-integer values are allowed. If not specified, no age restriction will be applied.
 #' @param maxAge  Maximum age at which patient time will be included in the analysis. Age should be specified in years, but non-integer values are allowed. If not specified, no age restriction will be applied.
 #' @param genderConceptIds  Set of gender concept IDs to restrict the population to. If not specified, no restriction on gender will be applied.
-#' @param restrictTimeToEraId  If provided, study time (for all patients) will be restricted to the calender time when that era was observed in the data. For example, if the era ID refers to a drug, study time will be restricted to when the drug was on the market.
+#' @param restrictTimeToEraId  If provided, study time (for all patients) will be restricted to the calendar time when that era was observed in the data. For example, if the era ID refers to a drug, study time will be restricted to when the drug was on the market.
 #'
 #' @return
 #' An object of type `CreateStudyPopulationArgs`.

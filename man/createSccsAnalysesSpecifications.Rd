@@ -2,7 +2,7 @@
 % Please edit documentation in R/SettingsObjects.R
 \name{createSccsAnalysesSpecifications}
 \alias{createSccsAnalysesSpecifications}
-\title{Create SCCS study specifications}
+\title{Create full SCCS analysis specifications}
 \usage{
 createSccsAnalysesSpecifications(
   sccsAnalysisList,
@@ -38,7 +38,7 @@ outcome are grouped together.}
 An object of type \code{SccsAnalysesSpecifications}.
 }
 \description{
-Create SCCS study specifications
+Create full SCCS analysis specifications
 }
 \details{
 \subsection{Analyses to Exclude}{

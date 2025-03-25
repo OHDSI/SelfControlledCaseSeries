@@ -27,7 +27,7 @@ createSccsSimulationSettings(
   seasonKnots = 5,
   includeCalendarTimeEffect = TRUE,
   calendarTimeKnots = 5,
-  calenderTimeMonotonic = FALSE,
+  calendarTimeMonotonic = FALSE,
   outcomeId = 10
 )
 }
@@ -78,7 +78,7 @@ function.}
 
 \item{calendarTimeKnots}{Number of knots in the calendar time spline.}
 
-\item{calenderTimeMonotonic}{Should the calender time effect be monotonic?}
+\item{calendarTimeMonotonic}{Should the calender time effect be monotonic?}
 
 \item{outcomeId}{The ID to be used for the outcome.}
 }

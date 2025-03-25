@@ -17,7 +17,7 @@ Description: SelfControlledCaseSeries is an R package for performing self-
 	using splines assuming constant hazard within calendar months. Event-dependent 
 	censoring of the observation period can be corrected for. Many exposures can be
 	included at once (MSCCS), with regularization on all coefficients except for the
-	exposure of interest.
+	exposure of interest. Includes diagnostics for all major assumptions of the SCCS.
 VignetteBuilder: knitr
 URL:  https://ohdsi.github.io/SelfControlledCaseSeries/, https://github.com/OHDSI/SelfControlledCaseSeries
 BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues

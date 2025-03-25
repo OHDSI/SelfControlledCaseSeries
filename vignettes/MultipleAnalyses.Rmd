@@ -49,7 +49,7 @@ The function arguments you need to define have been divided into four groups:
 3. Arguments that are the output of a previous function in the `SelfControlledCaseSeries` package, such as the `SccsIntervalData` argument of the `createSccsIntervalData` function. These cannot be specified by the user.
 4. Arguments that are specific to an environment, such as the connection details for connecting to the server, and the name of the schema holding the CDM data.
 
-Arguments in groups 1 and 2 together fully specify the analyses, and sharing these with other sites would allow them to fully reproduce the study. Together, they are therefore refered to as the 'SCCS analysis specifications'.
+Arguments in groups 1 and 2 together fully specify the analyses, and sharing these with other sites would allow them to fully reproduce the study. Together, they are therefore referred to as the 'SCCS analysis specifications'.
 
 # Preparation for the example
 

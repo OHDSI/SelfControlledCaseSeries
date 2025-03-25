@@ -24,7 +24,7 @@ createCreateStudyPopulationArgs(
 
 \item{genderConceptIds}{Set of gender concept IDs to restrict the population to. If not specified, no restriction on gender will be applied.}
 
-\item{restrictTimeToEraId}{If provided, study time (for all patients) will be restricted to the calender time when that era was observed in the data. For example, if the era ID refers to a drug, study time will be restricted to when the drug was on the market.}
+\item{restrictTimeToEraId}{If provided, study time (for all patients) will be restricted to the calendar time when that era was observed in the data. For example, if the era ID refers to a drug, study time will be restricted to when the drug was on the market.}
 }
 \value{
 An object of type \code{CreateStudyPopulationArgs}.

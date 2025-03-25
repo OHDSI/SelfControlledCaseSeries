@@ -92,7 +92,7 @@ createSimulationRiskWindow <- function(start = 0,
 #' @param seasonKnots                 Number of knots in the seasonality spline.
 #' @param includeCalendarTimeEffect   Include a calendar time effect for the outcome?
 #' @param calendarTimeKnots           Number of knots in the calendar time spline.
-#' @param calenderTimeMonotonic       Should the calender time effect be monotonic?
+#' @param calendarTimeMonotonic       Should the calender time effect be monotonic?
 #' @param outcomeId                   The ID to be used for the outcome.
 #'
 #' @return
@@ -123,7 +123,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          seasonKnots = 5,
                                          includeCalendarTimeEffect = TRUE,
                                          calendarTimeKnots = 5,
-                                         calenderTimeMonotonic = FALSE,
+                                         calendarTimeMonotonic = FALSE,
                                          outcomeId = 10) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertNumeric(meanPatientTime, lower = 0, len = 1, add = errorMessages)
@@ -150,7 +150,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
   checkmate::assertInt(seasonKnots, lower = 2, add = errorMessages)
   checkmate::assertLogical(includeCalendarTimeEffect, len = 1, add = errorMessages)
   checkmate::assertInt(calendarTimeKnots, lower = 2, add = errorMessages)
-  checkmate::assertLogical(calenderTimeMonotonic, len = 1, add = errorMessages)
+  checkmate::assertLogical(calendarTimeMonotonic, len = 1, add = errorMessages)
   checkmate::assertInt(outcomeId, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
@@ -399,7 +399,7 @@ simulateSccsData <- function(nCases, settings) {
   }
   if (settings$includeCalendarTimeEffect) {
     calendarTime <- seq(settings$minCalendarTime, settings$maxCalendarTime, length.out = settings$calendarTimeKnots)
-    if (settings$calenderTimeMonotonic) {
+    if (settings$calendarTimeMonotonic) {
       increasing <- rbinom(1, 1, 0.5) == 1
       calendarTimeRisk <- rnorm(settings$calendarTimeKnots, 0, 0.5)
       if (increasing) {
