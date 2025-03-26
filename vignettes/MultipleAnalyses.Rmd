@@ -19,7 +19,7 @@ vignette: >
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(SelfControlledCaseSeries)
 library(EmpiricalCalibration)
-outputFolder <- "e:/temp/sccsVignette2"
+outputFolder <- "e:/temp/vignetteSccs2"
 diclofenac <- 1124300
 giBleed <- 77
 ```
@@ -435,70 +435,60 @@ if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
 }
 ```
 
+The same is true for analysis 2:
+
 ```{r eval=FALSE}
 # Analysis 2: Including prophylactics and pre-exposure
-negCons <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId != diclofenac, ]
-ei <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == diclofenac, ]
-null <- fitNull(
-  negCons$logRr,
-  negCons$seLogRr
-)
-plotCalibrationEffect(
-  logRrNegatives = negCons$logRr,
-  seLogRrNegatives = negCons$seLogRr,
-  logRrPositives = ei$logRr,
-  seLogRrPositives = ei$seLogRr,
-  null
+  analysis2Estimates <-  resultsSum |>
+    inner_join(diagnosticsSum) |>
+    filter(analysisId == 2 & unblind == 1)
+  
+  nrow(analysis2Estimates)
 )
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId != diclofenac, ]
-  ei <- resultsSum[resultsSum$analysisId == 2 & resultsSum$eraId == diclofenac, ]
-  null <- fitNull(
-    negCons$logRr,
-    negCons$seLogRr
-  )
-  plotCalibrationEffect(
-    logRrNegatives = negCons$logRr,
-    seLogRrNegatives = negCons$seLogRr,
-    logRrPositives = ei$logRr,
-    seLogRrPositives = ei$seLogRr,
-    null
-  )
+  analysis2Estimates <-  resultsSum |>
+    inner_join(diagnosticsSum) |>
+    filter(analysisId == 2 & unblind == 1)
+  
+  nrow(analysis2Estimates)
 }
 ```
+Only when we start to include corrections for season and calendar time do we pass diagnostics:
 
 ```{r eval=FALSE}
 # Analysis 3: Including prophylactics, season, calendar time, and pre-exposure
-negCons <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId != diclofenac, ]
-ei <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == diclofenac, ]
-null <- fitNull(
-  negCons$logRr,
-  negCons$seLogRr
-)
-plotCalibrationEffect(
-  logRrNegatives = negCons$logRr,
-  seLogRrNegatives = negCons$seLogRr,
-  logRrPositives = ei$logRr,
-  seLogRrPositives = ei$seLogRr,
-  null
-)
-```
-```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
-if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId != diclofenac, ]
-  ei <- resultsSum[resultsSum$analysisId == 3 & resultsSum$eraId == diclofenac, ]
-  null <- fitNull(
-    negCons$logRr,
-    negCons$seLogRr
-  )
+  analysis3Estimates <-  resultsSum |>
+    inner_join(diagnosticsSum) |>
+    filter(analysisId == 3 & unblind == 1)
+  
+  negCons <- analysis3Estimates |>
+    filter(eraId != diclofenac)
+  ei <- negCons <- analysis3Estimates |>
+    filter(eraId == diclofenac)
   plotCalibrationEffect(
     logRrNegatives = negCons$logRr,
     seLogRrNegatives = negCons$seLogRr,
     logRrPositives = ei$logRr,
-    seLogRrPositives = ei$seLogRr,
-    null
+    seLogRrPositives = ei$seLogRr
+  )
+```
+```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
+if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
+  analysis3Estimates <-  resultsSum |>
+    inner_join(diagnosticsSum) |>
+    filter(analysisId == 3 & unblind == 1)
+  
+  negCons <- analysis3Estimates |>
+    filter(eraId != diclofenac)
+  ei <- analysis3Estimates |>
+    filter(eraId == diclofenac)
+  plotCalibrationEffect(
+    logRrNegatives = negCons$logRr,
+    seLogRrNegatives = negCons$seLogRr,
+    logRrPositives = ei$logRr,
+    seLogRrPositives = ei$seLogRr
   )
 }
 ```
@@ -521,53 +511,36 @@ plotCalibrationEffect(
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != diclofenac, ]
-  ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == diclofenac, ]
-  null <- fitNull(
-    negCons$logRr,
-    negCons$seLogRr
-  )
+  analysis4Estimates <-  resultsSum |>
+    inner_join(diagnosticsSum) |>
+    filter(analysisId == 4 & unblind == 1)
+  
+  negCons <- analysis4Estimates |>
+    filter(eraId != diclofenac)
+  ei <- analysis4Estimates |>
+    filter(eraId == diclofenac)
   plotCalibrationEffect(
     logRrNegatives = negCons$logRr,
     seLogRrNegatives = negCons$seLogRr,
     logRrPositives = ei$logRr,
-    seLogRrPositives = ei$seLogRr,
-    null
+    seLogRrPositives = ei$seLogRr
   )
 }
 ```
 
+When using the adjustment for event-dependent observation end we do not pass diagnostics for any exposure-outcome pair:
+
 ```{r eval=FALSE}
 # Analysis 5: Adjusting for event-dependent obs. end
-negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != diclofenac, ]
-ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == diclofenac, ]
-null <- fitNull(
-  negCons$logRr,
-  negCons$seLogRr
-)
-plotCalibrationEffect(
-  logRrNegatives = negCons$logRr,
-  seLogRrNegatives = negCons$seLogRr,
-  logRrPositives = ei$logRr,
-  seLogRrPositives = ei$seLogRr,
-  null
-)
+nrow(analysis5Estimates)
 ```
 ```{r echo=FALSE,message=FALSE,warning=FALSE,eval=TRUE}
 if (file.exists(file.path(outputFolder, "outcomeModelReference.rds"))) {
-  negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != diclofenac, ]
-  ei <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId == diclofenac, ]
-  null <- fitNull(
-    negCons$logRr,
-    negCons$seLogRr
-  )
-  plotCalibrationEffect(
-    logRrNegatives = negCons$logRr,
-    seLogRrNegatives = negCons$seLogRr,
-    logRrPositives = ei$logRr,
-    seLogRrPositives = ei$seLogRr,
-    null
-  )
+   analysis5Estimates <-  resultsSum |>
+    inner_join(diagnosticsSum) |>
+    filter(analysisId == 5 & unblind == 1)
+  
+  nrow(analysis5Estimates)
 }
 ```
 

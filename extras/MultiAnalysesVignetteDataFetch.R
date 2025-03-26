@@ -248,14 +248,16 @@ saveSccsAnalysisList(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList
 # Run analyses --------------------------------------------------------
 exposuresOutcomeList <- loadExposuresOutcomeList(file.path(outputFolder, "exposuresOutcomeList.json"))
 sccsAnalysisList <- loadSccsAnalysisList(file.path(outputFolder, "sccsAnalysisList.json"))
+
+
 multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(parallel::detectCores() - 1)
 
 
 multiThreadingSettings$fitSccsModelThreads = 1
 multiThreadingSettings$cvThreads = 10
 
-ParallelLogger::addDefaultFileLogger(file.path(outputFolder, "log.txt"))
-ParallelLogger::addDefaultErrorReportLogger(file.path(outputFolder, "errorReport.txt"))
+# ParallelLogger::addDefaultFileLogger(file.path(outputFolder, "log.txt"))
+# ParallelLogger::addDefaultErrorReportLogger(file.path(outputFolder, "errorReport.txt"))
 
 runSccsAnalyses(
   connectionDetails = connectionDetails,
@@ -265,11 +267,13 @@ runSccsAnalyses(
   outcomeDatabaseSchema = cohortDatabaseSchema,
   outcomeTable = cohortTable,
   outputFolder = outputFolder,
-  combineDataFetchAcrossOutcomes = TRUE,
-  exposuresOutcomeList = exposuresOutcomeList,
-  sccsAnalysisList = sccsAnalysisList,
   sccsMultiThreadingSettings = multiThreadingSettings,
-  controlType = "exposure"
+  sccsAnalysesSpecifications = createSccsAnalysesSpecifications(
+    combineDataFetchAcrossOutcomes = TRUE,
+    exposuresOutcomeList = exposuresOutcomeList,
+    sccsAnalysisList = sccsAnalysisList,
+    controlType = "exposure"
+  )
 )
 
 referenceTable <- getFileReference(outputFolder)
