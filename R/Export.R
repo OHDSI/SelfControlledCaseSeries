@@ -244,7 +244,7 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
 
     exposuresOutcomeSet <- tibble(
       exposuresOutcomeSetSeqId = i,
-      nestingCohortId = eso$nestingCohortId,
+      nestingCohortId = if (is.null(eso$nestingCohortId)) NA else as.numeric(eso$nestingCohortId),
       outcomeId = eso$outcomeId
     )
     sccsExposuresOutcomeSet[[length(sccsExposuresOutcomeSet) + 1]] <- exposuresOutcomeSet
@@ -548,7 +548,8 @@ exportGroup <- function(group, outputFolder, databaseId) {
           bind_cols(
             sccsModel$logLikelihoodProfiles[[j]] |>
               rename(logRr = "point", logLikelihood = "value") |>
-              mutate(covariateId = as.numeric(names(sccsModel$logLikelihoodProfiles[j])))
+              mutate(covariateId = as.numeric(names(sccsModel$logLikelihoodProfiles[j])),
+                     gradient = as.numeric(NA))
           ) |>
           mutate(databaseId = !!databaseId)
       }

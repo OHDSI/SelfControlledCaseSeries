@@ -342,7 +342,7 @@ DatabaseConnector::disconnect(connection)
 
 # Launch Shiny app -------------------------------------------------------------
 library(dplyr)
-outputFolder <- "e:/temp/sccsVignette2"
+outputFolder <- "e:/temp/vignetteSccs2"
 databaseFile <-  file.path(outputFolder, "export", "SccsResults.sqlite")
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "sqlite",
@@ -357,11 +357,11 @@ resultDatabaseDetails <- list(
   schema = "main",
   databaseTable = 'database_meta_data'
 )
-estimationModule <- ShinyAppBuilder::createDefaultEstimationConfig()
-aboutModule <- ShinyAppBuilder::createDefaultAboutConfig()
-shinyAppConfig <- ShinyAppBuilder::initializeModuleConfig() |>
-  ShinyAppBuilder::addModuleConfig(aboutModule) |>
-  ShinyAppBuilder::addModuleConfig(estimationModule)
+estimationModule <- OhdsiShinyAppBuilder::createDefaultEstimationConfig()
+aboutModule <- OhdsiShinyAppBuilder::createDefaultAboutConfig()
+shinyAppConfig <- OhdsiShinyAppBuilder::initializeModuleConfig() |>
+  OhdsiShinyAppBuilder::addModuleConfig(aboutModule) |>
+  OhdsiShinyAppBuilder::addModuleConfig(estimationModule)
 connectionHandler <- ResultModelManager::ConnectionHandler$new(connectionDetails)
-ShinyAppBuilder::viewShiny(shinyAppConfig, connectionHandler)
+OhdsiShinyAppBuilder::viewShiny(shinyAppConfig, connectionHandler)
 connectionHandler$closeConnection()
