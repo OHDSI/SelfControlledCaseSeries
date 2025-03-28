@@ -124,9 +124,11 @@ result <- runSccsAnalyses(
   outcomeDatabaseSchema = "main",
   outcomeTable = "cohort",
   outputFolder = outputFolder,
-  exposuresOutcomeList = exposuresOutcomeList,
-  sccsAnalysisList = sccsAnalysisList,
-  analysesToExclude = analysesToExclude
+  sccsAnalysesSpecifications = createSccsAnalysesSpecifications(
+    exposuresOutcomeList = exposuresOutcomeList,
+    sccsAnalysisList = sccsAnalysisList,
+    analysesToExclude = analysesToExclude
+  )
 )
 
 
