@@ -1,13 +1,16 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>/404.html</loc></url>
-<url><loc>/articles/index.html</loc></url>
 <url><loc>/articles/MultipleAnalyses.html</loc></url>
 <url><loc>/articles/ResultsSchema.html</loc></url>
 <url><loc>/articles/SingleStudies.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
 <url><loc>/news/index.html</loc></url>
 <url><loc>/pull_request_template.html</loc></url>
+<url><loc>/reference/SccsData-class.html</loc></url>
+<url><loc>/reference/SccsIntervalData-class.html</loc></url>
+<url><loc>/reference/SelfControlledCaseSeries-package.html</loc></url>
 <url><loc>/reference/computeMdrr.html</loc></url>
 <url><loc>/reference/computePreExposureGainP.html</loc></url>
 <url><loc>/reference/computeTimeStability.html</loc></url>
@@ -79,9 +82,6 @@
 <url><loc>/reference/saveSccsData.html</loc></url>
 <url><loc>/reference/saveSccsEraData.html</loc></url>
 <url><loc>/reference/saveSccsIntervalData.html</loc></url>
-<url><loc>/reference/SccsData-class.html</loc></url>
-<url><loc>/reference/SccsIntervalData-class.html</loc></url>
-<url><loc>/reference/SelfControlledCaseSeries-package.html</loc></url>
 <url><loc>/reference/simulateSccsData.html</loc></url>
 <url><loc>/reference/summarizeSccsAnalyses.html</loc></url>
 <url><loc>/reference/uploadResults.html</loc></url>
