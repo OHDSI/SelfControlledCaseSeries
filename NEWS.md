@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 5.3.2
+==============================
+
+Bugfixes
+
+1. Fixed error in calendar time splines when there are cases, but not in the study period.
+
+
 SelfControlledCaseSeries 5.3.1
 ==============================
 

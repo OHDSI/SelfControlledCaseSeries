@@ -31,7 +31,7 @@ computeOutcomeRatePerMonth <- function(studyPopulation, sccsModel = NULL) {
       adjustedRatio = 1.0,
       monthStartDate = as.Date("2000-01-01"),
       monthEndDate = as.Date("2000-01-01")) %>%
-      filter(month == 0)
+      filter(.data$month == 0)
     return(result)
   }
   cases <- studyPopulation$cases %>%

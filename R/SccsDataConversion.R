@@ -325,16 +325,18 @@ addCalendarTimeSettings <- function(settings,
                  .data$month <= studyPeriods$studyEndMonth[i]) %>%
           mutate(cumCount = cumsum(.data$observationPeriodCount))
         totalInPeriod <- sum(countsInPeriod$observationPeriodCount)
-        # Evenly divide free knots (knots not at boundary) over periods:
-        freeKnotsInPeriod <- round((calendarTimeCovariateSettings$calendarTimeKnots - 2) * (totalInPeriod / total))
-        knotsInPeriod <- freeKnotsInPeriod + 2
-        cutoffs <- totalInPeriod * seq(0.005, 0.995, length.out = knotsInPeriod)
-        calendarTimeKnots <- rep(0, knotsInPeriod)
-        for (j in seq_len(knotsInPeriod)) {
-          calendarTimeKnots[j] <- min(countsInPeriod$month[countsInPeriod$cumCount >= cutoffs[j]])
+        if (totalInPeriod > 0) {
+          # Evenly divide free knots (knots not at boundary) over periods:
+          freeKnotsInPeriod <- round((calendarTimeCovariateSettings$calendarTimeKnots - 2) * (totalInPeriod / total))
+          knotsInPeriod <- freeKnotsInPeriod + 2
+          cutoffs <- totalInPeriod * seq(0.005, 0.995, length.out = knotsInPeriod)
+          calendarTimeKnots <- rep(0, knotsInPeriod)
+          for (j in seq_len(knotsInPeriod)) {
+            calendarTimeKnots[j] <- min(countsInPeriod$month[countsInPeriod$cumCount >= cutoffs[j]])
+          }
+          calendarTimeKnots <- calendarTimeKnots[!duplicated(calendarTimeKnots)]
+          calendarTimeKnotsInPeriods[[length(calendarTimeKnotsInPeriods) + 1]] <- calendarTimeKnots
         }
-        calendarTimeKnots <- calendarTimeKnots[!duplicated(calendarTimeKnots)]
-        calendarTimeKnotsInPeriods[[length(calendarTimeKnotsInPeriods) + 1]] <- calendarTimeKnots
       }
     } else {
       knotDates <- calendarTimeCovariateSettings$calendarTimeKnots
