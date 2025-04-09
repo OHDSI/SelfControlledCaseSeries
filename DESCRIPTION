@@ -51,8 +51,6 @@ Suggests:
 	rmarkdown,
 	Eunomia,
 	withr
-Remotes:
-  ohdsi/ParallelLogger@develop
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes

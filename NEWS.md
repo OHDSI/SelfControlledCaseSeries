@@ -38,6 +38,14 @@ Other changes:
 13. Removed `cdmVersion` argument from the `getDbSccsData()` and `runSccsAnalyses()` functions.
 
 
+SelfControlledCaseSeries 5.3.3
+==============================
+
+Bugfixes
+
+1. Fixed another error in calendar time splines when there are cases, but not in the study period, but only after restricting to first outcome only.
+
+
 SelfControlledCaseSeries 5.3.2
 ==============================
 

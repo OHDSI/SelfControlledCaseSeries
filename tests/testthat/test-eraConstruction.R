@@ -715,3 +715,67 @@ test_that("End of observation era", {
   expect_equal(result$covariates$stratumId, c(1, 1))
   expect_equal(result$covariates$covariateId, c(99, 1000))
 })
+
+test_that("Splines when no data in study period", {
+  cases <- tibble(
+    observationPeriodId = "1000",
+    caseId = 1,
+    personId = "1",
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-1-1"),
+    startDay = 30, # study period starts after 30 days
+    endDay = 99,
+    noninformativeEndCensor = 0
+  )
+  eras <- tibble(
+    eraType = c("hoi", "hoi", "hoi", "hoi", "hoi", "hoi", "rx"),
+    caseId = c(1, 1, 1, 1, 1, 1, 1),
+    eraId = c(10, 10, 10, 10, 10, 10, 11),
+    eraValue = c(1, 1, 1, 1, 1, 1, 1),
+    eraStartDay = c(1, 2, 3, 4, 5, 6, 25), # All outcomes before study period start
+    eraEndDay = c(1, 2, 3, 4, 5, 6, 75)
+  )
+  eraRef <- eras %>%
+    distinct(.data$eraId, .data$eraType) %>%
+    mutate(eraName = "")
+
+  data <- Andromeda::andromeda(
+    cases = cases %>%
+      mutate(observationPeriodStartDate = observationPeriodStartDate),
+    eras = eras,
+    eraRef = eraRef
+  )
+  attr(data, "metaData") <- list(
+    outcomeIds = 10,
+    attrition = tibble(outcomeId = 10),
+    studyPeriods = tibble(studyStartDate = as.Date("2000-2-1"),
+                          studyEndDate = as.Date("2000-12-31")),
+    prevalences = tibble(outcomeId = 10)
+  )
+  class(data) <- "SccsData"
+  attr(class(data), "package") <- "SelfControlledCaseSeries"
+
+  studyPop <- createStudyPopulation(
+    sccsData = data,
+    outcomeId = 10,
+    createStudyPopulationArgs = createCreateStudyPopulationArgs()
+  )
+  covariateSettings <- createEraCovariateSettings(
+    includeEraIds = 11,
+    start = -30,
+    end = -1,
+    endAnchor = "era start"
+  )
+  expect_warning({
+    result <- createSccsIntervalData(
+      studyPopulation = studyPop,
+      sccsData = data,
+      createCreateSccsIntervalDataArgs(
+        calendarTimeCovariateSettings = createCalendarTimeCovariateSettings(),
+        eraCovariateSettings = covariateSettings)
+    )
+
+  }, "All outcomes fall outside of all study periods"
+  )
+  expect_equal(result$outcomes |> count() |> pull(), 0)
+})
