@@ -342,6 +342,13 @@ addCalendarTimeSettings <- function(settings,
       knotDates <- calendarTimeCovariateSettings$calendarTimeKnots
       calendarTimeKnotsInPeriods <- list(sort(convertDateToMonth(knotDates)))
     }
+    if (length(calendarTimeKnotsInPeriods) == 0) {
+      warning("All outcomes fall outside of all study periods. Unable to model calendar time")
+      settings$calendarTimeOffset <- 0
+      settings$calendarTimeDesignMatrix <- matrix()
+      settings$includeCalendarTime <- FALSE
+      return(settings)
+    }
     firstKnot <- calendarTimeKnotsInPeriods[[1]][1]
     lastKnot <- last(calendarTimeKnotsInPeriods[[length(calendarTimeKnotsInPeriods)]])
     settings$calendarTimeOffset <- firstKnot
