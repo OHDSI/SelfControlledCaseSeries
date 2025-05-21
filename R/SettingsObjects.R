@@ -848,16 +848,6 @@ SccsAnalysis <- R6Class(
   )
 )
 
-settings <- createSccsAnalysis(
-  analysisId = 1,
-  description = "SCCS",
-  getDbSccsDataArgs = createGetDbSccsDataArgs(),
-  createStudyPopulationArgs = createCreateStudyPopulationArgs(),
-  createIntervalDataArgs = createCreateSccsIntervalDataArgs(
-    eraCovariateSettings = createEraCovariateSettings(includeEraIds = "exposureId", exposureOfInterest = TRUE)),
-  fitSccsModelArgs = createFitSccsModelArgs()
-)
-
 
 #' Create exposure definition
 #'
