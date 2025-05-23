@@ -1244,3 +1244,18 @@ convertSccsAnalysesSpecificationsToJson <- function(sccsAnalysesSpecifications) 
 convertJsonToSccsAnalysesSpecifications <- function(json) {
   return(SccsAnalysesSpecifications$new(json = json))
 }
+
+#' Convert untyped list to SccsAnalysesSpecifications
+#'
+#' @param untypedList A list of untyped objects. For example, these could be objects from a call
+#'                    to `jsonlite::fromJSON()`. Importantly, `simplifyDataFrame` must be set to
+#'                    `FALSE` when doing so.
+#'
+#' @returns
+#' An object of type `SccsAnalysesSpecifications`.
+#'
+#'
+#' @export
+convertUntypedListToSccsAnalysesSpecifications <- function(untypedList) {
+  return(SccsAnalysesSpecifications$new(untypedList = untypedList))
+}

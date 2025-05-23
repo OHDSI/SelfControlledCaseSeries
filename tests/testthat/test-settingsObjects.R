@@ -231,6 +231,14 @@ test_that("SccsAnalysesSpecifications serialization and deserialization", {
   settings2 <- SccsAnalysesSpecifications$new(json = settings$toJson())
   expect_equal(settings, settings2, tolerance = 1e-4)
 
+  settings2 <- convertUntypedListToSccsAnalysesSpecifications(settings$toList())
+  expect_equal(settings, settings2, tolerance = 1e-4)
+
+  json <- settings$toJson()
+  untypedList <- jsonlite::fromJSON(json, simplifyDataFrame = FALSE)
+  settings2 <- convertUntypedListToSccsAnalysesSpecifications(untypedList)
+  expect_equal(settings, settings2, tolerance = 1e-4)
+
   settings$analysesToExclude <- NULL
   settings2 <- SccsAnalysesSpecifications$new(json = settings$toJson())
   expect_equal(settings, settings2, tolerance = 1e-4)
