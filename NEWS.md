@@ -5,6 +5,8 @@ Bugfixes
 
 1. Fixed another error in calendar time splines when there are cases, but not in the study period, but only after restricting to first outcome only.
 
+2. Fixed bug in attrition table that could lead to non-integer observed days.
+
 
 SelfControlledCaseSeries 5.3.2
 ==============================
