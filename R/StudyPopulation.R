@@ -116,7 +116,7 @@ createStudyPopulation <- function(sccsData,
   if (!is.null(createStudyPopulationArgs$minAge) || !is.null(createStudyPopulationArgs$maxAge)) {
     labels <- c()
     if (!is.null(createStudyPopulationArgs$minAge) && nrow(cases) > 0) {
-      minAgeInDays <- createStudyPopulationArgs$minAge * 365.25
+      minAgeInDays <- round(createStudyPopulationArgs$minAge * 365.25)
       cases <- cases |>
         mutate(startAge = .data$ageAtObsStart + .data$startDay ,
                endAge = .data$ageAtObsStart + .data$endDay) |>
