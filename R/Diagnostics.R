@@ -235,6 +235,10 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   cases <- studyPopulation$cases %>%
     select("caseId", "startDay", "endDay")
 
+  if (nrow(cases) == 0) {
+    warning("No cases")
+    return(as.numeric(NA))
+  }
   exposures <- sccsData$eras %>%
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
     inner_join(cases,
@@ -244,7 +248,7 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
 
   if (nrow(exposures) == 0) {
     warning("No exposures found with era ID ", exposureEraId)
-    return(NA)
+    return(as.numeric(NA))
   }
   firstExposures <- exposures %>%
     group_by(.data$caseId, .data$startDay, .data$endDay) %>%

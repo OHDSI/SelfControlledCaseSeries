@@ -7,6 +7,8 @@ Bugfixes
 
 2. Fixed bug in attrition table that could lead to non-integer observed days.
 
+3. Adding support for Andromeda 1.0.0.
+
 
 SelfControlledCaseSeries 5.3.2
 ==============================

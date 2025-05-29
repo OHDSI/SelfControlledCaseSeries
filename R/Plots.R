@@ -178,17 +178,23 @@ computeTimeToEvent <- function(studyPopulation,
   cases <- studyPopulation$cases %>%
     select("caseId", "startDay", "endDay")
 
-  exposures <- sccsData$eras %>%
-    filter(.data$eraId == exposureEraId & .data$eraType == "rx") %>%
-    group_by(.data$caseId) %>%
-    inner_join(cases,
-               by = join_by("caseId", "eraStartDay" >= "startDay", "eraStartDay" < "endDay"),
-               copy = TRUE) %>%
-    collect()
+  if (nrow(cases) == 0) {
+    # For unknown reasons sometimes the field types of cases flips to logical when
+    # there are no cases, causing an error in the comparison of startDay below. So
+    # just directly setting exposures to empty tibble:
+    exposures <- tibble()
+  } else {
+    exposures <- sccsData$eras |>
+      filter(.data$eraId == exposureEraId & .data$eraType == "rx") |>
+      inner_join(cases,
+                 by = join_by("caseId", "eraStartDay" >= "startDay", "eraStartDay" < "endDay"),
+                 copy = TRUE) |>
+      collect()
+  }
 
   if (nrow(exposures) == 0) {
     warning("No exposures found with era ID ", exposureEraId)
-    tibble(
+    result <- tibble(
       number = 1,
       start = 1.0,
       end = 1.0,
@@ -196,15 +202,15 @@ computeTimeToEvent <- function(studyPopulation,
       eventsExposed = 1.0,
       eventsUnexposed = 1.0
     ) %>%
-      filter(.data$number == -1) %>%
-      return()
+      filter(.data$number == -1)
+    return(result)
   }
   firstExposures <- exposures %>%
     group_by(.data$caseId, .data$startDay, .data$endDay) %>%
     summarise(
       eraStartDay = min(.data$eraStartDay, na.rm = TRUE),
       eraEndDay = min(.data$eraEndDay, na.rm = TRUE),
-      .groups = "drop_last"
+      .groups = "drop"
     )
 
   outcomes <- studyPopulation$outcomes %>%
