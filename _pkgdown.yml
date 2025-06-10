@@ -1,5 +1,8 @@
+url: https://ohdsi.github.io/SelfControlledCaseSeries/
+
 template:
-  params:
+  bootstrap: 5
+  bslib:
     bootswatch: cosmo
 
 home:
@@ -49,6 +52,10 @@ reference:
     desc: >
       Functions for producing various study diagnostics.
     contents:
+      - checkEventExposureIndependenceAssumption
+      - checkEventObservationIndependenceAssumption
+      - checkRareOutcomeAssumption
+      - checkTimeStabilityAssumption
       - computeMdrr
       - computePreExposureGainP
       - computeTimeStability
@@ -65,16 +72,21 @@ reference:
       - ends_with("Args")
       - createExposure
       - createExposuresOutcome
+      - createSccsAnalysesSpecifications
       - saveExposuresOutcomeList
       - loadExposuresOutcomeList
       - createSccsAnalysis
       - saveSccsAnalysisList
       - loadSccsAnalysisList
+      - convertJsonToSccsAnalysesSpecifications
+      - convertSccsAnalysesSpecificationsToJson
+      - convertUntypedListToSccsAnalysesSpecifications
       - createSccsMultiThreadingSettings
       - createDefaultSccsMultiThreadingSettings
       - runSccsAnalyses
       - getFileReference
       - getResultsSummary
+      - getDiagnosticsSummary
       - createSccsDiagnosticThresholds
       - exportToCsv
   - title: "Result upload"

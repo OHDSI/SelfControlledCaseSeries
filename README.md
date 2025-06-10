@@ -2,9 +2,9 @@ SelfControlledCaseSeries
 ========================
 
 [![Build Status](https://github.com/OHDSI/SelfControlledCaseSeries/workflows/R-CMD-check/badge.svg)](https://github.com/OHDSI/SelfControlledCaseSeries/actions?query=workflow%3AR-CMD-check)
-[![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=main)](https://codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=main)
+[![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=main)](https://app.codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=main)
 
-SelfControlledCaseSeries is part of [HADES](https://ohdsi.github.io/Hades).
+SelfControlledCaseSeries is part of [HADES](https://ohdsi.github.io/Hades/).
 
 Introduction
 ============
@@ -89,7 +89,7 @@ SelfControlledCaseSeries is an R package, with some functions implemented in C++
 
 System Requirements
 ===================
-Requires R (version 4.0.0 or higher). Installation on Windows requires [RTools](https://cran.r-project.org/bin/windows/Rtools/). Libraries used in SelfControlledCaseSeries require Java.
+Requires R (version 4.1.0 or higher). Installation on Windows requires [RTools](https://cran.r-project.org/bin/windows/Rtools/). Libraries used in SelfControlledCaseSeries require Java.
 
 Installation
 ============
@@ -105,7 +105,7 @@ Installation
 
 User Documentation
 ==================
-Documentation can be found on the [package website](https://ohdsi.github.io/SelfControlledCaseSeries).
+Documentation can be found on the [package website](https://ohdsi.github.io/SelfControlledCaseSeries/).
 
 PDF versions of the documentation are also available:
 

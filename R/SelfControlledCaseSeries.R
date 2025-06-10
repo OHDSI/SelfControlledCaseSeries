@@ -24,7 +24,7 @@
 #' @importFrom grDevices rgb
 #' @importFrom methods is
 #' @importFrom stats aggregate coef confint dgamma nlm pgamma pnorm printCoefmat qnorm rnorm rpois runif splinefun quantile ppois dpois integrate optim pchisq rbinom
-#' @importFrom utils head tail setTxtProgressBar txtProgressBar packageVersion
+#' @importFrom utils head tail setTxtProgressBar txtProgressBar packageVersion installed.packages
 #' @import dplyr
 #' @import Cyclops
 #' @import DatabaseConnector
