@@ -90,11 +90,11 @@ loadSccsIntervalData <- function(file) {
 #' @rdname SccsIntervalData-class
 setMethod("show", "SccsIntervalData", function(object) {
   metaData <- attr(object, "metaData")
-  cli::cat_line(pillar::style_subtle("# SccsIntervalData object"))
-  cli::cat_line("")
-  cli::cat_line(paste("Outcome cohort ID:", metaData$outcomeId))
-  cli::cat_line("")
-  cli::cat_line(pillar::style_subtle("Inherits from Andromeda:"))
+  writeLines("# SccsIntervalData object")
+  writeLines("")
+  writeLines(paste("Outcome cohort ID:", metaData$outcomeId))
+  writeLines("")
+  writeLines("Inherits from Andromeda:")
   class(object) <- "Andromeda"
   attr(class(object), "package") <- "Andromeda"
   show(object)

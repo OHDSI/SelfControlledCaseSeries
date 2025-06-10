@@ -88,22 +88,22 @@ loadSccsData <- function(file) {
 #' @rdname SccsData-class
 setMethod("show", "SccsData", function(object) {
   metaData <- attr(object, "metaData")
-  cli::cat_line(pillar::style_subtle("# SccsData object"))
-  cli::cat_line("")
+  writeLines("# SccsData object")
+  writeLines("")
   if (length(metaData$exposureIds) == 0) {
-    cli::cat_line("All exposures")
+    writeLines("All exposures")
   } else {
-    cli::cat_line(paste(
+    writeLines(paste(
       "Exposure cohort ID(s):",
       paste(metaData$exposureIds, collapse = ",")
     ))
   }
-  cli::cat_line(paste(
+  writeLines(paste(
     "Outcome cohort ID(s):",
     paste(metaData$outcomeIds, collapse = ",")
   ))
-  cli::cat_line("")
-  cli::cat_line(pillar::style_subtle("Inherits from Andromeda:"))
+  writeLines("")
+  writeLines("Inherits from Andromeda:")
   class(object) <- "Andromeda"
   attr(class(object), "package") <- "Andromeda"
   show(object)

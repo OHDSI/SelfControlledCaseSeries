@@ -36,16 +36,14 @@ Imports:
 	ggplot2 (>= 3.4.0),
 	methods,
 	utils,
-	cli,
-	pillar,
 	checkmate,
 	readr,
 	ResultModelManager,
-	zip,
 	jsonlite,
 	digest,
 	R6
 Suggests:
+	zip,
 	testthat,
 	knitr,
 	rmarkdown,

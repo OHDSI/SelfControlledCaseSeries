@@ -94,6 +94,10 @@ uploadResults <- function(connectionDetails,
                           tempFolder = tempdir(),
                           tablePrefix = "",
                           ...) {
+  if (!"zip" %in% rownames(installed.packages())) {
+    warning("The 'zip' package must be installed to use this function")
+    return()
+  }
   unzipFolder <- tempfile("unzipTempFolder", tmpdir = tempFolder)
   dir.create(path = unzipFolder, recursive = TRUE)
   on.exit(unlink(unzipFolder, recursive = TRUE), add = TRUE)
