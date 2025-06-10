@@ -118,29 +118,29 @@ setMethod("summary", "SccsData", function(object) {
   if (!Andromeda::isValidAndromeda(object)) {
     stop("Object is not valid. Probably the Andromeda object was closed.")
   }
-  caseCount <- object$cases %>%
-    count() %>%
+  caseCount <- object$cases |>
+    count() |>
     pull()
 
 
-  outcomeCounts <- object$eras %>%
-    filter(.data$eraType == "hoi") %>%
-    inner_join(object$cases, by = join_by("caseId")) %>%
-    group_by(.data$eraId) %>%
+  outcomeCounts <- object$eras |>
+    filter(.data$eraType == "hoi") |>
+    inner_join(object$cases, by = join_by("caseId")) |>
+    group_by(.data$eraId) |>
     summarise(
       outcomeSubjects = n_distinct(.data$personId),
       outcomeEvents = count(),
       outcomeObsPeriods = n_distinct(.data$caseId)
-    ) %>%
-    rename(outcomeId = "eraId") %>%
+    ) |>
+    rename(outcomeId = "eraId") |>
     collect()
 
   result <- list(
     metaData = attr(object, "metaData"),
     caseCount = caseCount,
     outcomeCounts = outcomeCounts,
-    eraTypeCount = object$eraRef %>% count() %>% pull(),
-    eraCount = object$eras %>% count() %>% pull()
+    eraTypeCount = object$eraRef |> count() |> pull(),
+    eraCount = object$eras |> count() |> pull()
   )
   class(result) <- "summary.SccsData"
   return(result)

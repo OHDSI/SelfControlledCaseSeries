@@ -2,12 +2,12 @@
 % Please edit documentation in R/Diagnostics.R
 \name{computeTimeStability}
 \alias{computeTimeStability}
-\title{Compute stability of outcome rate over time}
+\title{Check stability of outcome rate over time}
 \usage{
 computeTimeStability(
   studyPopulation,
   sccsModel = NULL,
-  maxRatio = 1.25,
+  maxRatio = 1.1,
   alpha = 0.05
 )
 }
@@ -24,15 +24,12 @@ for before computing stability.}
 }
 \value{
 A tibble with one row and three columns: \code{ratio} indicates the estimated mean ratio between observed and expected.
-\code{p} is the p-value against the null-hypothesis that the ratio is smaller than \code{maxRatio}, and \code{stable} is \code{TRUE}
+\code{p} is the p-value against the null-hypothesis that the ratio is smaller than \code{maxRatio}, and \code{pass} is \code{TRUE}
 if \code{p} is greater than \code{alpha}.
 }
 \description{
-Compute stability of outcome rate over time
+Check stability of outcome rate over time
 }
 \details{
-Computes for each month the observed and expected count, and computes the (weighted) mean ratio between the two. If
-splines are used to adjust for seasonality and/or calendar time, these adjustments are taken into consideration when
-considering the expected count. A one-sided p-value is computed against the null hypothesis that the ratio is smaller
-than \code{maxRatio}. If this p-value exceeds the specified alpha value, the series is considered stable.
+DEPRECATED. Use \code{checkTimeStabilityAssumption()} instead.
 }

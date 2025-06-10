@@ -17,9 +17,9 @@
 #' Create a risk window definition for simulation
 #'
 #' @param start                 Start of the risk window relative to exposure start.
-#' @param end                     The end of the risk window (in days) relative to the `endAnchor`.
-#' @param endAnchor               The anchor point for the end of the risk window. Can be `"era start"`
-#'                                or `"era end"`.
+#' @param end                   The end of the risk window (in days) relative to the `endAnchor`.
+#' @param endAnchor             The anchor point for the end of the risk window. Can be `"era start"`
+#'                              or `"era end"`.
 #' @param splitPoints           Subdivision of the risk window in to smaller sub-windows.
 #' @param relativeRisks         Either a single number representing the relative risk in the risk
 #'                              window, or when splitPoints have been defined a vector of relative
@@ -78,6 +78,8 @@ createSimulationRiskWindow <- function(start = 0,
 #' @param eraIds                      The IDs for the covariates to be generated.
 #' @param patientUsages               The fraction of patients that use the drugs.
 #' @param usageRate                   The rate of prescriptions per person that uses the drug.
+#' @param usageRateSlope              The change in the usage rate from one day to the next.
+#'                                    `usageRate` is the intercept at day 0
 #' @param meanPrescriptionDurations   The mean duration of a prescription, per drug.
 #' @param sdPrescriptionDurations     The standard deviation of the duration of a prescription, per
 #'                                    drug.
@@ -90,6 +92,7 @@ createSimulationRiskWindow <- function(start = 0,
 #' @param seasonKnots                 Number of knots in the seasonality spline.
 #' @param includeCalendarTimeEffect   Include a calendar time effect for the outcome?
 #' @param calendarTimeKnots           Number of knots in the calendar time spline.
+#' @param calendarTimeMonotonic       Should the calender time effect be monotonic?
 #' @param outcomeId                   The ID to be used for the outcome.
 #'
 #' @return
@@ -107,6 +110,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          eraIds = c(1, 2),
                                          patientUsages = c(0.2, 0.1),
                                          usageRate = c(0.01, 0.01),
+                                         usageRateSlope = c(0, 0),
                                          meanPrescriptionDurations = c(14, 30),
                                          sdPrescriptionDurations = c(7, 14),
                                          simulationRiskWindows = list(
@@ -119,6 +123,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
                                          seasonKnots = 5,
                                          includeCalendarTimeEffect = TRUE,
                                          calendarTimeKnots = 5,
+                                         calendarTimeMonotonic = FALSE,
                                          outcomeId = 10) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertNumeric(meanPatientTime, lower = 0, len = 1, add = errorMessages)
@@ -132,6 +137,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
   checkmate::assertIntegerish(eraIds, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(patientUsages, lower = 0, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(usageRate, lower = 0, min.len = 1, add = errorMessages)
+  checkmate::assertNumeric(usageRateSlope, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(meanPrescriptionDurations, lower = 0, min.len = 1, add = errorMessages)
   checkmate::assertNumeric(sdPrescriptionDurations, lower = 0, min.len = 1, add = errorMessages)
   checkmate::assertList(simulationRiskWindows, min.len = 1, add = errorMessages)
@@ -144,6 +150,7 @@ createSccsSimulationSettings <- function(meanPatientTime = 4 * 365,
   checkmate::assertInt(seasonKnots, lower = 2, add = errorMessages)
   checkmate::assertLogical(includeCalendarTimeEffect, len = 1, add = errorMessages)
   checkmate::assertInt(calendarTimeKnots, lower = 2, add = errorMessages)
+  checkmate::assertLogical(calendarTimeMonotonic, len = 1, add = errorMessages)
   checkmate::assertInt(outcomeId, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
@@ -167,7 +174,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
   # Simulate a batch of persons, and eliminate non-cases
   n <- 1000
 
-  ### Generate patients ###
+  # Generate patients  -----------------------------------------------------------------------------
   observationDays <- round(rnorm(n, settings$meanPatientTime, settings$sdPatientTime))
   observationDays[observationDays < 1] <- 1
   observationDays[observationDays > settings$maxAge - settings$minAge] <- settings$maxAge - settings$minAge
@@ -191,41 +198,79 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
     noninformativeEndCensor = 0
   )
 
-  ### Generate eras ###
+  # Generate eras ----------------------------------------------------------------------------------
+  cumulativeIntensity <- function(t, usageRate, usageRateSlope) {
+    if (usageRateSlope < 0) {
+      t <- pmin(-usageRate / usageRateSlope, t)
+    }
+    return(usageRate * t + 0.5 * usageRateSlope * t^2)
+  }
+
+  inverseCumulativeIntensity <- function(u, usageRate, usageRateSlope, days) {
+    if (usageRateSlope == 0) {
+      t <- u * days
+    } else {
+      if (usageRateSlope < 0) {
+        days <- pmin(-usageRate / usageRateSlope, days)
+      }
+      lambdaT <- usageRate * days + 0.5 * usageRateSlope * days^2
+      t <- (-usageRate + sqrt(usageRate^2 + 2 * usageRateSlope * u * lambdaT)) / usageRateSlope
+    }
+    return(t)
+  }
+
+  sampleErasForPerson <- function(idx, eraId, usageRate, usageRateSlope, meanPrescriptionDurations, sdPrescriptionDurations) {
+    nEvents <- rpois(1, cumulativeIntensity(observationDays[idx], usageRate, usageRateSlope))
+    if (nEvents == 0) {
+      return(tibble())
+    } else {
+      u <- runif(nEvents)
+      startDay <- sapply(u,
+                         inverseCumulativeIntensity,
+                         usageRate = usageRate,
+                         usageRateSlope = usageRateSlope,
+                         days = observationDays[idx]) |>
+        round() |>
+        unique() |>
+        sort()
+      duration <- round(rnorm(length(startDay), meanPrescriptionDurations, sdPrescriptionDurations))
+      duration[duration < 1] <- 1
+      endDay <- startDay + duration
+      endDay[endDay > observationDays[idx]] <- observationDays[idx]
+      newEras <- tibble(
+        eraType = "rx",
+        caseId = idx,
+        eraId = eraId,
+        eraValue = 1,
+        eraStartDay = startDay,
+        eraEndDay = endDay
+      )
+      return(newEras)
+    }
+  }
+
   eras <- tibble()
   for (i in 1:length(settings$eraIds)) {
     # i <- 1
     patientsOnDrug <- sample.int(nrow(cases),
-      settings$patientUsages[i] * nrow(cases),
-      replace = FALSE
+                                 settings$patientUsages[i] * nrow(cases),
+                                 replace = FALSE
     )
-    patientsOnDrug <- patientsOnDrug[order(patientsOnDrug)]
-    count <- rpois(length(patientsOnDrug), observationDays[patientsOnDrug] * settings$usageRate[i])
-    observationPeriodId <- rep(patientsOnDrug, count)
-    patientsOnDrug <- patientsOnDrug[count != 0]
-    startDay <- round(runif(sum(count), 0, cases$endDay[observationPeriodId]))
-    duration <- round(rnorm(
-      sum(count),
-      settings$meanPrescriptionDurations[i],
-      settings$sdPrescriptionDurations[i]
-    ))
-    duration[duration < 1] <- 1
-    endDay <- startDay + duration
-    endDay[endDay > cases$endDay[observationPeriodId]] <- cases$endDay[observationPeriodId][endDay >
-      cases$endDay[observationPeriodId]]
-    newEras <- tibble(
-      eraType = "rx",
-      caseId = observationPeriodId,
-      eraId = settings$eraIds[i],
-      eraValue = 1,
-      eraStartDay = startDay,
-      eraEndDay = endDay
-    )
-    eras <- rbind(eras, newEras)
+    patientsOnDrug <- sort(patientsOnDrug)
+
+    newEras <- lapply(patientsOnDrug,
+                      sampleErasForPerson,
+                      eraId = settings$eraIds[i],
+                      usageRate = settings$usageRate[i],
+                      usageRateSlope = settings$usageRateSlope[i],
+                      meanPrescriptionDurations = settings$meanPrescriptionDurations[i],
+                      sdPrescriptionDurations = settings$sdPrescriptionDurations[i])
+    newEras <- bind_rows(newEras)
+    eras <- bind_rows(eras, newEras)
   }
   eras <- eras[order(eras$caseId, eras$eraId), ]
 
-  ### Generate outcomes ###
+  # Generate outcomes  -----------------------------------------------------------------------------
   baselineRates <- runif(n, min = settings$minBaselineRate, max = settings$maxBaselineRate)
   if (settings$includeAgeEffect) {
     ageRrs <- exp(ageFun(settings$minAge:settings$maxAge))
@@ -304,7 +349,7 @@ simulateBatch <- function(settings, ageFun, seasonFun, calendarTimeFun, caseIdOf
     eraEndDay = outcomes$startDay
   )
 
-  # ** Remove non-cases ***
+  # Remove non-cases -------------------------------------------------------------------------------
   caseIds <- unique(outcomes$caseId)
   cases <- cases[cases$caseId %in% caseIds, ]
   eras <- eras[eras$caseId %in% caseIds, ]
@@ -337,14 +382,14 @@ simulateSccsData <- function(nCases, settings) {
 
   if (settings$includeAgeEffect) {
     age <- seq(settings$minAge, settings$maxAge, length.out = settings$ageKnots)
-    ageRisk <- runif(settings$ageKnots, -2, 2)
+    ageRisk <- rnorm(settings$ageKnots, 0, 2)
     ageFun <- splinefun(age, ageRisk)
   } else {
     ageFun <- NULL
   }
   if (settings$includeSeasonality) {
     seasonKnots <- seq(1, 366, length.out = settings$seasonKnots)
-    seasonRisk <- runif(settings$seasonKnots - 1, -2, 2)
+    seasonRisk <- rnorm(settings$seasonKnots - 1, 0, 2)
     seasonFun <- function(x) {
       designMatrix <- cyclicSplineDesign(x, seasonKnots)
       return(apply(designMatrix %*% seasonRisk, 1, sum))
@@ -354,7 +399,18 @@ simulateSccsData <- function(nCases, settings) {
   }
   if (settings$includeCalendarTimeEffect) {
     calendarTime <- seq(settings$minCalendarTime, settings$maxCalendarTime, length.out = settings$calendarTimeKnots)
-    calendarTimeRisk <- runif(settings$calendarTimeKnots, -2, 2)
+    if (settings$calendarTimeMonotonic) {
+      increasing <- rbinom(1, 1, 0.5) == 1
+      calendarTimeRisk <- rnorm(settings$calendarTimeKnots, 0, 0.5)
+      if (increasing) {
+        calendarTimeRisk <- cumsum(abs(calendarTimeRisk))
+      } else {
+        calendarTimeRisk <- cumsum(-abs(calendarTimeRisk))
+      }
+      calendarTimeRisk <- calendarTimeRisk - mean(calendarTimeRisk)
+    } else {
+      calendarTimeRisk <- rnorm(settings$calendarTimeKnots, 0, 1)
+    }
     calendarTimeFun <- splinefun(as.numeric(calendarTime), calendarTimeRisk)
   } else {
     calendarTimeFun <- NULL
@@ -397,6 +453,11 @@ simulateSccsData <- function(nCases, settings) {
     calendarTimeFun = calendarTimeFun,
     exposureIds = settings$eraIds,
     outcomeIds = settings$outcomeId,
+    prevalences = tibble(
+      outcomeId = settings$outcomeId,
+      outcomeProportion = nrow(cases) / max(cases$caseId),
+      probablyFirstOutcomeOnly = FALSE
+    ),
     attrition = tibble(
       outcomeId = settings$outcomeId,
       description = "All outcome occurrences",

@@ -81,7 +81,8 @@ test_that("Running multiple analyses against Eunomia", {
     start = -30,
     end = -1,
     endAnchor = "era start",
-    exposureOfInterest = FALSE
+    exposureOfInterest = FALSE,
+    preExposure = TRUE
   )
 
   createSccsIntervalDataArgs <- createCreateSccsIntervalDataArgs(
@@ -131,6 +132,11 @@ test_that("Running multiple analyses against Eunomia", {
     exposureId = c(1),
     outcomeId = c(4)
   )
+  sccsAnalysesSpecifications <- createSccsAnalysesSpecifications(
+    exposuresOutcomeList = exposuresOutcomeList,
+    sccsAnalysisList = sccsAnalysisList,
+    analysesToExclude = analysesToExclude
+  )
 
   # Expect warning because outcome 999 does not exist in data:
   expect_warning(
@@ -143,9 +149,7 @@ test_that("Running multiple analyses against Eunomia", {
         outcomeDatabaseSchema = "main",
         outcomeTable = "cohort",
         outputFolder = outputFolder,
-        exposuresOutcomeList = exposuresOutcomeList,
-        sccsAnalysisList = sccsAnalysisList,
-        analysesToExclude = analysesToExclude
+        sccsAnalysesSpecifications = sccsAnalysesSpecifications
       )
     },
     "No cases left in study population"
@@ -196,7 +200,7 @@ test_that("Running multiple analyses against Eunomia", {
   specs <- readr::read_csv(
     file = system.file("csv", "resultsDataModelSpecification.csv", package = "SelfControlledCaseSeries"),
     show_col_types = FALSE
-  ) %>%
+  ) |>
     SqlRender::snakeCaseToCamelCaseNames()
 
   specs <- split(specs, specs$tableName)
@@ -220,7 +224,9 @@ test_that("Fetching data from drug_era and condition_era tables from Eunomia", {
     exposureTable = "drug_era",
     outcomeTable = "condition_era",
     outcomeIds = 192671,
-    exposureIds = 1118084
+    getDbSccsDataArgs = createGetDbSccsDataArgs(
+      exposureIds = 1118084
+    )
   )
   expect_s4_class(sccsData, "SccsData")
 })

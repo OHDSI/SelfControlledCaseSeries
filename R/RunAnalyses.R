@@ -145,26 +145,12 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
 #'                                         where the nesting cohort is defined.
 #' @param nestingCohortTable               Name of the table holding the nesting cohort. This table
 #'                                         should have the same structure as the cohort table.
-#' @param cdmVersion                       Define the OMOP CDM version used: currently supports "5".
-#' @param sccsAnalysisList                 A list of objects of `SccsAnalysis` as created
-#'                                         using the [createSccsAnalysis()] function.
-#' @param exposuresOutcomeList             A list of objects of type `ExposuresOutcome` as created
-#'                                         using the [createExposuresOutcome()] function.
 #' @param outputFolder                     Name of the folder where all the outputs will written to.
-#' @param combineDataFetchAcrossOutcomes   Should fetching data from the database be done one outcome
-#'                                         at a time, or for all outcomes in one fetch? Combining
-#'                                         fetches will be more efficient if there is large overlap in
-#'                                         the subjects that have the different outcomes.
-#' @param analysesToExclude                Analyses to exclude. See the Analyses to Exclude section for
-#'                                         details.
 #' @param sccsMultiThreadingSettings       An object of type `SccsMultiThreadingSettings` as created using
 #'                                         the [createSccsMultiThreadingSettings()] or
 #'                                         [createDefaultSccsMultiThreadingSettings()] functions.
-#' @param controlType                      Type of negative (and positive) controls. Can be "outcome" or
-#'                                         "exposure". When set to "outcome", controls with the
-#'                                         same exposure (and nesting cohort) are grouped together for
-#'                                         calibration. When set to "exposure", controls with the same
-#'                                         outcome are grouped together.
+#' @param sccsAnalysesSpecifications       An object of type `SccsAnalysesSpecifications` as created using
+#'                                         the [`createSccsAnalysesSpecifications()`] function
 #'
 #' @return
 #' A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
@@ -182,14 +168,9 @@ runSccsAnalyses <- function(connectionDetails,
                             customCovariateTable = "cohort",
                             nestingCohortDatabaseSchema = cdmDatabaseSchema,
                             nestingCohortTable = "cohort",
-                            cdmVersion = "5",
                             outputFolder = "./SccsOutput",
-                            sccsAnalysisList,
-                            exposuresOutcomeList,
-                            analysesToExclude = NULL,
-                            combineDataFetchAcrossOutcomes = FALSE,
                             sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
-                            controlType = "outcome") {
+                            sccsAnalysesSpecifications) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is(connectionDetails, "connectionDetails")) {
     checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
@@ -206,28 +187,17 @@ runSccsAnalyses <- function(connectionDetails,
   checkmate::assertCharacter(customCovariateTable, len = 1, add = errorMessages)
   checkmate::assertCharacter(nestingCohortDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(nestingCohortTable, len = 1, add = errorMessages)
-  checkmate::assertCharacter(cdmVersion, len = 1, add = errorMessages)
   checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
-  checkmate::assertList(sccsAnalysisList, min.len = 1, add = errorMessages)
-  for (i in 1:length(sccsAnalysisList)) {
-    checkmate::assertClass(sccsAnalysisList[[i]], "SccsAnalysis", add = errorMessages)
-  }
-  checkmate::assertList(exposuresOutcomeList, min.len = 1, add = errorMessages)
-  for (i in 1:length(exposuresOutcomeList)) {
-    checkmate::assertClass(exposuresOutcomeList[[i]], "ExposuresOutcome", add = errorMessages)
-  }
-  checkmate::assertDataFrame(analysesToExclude, null.ok = TRUE, add = errorMessages)
-  checkmate::assertLogical(combineDataFetchAcrossOutcomes, len = 1, add = errorMessages)
   checkmate::assertClass(sccsMultiThreadingSettings, "SccsMultiThreadingSettings", add = errorMessages)
-  checkmate::assertChoice(controlType, c("outcome", "exposure"), add = errorMessages)
+  checkmate::assertR6(sccsAnalysesSpecifications, "SccsAnalysesSpecifications", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  uniqueExposuresOutcomeList <- unique(lapply(lapply(lapply(exposuresOutcomeList, unlist), as.character), paste, collapse = " "))
-  if (length(uniqueExposuresOutcomeList) != length(exposuresOutcomeList)) {
+  uniqueExposuresOutcomeList <- unique(lapply(sccsAnalysesSpecifications$exposuresOutcomeList, function(x) x$toJson()))
+  if (length(uniqueExposuresOutcomeList) != length(sccsAnalysesSpecifications$exposuresOutcomeList)) {
     stop("Duplicate exposure-outcomes pairs are not allowed")
   }
-  uniqueAnalysisIds <- unlist(unique(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId")))
-  if (length(uniqueAnalysisIds) != length(sccsAnalysisList)) {
+  uniqueAnalysisIds <- unlist(unique(ParallelLogger::selectFromList(sccsAnalysesSpecifications$sccsAnalysisList, "analysisId")))
+  if (length(uniqueAnalysisIds) != length(sccsAnalysesSpecifications$sccsAnalysisList)) {
     stop("Duplicate analysis IDs are not allowed")
   }
 
@@ -236,11 +206,11 @@ runSccsAnalyses <- function(connectionDetails,
   }
 
   referenceTable <- createReferenceTable(
-    sccsAnalysisList,
-    exposuresOutcomeList,
+    sccsAnalysesSpecifications$sccsAnalysisList,
+    sccsAnalysesSpecifications$exposuresOutcomeList,
     outputFolder,
-    combineDataFetchAcrossOutcomes,
-    analysesToExclude
+    sccsAnalysesSpecifications$combineDataFetchAcrossOutcomes,
+    sccsAnalysesSpecifications$analysesToExclude
   )
 
   loadConceptsPerLoad <- attr(referenceTable, "loadConceptsPerLoad")
@@ -249,8 +219,8 @@ runSccsAnalyses <- function(connectionDetails,
   sccsDataObjectsToCreate <- list()
   for (sccsDataFileName in unique(referenceTable$sccsDataFile)) {
     if (!file.exists(file.path(outputFolder, sccsDataFileName))) {
-      referenceRow <- referenceTable %>%
-        filter(.data$sccsDataFile == sccsDataFileName) %>%
+      referenceRow <- referenceTable |>
+        filter(.data$sccsDataFile == sccsDataFileName) |>
         head(1)
 
       loadConcepts <- loadConceptsPerLoad[[referenceRow$loadId]]
@@ -273,19 +243,16 @@ runSccsAnalyses <- function(connectionDetails,
         customCovariateTable = customCovariateTable,
         nestingCohortDatabaseSchema = nestingCohortDatabaseSchema,
         nestingCohortTable = nestingCohortTable,
-        cdmVersion = cdmVersion,
-        exposureIds = loadConcepts$exposureIds,
         outcomeIds = loadConcepts$outcomeIds,
-        useCustomCovariates = useCustomCovariates,
-        customCovariateIds = loadConcepts$customCovariateIds,
-        useNestingCohort = loadConcepts$nestingCohortId != -1,
-        nestingCohortId = loadConcepts$nestingCohortId,
-        deleteCovariatesSmallCount = loadConcepts$deleteCovariatesSmallCount,
-        studyStartDate = loadConcepts$studyStartDate,
-        studyEndDate = loadConcepts$studyEndDate,
-        studyStartDates = loadConcepts$studyStartDates,
-        studyEndDates = loadConcepts$studyEndDates,
-        maxCasesPerOutcome = loadConcepts$maxCasesPerOutcome
+        getDbSccsDataArgs = createGetDbSccsDataArgs(
+          exposureIds = loadConcepts$exposureIds,
+          customCovariateIds = loadConcepts$customCovariateIds,
+          nestingCohortId = loadConcepts$nestingCohortId,
+          deleteCovariatesSmallCount = loadConcepts$deleteCovariatesSmallCount,
+          studyStartDates = loadConcepts$studyStartDates,
+          studyEndDates = loadConcepts$studyEndDates,
+          maxCasesPerOutcome = loadConcepts$maxCasesPerOutcome
+        )
       )
       sccsDataObjectsToCreate[[length(sccsDataObjectsToCreate) + 1]] <- list(
         args = args,
@@ -300,14 +267,11 @@ runSccsAnalyses <- function(connectionDetails,
   studyPopFilesToCreate <- list()
   for (studyPopFile in uniqueStudyPopFiles) {
     refRow <- referenceTable[referenceTable$studyPopFile == studyPopFile, ][1, ]
-    analysisRow <- ParallelLogger::matchInList(
-      sccsAnalysisList,
-      list(analysisId = refRow$analysisId)
-    )[[1]]
-    args <- analysisRow$createStudyPopulationArgs
+    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysesSpecifications$sccsAnalysisList)[[1]]
+    args <- list(createStudyPopulationArgs = analysisRow$createStudyPopulationArgs)
     args$outcomeId <- refRow$outcomeId
-    if ("restrictTimeToEraId" %in% names(args) && is.character(args$restrictTimeToEraId)) {
-      args$restrictTimeToEraId <- pull(refRow[, args$restrictTimeToEraId])
+    if (is.character(args$createStudyPopulationArgs$restrictTimeToEraId)) {
+      args$createStudyPopulationArgs$restrictTimeToEraId <- pull(refRow[, args$createStudyPopulationArgs$restrictTimeToEraId])
     }
     studyPopFilesToCreate[[length(studyPopFilesToCreate) + 1]] <- list(
       args = args,
@@ -322,21 +286,18 @@ runSccsAnalyses <- function(connectionDetails,
   sccsIntervalDataObjectsToCreate <- list()
   for (sccsIntervalDataFile in sccsIntervalDataFiles) {
     refRow <- referenceTable[referenceTable$sccsIntervalDataFile == sccsIntervalDataFile, ][1, ]
-    analysisRow <- ParallelLogger::matchInList(
-      sccsAnalysisList,
-      list(analysisId = refRow$analysisId)
-    )[[1]]
-    sccs <- (!"controlIntervalSettings" %in% names(analysisRow$createIntervalDataArgs))
-    args <- analysisRow$createIntervalDataArgs
-    covariateSettings <- args$eraCovariateSettings
+    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysesSpecifications$sccsAnalysisList)[[1]]
+    sccs <- is(analysisRow$createIntervalDataArgs, "CreateSccsIntervalDataArgs")
+    covariateSettings <- analysisRow$createIntervalDataArgs$eraCovariateSettings
     if (is(covariateSettings, "EraCovariateSettings")) {
       covariateSettings <- list(covariateSettings)
     }
     if (!sccs) {
-      covariateSettings[[length(covariateSettings) + 1]] <- args$controlIntervalSettings
+      covariateSettings[[length(covariateSettings) + 1]] <- analysisRow$createIntervalDataArgs$controlIntervalSettings
     }
     instantiatedSettings <- list()
     for (settings in covariateSettings) {
+      settings <- settings$clone()
       includeEraIds <- c()
       if (length(settings$includeEraIds) != 0) {
         for (includeEraId in settings$includeEraIds) {
@@ -368,10 +329,12 @@ runSccsAnalyses <- function(connectionDetails,
       instantiatedSettings[[length(instantiatedSettings) + 1]] <- settings
     }
     if (sccs) {
-      args$eraCovariateSettings <- instantiatedSettings
+      args <- list(createSccsIntervalDataArgs = analysisRow$createIntervalDataArgs$clone())
+      args$createSccsIntervalDataArgs$eraCovariateSettings <- instantiatedSettings
     } else {
-      args$controlIntervalSettings <- instantiatedSettings[[length(instantiatedSettings)]]
-      args$eraCovariateSettings <- instantiatedSettings[1:(length(instantiatedSettings) - 1)]
+      args <- list(createScriIntervalDataArgs = analysisRow$createIntervalDataArgs$clone())
+      args$createScriIntervalDataArgs$controlIntervalSettings <- instantiatedSettings[[length(instantiatedSettings)]]
+      args$createScriIntervalDataArgs$eraCovariateSettings <- instantiatedSettings[1:(length(instantiatedSettings) - 1)]
     }
     sccsDataFileName <- refRow$sccsDataFile
     studyPopFile <- refRow$studyPopFile
@@ -390,12 +353,9 @@ runSccsAnalyses <- function(connectionDetails,
   sccsModelObjectsToCreate <- list()
   for (sccsModelFile in sccsModelFiles) {
     refRow <- referenceTable[referenceTable$sccsModelFile == sccsModelFile, ][1, ]
-    analysisRow <- ParallelLogger::matchInList(
-      sccsAnalysisList,
-      list(analysisId = refRow$analysisId)
-    )[[1]]
-    args <- analysisRow$fitSccsModelArgs
-    args$control$threads <- sccsMultiThreadingSettings$cvThreads
+    analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysesSpecifications$sccsAnalysisList)[[1]]
+    args <- list(fitSccsModelArgs = analysisRow$fitSccsModelArgs)
+    args$fitSccsModelArgs$control$threads <- sccsMultiThreadingSettings$cvThreads
     sccsModelObjectsToCreate[[length(sccsModelObjectsToCreate) + 1]] <- list(
       args = args,
       sccsIntervalDataFileName = file.path(outputFolder, refRow$sccsIntervalDataFile),
@@ -407,8 +367,7 @@ runSccsAnalyses <- function(connectionDetails,
   referenceTable$studyPopId <- NULL
   attr(referenceTable, "loadConcepts") <- NULL
   saveRDS(referenceTable, file.path(outputFolder, "outcomeModelReference.rds"))
-  saveRDS(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.rds"))
-  saveRDS(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.rds"))
+  saveRDS(sccsAnalysesSpecifications, file.path(outputFolder, "sccsAnalysesSpecifications.rds"))
 
   # Construction of objects -------------------------------------------------------------------------
   if (length(sccsDataObjectsToCreate) != 0) {
@@ -447,13 +406,16 @@ runSccsAnalyses <- function(connectionDetails,
   mainFileName <- file.path(outputFolder, "resultsSummary.rds")
   if (!file.exists(mainFileName)) {
     message("*** Summarizing results ***")
+    diagnosticsSummaryFileName <- file.path(outputFolder, "diagnosticsSummary.rds")
     summarizeResults(
       referenceTable = referenceTable,
-      exposuresOutcomeList = exposuresOutcomeList,
+      exposuresOutcomeList = sccsAnalysesSpecifications$exposuresOutcomeList,
       outputFolder = outputFolder,
       mainFileName = mainFileName,
+      diagnosticsSummaryFileName = diagnosticsSummaryFileName,
       calibrationThreads = sccsMultiThreadingSettings$calibrationThreads,
-      controlType = controlType
+      sccsDiagnosticThresholds = sccsAnalysesSpecifications$sccsDiagnosticThresholds,
+      controlType = sccsAnalysesSpecifications$controlType
     )
   }
 
@@ -497,15 +459,15 @@ createReferenceTable <- function(sccsAnalysisList,
       values[idx + 4] <- exposure$exposureId
     }
     names(values) <- names
-    as_tibble(t(values)) %>%
-      return()
+    table <- as_tibble(t(values))
+    return(table)
   }
   eos <- bind_rows(lapply(seq_along(exposuresOutcomeList), convertExposuresOutcomeToTable))
   if (any(duplicated(eos$exposuresOutcomeSetId))) {
     stop("Collision detected for exposuresOutcomeSetId. Are all exposures-outcome-nesting objects unique?")
   }
 
-  referenceTable <- eos %>%
+  referenceTable <- eos |>
     cross_join(analyses)
 
   # Determine if loading calls can be combined for efficiency ------------------
@@ -528,25 +490,21 @@ createReferenceTable <- function(sccsAnalysisList,
       }
     }
     customCovariateIds <- sccsAnalysis$getDbSccsDataArgs$customCovariateIds
-    if (customCovariateIds == "") {
-      customCovariateIds <- c()
-    } else {
-      for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
-        if (is.character(customCovariateId)) {
-          if (!customCovariateId %in% uniqueExposureIdRefs) {
-            stop(paste0("The 'customCovariateIds' argument was set to '", customCovariateId, "' when calling createGetDbSccsDataArgs(), but this exposure label is not found in exposures-outcome sets"))
-          }
-          customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
-        } else {
-          customCovariateIds <- c(customCovariateIds, customCovariateId)
+    for (customCovariateId in sccsAnalysis$getDbSccsDataArgs$customCovariateIds) {
+      if (is.character(customCovariateId)) {
+        if (!customCovariateId %in% uniqueExposureIdRefs) {
+          stop(paste0("The 'customCovariateIds' argument was set to '", customCovariateId, "' when calling createGetDbSccsDataArgs(), but this exposure label is not found in exposures-outcome sets"))
         }
+        customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
+      } else {
+        customCovariateIds <- c(customCovariateIds, customCovariateId)
       }
     }
     nestingCohortId <- referenceTable$nestingCohortId[i]
     if (is.na(nestingCohortId)) {
       nestingCohortId <- sccsAnalysis$getDbSccsDataArgs$nestingCohortId
     }
-    instantiatedArgs <- sccsAnalysis$getDbSccsDataArgs
+    instantiatedArgs <- sccsAnalysis$getDbSccsDataArgs$toList()
     instantiatedArgs$outcomeId <- referenceTable$outcomeId[i]
     instantiatedArgs$exposureIds <- exposureIds
     instantiatedArgs$customCovariateIds <- customCovariateIds
@@ -569,8 +527,6 @@ createReferenceTable <- function(sccsAnalysisList,
       c(
         "nestingCohortId",
         "deleteCovariatesSmallCount",
-        "studyStartDate",
-        "studyEndDate",
         "studyStartDates",
         "studyEndDates",
         "maxCasesPerOutcome"
@@ -582,8 +538,6 @@ createReferenceTable <- function(sccsAnalysisList,
       c(
         "nestingCohortId",
         "deleteCovariatesSmallCount",
-        "studyStartDate",
-        "studyEndDate",
         "studyStartDates",
         "studyEndDates",
         "maxCasesPerOutcome",
@@ -599,7 +553,6 @@ createReferenceTable <- function(sccsAnalysisList,
   loadConceptsPerLoad <- list()
   for (loadId in seq_along(uniqueLoadStrings)) {
     uniqueLoadString <- uniqueLoadStrings[[loadId]]
-    # groupables <- ParallelLogger::matchInList(instantiatedArgsPerRow, uniqueLoad)
     rowIds <- which(loadStrings == uniqueLoadString)
     groupables <-instantiatedArgsPerRow[rowIds]
     outcomeIds <- unique(unlist(ParallelLogger::selectFromList(groupables, "outcomeId")))
@@ -616,8 +569,6 @@ createReferenceTable <- function(sccsAnalysisList,
       customCovariateIds = unique(customCovariateIds),
       nestingCohortId = groupables[[1]]$nestingCohortId,
       deleteCovariatesSmallCount = groupables[[1]]$deleteCovariatesSmallCount,
-      studyStartDate = groupables[[1]]$studyStartDate,
-      studyEndDate = groupables[[1]]$studyEndDate,
       studyStartDates = groupables[[1]]$studyStartDates,
       studyEndDates = groupables[[1]]$studyEndDates,
       maxCasesPerOutcome = groupables[[1]]$maxCasesPerOutcome
@@ -703,7 +654,7 @@ createReferenceTable <- function(sccsAnalysisList,
     }
     analysesToExclude <- analysesToExclude[, matchingColumns]
     countBefore <- nrow(referenceTable)
-    referenceTable <- referenceTable %>%
+    referenceTable <- referenceTable |>
       anti_join(analysesToExclude, by = matchingColumns)
     countAfter <- nrow(referenceTable)
     message(sprintf(
@@ -772,12 +723,7 @@ createSccsIntervalDataObject <- function(params) {
 createSccsModelObject <- function(params) {
   sccsIntervalData <- loadSccsIntervalData(params$sccsIntervalDataFileName)
   params$args$sccsIntervalData <- sccsIntervalData
-  # sccsModel <- do.call("fitSccsModel", params$args)
-  sccsModel <- fitSccsModel(
-    sccsIntervalData = sccsIntervalData,
-    prior = params$args$prior,
-    control = params$args$control
-  )
+  sccsModel <- do.call("fitSccsModel", params$args)
   saveRDS(sccsModel, params$sccsModelFileName)
   return(NULL)
 }
@@ -833,35 +779,71 @@ createSccsModelObject <- function(params) {
   }
 }
 
+.passBooleanToString <- function(pass) {
+  case_when(
+    is.na(pass) ~ "NOT EVALUATED",
+    pass ~ "PASS",
+    TRUE ~ "FAIL"
+  )
+}
+
+# referenceTable = getFileReference(outputFolder)
 summarizeResults <- function(referenceTable,
                              exposuresOutcomeList,
                              outputFolder,
                              mainFileName,
-                             calibrationThreads = 1,
+                             diagnosticsSummaryFileName,
+                             calibrationThreads,
+                             sccsDiagnosticThresholds,
                              controlType) {
   rows <- list()
-  # i = 1
+  # i = 3
   pb <- txtProgressBar(style = 3)
   for (i in seq_len(nrow(referenceTable))) {
     refRow <- referenceTable[i, ]
     sccsModel <- readRDS(file.path(outputFolder, as.character(refRow$sccsModelFile)))
     attrition <- as.data.frame(sccsModel$metaData$attrition)
     attrition <- attrition[nrow(attrition), ]
+    studyPop <- readRDS(file.path(outputFolder, as.character(refRow$studyPopFile)))
+    timeStabilityDiagnostic <- checkTimeStabilityAssumption(
+      studyPopulation = studyPop,
+      sccsModel = sccsModel,
+      maxRatio = sccsDiagnosticThresholds$timeTrendMaxRatio
+    )
+    eventExposureIndependenceDiagnostic <- checkEventExposureIndependenceAssumption(
+      sccsModel = sccsModel,
+      nullBounds = sccsDiagnosticThresholds$eventExposureDependenceNullBounds
+    )
+    # There could be multiple pre-exposure windows. Pick one, and make sure to pick a failing one
+    # if exists:
+    eventExposureIndependenceDiagnostic <- eventExposureIndependenceDiagnostic |>
+      arrange(.data$pass) |>
+      head(1)
+
+    eventObservationIndependenceDiagnostic <- checkEventObservationIndependenceAssumption(
+      sccsModel = sccsModel,
+      nullBounds = sccsDiagnosticThresholds$eventObservationDependenceNullBounds
+    )
+    rareOutcomeDiagnostic <- checkRareOutcomeAssumption(
+      studyPopulation = studyPop,
+      maxPrevalence = sccsDiagnosticThresholds$rareOutcomeMaxPrevalence
+    )
     # covariateSettings = sccsModel$metaData$covariateSettingsList[[1]]
     for (covariateSettings in sccsModel$metaData$covariateSettingsList) {
       if (covariateSettings$exposureOfInterest) {
         # j = 1
         for (j in seq_along(covariateSettings$outputIds)) {
+          mdrr <- computeMdrr(object = sccsModel, exposureCovariateId = covariateSettings$outputIds[j])
           if (is.null(sccsModel$metaData$covariateStatistics)) {
             covariateStatistics <- tibble()
           } else {
-            covariateStatistics <- sccsModel$metaData$covariateStatistics %>%
+            covariateStatistics <- sccsModel$metaData$covariateStatistics |>
               filter(.data$covariateId == covariateSettings$outputIds[j])
           }
           if (is.null(sccsModel$estimates)) {
             estimate <- tibble()
           } else {
-            estimate <- sccsModel$estimates %>%
+            estimate <- sccsModel$estimates |>
               filter(.data$covariateId == covariateSettings$outputIds[j])
           }
           if (nrow(estimate) == 0) {
@@ -879,7 +861,7 @@ summarizeResults <- function(referenceTable,
             exposure <- list(trueEffectSize = NA)
           } else {
             exposuresOutcome <- exposuresOutcomeList[[refRow$exposuresOutcomeSetSeqId]]
-            exposure <- ParallelLogger::matchInList(exposuresOutcome$exposures, list(exposureId = covariateSettings$eraIds[j]))
+            exposure <- Filter(function(x) x$exposureId == covariateSettings$eraIds[j], exposuresOutcome$exposures)
             if (length(exposure) != 1) {
               stop(sprintf("Error finding exposure for covariate ID %d in analysis ID %d", covariateSettings$outputIds[j], refRow$analysisId))
             } else {
@@ -911,7 +893,19 @@ summarizeResults <- function(referenceTable,
             oneSidedP = oneSidedP,
             logRr = ifelse(nrow(estimate) == 0, NA, estimate$logRr),
             seLogRr = ifelse(nrow(estimate) == 0, NA, estimate$seLogRr),
-            llr = ifelse(nrow(estimate) == 0, NA, estimate$llr)
+            llr = ifelse(nrow(estimate) == 0, NA, estimate$llr),
+            timeStabilityP = timeStabilityDiagnostic$p,
+            timeStabilityDiagnostic = .passBooleanToString(timeStabilityDiagnostic$pass),
+            eventExposureLb = eventExposureIndependenceDiagnostic$lb,
+            eventExposureUb = eventExposureIndependenceDiagnostic$ub,
+            eventExposureDiagnostic = .passBooleanToString(eventExposureIndependenceDiagnostic$pass),
+            eventObservationLb = eventObservationIndependenceDiagnostic$lb,
+            eventObservationUb = eventObservationIndependenceDiagnostic$lb,
+            eventObservationDiagnostic = .passBooleanToString(eventObservationIndependenceDiagnostic$pass),
+            rareOutcomePrevalence = rareOutcomeDiagnostic$outcomeProportion,
+            rareOutcomeDiagnostic = .passBooleanToString(rareOutcomeDiagnostic$pass),
+            mdrr = mdrr$mdrr,
+            mdrrDiagnostic = .passBooleanToString(mdrr < sccsDiagnosticThresholds$mdrrThreshold)
           )
           rows[[length(rows) + 1]] <- row
         }
@@ -920,20 +914,89 @@ summarizeResults <- function(referenceTable,
     setTxtProgressBar(pb, i / nrow(referenceTable))
   }
   close(pb)
-  mainResults <- bind_rows(rows)
-  mainResults <- calibrateEstimates(
-    results = mainResults,
+  allResults <- bind_rows(rows)
+  allResults <- calibrateEstimates(
+    results = allResults,
     calibrationThreads = calibrationThreads,
     controlType = controlType
   )
-  saveRDS(mainResults, mainFileName)
+  resultsSummary <- allResults |>
+    select("exposuresOutcomeSetId",
+           "nestingCohortId",
+           "outcomeId",
+           "analysisId",
+           "covariateAnalysisId",
+           "covariateId",
+           "covariateName",
+           "eraId",
+           "trueEffectSize",
+           "outcomeSubjects",
+           "outcomeEvents",
+           "outcomeObservationPeriods",
+           "observedDays",
+           "covariateSubjects",
+           "covariateDays",
+           "covariateEras",
+           "covariateOutcomes",
+           "rr",
+           "ci95Lb",
+           "ci95Ub",
+           "p",
+           "oneSidedP",
+           "logRr",
+           "seLogRr",
+           "llr",
+           "calibratedRr",
+           "calibratedCi95Lb",
+           "calibratedCi95Ub",
+           "calibratedP",
+           "calibratedOneSidedP",
+           "calibratedLogRr",
+           "calibratedSeLogRr")
+  saveRDS(resultsSummary, mainFileName)
+
+  diagnosticsSummary <- allResults |>
+    mutate(easeDiagnostic = .passBooleanToString(.data$ease < sccsDiagnosticThresholds$easeThreshold)) |>
+    mutate(unblindForEvidenceSynthesis = .data$unblindForCalibration & .data$easeDiagnostic != "FAIL") |>
+    mutate(unblind = .data$unblindForEvidenceSynthesis & .data$mdrrDiagnostic != "FAIL") |>
+    select("exposuresOutcomeSetId",
+           "nestingCohortId",
+           "outcomeId",
+           "analysisId",
+           "covariateAnalysisId",
+           "covariateId",
+           "covariateName",
+           "eraId",
+           "timeStabilityP",
+           "timeStabilityDiagnostic",
+           "eventExposureLb",
+           "eventExposureUb",
+           "eventExposureDiagnostic",
+           "eventObservationLb",
+           "eventObservationUb",
+           "eventObservationDiagnostic",
+           "rareOutcomePrevalence",
+           "rareOutcomeDiagnostic",
+           "mdrr",
+           "mdrrDiagnostic",
+           "ease",
+           "easeDiagnostic",
+           "unblind",
+           "unblindForEvidenceSynthesis")
+  saveRDS(diagnosticsSummary, diagnosticsSummaryFileName)
 }
 
-calibrateEstimates <- function(results, calibrationThreads, controlType) {
+calibrateEstimates <- function(results, calibrationThreads, diagnosticsSummary = diagnosticsSummary, controlType) {
   if (nrow(results) == 0) {
     return(results)
   }
   message("Calibrating estimates")
+
+  results <- results |>
+    mutate(unblindForCalibration = .data$timeStabilityDiagnostic != "FAIL" &
+             .data$eventExposureDiagnostic != "FAIL" &
+             .data$eventObservationDiagnostic != "FAIL" &
+             .data$rareOutcomeDiagnostic != "FAIL")
   if (controlType == "outcome") {
     groups <- split(results, paste(results$eraId, results$nestingCohortId, results$covariateId, results$analysisId))
   } else {
@@ -948,8 +1011,8 @@ calibrateEstimates <- function(results, calibrationThreads, controlType) {
 
 # group = groups[[1]]
 calibrateGroup <- function(group) {
-  ncs <- group[group$trueEffectSize == 1 & !is.na(group$seLogRr), ]
-  pcs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize != 1 & !is.na(group$seLogRr), ]
+  ncs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize == 1 & !is.na(group$seLogRr) & group$unblindForCalibration, ]
+  pcs <- group[!is.na(group$trueEffectSize) & group$trueEffectSize != 1 & !is.na(group$seLogRr) & group$unblindForCalibration, ]
   if (nrow(ncs) >= 5) {
     null <- EmpiricalCalibration::fitMcmcNull(logRr = ncs$logRr, seLogRr = ncs$seLogRr)
     ease <- EmpiricalCalibration::computeExpectedAbsoluteSystematicError(null)
@@ -1027,3 +1090,21 @@ getResultsSummary <- function(outputFolder) {
   results <- readRDS(file.path(outputFolder, "resultsSummary.rds"))
   return(results)
 }
+
+#' Get a summary report of the analyses diagnostics
+#'
+#' @param outputFolder       Name of the folder where all the outputs have been written to.
+#'
+#' @return
+#' A tibble containing summary diagnostics for each outcome-covariate-analysis combination.
+#'
+#' @export
+getDiagnosticsSummary <- function(outputFolder) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+  outputFolder <- normalizePath(outputFolder)
+  results <- readRDS(file.path(outputFolder, "diagnosticsSummary.rds"))
+  return(results)
+}
+

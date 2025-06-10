@@ -66,7 +66,8 @@ covarPreExp <- createEraCovariateSettings(
   start = -30,
   end = -1,
   endAnchor = "era start",
-  exposureOfInterest = FALSE
+  exposureOfInterest = FALSE,
+  preExposure = TRUE
 )
 
 createSccsIntervalDataArgs <- createCreateSccsIntervalDataArgs(
@@ -123,10 +124,13 @@ result <- runSccsAnalyses(
   outcomeDatabaseSchema = "main",
   outcomeTable = "cohort",
   outputFolder = outputFolder,
-  exposuresOutcomeList = exposuresOutcomeList,
-  sccsAnalysisList = sccsAnalysisList,
-  analysesToExclude = analysesToExclude
+  sccsAnalysesSpecifications = createSccsAnalysesSpecifications(
+    exposuresOutcomeList = exposuresOutcomeList,
+    sccsAnalysisList = sccsAnalysisList,
+    analysesToExclude = analysesToExclude
+  )
 )
+
 
 exportToCsv(outputFolder, databaseId = "Eunomia")
 

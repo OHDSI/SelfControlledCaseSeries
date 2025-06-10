@@ -13,7 +13,6 @@ cohortDatabaseSchema <- "scratch.dbo"
 oracleTempSchema <- NULL
 outcomeTable <- "mschuemi_sccs_vignette"
 port <- Sys.getenv("PDW_PORT")
-cdmVersion <- "5"
 
 connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
                                                                 server = server,
@@ -52,8 +51,7 @@ sccsData <- getDbSccsData(connectionDetails = connectionDetails,
                           useCustomCovariates = TRUE,
                           customCovariateDatabaseSchema = cdmDatabaseSchema,
                           customCovariateTable = "condition_era",
-                          customCovariateIds = c(),
-                          cdmVersion = cdmVersion)
+                          customCovariateIds = c())
 saveSccsData(sccsData, "s:/temp/sccsConditions/sccsData")
 sccsData <- loadSccsData("s:/temp/sccsConditions/sccsData")
 

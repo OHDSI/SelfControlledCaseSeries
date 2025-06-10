@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // convertToSccs
-void convertToSccs(const DataFrame& cases, const DataFrame& outcomes, const List& eras, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const bool includeCalendarTime, const int calendarTimeOffset, const NumericMatrix& calendarTimeDesignMatrix, const NumericMatrix& seasonDesignMatrix, const NumericVector& timeCovariateCases, const List& covariateSettingsList, const bool eventDependentObservation, const List& censorModel, const bool scri, const int64_t controlIntervalId, const S4 resultAndromeda);
-RcppExport SEXP _SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP outcomesSEXP, SEXP erasSEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP, SEXP includeSeasonSEXP, SEXP includeCalendarTimeSEXP, SEXP calendarTimeOffsetSEXP, SEXP calendarTimeDesignMatrixSEXP, SEXP seasonDesignMatrixSEXP, SEXP timeCovariateCasesSEXP, SEXP covariateSettingsListSEXP, SEXP eventDependentObservationSEXP, SEXP censorModelSEXP, SEXP scriSEXP, SEXP controlIntervalIdSEXP, SEXP resultAndromedaSEXP) {
+void convertToSccs(const DataFrame& cases, const DataFrame& outcomes, const List& eras, const bool includeAge, const int ageOffset, const NumericMatrix& ageDesignMatrix, const bool includeSeason, const bool includeCalendarTime, const int calendarTimeOffset, const NumericMatrix& calendarTimeDesignMatrix, const NumericMatrix& seasonDesignMatrix, const NumericVector& timeCovariateCases, const List& covariateSettingsList, const int endOfObservationEraLength, const int endOfObservationCovariateId, const bool eventDependentObservation, const List& censorModel, const bool scri, const int64_t controlIntervalId, const S4 resultAndromeda);
+RcppExport SEXP _SelfControlledCaseSeries_convertToSccs(SEXP casesSEXP, SEXP outcomesSEXP, SEXP erasSEXP, SEXP includeAgeSEXP, SEXP ageOffsetSEXP, SEXP ageDesignMatrixSEXP, SEXP includeSeasonSEXP, SEXP includeCalendarTimeSEXP, SEXP calendarTimeOffsetSEXP, SEXP calendarTimeDesignMatrixSEXP, SEXP seasonDesignMatrixSEXP, SEXP timeCovariateCasesSEXP, SEXP covariateSettingsListSEXP, SEXP endOfObservationEraLengthSEXP, SEXP endOfObservationCovariateIdSEXP, SEXP eventDependentObservationSEXP, SEXP censorModelSEXP, SEXP scriSEXP, SEXP controlIntervalIdSEXP, SEXP resultAndromedaSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const DataFrame& >::type cases(casesSEXP);
@@ -28,12 +28,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const NumericMatrix& >::type seasonDesignMatrix(seasonDesignMatrixSEXP);
     Rcpp::traits::input_parameter< const NumericVector& >::type timeCovariateCases(timeCovariateCasesSEXP);
     Rcpp::traits::input_parameter< const List& >::type covariateSettingsList(covariateSettingsListSEXP);
+    Rcpp::traits::input_parameter< const int >::type endOfObservationEraLength(endOfObservationEraLengthSEXP);
+    Rcpp::traits::input_parameter< const int >::type endOfObservationCovariateId(endOfObservationCovariateIdSEXP);
     Rcpp::traits::input_parameter< const bool >::type eventDependentObservation(eventDependentObservationSEXP);
     Rcpp::traits::input_parameter< const List& >::type censorModel(censorModelSEXP);
     Rcpp::traits::input_parameter< const bool >::type scri(scriSEXP);
     Rcpp::traits::input_parameter< const int64_t >::type controlIntervalId(controlIntervalIdSEXP);
     Rcpp::traits::input_parameter< const S4 >::type resultAndromeda(resultAndromedaSEXP);
-    convertToSccs(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason, includeCalendarTime, calendarTimeOffset, calendarTimeDesignMatrix, seasonDesignMatrix, timeCovariateCases, covariateSettingsList, eventDependentObservation, censorModel, scri, controlIntervalId, resultAndromeda);
+    convertToSccs(cases, outcomes, eras, includeAge, ageOffset, ageDesignMatrix, includeSeason, includeCalendarTime, calendarTimeOffset, calendarTimeDesignMatrix, seasonDesignMatrix, timeCovariateCases, covariateSettingsList, endOfObservationEraLength, endOfObservationCovariateId, eventDependentObservation, censorModel, scri, controlIntervalId, resultAndromeda);
     return R_NilValue;
 END_RCPP
 }
@@ -137,7 +139,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SelfControlledCaseSeries_convertToSccs", (DL_FUNC) &_SelfControlledCaseSeries_convertToSccs, 18},
+    {"_SelfControlledCaseSeries_convertToSccs", (DL_FUNC) &_SelfControlledCaseSeries_convertToSccs, 20},
     {"_SelfControlledCaseSeries_simulateSccsOutcomes", (DL_FUNC) &_SelfControlledCaseSeries_simulateSccsOutcomes, 12},
     {"_SelfControlledCaseSeries_testEwad", (DL_FUNC) &_SelfControlledCaseSeries_testEwad, 6},
     {"_SelfControlledCaseSeries_testEwid", (DL_FUNC) &_SelfControlledCaseSeries_testEwid, 6},

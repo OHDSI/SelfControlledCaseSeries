@@ -4,12 +4,7 @@
 \alias{createScriIntervalData}
 \title{Create Self-Controlled Risk Interval (SCRI) era data}
 \usage{
-createScriIntervalData(
-  studyPopulation,
-  sccsData,
-  eraCovariateSettings,
-  controlIntervalSettings
-)
+createScriIntervalData(studyPopulation, sccsData, createScriIntervalDataArgs)
 }
 \arguments{
 \item{studyPopulation}{An object created using the \code{\link[=createStudyPopulation]{createStudyPopulation()}} function.}
@@ -17,12 +12,8 @@ createScriIntervalData(
 \item{sccsData}{An object of type \link{SccsData} as created using the
 \link{getDbSccsData} function.}
 
-\item{eraCovariateSettings}{Either an object of type \code{EraCovariateSettings} as created
-using the \code{\link[=createEraCovariateSettings]{createEraCovariateSettings()}} function, or a
-list of such objects.}
-
-\item{controlIntervalSettings}{An object of type \code{ControlIntervalSettings} as created
-using the \code{\link[=createControlIntervalSettings]{createControlIntervalSettings()}} function.}
+\item{createScriIntervalDataArgs}{An object of type \code{CreateScriIntervalDataArgs} as created by
+the \code{createCreateScriIntervalDataArgs()} function.}
 }
 \value{
 An object of type \link{SccsIntervalData}.

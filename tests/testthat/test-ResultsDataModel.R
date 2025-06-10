@@ -70,6 +70,15 @@ testCreateSchema <- function(connectionDetails, resultsDatabaseSchema) {
     expect_true(DatabaseConnector::existsTable(connection = connection,
                                                databaseSchema = resultsDatabaseSchema,
                                                tableName = tableName))
+    row <- DatabaseConnector::renderTranslateQuerySql(
+      connection = connection,
+      sql = "SELECT TOP 1 * FROM @database_schema.@table;",
+      database_schema = resultsDatabaseSchema,
+      table = tableName
+    )
+    observedFields <- sort(tolower(names(row)))
+    expectedFields <- sort(tolower(specifications$columnName[specifications$tableName == tableName]))
+    expect_equal(observedFields, expectedFields)
   }
   # Bad schema name
   expect_error(createResultsDataModel(
@@ -103,10 +112,10 @@ testUploadResults <- function(connectionDetails, resultsDatabaseSchema) {
 
   specifications <- getResultsDataModelSpecifications()
   for (tableName in unique(specifications$tableName)) {
-    primaryKey <- specifications %>%
+    primaryKey <- specifications |>
       dplyr::filter(tableName == !!tableName &
-                      primaryKey == "Yes") %>%
-      dplyr::select(columnName) %>%
+                      primaryKey == "Yes") |>
+      dplyr::select(columnName) |>
       dplyr::pull()
 
     if ("database_id" %in% primaryKey) {

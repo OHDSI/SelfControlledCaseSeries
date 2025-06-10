@@ -17,36 +17,6 @@
 # options(andromedaTempFolder = "d:/andromedaTemp")
 # library(dplyr)
 
-#' Create SCCS diagnostics thresholds
-#'
-#' @description
-#' Threshold used when calling [exportToCsv()] to determine if we pass or fail diagnostics.
-#'
-#' @param mdrrThreshold         What is the maximum allowed minimum detectable relative risk
-#'                              (MDRR)?
-#' @param easeThreshold         What is the maximum allowed expected absolute systematic error
-#'                              (EASE).
-#' @param timeTrendPThreshold   What p-value threshold (alpha) will be used to determine
-#'                              temporal instability?
-#' @param preExposurePThreshold What p-value threshold (alpha) will be used to determine whether the
-#'                              rate of the outcome was higher just before exposure initiation?
-#'
-#' @return
-#' An object of type `SccsDiagnosticThresholds`.
-#'
-#' @export
-createSccsDiagnosticThresholds <- function(mdrrThreshold = 10,
-                                           easeThreshold = 0.25,
-                                           timeTrendPThreshold = 0.05,
-                                           preExposurePThreshold = 0.05) {
-  thresholds <- list()
-  for (name in names(formals(createSccsDiagnosticThresholds))) {
-    thresholds[[name]] <- get(name)
-  }
-  class(thresholds) <- "SccsDiagnosticThresholds"
-  return(thresholds)
-}
-
 #' Export SCCSresults to CSV files
 #'
 #' @details
@@ -62,8 +32,6 @@ createSccsDiagnosticThresholds <- function(mdrrThreshold = 10,
 #'                      to a count before it can be included in the results. If the
 #'                      count is below this threshold, it will be set to `-minCellCount`.
 #' @param maxCores  Maximum number of CPU cores to use.
-#' @param sccsDiagnosticThresholds An object of type `SccsDiagnosticThresholds` as created using
-#'                                 [createSccsDiagnosticThresholds()].
 #'
 #' @return
 #' Does not return anything. Is called for the side-effect of populating the `exportFolder`
@@ -74,17 +42,14 @@ exportToCsv <- function(outputFolder,
                         exportFolder = file.path(outputFolder, "export"),
                         databaseId = 1,
                         minCellCount = 5,
-                        maxCores = 1,
-                        sccsDiagnosticThresholds = createSccsDiagnosticThresholds()) {
+                        maxCores = 1) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
   checkmate::assertDirectoryExists(outputFolder, add = errorMessages)
-  checkmate::assertFileExists(file.path(outputFolder, "sccsAnalysisList.rds"), add = errorMessages)
-  checkmate::assertFileExists(file.path(outputFolder, "exposuresOutcomeList.rds"), add = errorMessages)
+  checkmate::assertFileExists(file.path(outputFolder, "sccsAnalysesSpecifications.rds"), add = errorMessages)
   checkmate::assertFileExists(file.path(outputFolder, "resultsSummary.rds"), add = errorMessages)
   checkmate::assertCharacter(exportFolder, len = 1, add = errorMessages)
   checkmate::assertInt(minCellCount, lower = 0, add = errorMessages)
-  checkmate::assertClass(sccsDiagnosticThresholds, "SccsDiagnosticThresholds", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   if (!file.exists(exportFolder)) {
@@ -107,8 +72,7 @@ exportToCsv <- function(outputFolder,
     exportFolder = exportFolder,
     databaseId = databaseId,
     minCellCount = minCellCount,
-    maxCores = maxCores,
-    sccsDiagnosticThresholds = sccsDiagnosticThresholds
+    maxCores = maxCores
   )
 
   exportSccsResults(
@@ -116,6 +80,16 @@ exportToCsv <- function(outputFolder,
     exportFolder = exportFolder,
     databaseId = databaseId,
     minCellCount = minCellCount
+  )
+
+  exportDiagnosticsSummary(
+    outputFolder = outputFolder,
+    exportFolder = exportFolder,
+    databaseId = databaseId
+  )
+
+  exportEventDepObservation(
+    exportFolder = exportFolder
   )
 
   # Add all to zip file -------------------------------------------------------------------------------
@@ -166,10 +140,10 @@ createEmptyResult <- function(tableName) {
   columns <- readr::read_csv(
     file = system.file("csv", "resultsDataModelSpecification.csv", package = "SelfControlledCaseSeries"),
     show_col_types = FALSE
-  ) %>%
-    SqlRender::snakeCaseToCamelCaseNames() %>%
-    filter(.data$tableName == !!tableName) %>%
-    pull(.data$columnName) %>%
+  ) |>
+    SqlRender::snakeCaseToCamelCaseNames() |>
+    filter(.data$tableName == !!tableName) |>
+    pull(.data$columnName) |>
     SqlRender::snakeCaseToCamelCase()
   result <- vector(length = length(columns))
   names(result) <- columns
@@ -179,24 +153,21 @@ createEmptyResult <- function(tableName) {
 }
 
 exportSccsAnalyses <- function(outputFolder, exportFolder) {
-  sccsAnalysisListFile <- file.path(outputFolder, "sccsAnalysisList.rds")
-  sccsAnalysisList <- readRDS(sccsAnalysisListFile)
+  sccsAnalysesSpecificationsFile <- file.path(outputFolder, "sccsAnalysesSpecifications.rds")
+  sccsAnalysesSpecifications <- readRDS(sccsAnalysesSpecificationsFile)
 
   message("- sccs_analysis table")
-  tempFileName <- tempfile()
   sccsAnalysisToRow <- function(sccsAnalysis) {
-    ParallelLogger::saveSettingsToJson(sccsAnalysis, tempFileName)
     row <- tibble(
       analysisId = sccsAnalysis$analysisId,
       description = sccsAnalysis$description,
-      definition = readChar(tempFileName, file.info(tempFileName)$size)
+      definition = as.character(sccsAnalysis$toJson())
     )
     return(row)
   }
-  sccsAnalysis <- lapply(sccsAnalysisList, sccsAnalysisToRow)
-  sccsAnalysis <- bind_rows(sccsAnalysis) %>%
+  sccsAnalysis <- lapply(sccsAnalysesSpecifications$sccsAnalysisList, sccsAnalysisToRow)
+  sccsAnalysis <- bind_rows(sccsAnalysis) |>
     distinct()
-  unlink(tempFileName)
   fileName <- file.path(exportFolder, "sccs_analysis.csv")
   writeToCsv(sccsAnalysis, fileName)
 
@@ -216,15 +187,27 @@ exportSccsAnalyses <- function(outputFolder, exportFolder) {
         analysisId = sccsAnalysis$analysisId,
         covariateAnalysisId = i,
         covariateAnalysisName = eraCovariateSettings$label,
-        variableOfInterest = ifelse(eraCovariateSettings$exposureOfInterest, 1, 0)
+        variableOfInterest = ifelse(eraCovariateSettings$exposureOfInterest, 1, 0),
+        preExposure = ifelse(eraCovariateSettings$preExposure, 1, 0),
+        endOfObservationPeriod = 0
       )
       rows[[length(rows) + 1]] <- row
     }
     return(bind_rows(rows))
   }
-  sccsCovariateAnalysis <- lapply(sccsAnalysisList, sccsAnalysisToRows)
-  sccsCovariateAnalysis <- sccsCovariateAnalysis %>%
-    bind_rows()
+  sccsCovariateAnalysis <- lapply(sccsAnalysesSpecifications$sccsAnalysisList, sccsAnalysisToRows)
+  sccsCovariateAnalysis <- sccsCovariateAnalysis |>
+    bind_rows() |>
+    bind_rows(
+      tibble(
+        analysisId = 99,
+        covariateAnalysisId = 99,
+        covariateAnalysisName = "End of observation period",
+        variableOfInterest = 0,
+        preExposure = 0,
+        endOfObservationPeriod = 1
+      )
+    )
   fileName <- file.path(exportFolder, "sccs_covariate_analysis.csv")
   writeToCsv(sccsCovariateAnalysis, fileName)
 }
@@ -232,17 +215,19 @@ exportSccsAnalyses <- function(outputFolder, exportFolder) {
 exportExposuresOutcomes <- function(outputFolder, exportFolder) {
   message("- sccs_exposure and sccs_exposures_outcome_set tables")
 
-  esoList <- readRDS(file.path(outputFolder, "exposuresOutcomeList.rds"))
-  ref <- getFileReference(outputFolder) %>%
+  sccsAnalysesSpecificationsFile <- file.path(outputFolder, "sccsAnalysesSpecifications.rds")
+  sccsAnalysesSpecifications <- readRDS(sccsAnalysesSpecificationsFile)
+  esoList <- sccsAnalysesSpecifications$exposuresOutcomeList
+  ref <- getFileReference(outputFolder) |>
     distinct(.data$exposuresOutcomeSetId, .data$exposuresOutcomeSetSeqId)
 
   # exposure = eso$exposures[[1]]
   convertExposureToTable <- function(exposure) {
-    tibble(
+    table <- tibble(
       eraId = exposure$exposureId,
       trueEffectSize = if (is.null(exposure$trueEffectSize)) as.numeric(NA) else exposure$trueEffectSize
-    ) %>%
-      return()
+    )
+    return(table)
   }
   sccsExposure <- list()
   sccsExposuresOutcomeSet <- list()
@@ -250,8 +235,8 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
   # i = 1
   for (i in seq_along(esoList)) {
     eso <- esoList[[i]]
-    exposures <- lapply(eso$exposures, convertExposureToTable) %>%
-      bind_rows() %>%
+    exposures <- lapply(eso$exposures, convertExposureToTable) |>
+      bind_rows() |>
       mutate(
         exposuresOutcomeSetSeqId = i
       )
@@ -259,31 +244,31 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
 
     exposuresOutcomeSet <- tibble(
       exposuresOutcomeSetSeqId = i,
-      nestingCohortId = eso$nestingCohortId,
+      nestingCohortId = if (is.null(eso$nestingCohortId)) NA else as.numeric(eso$nestingCohortId),
       outcomeId = eso$outcomeId
     )
     sccsExposuresOutcomeSet[[length(sccsExposuresOutcomeSet) + 1]] <- exposuresOutcomeSet
   }
 
-  sccsExposure <- sccsExposure %>%
-    bind_rows() %>%
-    inner_join(ref, by = join_by("exposuresOutcomeSetSeqId")) %>%
+  sccsExposure <- sccsExposure |>
+    bind_rows() |>
+    inner_join(ref, by = join_by("exposuresOutcomeSetSeqId")) |>
     select(-"exposuresOutcomeSetSeqId")
   fileName <- file.path(exportFolder, "sccs_exposure.csv")
   writeToCsv(sccsExposure, fileName)
 
-  sccsExposuresOutcomeSet <- sccsExposuresOutcomeSet %>%
-    bind_rows() %>%
-    inner_join(ref, by = join_by("exposuresOutcomeSetSeqId")) %>%
+  sccsExposuresOutcomeSet <- sccsExposuresOutcomeSet |>
+    bind_rows() |>
+    inner_join(ref, by = join_by("exposuresOutcomeSetSeqId")) |>
     select(-"exposuresOutcomeSetSeqId")
   fileName <- file.path(exportFolder, "sccs_exposures_outcome_set.csv")
   writeToCsv(sccsExposuresOutcomeSet, fileName)
 }
 
-exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, databaseId, minCellCount, maxCores, sccsDiagnosticThresholds) {
-  message("- sccs_age_spanning, sccs_attrition, sccs_calender_time_spanning, sccs_censor_model, sccs_covariate, sccs_covariate_result, sccs_diagnostics_summary, sccs_era, sccs_event_dep_observation, sccs_likelihood_profile, sccs_spline, sccs_time_to_event, and sccs_time_trend tables")
-  groups <- getFileReference(outputFolder) %>%
-    group_by(.data$sccsDataFile) %>%
+exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, databaseId, minCellCount, maxCores) {
+  message("- sccs_age_spanning, sccs_attrition, sccs_calender_time_spanning, sccs_censor_model, sccs_covariate, sccs_covariate_result, sccs_era, sccs_event_dep_observation, sccs_likelihood_profile, sccs_spline, sccs_time_to_event, and sccs_time_trend tables")
+  groups <- getFileReference(outputFolder) |>
+    group_by(.data$sccsDataFile) |>
     group_split()
   cluster <- ParallelLogger::makeCluster(maxCores)
   on.exit(ParallelLogger::stopCluster(cluster))
@@ -291,17 +276,16 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
     cluster = cluster,
     groups,
     exportGroup,
-    sccsDiagnosticThresholds = sccsDiagnosticThresholds,
     outputFolder = outputFolder,
     databaseId = databaseId
   )
   getTable <- function(tableName) {
-    do.call(c, lapply(tables, function(table) table[tableName])) %>%
-      bind_rows() %>%
-      return()
+    table <- do.call(c, lapply(tables, function(table) table[tableName])) |>
+      bind_rows()
+    return(table)
   }
   message("  Censoring sccs_age_spanning table")
-  sccsAgeSpanning <- getTable("sccsAgeSpanning") %>%
+  sccsAgeSpanning <- getTable("sccsAgeSpanning") |>
     enforceMinCellValue("coverBeforeAfterSubjects", minCellCount)
   fileName <- file.path(exportFolder, "sccs_age_spanning.csv")
   writeToCsv(sccsAgeSpanning, fileName)
@@ -311,16 +295,16 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   writeToCsv(sccsEra, fileName)
 
   message("  Censoring sccs_attrition table")
-  sccsAttrition <- getTable("sccsAttrition") %>%
-    enforceMinCellValue("outcomeSubjects", minCellCount) %>%
-    enforceMinCellValue("outcomeEvents", minCellCount) %>%
-    enforceMinCellValue("outcomeObservationPeriods", minCellCount) %>%
+  sccsAttrition <- getTable("sccsAttrition") |>
+    enforceMinCellValue("outcomeSubjects", minCellCount) |>
+    enforceMinCellValue("outcomeEvents", minCellCount) |>
+    enforceMinCellValue("outcomeObservationPeriods", minCellCount) |>
     enforceMinCellValue("observedDays", minCellCount)
   fileName <- file.path(exportFolder, "sccs_attrition.csv")
   writeToCsv(sccsAttrition, fileName)
 
   message("  Censoring sccs_calendar_time_spanning table")
-  sccsCalendarTimeSpanning <- getTable("sccsCalendarTimeSpanning") %>%
+  sccsCalendarTimeSpanning <- getTable("sccsCalendarTimeSpanning") |>
     enforceMinCellValue("coverBeforeAfterSubjects", minCellCount)
   fileName <- file.path(exportFolder, "sccs_calendar_time_spanning.csv")
   writeToCsv(sccsCalendarTimeSpanning, fileName)
@@ -329,7 +313,7 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   fileName <- file.path(exportFolder, "sccs_time_period.csv")
   writeToCsv(sccsTimePeriod, fileName)
 
-  sccsCovariate <- getTable("sccsCovariate") %>%
+  sccsCovariate <- getTable("sccsCovariate") |>
     distinct()
   fileName <- file.path(exportFolder, "sccs_covariate.csv")
   writeToCsv(sccsCovariate, fileName)
@@ -341,12 +325,6 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   sccsDiagnosticsSummary <- getTable("sccsDiagnosticsSummary")
   fileName <- file.path(exportFolder, "sccs_diagnostics_summary.csv")
   writeToCsv(sccsDiagnosticsSummary, fileName)
-
-  message("  Censoring sccs_event_dep_observation table")
-  sccsEventDepObservation <- getTable("sccsEventDepObservation") %>%
-    enforceMinCellValue("outcomes", minCellCount)
-  fileName <- file.path(exportFolder, "sccs_event_dep_observation.csv")
-  writeToCsv(sccsEventDepObservation, fileName)
 
   sccsLikelihoodProfile <- getTable("sccsLikelihoodProfile")
   fileName <- file.path(exportFolder, "sccs_likelihood_profile.csv")
@@ -361,22 +339,22 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   writeToCsv(sccsCensorModel, fileName)
 
   message("  Censoring sccs_time_to_event table")
-  sccsTimeToEvent <- getTable("sccsTimeToEvent") %>%
-    enforceMinCellValue("outcomes", minCellCount) %>%
+  sccsTimeToEvent <- getTable("sccsTimeToEvent") |>
+    enforceMinCellValue("outcomes", minCellCount) |>
     enforceMinCellValue("observedSubjects", minCellCount)
   fileName <- file.path(exportFolder, "sccs_time_to_event.csv")
   writeToCsv(sccsTimeToEvent, fileName)
 
   message(" Censoring sccs_time_trend table")
-  sccsTimeTrend <- getTable("sccsTimeTrend") %>%
+  sccsTimeTrend <- getTable("sccsTimeTrend") |>
     enforceMinCellValue("observedSubjects", minCellCount)
   fileName <- file.path(exportFolder, "sccs_time_trend.csv")
   writeToCsv(sccsTimeTrend, fileName)
 }
 
 # group = groups[[1]]
-exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseId) {
-  group <- group %>%
+exportGroup <- function(group, outputFolder, databaseId) {
+  group <- group |>
     arrange(.data$studyPopFile, .data$sccsModelFile)
   sccsAgeSpanning <- list()
   sccsAttrition <- list()
@@ -385,7 +363,6 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
   sccsCovariate <- list()
   sccsCovariateResult <- list()
   sccsEra <- list()
-  sccsEventDepObservation <- list()
   sccsLikelihoodProfile <- list()
   sccsSpline <- list()
   sccsTimeToEvent <- list()
@@ -396,15 +373,17 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
   sccsDataFile <- group$sccsDataFile[1]
   sccsData <- loadSccsData(file.path(outputFolder, sccsDataFile))
   studyPopFile <- ""
-  esoList <- readRDS(file.path(outputFolder, "exposuresOutcomeList.rds"))
+  sccsAnalysesSpecificationsFile <- file.path(outputFolder, "sccsAnalysesSpecifications.rds")
+  sccsAnalysesSpecifications <- readRDS(sccsAnalysesSpecificationsFile)
+  esoList <- sccsAnalysesSpecifications$exposuresOutcomeList
 
   # sccsEra table
-  eraRef <- sccsData$eraRef %>%
-    select("eraType", "eraId", "eraName") %>%
+  eraRef <- sccsData$eraRef |>
+    select("eraType", "eraId", "eraName") |>
     collect()
-  rows <- group %>%
-    select("exposuresOutcomeSetId", "analysisId") %>%
-    cross_join(eraRef) %>%
+  rows <- group |>
+    select("exposuresOutcomeSetId", "analysisId") |>
+    cross_join(eraRef) |>
     mutate(databaseId = !!databaseId)
   sccsEra <- rows
 
@@ -415,61 +394,47 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
       studyPop <- readRDS(file.path(outputFolder, studyPopFile))
 
       # sccs_age_spanning table
-      ageSpans <- computeSpans(studyPop, variable = "age") %>%
+      ageSpans <- computeSpans(studyPop, variable = "age") |>
         mutate(databaseId = !!databaseId)
-      refRows <- group %>%
+      refRows <- group |>
         filter(.data$studyPopFile == !!studyPopFile)
-      sccsAgeSpanning[[length(sccsAgeSpanning) + 1]] <- refRows %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
+      sccsAgeSpanning[[length(sccsAgeSpanning) + 1]] <- refRows |>
+        select("analysisId", "exposuresOutcomeSetId") |>
         cross_join(ageSpans)
 
       # sccs_calendar_time_spanning table
-      timeSpans <- computeSpans(studyPop, variable = "time") %>%
+      timeSpans <- computeSpans(studyPop, variable = "time") |>
         mutate(databaseId = !!databaseId)
-      refRows <- group %>%
+      refRows <- group |>
         filter(.data$studyPopFile == !!studyPopFile)
-      sccsCalendarTimeSpanning[[length(sccsCalendarTimeSpanning) + 1]] <- refRows %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
+      sccsCalendarTimeSpanning[[length(sccsCalendarTimeSpanning) + 1]] <- refRows |>
+        select("analysisId", "exposuresOutcomeSetId") |>
         cross_join(timeSpans)
 
       # time_period table
       if (!is.null(studyPop$metaData$restrictedTimeToEra)) {
-        timePeriod <- studyPop$metaData$restrictedTimeToEra %>%
-          select(minDate = .data$minObservedDate,
-                 maxDate = .data$maxObservedDate)
+        timePeriod <- studyPop$metaData$restrictedTimeToEra |>
+          select(minDate = "minObservedDate",
+                 maxDate = "maxObservedDate")
       } else {
-        timePeriod <- studyPop$cases %>%
+        timePeriod <- studyPop$cases |>
           mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
-                 endDate = .data$observationPeriodStartDate + .data$endDay) %>%
+                 endDate = .data$observationPeriodStartDate + .data$endDay) |>
           summarise(minDate = min(.data$startDate),
                     maxDate = max(.data$endDate))
       }
-      refRows <- group %>%
+      refRows <- group |>
         filter(.data$studyPopFile == !!studyPopFile)
-      sccsTimePeriod[[length(sccsCalendarTimeSpanning) + 1]] <- refRows %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
+      sccsTimePeriod[[length(sccsCalendarTimeSpanning) + 1]] <- refRows |>
+        select("analysisId", "exposuresOutcomeSetId") |>
         cross_join(timePeriod)
-
-      # sccsEventDepObservation table
-      data <- computeTimeToObsEnd(studyPop) %>%
-        mutate(monthsToEnd = round(.data$daysFromEvent / 30.5)) %>%
-        group_by(.data$monthsToEnd, .data$censoring) %>%
-        summarize(outcomes = n(), .groups = "drop") %>%
-        mutate(censored = ifelse(.data$censoring == "Censored", 1, 0)) %>%
-        select("monthsToEnd", "censored", "outcomes") %>%
-        mutate(databaseId = !!databaseId)
-      refRows <- group %>%
-        filter(.data$studyPopFile == !!studyPopFile)
-      sccsEventDepObservation[[length(sccsEventDepObservation) + 1]] <- refRows %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
-        cross_join(data)
     }
     sccsModel <- readRDS(file.path(outputFolder, as.character(refRow$sccsModelFile)))
     if (is.null(sccsModel$estimates)) {
-      estimates <- tibble(covariateId = 1, rr = 1, ci95Lb = 1, ci95Ub = 1) %>%
+      estimates <- tibble(covariateId = 1, rr = 1, ci95Lb = 1, ci95Ub = 1) |>
         filter(.data$covariateId == 2)
     } else {
-      estimates <- sccsModel$estimates %>%
+      estimates <- sccsModel$estimates |>
         mutate(rr = exp(.data$logRr), ci95Lb = exp(.data$logLb95), ci95Ub = exp(.data$logUb95))
     }
 
@@ -479,12 +444,12 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
         studyPopulation = studyPop,
         sccsData = sccsData,
         exposureEraId = exposure$exposureId
-      ) %>%
+      ) |>
         mutate(
           databaseId = !!databaseId,
           eraId = exposure$exposureId,
           outcomes = .data$eventsExposed + .data$eventsUnexposed
-        ) %>%
+        ) |>
         select("databaseId",
                "eraId",
                week = "number",
@@ -492,20 +457,20 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
                observedSubjects = "observed"
         )
 
-      sccsTimeToEvent[[length(sccsTimeToEvent) + 1]] <- refRow %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
+      sccsTimeToEvent[[length(sccsTimeToEvent) + 1]] <- refRow |>
+        select("analysisId", "exposuresOutcomeSetId") |>
         bind_cols(data)
     }
 
     # sccsAttrition table
-    baseAttrition <- refRow %>%
-      select("analysisId", "exposuresOutcomeSetId") %>%
+    baseAttrition <- refRow |>
+      select("analysisId", "exposuresOutcomeSetId") |>
       bind_cols(
-        sccsModel$metaData$attrition %>%
-          rename(outcomeObservationPeriods = "outcomeObsPeriods") %>%
-          mutate(sequenceNumber = row_number()) %>%
+        sccsModel$metaData$attrition |>
+          rename(outcomeObservationPeriods = "outcomeObsPeriods") |>
+          mutate(sequenceNumber = row_number()) |>
           select(-"outcomeId")
-      ) %>%
+      ) |>
       mutate(databaseId = !!databaseId)
     # covariateSettings = sccsModel$metaData$covariateSettingsList[[1]]
     for (covariateSettings in sccsModel$metaData$covariateSettingsList) {
@@ -526,15 +491,15 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
         }
         attrition <- bind_rows(
           baseAttrition,
-          covariateStatistics %>%
-            filter(.data$covariateId == covariateSettings$outputIds[1]) %>%
+          covariateStatistics |>
+            filter(.data$covariateId == covariateSettings$outputIds[1]) |>
             mutate(
               analysisId = refRow$analysisId,
               exposuresOutcomeSetId = refRow$exposuresOutcomeSetId,
               description = "Having the covariate of interest",
               sequenceNumber = max(baseAttrition$sequenceNumber) + 1,
               databaseId = !!databaseId
-            ) %>%
+            ) |>
             select(
               "analysisId",
               "exposuresOutcomeSetId",
@@ -546,45 +511,46 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
               "sequenceNumber",
               "databaseId"
             )
-        ) %>%
+        ) |>
           mutate(covariateId = covariateSettings$outputIds[1])
         sccsAttrition[[length(sccsAttrition) + 1]] <- attrition
       }
     }
 
     # sccsCovariate table
-    sccsCovariate[[length(sccsCovariate) + 1]] <- refRow %>%
-      select("analysisId", "exposuresOutcomeSetId") %>%
+    sccsCovariate[[length(sccsCovariate) + 1]] <- refRow |>
+      select("analysisId", "exposuresOutcomeSetId") |>
       bind_cols(
-        sccsModel$metaData$covariateRef %>%
+        sccsModel$metaData$covariateRef |>
           select("covariateAnalysisId", "covariateId", "covariateName", eraId = "originalEraId")
-      ) %>%
+      ) |>
       mutate(databaseId = !!databaseId)
 
     # sccsCovariateResult table
-    sccsCovariateResult[[length(sccsCovariateResult) + 1]] <- refRow %>%
-      select("analysisId", "exposuresOutcomeSetId") %>%
+    sccsCovariateResult[[length(sccsCovariateResult) + 1]] <- refRow |>
+      select("analysisId", "exposuresOutcomeSetId") |>
       bind_cols(
-        sccsModel$metaData$covariateRef %>%
-          select("covariateId") %>%
+        sccsModel$metaData$covariateRef |>
+          select("covariateId") |>
           left_join(
-            estimates %>%
+            estimates |>
               select("covariateId", "rr", "ci95Lb", "ci95Ub"),
             by = join_by("covariateId")
           )
-      ) %>%
+      ) |>
       mutate(databaseId = !!databaseId)
 
     # sccsLikelihoodProfile table
     for (j in seq_along(sccsModel$logLikelihoodProfiles)) {
       if (!is.null(sccsModel$logLikelihoodProfiles[[j]])) {
-        sccsLikelihoodProfile[[length(sccsLikelihoodProfile) + 1]] <- refRow %>%
-          select("analysisId", "exposuresOutcomeSetId") %>%
+        sccsLikelihoodProfile[[length(sccsLikelihoodProfile) + 1]] <- refRow |>
+          select("analysisId", "exposuresOutcomeSetId") |>
           bind_cols(
-            sccsModel$logLikelihoodProfiles[[j]] %>%
-              rename(logRr = "point", logLikelihood = "value") %>%
-              mutate(covariateId = as.numeric(names(sccsModel$logLikelihoodProfiles[j])))
-          ) %>%
+            sccsModel$logLikelihoodProfiles[[j]] |>
+              rename(logRr = "point", logLikelihood = "value") |>
+              mutate(covariateId = as.numeric(names(sccsModel$logLikelihoodProfiles[j])),
+                     gradient = as.numeric(NA))
+          ) |>
           mutate(databaseId = !!databaseId)
       }
     }
@@ -593,21 +559,21 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
     if (!is.null(sccsModel$metaData$age)) {
       ageKnots <- sccsModel$metaData$age$ageKnots
 
-      sccsSpline[[length(sccsSpline) + 1]] <- refRow %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
+      sccsSpline[[length(sccsSpline) + 1]] <- refRow |>
+        select("analysisId", "exposuresOutcomeSetId") |>
         bind_cols(
           tibble(
             covariateId = 99 + seq_len(length(ageKnots)),
             knotMonth = ageKnots
-          ) %>%
+          ) |>
             left_join(
-              estimates %>%
-                filter(.data$covariateId >= 99 & .data$covariateId < 200) %>%
+              estimates |>
+                filter(.data$covariateId >= 99 & .data$covariateId < 200) |>
                 select("covariateId", "rr"),
               by = join_by("covariateId")
-            ) %>%
+            ) |>
             select("knotMonth", "rr")
-        ) %>%
+        ) |>
         mutate(
           databaseId = !!databaseId,
           splineType = "age"
@@ -617,22 +583,22 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
       seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
       seasonKnots <- seasonKnots[c(-1, -length(seasonKnots))]
 
-      sccsSpline[[length(sccsSpline) + 1]] <- refRow %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
+      sccsSpline[[length(sccsSpline) + 1]] <- refRow |>
+        select("analysisId", "exposuresOutcomeSetId") |>
         bind_cols(
           tibble(
             covariateId = 199 + seq_len(length(seasonKnots)),
             knotMonth = seasonKnots
-          ) %>%
+          ) |>
             left_join(
-              estimates %>%
-                filter(.data$covariateId >= 200 & .data$covariateId < 300) %>%
+              estimates |>
+                filter(.data$covariateId >= 200 & .data$covariateId < 300) |>
                 select("covariateId", "rr"),
               by = join_by("covariateId")
-            ) %>%
-            select("knotMonth", "rr") %>%
+            ) |>
+            select("knotMonth", "rr") |>
             bind_rows(tibble(knotMonth = 1, rr = 1))
-        ) %>%
+        ) |>
         mutate(
           databaseId = !!databaseId,
           splineType = "season"
@@ -640,21 +606,21 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
     }
     if (!is.null(sccsModel$metaData$calendarTime)) {
       calendarTimeKnots <- do.call(c, sccsModel$metaData$calendarTime$calendarTimeKnotsInPeriods)
-      sccsSpline[[length(sccsSpline) + 1]] <- refRow %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
+      sccsSpline[[length(sccsSpline) + 1]] <- refRow |>
+        select("analysisId", "exposuresOutcomeSetId") |>
         bind_cols(
           tibble(
             covariateId = 299 + seq_len(length(calendarTimeKnots)),
             knotMonth = calendarTimeKnots
-          ) %>%
+          ) |>
             left_join(
-              estimates %>%
-                filter(.data$covariateId >= 299 & .data$covariateId < 400) %>%
+              estimates |>
+                filter(.data$covariateId >= 299 & .data$covariateId < 400) |>
                 select("covariateId", "rr"),
               by = join_by("covariateId")
-            ) %>%
+            ) |>
             select("knotMonth", "rr")
-        ) %>%
+        ) |>
         mutate(
           databaseId = !!databaseId,
           splineType = "calendar time"
@@ -664,8 +630,8 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
     # sccsCensorModel table
     if (!is.null(sccsModel$metaData$censorModel)) {
       censorModel <- sccsModel$metaData$censorModel
-      sccsCensorModel[[length(sccsCensorModel) + 1]] <- refRow %>%
-        select("analysisId", "exposuresOutcomeSetId") %>%
+      sccsCensorModel[[length(sccsCensorModel) + 1]] <- refRow |>
+        select("analysisId", "exposuresOutcomeSetId") |>
         bind_cols(
           tibble(
             parameterId = seq_len(length(censorModel$p)),
@@ -681,83 +647,34 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
         )
     }
 
-    # sccsTimeTrend table. No longer computing stability per month. Set flag
-    # to TRUE for all months for backwards compatability:
     timeTrendData <- computeOutcomeRatePerMonth(
       studyPopulation = studyPop,
       sccsModel = sccsModel
-    ) %>%
+    ) |>
       mutate(
         calendarYear = floor(.data$month / 12),
         calendarMonth = floor(.data$month %% 12) + 1,
         observedSubjects = round(.data$observationPeriodCount)
-      ) %>%
+      ) |>
       select(
         "calendarYear",
         "calendarMonth",
         "observedSubjects",
         ratio = "ratio",
         "adjustedRatio"
-      ) %>%
+      ) |>
       mutate(databaseId = !!databaseId)
 
-    sccsTimeTrend[[length(sccsTimeTrend) + 1]] <- refRow %>%
-      select("analysisId", "exposuresOutcomeSetId") %>%
-      bind_cols(timeTrendData)
+    # Add deprecated columns:
+    timeTrendData <- timeTrendData |>
+      mutate(outcomeRate = as.numeric(NA),
+             adjustedRate = as.numeric(NA),
+             stable = as.numeric(NA),
+             p = as.numeric(NA))
 
-    # sccsDiagnosticsSummary table
-    stability <- computeTimeStability(studyPopulation = studyPop, sccsModel = sccsModel)
-    table <- getResultsSummary(outputFolder) %>%
-      filter(.data$exposuresOutcomeSetId == refRow$exposuresOutcomeSetId & .data$analysisId == refRow$analysisId) %>%
-      distinct(.data$exposuresOutcomeSetId, .data$analysisId, .data$eraId, .data$covariateId, .data$ease) %>%
-      mutate(
-        mdrr = as.numeric(NA),
-        timeTrendP = stability$p,
-        preExposureP = as.numeric(NA)
-      )
-    for (j in seq_len(nrow(table))) {
-      mdrr <- computeMdrr(object = sccsModel, exposureCovariateId = table$covariateId[j])
-      table$mdrr[j] <- mdrr$mdrr
-      preExposureP <- computePreExposureGainP(
-        sccsData = sccsData,
-        studyPopulation = studyPop,
-        exposureEraId = table$eraId[j]
-      )
-      table$preExposureP[j] <- preExposureP
-    }
-    table <- table %>%
-      mutate(
-        databaseId = !!databaseId,
-        easeDiagnostic = case_when(
-          is.na(.data$ease) ~ "NOT EVALUATED",
-          .data$ease <= sccsDiagnosticThresholds$easeThreshold ~ "PASS",
-          TRUE ~ "FAIL"
-        ),
-        mdrrDiagnostic = case_when(
-          is.na(.data$mdrr) ~ "NOT EVALUATED",
-          .data$mdrr <= sccsDiagnosticThresholds$mdrrThreshold ~ "PASS",
-          TRUE ~ "FAIL"
-        ),
-        timeTrendDiagnostic = case_when(
-          is.na(.data$timeTrendP) ~ "NOT EVALUATED",
-          .data$timeTrendP >= sccsDiagnosticThresholds$timeTrendPThreshold ~ "PASS",
-          TRUE ~ "FAIL"
-        ),
-        preExposureDiagnostic = case_when(
-          is.na(.data$preExposureP) ~ "NOT EVALUATED",
-          .data$preExposureP >= sccsDiagnosticThresholds$preExposurePThreshold ~ "PASS",
-          TRUE ~ "FAIL"
-        )
-      ) %>%
-      mutate(unblind = ifelse(.data$easeDiagnostic != "FAIL" &
-                                .data$mdrrDiagnostic != "FAIL" &
-                                .data$timeTrendDiagnostic != "FAIL" &
-                                .data$preExposureDiagnostic != "FAIL", 1, 0)) %>%
-      mutate(unblindForEvidenceSynthesis = ifelse(.data$easeDiagnostic != "FAIL" &
-                                                    .data$timeTrendDiagnostic != "FAIL" &
-                                                    .data$preExposureDiagnostic != "FAIL", 1, 0)) %>%
-      select(-"eraId")
-    sccsDiagnosticsSummary[[length(sccsDiagnosticsSummary) + 1]] <- table
+    sccsTimeTrend[[length(sccsTimeTrend) + 1]] <- refRow |>
+      select("analysisId", "exposuresOutcomeSetId") |>
+      bind_cols(timeTrendData)
   }
   return(list(
     sccsAgeSpanning = sccsAgeSpanning,
@@ -767,26 +684,24 @@ exportGroup <- function(group, sccsDiagnosticThresholds, outputFolder, databaseI
     sccsCovariate = sccsCovariate,
     sccsCovariateResult = sccsCovariateResult,
     sccsEra = sccsEra,
-    sccsEventDepObservation = sccsEventDepObservation,
     sccsLikelihoodProfile = sccsLikelihoodProfile,
     sccsSpline = sccsSpline,
     sccsTimeToEvent = sccsTimeToEvent,
     sccsTimeTrend = sccsTimeTrend,
-    sccsTimePeriod = sccsTimePeriod,
-    sccsDiagnosticsSummary = sccsDiagnosticsSummary
+    sccsTimePeriod = sccsTimePeriod
   ))
 }
 
 computeSpans <- function(studyPopulation, variable = "age") {
   if (variable == "age") {
-    ages <- studyPopulation$cases %>%
+    ages <- studyPopulation$cases |>
       transmute(
         start = ceiling(.data$ageAtObsStart + .data$startDay / (365.25 / 12)) + 1,
         end = floor((.data$ageAtObsStart + .data$endDay) / (365.25 / 12)) - 1,
         count = 1
       )
   } else {
-    ages <- studyPopulation$cases %>%
+    ages <- studyPopulation$cases |>
       transmute(
         start = convertDateToMonth(.data$observationPeriodStartDate + .data$startDay) + 1,
         end = convertDateToMonth(.data$observationPeriodStartDate + .data$endDay) - 1,
@@ -794,31 +709,31 @@ computeSpans <- function(studyPopulation, variable = "age") {
       )
   }
 
-  addedCounts <- ages %>%
-    rename(month = "start") %>%
-    group_by(.data$month) %>%
+  addedCounts <- ages |>
+    rename(month = "start") |>
+    group_by(.data$month) |>
     summarise(addedCount = sum(.data$count), .groups = "drop")
-  removedCounts <- ages %>%
-    rename(month = "end") %>%
-    group_by(.data$month) %>%
+  removedCounts <- ages |>
+    rename(month = "end") |>
+    group_by(.data$month) |>
     summarise(removedCount = sum(.data$count), .groups = "drop")
-  counts <- addedCounts %>%
-    full_join(removedCounts, by = join_by("month")) %>%
+  counts <- addedCounts |>
+    full_join(removedCounts, by = join_by("month")) |>
     mutate(
       addedCount = if_else(is.na(.data$addedCount), 0, .data$addedCount),
       removedCount = if_else(is.na(.data$removedCount), 0, .data$removedCount)
-    ) %>%
-    mutate(netAdded = .data$addedCount - .data$removedCount) %>%
-    arrange(.data$month) %>%
-    mutate(count = cumsum(.data$netAdded)) %>%
-    filter(count > 0) %>%
+    ) |>
+    mutate(netAdded = .data$addedCount - .data$removedCount) |>
+    arrange(.data$month) |>
+    mutate(count = cumsum(.data$netAdded)) |>
+    filter(count > 0) |>
     select("month", "count")
   if (nrow(counts) != 0) {
-    counts <- counts %>%
+    counts <- counts |>
       full_join(
         tibble(month = seq(min(counts$month), max(counts$month))),
         by = join_by("month")
-      ) %>%
+      ) |>
       arrange(.data$month)
   }
   lastCount <- 0
@@ -830,10 +745,10 @@ computeSpans <- function(studyPopulation, variable = "age") {
     }
   }
   if (variable == "age") {
-    counts <- counts %>%
+    counts <- counts |>
       rename(ageMonth = "month", coverBeforeAfterSubjects = "count")
   } else {
-    counts <- counts %>%
+    counts <- counts |>
       transmute(
         calendarYear = floor(.data$month / 12),
         calendarMonth = .data$month %% 12 + 1,
@@ -850,7 +765,7 @@ exportSccsResults <- function(outputFolder,
                               databaseId,
                               minCellCount) {
   message("- sccs_result table")
-  results <- getResultsSummary(outputFolder) %>%
+  results <- getResultsSummary(outputFolder) |>
     select(
       "analysisId",
       "exposuresOutcomeSetId",
@@ -878,16 +793,64 @@ exportSccsResults <- function(outputFolder,
       "calibratedOneSidedP",
       "calibratedLogRr",
       "calibratedSeLogRr"
-    ) %>%
-    mutate(databaseId = !!databaseId) %>%
-    enforceMinCellValue("outcomeSubjects", minCellCount) %>%
-    enforceMinCellValue("outcomeEvents", minCellCount) %>%
-    enforceMinCellValue("outcomeObservationPeriods", minCellCount) %>%
-    enforceMinCellValue("covariateSubjects", minCellCount) %>%
-    enforceMinCellValue("covariateDays", minCellCount) %>%
-    enforceMinCellValue("covariateEras", minCellCount) %>%
-    enforceMinCellValue("covariateOutcomes", minCellCount) %>%
+    ) |>
+    mutate(databaseId = !!databaseId) |>
+    enforceMinCellValue("outcomeSubjects", minCellCount) |>
+    enforceMinCellValue("outcomeEvents", minCellCount) |>
+    enforceMinCellValue("outcomeObservationPeriods", minCellCount) |>
+    enforceMinCellValue("covariateSubjects", minCellCount) |>
+    enforceMinCellValue("covariateDays", minCellCount) |>
+    enforceMinCellValue("covariateEras", minCellCount) |>
+    enforceMinCellValue("covariateOutcomes", minCellCount) |>
     enforceMinCellValue("observedDays", minCellCount)
   fileName <- file.path(exportFolder, "sccs_result.csv")
   writeToCsv(results, fileName)
+}
+
+exportDiagnosticsSummary <- function(outputFolder = outputFolder,
+                                     exportFolder = exportFolder,
+                                     databaseId = databaseId){
+  message("- sccs_diagnostics_summary table")
+  results <- getDiagnosticsSummary(outputFolder) |>
+    select(
+      "analysisId",
+      "exposuresOutcomeSetId",
+      "covariateId",
+      "timeStabilityP",
+      "timeStabilityDiagnostic",
+      "eventExposureLb",
+      "eventExposureUb",
+      "eventExposureDiagnostic",
+      "eventObservationLb",
+      "eventObservationUb",
+      "eventObservationDiagnostic",
+      "rareOutcomePrevalence",
+      "rareOutcomeDiagnostic",
+      "mdrr",
+      "mdrrDiagnostic",
+      "ease",
+      "easeDiagnostic",
+      "unblind",
+      "unblindForEvidenceSynthesis"
+    ) |>
+    mutate(databaseId = !!databaseId,
+           unblind = as.integer(.data$unblind),
+           unblindForEvidenceSynthesis = as.integer(.data$unblindForEvidenceSynthesis))
+
+  # Add deprecated columns:
+  results <- results |>
+    mutate(timeTrendP = as.numeric(NA),
+           preExposureP = as.numeric(NA),
+           timeTrendDiagnostic = "NOT EVALUATED",
+           preExposureDiagnostic = "NOT EVALUATED")
+
+  fileName <- file.path(exportFolder, "sccs_diagnostics_summary.csv")
+  writeToCsv(results, fileName)
+}
+
+exportEventDepObservation <- function(exportFolder = exportFolder){
+  message("- sccs_event_dep_observation table")
+  # Entire table is deprecated
+  fileName <- file.path(exportFolder, "sccs_event_dep_observation.csv")
+  writeToCsv(tibble(), fileName)
 }

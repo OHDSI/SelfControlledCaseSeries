@@ -13,22 +13,11 @@ getDbSccsData(
   outcomeIds,
   exposureDatabaseSchema = cdmDatabaseSchema,
   exposureTable = "drug_era",
-  exposureIds = c(),
-  useCustomCovariates = FALSE,
   customCovariateDatabaseSchema = cdmDatabaseSchema,
   customCovariateTable = "cohort",
-  customCovariateIds = c(),
-  useNestingCohort = FALSE,
   nestingCohortDatabaseSchema = cdmDatabaseSchema,
   nestingCohortTable = "cohort",
-  nestingCohortId = NULL,
-  deleteCovariatesSmallCount = 0,
-  studyStartDate = "",
-  studyEndDate = "",
-  studyStartDates = c(),
-  studyEndDates = c(),
-  cdmVersion = "5",
-  maxCasesPerOutcome = 0
+  getDbSccsDataArgs
 )
 }
 \arguments{
@@ -68,25 +57,11 @@ available. If \code{exposureTable = "drug_era"},
 \code{exposureTable} is not "drug_era", then expectation is \code{exposureTable}
 has format of a cohort table (see details).}
 
-\item{exposureIds}{A list of identifiers to extract from the exposure table. If
-exposureTable = DRUG_ERA, exposureIds should be CONCEPT_ID.
-If \code{exposureTable = "drug_era"}, \code{exposureIds} is used to select
-the \code{drug_concept_id}. If no exposure IDs are provided, all drugs
-or cohorts in the \code{exposureTable} are included as exposures.}
-
-\item{useCustomCovariates}{DEPRECATED. Set \code{customCovariateIds} to non-null value to use custom cohorts.}
-
 \item{customCovariateDatabaseSchema}{The name of the database schema that is the location where
 the custom covariate data is available.}
 
 \item{customCovariateTable}{Name of the table holding the custom covariates. This table
 should have the same structure as the cohort table (see details).}
-
-\item{customCovariateIds}{A list of cohort definition IDs identifying the records in
-the \code{customCovariateTable} to use for building custom
-covariates.}
-
-\item{useNestingCohort}{DEPRECATED. Set \code{nestingCohortId} to non-null value to use a nesting cohort.}
 
 \item{nestingCohortDatabaseSchema}{The name of the database schema that is the location
 where the nesting cohort is defined.}
@@ -94,29 +69,8 @@ where the nesting cohort is defined.}
 \item{nestingCohortTable}{Name of the table holding the nesting cohort. This table
 should have the same structure as the cohort table (see details).}
 
-\item{nestingCohortId}{A cohort definition ID identifying the records in the
-\code{nestingCohortTable} to use as nesting cohort.}
-
-\item{deleteCovariatesSmallCount}{The minimum count for a covariate to appear in the data to be
-kept.}
-
-\item{studyStartDate}{DEPRECATED. Use \code{studyStartDates} instead.}
-
-\item{studyEndDate}{DEPRECATED. Use \code{studyEndDates} instead.}
-
-\item{studyStartDates}{A character object specifying the minimum dates where data is
-used. Date format is 'yyyymmdd'. Use "" to indicate all time
-prior. See section for more information.}
-
-\item{studyEndDates}{A character object specifying the maximum dates where data is
-used. Date format is 'yyyymmdd'. Use "" to indicate to the end
-of observation. See section for more information.}
-
-\item{cdmVersion}{Define the OMOP CDM version used: currently supports "5".}
-
-\item{maxCasesPerOutcome}{If there are more than this number of cases for a single
-outcome cases will be sampled to this size. \code{maxCasesPerOutcome = 0}
-indicates no maximum size.}
+\item{getDbSccsDataArgs}{An object of type \code{GetDbSccsDataArgs} as created by the \code{createGetDbSccsDataArgs()}
+function.}
 }
 \value{
 An \link{SccsData} object.

@@ -26,15 +26,7 @@
 #' When both `profileGrid` and `profileGrid` are `NULL` likelihood profiling is disabled.
 #'
 #' @template SccsIntervalData
-#' @param prior         The prior used to fit the model. See [Cyclops::createPrior] for
-#'                      details.
-#' @param control       The control object used to control the cross-validation used to determine the
-#'                      hyperparameters of the prior (if applicable). See
-#'                      [Cyclops::createControl] for details.
-#' @param profileGrid           A one-dimensional grid of points on the log(relative risk) scale where
-#'                              the likelihood for coefficient of variables is sampled. See details.
-#' @param profileBounds         The bounds (on the log relative risk scale) for the adaptive sampling
-#'                              of the likelihood function.
+#' @param fitSccsModelArgs An object of type `FitSccsModelArgs` as created by the `createFitSccsModelArgs()` function.
 #'
 #' @return
 #' An object of type `SccsModel`. Generic functions `print`, `coef`, and
@@ -47,31 +39,15 @@
 #'
 #' @export
 fitSccsModel <- function(sccsIntervalData,
-                         prior = createPrior("laplace", useCrossValidation = TRUE),
-                         control = createControl(
-                           cvType = "auto",
-                           selectorType = "byPid",
-                           startingVariance = 0.1,
-                           seed = 1,
-                           resetCoefficients = TRUE,
-                           noiseLevel = "quiet"
-                         ),
-                         profileGrid = NULL,
-                         profileBounds = c(log(0.1), log(10))) {
+                         fitSccsModelArgs) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(sccsIntervalData, "SccsIntervalData", null.ok = TRUE, add = errorMessages)
-  checkmate::assertClass(prior, "cyclopsPrior", add = errorMessages)
-  checkmate::assertClass(control, "cyclopsControl", add = errorMessages)
-  checkmate::assertNumeric(profileGrid, null.ok = TRUE, add = errorMessages)
-  checkmate::assertNumeric(profileBounds, null.ok = TRUE, len = 2, add = errorMessages)
+  checkmate::assertR6(fitSccsModelArgs, "FitSccsModelArgs", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
-  if (!is.null(profileGrid) && !is.null(profileBounds)) {
-    stop("Specify either profileGrid or profileBounds")
-  }
 
   ParallelLogger::logTrace("Fitting SCCS model")
   metaData <- attr(sccsIntervalData, "metaData")
-  metaData$covariateRef <- sccsIntervalData$covariateRef %>%
+  metaData$covariateRef <- sccsIntervalData$covariateRef |>
     collect()
   if (!is.null(metaData$error)) {
     result <- list(
@@ -86,7 +62,7 @@ fitSccsModel <- function(sccsIntervalData,
   priorVariance <- 0
   logLikelihood <- NA
   logLikelihoodProfiles <- NULL
-  if (sccsIntervalData$outcomes %>% count() %>% pull() == 0) {
+  if (sccsIntervalData$outcomes |> count() |> pull() == 0) {
     coefficients <- c(0)
     status <- "Could not estimate because there was no data"
   } else {
@@ -96,6 +72,7 @@ fitSccsModel <- function(sccsIntervalData,
     needRegularization <- FALSE
     needCi <- c()
     needProfile <- c()
+    needTestForEndofObservation <- FALSE
     covariateSettingsList <- metaData$covariateSettingsList
     for (i in 1:length(covariateSettingsList)) {
       if (covariateSettingsList[[i]]$allowRegularization) {
@@ -138,25 +115,31 @@ fitSccsModel <- function(sccsIntervalData,
         }
       }
     }
+    if (!is.null(metaData$endOfObservationEra) && metaData$endOfObservationEra$endOfObservationEraLength > 0) {
+      needTestForEndofObservation <- TRUE
+      needCi <- c(needCi, metaData$endOfObservationEra$endOfObservationCovariateId)
+      nonRegularized <- c(nonRegularized, metaData$endOfObservationEra$endOfObservationCovariateId)
+    }
 
     if (!needRegularization) {
       prior <- createPrior("none")
     } else {
-      covariateIds <- sccsIntervalData$covariates %>%
-        distinct(.data$covariateId) %>%
+      covariateIds <- sccsIntervalData$covariates |>
+        distinct(.data$covariateId) |>
         pull()
+      prior <- fitSccsModelArgs$prior
       prior$exclude <- intersect(nonRegularized, covariateIds)
     }
     cyclopsData <- Cyclops::convertToCyclopsData(sccsIntervalData$outcomes,
-      sccsIntervalData$covariates,
-      modelType = "cpr",
-      addIntercept = FALSE,
-      checkRowIds = FALSE,
-      quiet = TRUE
+                                                 sccsIntervalData$covariates,
+                                                 modelType = "cpr",
+                                                 addIntercept = FALSE,
+                                                 checkRowIds = FALSE,
+                                                 quiet = TRUE
     )
     fit <- tryCatch(
       {
-        Cyclops::fitCyclopsModel(cyclopsData, prior = prior, control = control)
+        Cyclops::fitCyclopsModel(cyclopsData, prior = prior, control = fitSccsModelArgs$control)
       },
       error = function(e) {
         e$message
@@ -168,14 +151,14 @@ fitSccsModel <- function(sccsIntervalData,
       priorVariance <- 0
       status <- fit
     } else {
-      if (!is.null(profileGrid) || !is.null(profileBounds)) {
+      if (!is.null(fitSccsModelArgs$profileGrid) || !is.null(fitSccsModelArgs$profileBounds)) {
         covariateIds <- intersect(needProfile, as.numeric(Cyclops::getCovariateIds(cyclopsData)))
         getLikelihoodProfile <- function(covariateId) {
           logLikelihoodProfile <- Cyclops::getCyclopsProfileLogLikelihood(
             object = fit,
             parm = covariateId,
-            x = profileGrid,
-            bounds = profileBounds,
+            x = fitSccsModelArgs$profileGrid,
+            bounds = fitSccsModelArgs$profileBounds,
             tolerance = 0.1,
             includePenalty = TRUE
           )
@@ -192,9 +175,9 @@ fitSccsModel <- function(sccsIntervalData,
       } else {
         status <- "OK"
         estimates <- coef(fit)
-        estimates <- tibble(logRr = estimates, covariateId = as.numeric(names(estimates))) %>%
+        estimates <- tibble(logRr = estimates, covariateId = as.numeric(names(estimates))) |>
           left_join(
-            sccsIntervalData$covariateRef %>%
+            sccsIntervalData$covariateRef |>
               collect(),
             by = join_by("covariateId")
           )
@@ -226,7 +209,7 @@ fitSccsModel <- function(sccsIntervalData,
               object = fit,
               parm = param,
               x = 0,
-              includePenalty = FALSE
+              includePenalty = TRUE
             )$value
             estimates$llr[estimates$covariateId == param] <- fit$log_likelihood - llNull
           }
@@ -261,7 +244,7 @@ coef.SccsModel <- function(object, ...) {
 
 #' @export
 confint.SccsModel <- function(object, ...) {
-  return(object$estimates %>% select("covariateId", "logLb95", "logUb95"))
+  return(object$estimates |> select("covariateId", "logLb95", "logUb95"))
 }
 
 #' @export

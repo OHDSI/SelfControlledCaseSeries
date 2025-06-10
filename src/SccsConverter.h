@@ -283,6 +283,8 @@ public:
                 const NumericMatrix& _calendarTimeDesignMatrix,
                 const NumericVector& _timeCovariateCases,
                 const List& _covariateSettingsList,
+                const int _endOfObservationEraLength,
+                const int _endOfObservationCovariateId,
                 const bool _eventDependentObservation,
                 const List& _censorModel,
                 const bool _scri,
@@ -306,6 +308,7 @@ private:
   void addCovariateEras(std::vector<Era>& outputEras, const std::vector<Era>& eras, const CovariateSettings covariateSettings);
   bool isNanOrInf(const double x);
   bool invalidWeight(const double weight, const double startValue);
+  void addEndOfObservationEra(std::vector<Era>& outputEras, const int startDay, const int endDay);
 
   PersonDataIterator personDataIterator;
   ResultStruct resultStruct;
@@ -318,6 +321,8 @@ private:
   int calendarTimeOffset;
   NumericMatrix calendarTimeDesignMatrix;
   std::vector<CovariateSettings> covariateSettingsVector;
+  int endOfObservationEraLength;
+  int endOfObservationCovariateId;
   bool eventDependentObservation;
   WeightFunction* weightFunction;
   bool hasTimeCovariateCases;

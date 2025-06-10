@@ -45,6 +45,8 @@ SccsConverter::SccsConverter(const DataFrame& _cases,
                              const NumericMatrix& _calendarTimeDesignMatrix,
                              const NumericVector& _timeCovariateCases,
                              const List& _covariateSettingsList,
+                             const int _endOfObservationEraLength,
+                             const int _endOfObservationCovariateId,
                              const bool _eventDependentObservation,
                              const List& _censorModel,
                              const bool _scri,
@@ -57,6 +59,8 @@ SccsConverter::SccsConverter(const DataFrame& _cases,
                              includeSeason(_includeSeason),
                              includeCalendarTime(_includeCalendarTime),
                              calendarTimeOffset(_calendarTimeOffset),
+                             endOfObservationEraLength(_endOfObservationEraLength),
+                             endOfObservationCovariateId(_endOfObservationCovariateId),
                              eventDependentObservation(_eventDependentObservation),
                              scri(_scri),
                              controlIntervalId(_controlIntervalId){
@@ -433,6 +437,17 @@ void SccsConverter::addCovariateEras(std::vector<Era>& outputEras, const std::ve
   }
 }
 
+void SccsConverter::addEndOfObservationEra(std::vector<Era>& outputEras, const int startDay, const int endDay) {
+  if (endOfObservationEraLength > 0) {
+    int start = endDay - endOfObservationEraLength + 1;
+    if (start < startDay) {
+      start = startDay;
+    }
+    Era era(start, endDay, endOfObservationCovariateId, 1);
+    outputEras.push_back(era);
+  }
+}
+
 void SccsConverter::processPerson(PersonData& personData) {
   std::vector<Era>* eras = personData.eras;
   std::sort(eras->begin(), eras->end()); // Sort by start date
@@ -449,6 +464,7 @@ void SccsConverter::processPerson(PersonData& personData) {
         return;
     addMonthEras(outputEras, personData);
   }
+  addEndOfObservationEra(outputEras, personData.startDay, personData.endDay);
   std::vector<ConcomitantEra> concomitantEras = buildConcomitantEras(outputEras, personData.startDay, personData.endDay);
   if (concomitantEras.size() == 1) { // Not informative
     return;

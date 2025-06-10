@@ -18,16 +18,8 @@ the database.}
 }
 \value{
 A one-sided p-value for whether the rate before exposure is higher than after, against
-the null of no change.
+the null of no change.#'
 }
 \description{
-Compute P for pre-exposure risk gain
-}
-\details{
-Compares the rate of the outcome in the 30 days prior to exposure to the rate
-of the outcome in the 30 days following exposure. If the rate before exposure
-is higher, this indicates there might reverse causality, that the outcome, or
-some precursor of the outcome, increases the probability of having the exposure.
-
-The resulting p-value is computed using a Poisson model conditioned on the person.
+This function is deprecated. Use \code{computePreExposureGain()} instead.
 }

@@ -26,11 +26,8 @@
 #'
 #' @template StudyPopulation
 #' @template SccsData
-#' @param eraCovariateSettings        Either an object of type `EraCovariateSettings` as created
-#'                                    using the [createEraCovariateSettings()] function, or a
-#'                                    list of such objects.
-#' @param controlIntervalSettings     An object of type `ControlIntervalSettings` as created
-#'                                    using the [createControlIntervalSettings()] function.
+#' @param createScriIntervalDataArgs An object of type `CreateScriIntervalDataArgs` as created by
+#'                                   the `createCreateScriIntervalDataArgs()` function.
 #'
 #' @references
 #' Greene SK, Kulldorff M, Lewis EM, Li R, Yin R, Weintraub ES, Fireman BH, Lieu TA, Nordin JD,
@@ -44,20 +41,11 @@
 #' @export
 createScriIntervalData <- function(studyPopulation,
                                    sccsData,
-                                   eraCovariateSettings,
-                                   controlIntervalSettings) {
+                                   createScriIntervalDataArgs) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
   checkmate::assertClass(sccsData, "SccsData", add = errorMessages)
-  checkmate::assertList(studyPopulation, min.len = 1, add = errorMessages)
-  if (is.list(eraCovariateSettings) && !is(eraCovariateSettings, "EraCovariateSettings")) {
-    for (i in 1:length(eraCovariateSettings)) {
-      checkmate::assertClass(eraCovariateSettings[[i]], "EraCovariateSettings", add = errorMessages)
-    }
-  } else {
-    checkmate::assertClass(eraCovariateSettings, "EraCovariateSettings", add = errorMessages)
-  }
-  checkmate::assertClass(controlIntervalSettings, "ControlIntervalSettings", null.ok = TRUE, add = errorMessages)
+  checkmate::assertR6(createScriIntervalDataArgs, "CreateScriIntervalDataArgs", null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   start <- Sys.time()
@@ -65,14 +53,15 @@ createScriIntervalData <- function(studyPopulation,
   settings <- list()
   settings$metaData <- list()
   settings$covariateRef <- tibble()
-  if (is.list(eraCovariateSettings) && !is(eraCovariateSettings, "EraCovariateSettings")) {
-    covariateSettings <- eraCovariateSettings
+  if (is.list(createScriIntervalDataArgs$eraCovariateSettings) && !is(createScriIntervalDataArgs$eraCovariateSettings, "EraCovariateSettings")) {
+    covariateSettings <- createScriIntervalDataArgs$eraCovariateSettings
   } else {
-    covariateSettings <- list(eraCovariateSettings)
+    covariateSettings <- list(createScriIntervalDataArgs$eraCovariateSettings)
   }
-  covariateSettings[[length(covariateSettings) + 1]] <- controlIntervalSettings
+  covariateSettings[[length(covariateSettings) + 1]] <- createScriIntervalDataArgs$controlIntervalSettings
   settings <- addEraCovariateSettings(settings, covariateSettings, sccsData)
-  settings$metaData$covariateSettingsList <- cleanCovariateSettingsList(settings$covariateSettingsList)
+  controlIntervalId <- settings$covariateSettingsList[[length(settings$covariateSettingsList)]]$outputIds[1, 1]
+  settings$metaData$covariateSettingsList <- Filter(function(x) !is(x, "ControlIntervalSettings"), settings$covariateSettingsList)
   metaData <- append(studyPopulation$metaData, settings$metaData)
   metaData$design <- "SCRI"
 
@@ -90,7 +79,6 @@ createScriIntervalData <- function(studyPopulation,
   cases <- studyPopulation$cases[order(studyPopulation$cases$caseId), ]
   outcomes <- studyPopulation$outcomes[order(studyPopulation$outcomes$caseId), ]
 
-  controlIntervalId <- settings$covariateSettingsList[sapply(settings$covariateSettingsList, function(x) x$isControlInterval)][[1]]$outputIds[1, 1]
   data <- Andromeda::andromeda()
   convertToSccs(
     cases = cases,
@@ -106,6 +94,8 @@ createScriIntervalData <- function(studyPopulation,
     calendarTimeDesignMatrix = matrix(),
     timeCovariateCases = numeric(0),
     covariateSettingsList = settings$covariateSettingsList,
+    endOfObservationEraLength = 0,
+    endOfObservationCovariateId = 0,
     eventDependentObservation = FALSE,
     censorModel = list(model = 0, p = c(0)),
     scri = TRUE,
@@ -135,13 +125,4 @@ createScriIntervalData <- function(studyPopulation,
   delta <- Sys.time() - start
   message(paste("Generating SCRI interval data took", signif(delta, 3), attr(delta, "units")))
   return(data)
-}
-
-cleanCovariateSettingsList <- function(covariateSettingsList) {
-  # Remove control interval settings and field:
-  noCi <- covariateSettingsList[!sapply(covariateSettingsList, function(x) x$isControlInterval)]
-  return(lapply(noCi, function(x) {
-    x$isControlInterval <- NULL
-    return(x)
-  }))
 }

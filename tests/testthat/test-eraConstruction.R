@@ -11,7 +11,8 @@ convertToSccsDataWrapper <- function(cases,
                                      firstOutcomeOnly = FALSE,
                                      excludeeraIds = NULL,
                                      minAge = NULL,
-                                     maxAge = NULL) {
+                                     maxAge = NULL,
+                                     endOfObservationEraLength = 0) {
   if (is.null(covariateSettings)) {
     covariateSettings <- createEraCovariateSettings(
       includeEraIds = exposureId,
@@ -30,19 +31,20 @@ convertToSccsDataWrapper <- function(cases,
   } else {
     covariateIds <- covariateSettings$includeEraIds
   }
-  eraRef <- eras %>%
-    distinct(.data$eraId, .data$eraType) %>%
+  eraRef <- eras |>
+    distinct(.data$eraId, .data$eraType) |>
     mutate(eraName = "")
 
   data <- Andromeda::andromeda(
-    cases = cases %>%
+    cases = cases |>
       mutate(observationPeriodStartDate = observationPeriodStartDate),
     eras = eras,
     eraRef = eraRef
   )
   attr(data, "metaData") <- list(
     outcomeIds = 10,
-    attrition = tibble(outcomeId = 10)
+    attrition = tibble(outcomeId = 10),
+    prevalences = tibble(outcomeId = 10)
   )
   class(data) <- "SccsData"
   attr(class(data), "package") <- "SelfControlledCaseSeries"
@@ -50,18 +52,23 @@ convertToSccsDataWrapper <- function(cases,
   studyPop <- createStudyPopulation(
     sccsData = data,
     outcomeId = 10,
-    firstOutcomeOnly = firstOutcomeOnly,
-    naivePeriod = naivePeriod,
-    minAge = minAge,
-    maxAge = maxAge
+    createStudyPopulationArgs = createCreateStudyPopulationArgs(
+      firstOutcomeOnly = firstOutcomeOnly,
+      naivePeriod = naivePeriod,
+      minAge = minAge,
+      maxAge = maxAge
+    )
   )
 
   result <- createSccsIntervalData(
     studyPopulation = studyPop,
     sccsData = data,
-    ageCovariateSettings = ageSettings,
-    seasonalityCovariateSettings = seasonalitySettings,
-    eraCovariateSettings = covariateSettings
+    createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+      ageCovariateSettings = ageSettings,
+      seasonalityCovariateSettings = seasonalitySettings,
+      eraCovariateSettings = covariateSettings,
+      endOfObservationEraLength = endOfObservationEraLength
+    )
   )
   return(list(outcomes = collect(result$outcomes), covariates = collect(result$covariates)))
 }
@@ -512,7 +519,7 @@ test_that("Removal of risk windows where end before start", {
                                        )
     )
   })
-  expect_equal(result$outcomes %>% count() %>% pull(), 0)
+  expect_equal(result$outcomes |> count() |> pull(), 0)
 })
 
 test_that("Aggregates on large set", {
@@ -520,76 +527,80 @@ test_that("Aggregates on large set", {
   sccsData <- simulateSccsData(1000, settings)
   studyPop <- createStudyPopulation(
     sccsData = sccsData,
-    naivePeriod = 0,
-    firstOutcomeOnly = FALSE,
+    createStudyPopulationArgs = createCreateStudyPopulationArgs(
+      naivePeriod = 0,
+      firstOutcomeOnly = FALSE
+    )
   )
   sccsIntervalData <- createSccsIntervalData(
     studyPopulation = studyPop,
     sccsData,
-    eraCovariateSettings = createEraCovariateSettings(
-      includeEraIds = c(1, 2),
-      endAnchor = "era end",
-      stratifyById = TRUE,
+    createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+      eraCovariateSettings = createEraCovariateSettings(
+        includeEraIds = c(1, 2),
+        endAnchor = "era end",
+        stratifyById = TRUE,
+      )
     )
   )
 
-  x <- sccsData$eras %>%
-    filter(.data$eraId == 1) %>%
+  x <- sccsData$eras |>
+    filter(.data$eraId == 1) |>
     collect()
-  y <- sccsData$eras %>%
-    filter(.data$eraId == 10) %>%
+  y <- sccsData$eras |>
+    filter(.data$eraId == 10) |>
     collect()
-  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") %>%
-    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) %>%
-    distinct(.data$caseId) %>%
+  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") |>
+    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) |>
+    distinct(.data$caseId) |>
     pull()
 
-  x <- sccsIntervalData$covariates %>%
-    filter(.data$covariateId == 1000) %>%
+  x <- sccsIntervalData$covariates |>
+    filter(.data$covariateId == 1000) |>
     collect()
-  y <- sccsIntervalData$outcomes %>%
-    filter(.data$y != 0) %>%
+  y <- sccsIntervalData$outcomes |>
+    filter(.data$y != 0) |>
     collect()
-  z2 <- inner_join(x, y, by = join_by("rowId")) %>%
-    distinct(.data$stratumId.x) %>%
+  z2 <- inner_join(x, y, by = join_by("rowId")) |>
+    distinct(.data$stratumId.x) |>
     pull()
 
   # Same people have the event during exposure to 1:
   expect_equal(z, z2)
 
-  x <- sccsData$eras %>%
-    filter(.data$eraId == 2) %>%
+  x <- sccsData$eras |>
+    filter(.data$eraId == 2) |>
     collect()
-  y <- sccsData$eras %>%
-    filter(.data$eraId == 10) %>%
+  y <- sccsData$eras |>
+    filter(.data$eraId == 10) |>
     collect()
-  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") %>%
-    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) %>%
-    distinct(.data$caseId) %>%
+  z <- inner_join(x, y, by = join_by("caseId"), relationship = "many-to-many") |>
+    filter(.data$eraStartDay.y >= .data$eraStartDay.x & .data$eraStartDay.y <= .data$eraEndDay.x) |>
+    distinct(.data$caseId) |>
     pull()
 
-  x <- sccsIntervalData$covariates %>%
-    filter(.data$covariateId == 1001) %>%
+  x <- sccsIntervalData$covariates |>
+    filter(.data$covariateId == 1001) |>
     collect()
-  y <- sccsIntervalData$outcomes %>%
-    filter(.data$y != 0) %>%
+  y <- sccsIntervalData$outcomes |>
+    filter(.data$y != 0) |>
     collect()
-  z2 <- inner_join(x, y, by = join_by("rowId")) %>%
-    distinct(.data$stratumId.x) %>%
+  z2 <- inner_join(x, y, by = join_by("rowId")) |>
+    distinct(.data$stratumId.x) |>
     pull()
 
   # Same people have the event during exposure to 2:
   expect_equal(z, z2)
 
 
-  outcomes <- sccsIntervalData$outcomes %>%
-    group_by(.data$stratumId) %>%
-    summarise(time = sum(.data$time, na.rm = TRUE)) %>%
+  outcomes <- sccsIntervalData$outcomes |>
+    group_by(.data$stratumId) |>
+    summarise(time = sum(.data$time, na.rm = TRUE)) |>
     collect()
 
-  z3 <- sccsData$cases %>%
-    select(stratumId = "caseId", "endDay") %>%
-    inner_join(outcomes, by = join_by("stratumId"), copy = TRUE) %>%
+  z3 <- sccsData$cases |>
+    select(stratumId = "caseId", "endDay") |>
+    inner_join(outcomes, by = join_by("stratumId"), copy = TRUE) |>
     collect()
 
   # Same amount of times before and after conversion to concomitant eras:
@@ -676,6 +687,34 @@ test_that("Pre-exposure window", {
   expect_equal(result$covariates$covariateId, c(1000, 1001))
 })
 
+test_that("End of observation era", {
+  cases <- tibble(
+    observationPeriodId = "1000",
+    caseId = 1,
+    personId = "1",
+    ageAtObsStart = 0,
+    observationPeriodStartDate = as.Date("2000-5-1"),
+    startDay = 1,
+    endDay = 100,
+    noninformativeEndCensor = 0
+  )
+  eras <- tibble(
+    eraType = c("hoi", "rx"),
+    caseId = c(1, 1),
+    eraId = c(10, 11),
+    eraValue = c(1, 1),
+    eraStartDay = c(50, 20),
+    eraEndDay = c(50, 40)
+  )
+  result <- convertToSccsDataWrapper(cases, eras, exposureId = 11, endOfObservationEraLength = 30)
+  expect_equal(result$outcomes$rowId, c(0, 1, 2))
+  expect_equal(result$outcomes$stratumId, c(1, 1, 1))
+  expect_equal(result$outcomes$time, c(49, 30, 21))
+  expect_equal(result$outcomes$y, c(1, 0, 0))
+  expect_equal(result$covariates$rowId, c(1, 2))
+  expect_equal(result$covariates$stratumId, c(1, 1))
+  expect_equal(result$covariates$covariateId, c(99, 1000))
+})
 
 test_that("Splines when no data in study period", {
   cases <- tibble(
@@ -710,7 +749,8 @@ test_that("Splines when no data in study period", {
     outcomeIds = 10,
     attrition = tibble(outcomeId = 10),
     studyPeriods = tibble(studyStartDate = as.Date("2000-2-1"),
-                          studyEndDate = as.Date("2000-12-31"))
+                          studyEndDate = as.Date("2000-12-31")),
+    prevalences = tibble(outcomeId = 10)
   )
   class(data) <- "SccsData"
   attr(class(data), "package") <- "SelfControlledCaseSeries"
@@ -718,6 +758,7 @@ test_that("Splines when no data in study period", {
   studyPop <- createStudyPopulation(
     sccsData = data,
     outcomeId = 10,
+    createStudyPopulationArgs = createCreateStudyPopulationArgs()
   )
   covariateSettings <- createEraCovariateSettings(
     includeEraIds = 11,
@@ -729,8 +770,10 @@ test_that("Splines when no data in study period", {
     result <- createSccsIntervalData(
       studyPopulation = studyPop,
       sccsData = data,
-      calendarTimeCovariateSettings = createCalendarTimeCovariateSettings(),
-      eraCovariateSettings = covariateSettings)
+      createCreateSccsIntervalDataArgs(
+        calendarTimeCovariateSettings = createCalendarTimeCovariateSettings(),
+        eraCovariateSettings = covariateSettings)
+    )
 
   }, "All outcomes fall outside of all study periods"
   )

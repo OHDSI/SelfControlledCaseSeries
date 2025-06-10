@@ -242,20 +242,20 @@ censoringDays <- rweibull(n, shape = 1, scale = 100)
 censoringDays[runif(n) < 0.25] <- 9999999
 hist(censoringDays)
 eras <- collect(sccsData$eras)
-eras <- eras %>%
-  arrange(caseId, startDay) %>%
+eras <- eras |>
+  arrange(caseId, startDay) |>
   filter(eraType == "rx" | !duplicated(paste(caseId, eraType)))
 sccsData$eras <- eras
-sccsData$cases <- sccsData$cases %>%
+sccsData$cases <- sccsData$cases |>
   inner_join(
-    eras %>%
-      filter(eraType == "hoi") %>%
-      mutate(censorDay = round(startDay + censoringDays)) %>%
+    eras |>
+      filter(eraType == "hoi") |>
+      mutate(censorDay = round(startDay + censoringDays)) |>
       select("caseId", "censorDay"),
     by = join_by("caseId"),
-    copy = TRUE) %>%
-  mutate(noninformativeEndCensor = ifelse(censorDay < observationDays, 0, 1)) %>%
-  mutate(observationDays = ifelse(censorDay < observationDays, censorDay, observationDays)) %>%
+    copy = TRUE) |>
+  mutate(noninformativeEndCensor = ifelse(censorDay < observationDays, 0, 1)) |>
+  mutate(observationDays = ifelse(censorDay < observationDays, censorDay, observationDays)) |>
   select(-"censorDay")
 
 mean(collect(sccsData$cases)$noninformativeEndCensor)

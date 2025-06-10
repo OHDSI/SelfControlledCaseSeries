@@ -9,8 +9,7 @@ exportToCsv(
   exportFolder = file.path(outputFolder, "export"),
   databaseId = 1,
   minCellCount = 5,
-  maxCores = 1,
-  sccsDiagnosticThresholds = createSccsDiagnosticThresholds()
+  maxCores = 1
 )
 }
 \arguments{
@@ -26,9 +25,6 @@ to a count before it can be included in the results. If the
 count is below this threshold, it will be set to \code{-minCellCount}.}
 
 \item{maxCores}{Maximum number of CPU cores to use.}
-
-\item{sccsDiagnosticThresholds}{An object of type \code{SccsDiagnosticThresholds} as created using
-\code{\link[=createSccsDiagnosticThresholds]{createSccsDiagnosticThresholds()}}.}
 }
 \value{
 Does not return anything. Is called for the side-effect of populating the \code{exportFolder}

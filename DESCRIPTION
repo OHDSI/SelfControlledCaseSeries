@@ -1,8 +1,8 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 5.3.3
-Date: 2025-04-09
+Version: 6.0.0
+Date: 2025-02-18
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
@@ -17,7 +17,7 @@ Description: SelfControlledCaseSeries is an R package for performing self-
 	using splines assuming constant hazard within calendar months. Event-dependent 
 	censoring of the observation period can be corrected for. Many exposures can be
 	included at once (MSCCS), with regularization on all coefficients except for the
-	exposure of interest.
+	exposure of interest. Includes diagnostics for all major assumptions of the SCCS.
 VignetteBuilder: knitr
 URL:  https://ohdsi.github.io/SelfControlledCaseSeries/, https://github.com/OHDSI/SelfControlledCaseSeries
 BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
@@ -30,7 +30,7 @@ Imports:
 	SqlRender (>= 1.16.0),
 	dplyr (>= 1.0.0),
 	Rcpp (>= 1.0.9),
-	ParallelLogger (>= 3.1.0),
+	ParallelLogger (>= 3.4.0),
 	EmpiricalCalibration,
 	splines,
 	ggplot2 (>= 3.4.0),
@@ -43,7 +43,8 @@ Imports:
 	ResultModelManager,
 	zip,
 	jsonlite,
-	digest
+	digest,
+	R6
 Suggests:
 	testthat,
 	knitr,

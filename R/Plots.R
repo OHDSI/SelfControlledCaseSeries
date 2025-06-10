@@ -42,10 +42,10 @@ plotAgeSpans <- function(studyPopulation,
   checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  cases <- studyPopulation$cases %>%
+  cases <- studyPopulation$cases |>
     transmute(startAge = .data$ageAtObsStart + .data$startDay,
-              endAge = .data$ageAtObsStart + .data$endDay) %>%
-    arrange(.data$startAge, .data$endAge) %>%
+              endAge = .data$ageAtObsStart + .data$endDay) |>
+    arrange(.data$startAge, .data$endAge) |>
     mutate(rank = row_number())
 
   ageLabels <- floor(min(cases$startAge) / 365.25):ceiling(max(cases$endAge) / 365.25)
@@ -88,10 +88,10 @@ plotAgeSpans <- function(studyPopulation,
 }
 
 computeTimeToObsEnd <- function(studyPopulation) {
-  outcomes <- studyPopulation$outcomes %>%
-    group_by(.data$caseId) %>%
-    summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") %>%
-    inner_join(studyPopulation$cases, by = join_by("caseId")) %>%
+  outcomes <- studyPopulation$outcomes |>
+    group_by(.data$caseId) |>
+    summarise(outcomeDay = min(.data$outcomeDay), .groups = "drop_last") |>
+    inner_join(studyPopulation$cases, by = join_by("caseId")) |>
     transmute(
       daysFromEvent = .data$endDay - .data$outcomeDay,
       censoring = case_when(
@@ -125,6 +125,10 @@ computeTimeToObsEnd <- function(studyPopulation) {
 #' @return
 #' A ggplot object. Use the [ggplot2::ggsave()] function to save to file in a different
 #' format.
+#'
+#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
+#'                          See the function [ggplot2::ggsave()] for supported file formats.
+#' @param title             Optional: the main title for the plot
 #'
 #' @export
 plotEventObservationDependence <- function(studyPopulation,
@@ -175,7 +179,7 @@ plotEventObservationDependence <- function(studyPopulation,
 computeTimeToEvent <- function(studyPopulation,
                                sccsData,
                                exposureEraId) {
-  cases <- studyPopulation$cases %>%
+  cases <- studyPopulation$cases |>
     select("caseId", "startDay", "endDay")
 
   if (nrow(cases) == 0) {
@@ -191,7 +195,6 @@ computeTimeToEvent <- function(studyPopulation,
                  copy = TRUE) |>
       collect()
   }
-
   if (nrow(exposures) == 0) {
     warning("No exposures found with era ID ", exposureEraId)
     result <- tibble(
@@ -201,63 +204,63 @@ computeTimeToEvent <- function(studyPopulation,
       observed = 1,
       eventsExposed = 1.0,
       eventsUnexposed = 1.0
-    ) %>%
+    ) |>
       filter(.data$number == -1)
     return(result)
   }
-  firstExposures <- exposures %>%
-    group_by(.data$caseId, .data$startDay, .data$endDay) %>%
+  firstExposures <- exposures |>
+    group_by(.data$caseId, .data$startDay, .data$endDay) |>
     summarise(
       eraStartDay = min(.data$eraStartDay, na.rm = TRUE),
       eraEndDay = min(.data$eraEndDay, na.rm = TRUE),
       .groups = "drop"
     )
 
-  outcomes <- studyPopulation$outcomes %>%
-    inner_join(firstExposures, by = join_by("caseId")) %>%
-    mutate(delta = .data$outcomeDay - .data$eraStartDay) %>%
+  outcomes <- studyPopulation$outcomes |>
+    inner_join(firstExposures, by = join_by("caseId")) |>
+    mutate(delta = .data$outcomeDay - .data$eraStartDay) |>
     select("caseId", "outcomeDay", "delta")
 
-  exposedoutcomes <- exposures %>%
-    inner_join(outcomes, by = join_by("caseId"), relationship = "many-to-many") %>%
+  exposedoutcomes <- exposures |>
+    inner_join(outcomes, by = join_by("caseId"), relationship = "many-to-many") |>
     filter(
       .data$outcomeDay >= .data$eraStartDay,
       .data$outcomeDay <= .data$eraEndDay
-    ) %>%
-    select("caseId", "delta") %>%
+    ) |>
+    select("caseId", "delta") |>
     mutate(exposed = 1)
 
-  outcomes <- outcomes %>%
-    left_join(exposedoutcomes, by = join_by("caseId", "delta"), relationship = "many-to-many") %>%
+  outcomes <- outcomes |>
+    left_join(exposedoutcomes, by = join_by("caseId", "delta"), relationship = "many-to-many") |>
     mutate(exposed = coalesce(.data$exposed, 0))
 
-  weeks <- dplyr::tibble(number = -26:25) %>%
+  weeks <- dplyr::tibble(number = -26:25) |>
     mutate(
       start = .data$number * 7,
       end = .data$number * 7 + 7
     )
 
-  events <- weeks %>%
-    cross_join(select(outcomes, "delta", "exposed")) %>%
-    filter(.data$delta >= .data$start, .data$delta < .data$end) %>%
-    group_by(.data$number, .data$start, .data$end) %>%
+  events <- weeks |>
+    cross_join(select(outcomes, "delta", "exposed")) |>
+    filter(.data$delta >= .data$start, .data$delta < .data$end) |>
+    group_by(.data$number, .data$start, .data$end) |>
     summarise(
       eventsExposed = sum(.data$exposed),
       eventsUnexposed = n() - sum(.data$exposed),
       .groups = "drop"
     )
 
-  observed <- weeks %>%
-    cross_join(transmute(firstExposures, startDelta = .data$startDay -.data$eraStartDay , endDelta = .data$endDay - .data$eraStartDay)) %>%
-    filter(.data$endDelta >= .data$start, .data$startDelta < .data$end) %>%
-    group_by(.data$number, .data$start, .data$end) %>%
+  observed <- weeks |>
+    cross_join(transmute(firstExposures, startDelta = .data$startDay -.data$eraStartDay , endDelta = .data$endDay - .data$eraStartDay)) |>
+    filter(.data$endDelta >= .data$start, .data$startDelta < .data$end) |>
+    group_by(.data$number, .data$start, .data$end) |>
     summarise(
       observed = n(),
       .groups = "drop"
     )
 
-  result <- observed %>%
-    left_join(events, by = join_by("number", "start", "end")) %>%
+  result <- observed |>
+    left_join(events, by = join_by("number", "start", "end")) |>
     mutate(
       eventsExposed = if_else(is.na(.data$eventsExposed), 0, .data$eventsExposed),
       eventsUnexposed = if_else(is.na(.data$eventsUnexposed), 0, .data$eventsUnexposed)
@@ -315,28 +318,28 @@ plotExposureCentered <- function(studyPopulation,
   }
 
   if (highlightExposedEvents) {
-    events <- data %>%
+    events <- data |>
       transmute(.data$start,
-        .data$end,
-        type = "Events",
-        count1 = .data$eventsUnexposed,
-        count2 = .data$eventsExposed
+                .data$end,
+                type = "Events",
+                count1 = .data$eventsUnexposed,
+                count2 = .data$eventsExposed
       )
   } else {
-    events <- data %>%
+    events <- data |>
       transmute(.data$start,
-        .data$end,
-        type = "Events",
-        count1 = .data$eventsUnexposed + .data$eventsExposed,
-        count2 = NA
+                .data$end,
+                type = "Events",
+                count1 = .data$eventsUnexposed + .data$eventsExposed,
+                count2 = NA
       )
   }
-  observed <- data %>%
+  observed <- data |>
     transmute(.data$start,
-      .data$end,
-      type = "Subjects under observation",
-      count1 = .data$observed,
-      count2 = NA
+              .data$end,
+              type = "Subjects under observation",
+              count1 = .data$observed,
+              count2 = NA
     )
   data <- bind_rows(events, observed)
 
@@ -404,9 +407,9 @@ plotEventToCalendarTime <- function(studyPopulation,
   checkmate::reportAssertions(collection = errorMessages)
 
   data <- computeOutcomeRatePerMonth(studyPopulation, sccsModel)
-  plotData <- data %>%
-    select("month", "monthStartDate", "monthEndDate", value = "ratio") %>%
-      mutate(type = "Assuming constant rate")
+  plotData <- data |>
+    select("month", "monthStartDate", "monthEndDate", value = "ratio") |>
+    mutate(type = "Assuming constant rate")
   levels <- c("Assuming constant rate")
 
   if (!is.null(sccsModel) && (hasCalendarTimeEffect(sccsModel) || hasSeasonality(sccsModel))) {
@@ -414,7 +417,7 @@ plotEventToCalendarTime <- function(studyPopulation,
     type <- paste("Adj. for", paste(types, collapse = " and "))
     plotData <- bind_rows(
       plotData,
-      select(data, "month", "monthStartDate", "monthEndDate", value = "adjustedRatio") %>%
+      select(data, "month", "monthStartDate", "monthEndDate", value = "adjustedRatio") |>
         mutate(type = !!type),
     )
     levels <- c(levels, type)
@@ -486,9 +489,9 @@ plotAgeEffect <- function(sccsModel,
   ageKnots <- sccsModel$metaData$age$ageKnots
   age <- seq(min(ageKnots), max(ageKnots), length.out = 100)
   ageDesignMatrix <- splines::bs(age,
-    knots = ageKnots[2:(length(ageKnots) - 1)],
-    Boundary.knots = ageKnots[c(1, length(ageKnots))],
-    degree = 2
+                                 knots = ageKnots[2:(length(ageKnots) - 1)],
+                                 Boundary.knots = ageKnots[c(1, length(ageKnots))],
+                                 degree = 2
   )
   logRr <- apply(ageDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
@@ -507,10 +510,10 @@ plotAgeEffect <- function(sccsModel,
     ggplot2::geom_line(color = rgb(0, 0, 0.8), alpha = 0.8, linewidth = 1) +
     ggplot2::scale_x_continuous("Age", breaks = ageBreaks, labels = ageLabels) +
     ggplot2::scale_y_continuous("Relative risk",
-      limits = rrLim,
-      trans = "log10",
-      breaks = breaks,
-      labels = breaks
+                                limits = rrLim,
+                                trans = "log10",
+                                breaks = breaks,
+                                labels = breaks
     ) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
@@ -569,13 +572,13 @@ plotSeasonality <- function(sccsModel,
   splineCoefs <- estimates[estimates$covariateId >= 200 & estimates$covariateId < 300, "logRr"]
   seasonKnots <- sccsModel$metaData$seasonality$seasonKnots
   season <- sort(unique(c(seq(min(seasonKnots), max(seasonKnots), length.out = 100),
-                     seasonKnots)))
+                          seasonKnots)))
   seasonDesignMatrix <- cyclicSplineDesign(season, seasonKnots)
   logRr <- apply(seasonDesignMatrix %*% splineCoefs, 1, sum)
   logRr <- logRr - mean(logRr)
   rr <- exp(logRr)
   data <- tibble(season = season, rr = rr)
-  knotData <- data %>%
+  knotData <- data |>
     filter(.data$season %in% seasonKnots)
 
 
@@ -589,10 +592,10 @@ plotSeasonality <- function(sccsModel,
     ggplot2::geom_point(data = knotData) +
     ggplot2::scale_x_continuous("Month", breaks = seasonBreaks, labels = seasonBreaks) +
     ggplot2::scale_y_continuous("Relative risk",
-      limits = rrLim,
-      trans = "log10",
-      breaks = breaks,
-      labels = breaks
+                                limits = rrLim,
+                                trans = "log10",
+                                breaks = breaks,
+                                labels = breaks
     ) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
@@ -644,11 +647,11 @@ plotCalendarTimeSpans <- function(studyPopulation,
   checkmate::assertCharacter(fileName, len = 1, null.ok = TRUE, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  cases <- studyPopulation$cases %>%
+  cases <- studyPopulation$cases |>
     mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
-           endDate = .data$observationPeriodStartDate + .data$endDay) %>%
-    select("startDate", "endDate") %>%
-    arrange(.data$startDate, .data$endDate) %>%
+           endDate = .data$observationPeriodStartDate + .data$endDay) |>
+    select("startDate", "endDate") |>
+    arrange(.data$startDate, .data$endDate) |>
     mutate(rank = row_number())
   if (nrow(cases) > maxPersons) {
     warning("There are ", nrow(cases), " cases. Random sampling ", maxPersons, " cases.")
@@ -730,15 +733,15 @@ plotCalendarTimeEffect <- function(sccsModel,
                  segment = 0)
   for (i in seq_along(calendarTimeKnotsInPeriods)) {
     knots <- calendarTimeKnotsInPeriods[[i]]
-    data <- data %>%
+    data <- data |>
       mutate(segment = if_else(.data$calendarTime >= min(knots) & .data$calendarTime <= max(knots),
                                i,
                                .data$segment))
   }
-  data <- data %>%
+  data <- data |>
     filter(.data$segment > 0)
-  knotData <- data %>%
-    filter(.data$calendarTime %in% allKnots) %>%
+  knotData <- data |>
+    filter(.data$calendarTime %in% allKnots) |>
     arrange(.data$calendarTime)
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   theme <- ggplot2::element_text(colour = "#000000", size = 12)
@@ -748,10 +751,10 @@ plotCalendarTimeEffect <- function(sccsModel,
     ggplot2::geom_point(data = knotData) +
     ggplot2::scale_x_date("Calendar Time") +
     ggplot2::scale_y_continuous("Relative risk",
-      limits = rrLim,
-      trans = "log10",
-      breaks = breaks,
-      labels = breaks
+                                limits = rrLim,
+                                trans = "log10",
+                                breaks = breaks,
+                                labels = breaks
     ) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),

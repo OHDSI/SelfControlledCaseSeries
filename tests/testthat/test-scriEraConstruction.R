@@ -37,19 +37,20 @@ convertToScriDataWrapper <- function(cases,
   } else {
     covariateIds <- covariateSettings$includeEraIds
   }
-  eraRef <- eras %>%
-    distinct(.data$eraId, .data$eraType) %>%
+  eraRef <- eras |>
+    distinct(.data$eraId, .data$eraType) |>
     mutate(eraName = "")
 
   data <- Andromeda::andromeda(
-    cases = cases %>%
+    cases = cases |>
       mutate(observationPeriodStartDate = observationPeriodStartDate),
     eras = eras,
     eraRef = eraRef
   )
   attr(data, "metaData") <- list(
     outcomeIds = 10,
-    attrition = tibble(outcomeId = 10)
+    attrition = tibble(outcomeId = 10),
+    prevalences = tibble(outcomeId = 10)
   )
   class(data) <- "SccsData"
   attr(class(data), "package") <- "SelfControlledCaseSeries"
@@ -57,17 +58,21 @@ convertToScriDataWrapper <- function(cases,
   studyPop <- createStudyPopulation(
     sccsData = data,
     outcomeId = 10,
-    firstOutcomeOnly = firstOutcomeOnly,
-    naivePeriod = naivePeriod,
-    minAge = minAge,
-    maxAge = maxAge
+    createStudyPopulationArgs = createCreateStudyPopulationArgs(
+      firstOutcomeOnly = firstOutcomeOnly,
+      naivePeriod = naivePeriod,
+      minAge = minAge,
+      maxAge = maxAge
+    )
   )
 
   result <- createScriIntervalData(
     studyPopulation = studyPop,
     sccsData = data,
-    eraCovariateSettings = covariateSettings,
-    controlIntervalSettings = controlIntervalSettings
+    createScriIntervalDataArgs = createCreateScriIntervalDataArgs(
+      eraCovariateSettings = covariateSettings,
+      controlIntervalSettings = controlIntervalSettings
+    )
   )
   return(list(outcomes = collect(result$outcomes), covariates = collect(result$covariates)))
 }

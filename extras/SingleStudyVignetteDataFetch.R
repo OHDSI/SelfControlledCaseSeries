@@ -37,7 +37,7 @@ cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable)
 CohortGenerator::createCohortTables(connection = connection,
                                     cohortDatabaseSchema = cohortDatabaseSchema,
                                     cohortTableNames = cohortTableNames)
-cohortDefinitionSet <- PhenotypeLibrary::getPlCohortDefinitionSet(356)
+cohortDefinitionSet <- PhenotypeLibrary::getPlCohortDefinitionSet(c(356, 70))
 counts <- CohortGenerator::generateCohortSet(connection = connection,
                                              cdmDatabaseSchema = cdmDatabaseSchema,
                                              cohortDatabaseSchema = cohortDatabaseSchema,
@@ -62,26 +62,35 @@ epistaxis <- 356
 if (!file.exists(folder))
   dir.create(folder)
 
-sccsData <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = cohortTable,
-                          outcomeIds = epistaxis,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          exposureIds = aspirin,
-                          studyStartDates = "20100101",
-                          studyEndDates = "21000101",
-                          maxCasesPerOutcome = 100000)
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  outcomeDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = cohortTable,
+  outcomeIds = epistaxis,
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    studyStartDates = "20100101",
+    studyEndDates = "21000101",
+    maxCasesPerOutcome = 100000,
+    exposureIds = aspirin
+  )
+)
+
 saveSccsData(sccsData, file.path(folder, "data1.zip"))
 sccsData <- loadSccsData(file.path(folder, "data1.zip"))
 sccsData
 summary(sccsData)
 
-studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = epistaxis,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+studyPop <- createStudyPopulation(
+  sccsData = sccsData,
+  outcomeId = epistaxis,
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE,
+    naivePeriod = 180
+  )
+)
 saveRDS(studyPop, file.path(folder, "studyPop.rds"))
 studyPop <- readRDS(file.path(folder, "studyPop.rds"))
 
@@ -97,43 +106,57 @@ studyPop <- readRDS(file.path(folder, "studyPop.rds"))
 #
 # getAttritionTable(studyPop)
 #
-# computePreExposureGainP(sccsData = sccsData,
-#                         studyPopulation = studyPop,
-#                         exposureEraId = aspirin)
-#
-# stability <- computeTimeStability(studyPop)
-# stability %>%
-#   filter(!stable)
+# checkRareOutcomeAssumption(studyPop)
 
-covarAspirin<- createEraCovariateSettings(label = "Exposure of interest",
-                                          includeEraIds = aspirin,
-                                          start = 0,
-                                          end = 0,
-                                          endAnchor = "era end")
-sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                           sccsData,
-                                           eraCovariateSettings = covarAspirin)
+covarAspirin <- createEraCovariateSettings(
+  label = "Exposure of interest",
+  includeEraIds = aspirin,
+  start = 0,
+  end = 0,
+  endAnchor = "era end"
+)
+
+sccsIntervalData <- createSccsIntervalData(
+  studyPopulation = studyPop,
+  sccsData,
+  createSccsIntervalDataArgs =  createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = covarAspirin
+  )
+)
 saveSccsIntervalData(sccsIntervalData, file.path(folder, "intervalData1.zip"))
 sccsIntervalData <- loadSccsIntervalData(file.path(folder, "intervalData1.zip"))
 sccsIntervalData
 summary(sccsIntervalData)
+metaData <- attr(sccsIntervalData, "metaData")
 
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 saveRDS(model, file.path(folder, "simpleModel.rds"))
 model
 
-
 # Pre-exposure -----------------------------------------------------------------
-covarPreAspirin <- createEraCovariateSettings(label = "Pre-exposure",
-                                              includeEraIds = aspirin,
-                                              start = -60,
-                                              end = -1,
-                                              endAnchor = "era start")
-sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                           sccsData,
-                                           eraCovariateSettings = list(covarAspirin,
-                                                                       covarPreAspirin))
-model <- fitSccsModel(sccsIntervalData)
+covarPreAspirin <- createEraCovariateSettings(
+  label = "Pre-exposure",
+  includeEraIds = aspirin,
+  start = -30,
+  end = -1,
+  endAnchor = "era start",
+  preExposure = TRUE
+)
+
+sccsIntervalData <- createSccsIntervalData(
+  studyPopulation = studyPop,
+  sccsData,
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin, covarPreAspirin)
+  )
+)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 saveRDS(model, file.path(folder, "preExposureModel.rds"))
 model
 
@@ -142,22 +165,33 @@ seasonalityCovariateSettings <- createSeasonalityCovariateSettings()
 
 calendarTimeSettings <- createCalendarTimeCovariateSettings()
 
-sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                           sccsData = sccsData,
-                                           eraCovariateSettings = list(covarAspirin,
-                                                                       covarPreAspirin),
-                                           seasonalityCovariateSettings = seasonalityCovariateSettings,
-                                           calendarTimeCovariateSettings = calendarTimeSettings)
-model <- fitSccsModel(sccsIntervalData,
-                      control = createControl(cvType = "auto",
-                                              selectorType = "byPid",
-                                              startingVariance = 0.1,
-                                              seed = 1,
-                                              resetCoefficients = TRUE,
-                                              noiseLevel = "quiet",
-                                              fold = 10,
-                                              cvRepetitions = 1,
-                                              threads = 10))
+sccsIntervalData <- createSccsIntervalData(
+  studyPopulation = studyPop,
+  sccsData = sccsData,
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin),
+    seasonalityCovariateSettings = seasonalityCovariateSettings,
+    calendarTimeCovariateSettings = calendarTimeSettings
+  )
+)
+
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs(
+    control = createControl(
+      cvType = "auto",
+      selectorType = "byPid",
+      startingVariance = 0.1,
+      seed = 1,
+      resetCoefficients = TRUE,
+      noiseLevel = "quiet",
+      fold = 10,
+      cvRepetitions = 1,
+      threads = 10
+    )
+  )
+)
 
 saveRDS(model, file.path(folder, "seasonCalendarTimeModel.rds"))
 # model <- readRDS(file.path(folder, "seasonCalendarTimeModel.rds"))
@@ -170,52 +204,68 @@ plotCalendarTimeEffect(model)
 plot <- plotEventToCalendarTime(studyPopulation = studyPop,
                                 sccsModel = model)
 saveRDS(plot, file.path(folder, "stabilityPlot.rds"))
-stability <- computeTimeStability(studyPopulation = studyPop)
+stability <- checkTimeStabilityAssumption(studyPopulation = studyPop)
 saveRDS(stability, file.path(folder, "stabilityA.rds"))
 
-stability <- computeTimeStability(studyPopulation = studyPop,
-                                  sccsModel = model)
+stability <- checkTimeStabilityAssumption(studyPopulation = studyPop,
+                                          sccsModel = model)
 saveRDS(stability, file.path(folder, "stabilityB.rds"))
 stability
 
 # Remove COVID blip ------------------------------------------------------------
-sccsData <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = cohortTable,
-                          outcomeIds = epistaxis,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          exposureIds = aspirin,
-                          maxCasesPerOutcome = 100000,
-                          studyStartDates = c("20100101", "20220101"),
-                          studyEndDates = c("20191231", "21001231"))
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  outcomeDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = cohortTable,
+  outcomeIds = epistaxis,
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    exposureIds = aspirin,
+    maxCasesPerOutcome = 100000,
+    studyStartDates = c("20100101", "20220101"),
+    studyEndDates = c("20191231", "21001231")
+  )
+)
 saveSccsData(sccsData, file.path(folder, "data2.zip"))
 sccsData <- loadSccsData(file.path(folder, "data2.zip"))
-studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = epistaxis,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+studyPop <- createStudyPopulation(
+  sccsData = sccsData,
+  outcomeId = epistaxis,
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE,
+    naivePeriod = 180
+  )
+)
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarAspirin,
-                              covarPreAspirin),
-  seasonalityCovariateSettings = seasonalityCovariateSettings,
-  calendarTimeCovariateSettings = calendarTimeSettings
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin),
+    seasonalityCovariateSettings = seasonalityCovariateSettings,
+    calendarTimeCovariateSettings = calendarTimeSettings
+  )
 )
 
-model <- fitSccsModel(sccsIntervalData,
-                      # prior = createPrior("laplace", variance = 1),
-                      control = createControl(cvType = "auto",
-                                              selectorType = "byPid",
-                                              startingVariance = 0.1,
-                                              seed = 1,
-                                              resetCoefficients = TRUE,
-                                              noiseLevel = "quiet",
-                                              fold = 10,
-                                              cvRepetitions = 1,
-                                              threads = 10))
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs(
+    control = createControl(
+      cvType = "auto",
+      selectorType = "byPid",
+      startingVariance = 0.1,
+      seed = 1,
+      resetCoefficients = TRUE,
+      noiseLevel = "quiet",
+      fold = 10,
+      cvRepetitions = 1,
+      threads = 10
+    )
+  )
+)
+
 saveRDS(model, file.path(folder, "seasonCalendarTimeCovidBlipModel.rds"))
 model <- readRDS(file.path(folder, "seasonCalendarTimeCovidBlipModel.rds"))
 model
@@ -229,38 +279,52 @@ saveRDS(stability, file.path(folder, "stability2.rds"))
 stability
 
 
-# Adding time-dependent observation periods ------------------------------------
-sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                           sccsData = sccsData,
-                                           eraCovariateSettings = list(covarAspirin,
-                                                                       covarPreAspirin),
-                                           eventDependentObservation = TRUE)
+# Adding event-dependent observation periods ------------------------------------
+sccsIntervalData <- createSccsIntervalData(
+  studyPopulation = studyPop,
+  sccsData = sccsData,
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin),
+    eventDependentObservation = TRUE)
+)
 
-model <- fitSccsModel(sccsIntervalData)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs()
+)
 saveRDS(model, file.path(folder, "eventDepModel.rds"))
 
 model
 
 # Add SSRIs ------------------------------------------------------------------
 ssris <- c(715939, 722031, 739138, 751412, 755695, 797617, 40799195)
-sccsData <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = cohortTable,
-                          outcomeIds = epistaxis,
-                          maxCasesPerOutcome = 100000,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          exposureIds = c(aspirin, ssris),
-                          studyStartDates = c("20100101", "20220101"),
-                          studyEndDates = c("20191231", "21001231"))
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  outcomeDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = cohortTable,
+  outcomeIds = epistaxis,
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    maxCasesPerOutcome = 100000,
+    exposureIds = c(aspirin, ssris),
+    studyStartDates = c("20100101", "20220101"),
+    studyEndDates = c("20191231", "21001231")
+  )
+)
 saveSccsData(sccsData, file.path(folder, "data2.zip"))
 sccsData <- loadSccsData(file.path(folder, "data2.zip"))
 summary(sccsData)
-studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = epistaxis,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+studyPop <- createStudyPopulation(
+  sccsData = sccsData,
+  outcomeId = epistaxis,
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE,
+    naivePeriod = 180
+  )
+)
 covarSsris <- createEraCovariateSettings(label = "SSRIs",
                                          includeEraIds = ssris,
                                          stratifyById = FALSE,
@@ -270,72 +334,108 @@ covarSsris <- createEraCovariateSettings(label = "SSRIs",
 sccsIntervalData <- createSccsIntervalData(
   studyPopulation = studyPop,
   sccsData = sccsData,
-  eraCovariateSettings = list(covarAspirin,
-                              covarPreAspirin,
-                              covarSsris),
-  seasonalityCovariateSettings = seasonalityCovariateSettings,
-  calendarTimeCovariateSettings = calendarTimeSettings
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin,
+                                covarSsris),
+    seasonalityCovariateSettings = seasonalityCovariateSettings,
+    calendarTimeCovariateSettings = calendarTimeSettings
+  )
 )
 
-model <- fitSccsModel(sccsIntervalData, control = createControl(cvType = "auto",
-                                                                selectorType = "byPid",
-                                                                startingVariance = 0.1,
-                                                                noiseLevel = "quiet",
-                                                                cvRepetitions = 1,
-                                                                threads = 30))
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs(
+    control = createControl(
+      cvType = "auto",
+      selectorType = "byPid",
+      startingVariance = 0.1,
+      seed = 1,
+      resetCoefficients = TRUE,
+      noiseLevel = "quiet",
+      fold = 10,
+      cvRepetitions = 1,
+      threads = 15
+    )
+  )
+)
 saveRDS(model, file.path(folder, "ssriModel.rds"))
 model
 
 # Add all drugs -------------------------------------------------------------------
-sccsData <- getDbSccsData(connectionDetails = connectionDetails,
-                          cdmDatabaseSchema = cdmDatabaseSchema,
-                          outcomeDatabaseSchema = cohortDatabaseSchema,
-                          outcomeTable = cohortTable,
-                          outcomeIds = epistaxis,
-                          exposureDatabaseSchema = cdmDatabaseSchema,
-                          exposureTable = "drug_era",
-                          exposureIds = c(),
-                          maxCasesPerOutcome = 100000,
-                          studyStartDates = c("19000101", "20220101"),
-                          studyEndDates = c("20191231", "21001231"))
+sccsData <- getDbSccsData(
+  connectionDetails = connectionDetails,
+  cdmDatabaseSchema = cdmDatabaseSchema,
+  outcomeDatabaseSchema = cohortDatabaseSchema,
+  outcomeTable = cohortTable,
+  outcomeIds = epistaxis,
+  exposureDatabaseSchema = cdmDatabaseSchema,
+  exposureTable = "drug_era",
+  getDbSccsDataArgs = createGetDbSccsDataArgs(
+    exposureIds = c(),
+    maxCasesPerOutcome = 100000,
+    studyStartDates = c("19000101", "20220101"),
+    studyEndDates = c("20191231", "21001231")
+  )
+)
 saveSccsData(sccsData, file.path(folder, "data3.zip"))
 sccsData <- loadSccsData(file.path(folder, "data3.zip"))
 
 summary(sccsData)
 
-studyPop <- createStudyPopulation(sccsData = sccsData,
-                                  outcomeId = epistaxis,
-                                  firstOutcomeOnly = FALSE,
-                                  naivePeriod = 180)
+studyPop <- createStudyPopulation(
+  sccsData = sccsData,
+  outcomeId = epistaxis,
+  createStudyPopulationArgs = createCreateStudyPopulationArgs(
+    firstOutcomeOnly = FALSE,
+    naivePeriod = 180
+  )
+)
 
-covarAllDrugs <- createEraCovariateSettings(label = "Other exposures",
-                                            includeEraIds = c(),
-                                            excludeEraIds = aspirin,
-                                            stratifyById = TRUE,
-                                            start = 1,
-                                            end = 0,
-                                            endAnchor = "era end",
-                                            allowRegularization = TRUE)
+covarAllDrugs <- createEraCovariateSettings(
+  label = "Other exposures",
+  includeEraIds = c(),
+  excludeEraIds = aspirin,
+  stratifyById = TRUE,
+  start = 1,
+  end = 0,
+  endAnchor = "era end",
+  allowRegularization = TRUE
+)
 
-sccsIntervalData <- createSccsIntervalData(studyPopulation = studyPop,
-                                           sccsData = sccsData,
-                                           eraCovariateSettings = list(covarAspirin,
-                                                                       covarPreAspirin,
-                                                                       covarAllDrugs),
-                                           seasonalityCovariateSettings = seasonalityCovariateSettings,
-                                           calendarTimeCovariateSettings = calendarTimeSettings)
+sccsIntervalData <- createSccsIntervalData(
+  studyPopulation = studyPop,
+  sccsData = sccsData,
+  createSccsIntervalDataArgs = createCreateSccsIntervalDataArgs(
+    eraCovariateSettings = list(covarAspirin,
+                                covarPreAspirin,
+                                covarAllDrugs),
+    seasonalityCovariateSettings = seasonalityCovariateSettings,
+    calendarTimeCovariateSettings = calendarTimeSettings
+  )
+)
 
 saveSccsIntervalData(sccsIntervalData, file.path(folder, "sccsIntervalDataAllDrugs.zip"))
 sccsIntervalData <- loadSccsIntervalData(file.path(folder, "sccsIntervalDataAllDrugs.zip"))
 summary(sccsIntervalData)
 
-control <- createControl(cvType = "auto",
-                         selectorType = "byPid",
-                         startingVariance = 0.001,
-                         noiseLevel = "quiet",
-                         threads = 30)
+model <- fitSccsModel(
+  sccsIntervalData = sccsIntervalData,
+  fitSccsModelArgs = createFitSccsModelArgs(
+    control = createControl(
+      cvType = "auto",
+      selectorType = "byPid",
+      startingVariance = 0.001,
+      seed = 1,
+      resetCoefficients = TRUE,
+      noiseLevel = "quiet",
+      fold = 10,
+      cvRepetitions = 1,
+      threads = 15
+    )
+  )
+)
 
-model <- fitSccsModel(sccsIntervalData, control = control)
 saveRDS(model, file.path(folder, "allDrugsModel.rds"))
 model
 estimates <- getModel(model)

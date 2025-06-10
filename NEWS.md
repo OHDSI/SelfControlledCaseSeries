@@ -1,3 +1,43 @@
+SelfControlledCaseSeries 6.0.0
+==============================
+
+This major release introduces two overall changes: adding a new set of diagnostics, and new settings objects. 
+
+Changes related to adding new diagnostics:
+
+1. Deprecated `computeTimeStability()` and `computePreExposureGainP()` functions.
+
+2. Added the `checkTimeStabilityAssumption()`, `checkEventObservationIndependenceAssumption()`, `checkEventExposureIndependenceAssumption()` and `checkRareOutcomeAssumption()` functions. These implement diagnostics for the four major assumptions of the SCCS design.
+
+3. Added the `endOfObservationEraLength` argument to the `createSccsIntervalData()` function, which defaults to 30. This adds a probe window at the end of the observation period. The estimate for this window is used by the `checkEventExposureIndependenceAssumption()` diagnostic.
+
+4. Added the `preExposure` argument to the `createEraCovariateSettings()` function, which defaults to `start < 0`. This can be used to designate one or more windows as the pre-exposure window, used by the `checkEventExposureIndependenceAssumption()` diagnostic.
+
+5. Moved the `sccsDiagnosticThresholds` from `exportToCsv()` to `runSccsAnalyses()`.
+
+6. Estimates that fail diagnostics are now removed before empirical calibration, not afterwards. This in general should lead to narrower calibrated confidence intervals.
+
+7. Added the `getDiagnosticsSummary()` function.
+
+
+Changes related to the new settings objects:
+
+8. All settings objects have been changed to R6 objects. This should make it easier for external developers to generate valid settings JSON files.
+
+9. All individual analytic functions (`getDbSccsData()`, `createStudyPopulationArgs()`, `createSccsIntervalData()`, `createScriIntervalData()`, `fitSccsModel()`) now use the setting objects as arguments. This is to remove code duplication, and increase consistency between single study and multi-analyses frameworks.
+
+10. The analysis settings of `runSccsAnalyses()` have been combined in a `SccsAnalysesSpecifications` object that can be created using the new `createSccsAnalysesSpecifications()` function.
+
+
+Other changes:
+
+11. Removed deprecated `useCustomCovariates`, `useNestingCohort`, `studyStartDate`, and `studyEndDate` arguments of `getDbSccsData()` and `createGetDbSccsDataArgs()`.
+
+12. Removed deprecated `minCasesForAgeSeason` of `createSccsIntervalData()` and `createCreateSccsIntervalDataArgs()`.
+
+13. Removed `cdmVersion` argument from the `getDbSccsData()` and `runSccsAnalyses()` functions.
+
+
 SelfControlledCaseSeries 5.3.3
 ==============================
 
@@ -16,6 +56,7 @@ SelfControlledCaseSeries 5.3.2
 Bugfixes
 
 1. Fixed error in calendar time splines when there are cases, but not in the study period.
+
 
 
 SelfControlledCaseSeries 5.3.1

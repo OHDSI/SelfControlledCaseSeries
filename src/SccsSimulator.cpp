@@ -110,11 +110,14 @@ List SccsSimulator::simulateOutcomes(){
   int eraEndIndex = 0;
   for (int caseIndex = 0; caseIndex < casesCaseId.size(); caseIndex++){
     int caseId = casesCaseId[caseIndex];
-    while (erasCaseId[eraEndIndex] == caseId){
+    while (eraEndIndex < erasCaseId.size() && erasCaseId[eraEndIndex] < caseId){
+      eraEndIndex++;
+    }
+    eraStartIndex = eraEndIndex;
+    while (eraEndIndex < erasCaseId.size() && erasCaseId[eraEndIndex] == caseId){
       eraEndIndex++;
     }
     processPerson(caseIndex, eraStartIndex, eraEndIndex);
-    eraStartIndex = eraEndIndex;
   }
   return List::create(Named("caseId") = outcomeCaseIds, Named("startDay") = outcomeStartDays);
 }

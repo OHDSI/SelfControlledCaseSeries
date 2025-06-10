@@ -28,7 +28,7 @@ cdmDatabaseSchema <- "merative_mdcr.cdm_merative_mdcr_v3045"
 cohortDatabaseSchema <- "scratch.scratch_mschuemi"
 cohortTable  <- "sccs_vignette"
 options(sqlRenderTempEmulationSchema = "scratch.scratch_mschuemi")
-outputFolder <- "e:/temp/sccsVignette2"
+outputFolder <- "e:/temp/vignetteSccs2"
 
 
 # Create cohorts ---------------------------------------------------------------
@@ -100,7 +100,6 @@ for (exposureId in c(negativeControls)) {
 }
 
 getDbSccsDataArgs <- createGetDbSccsDataArgs(
-  useCustomCovariates = FALSE,
   deleteCovariatesSmallCount = 100,
   exposureIds = c(),
   maxCasesPerOutcome = 100000
@@ -117,7 +116,7 @@ covarExposureOfInt <- createEraCovariateSettings(
   start = 1,
   end = 0,
   endAnchor = "era end",
-  profileLikelihood = TRUE,
+  profileLikelihood = F,
   exposureOfInterest = TRUE
 )
 
@@ -140,7 +139,8 @@ covarPreExp <- createEraCovariateSettings(
   includeEraIds = "exposureId",
   start = -30,
   end = -1,
-  endAnchor = "era start"
+  endAnchor = "era start",
+  preExposure = TRUE
 )
 
 covarProphylactics <- createEraCovariateSettings(
@@ -240,14 +240,24 @@ sccsAnalysis5 <- createSccsAnalysis(
 )
 
 sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3, sccsAnalysis4, sccsAnalysis5)
+# sccsAnalysisList <- list(sccsAnalysis1, sccsAnalysis2, sccsAnalysis3)
 
-saveExposuresOutcomeList(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.txt"))
-saveSccsAnalysisList(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.txt"))
+saveExposuresOutcomeList(exposuresOutcomeList, file.path(outputFolder, "exposuresOutcomeList.json"))
+saveSccsAnalysisList(sccsAnalysisList, file.path(outputFolder, "sccsAnalysisList.json"))
 
 # Run analyses --------------------------------------------------------
-exposuresOutcomeList <- loadExposuresOutcomeList(file.path(outputFolder, "exposuresOutcomeList.txt"))
-sccsAnalysisList <- loadSccsAnalysisList(file.path(outputFolder, "sccsAnalysisList.txt"))
+exposuresOutcomeList <- loadExposuresOutcomeList(file.path(outputFolder, "exposuresOutcomeList.json"))
+sccsAnalysisList <- loadSccsAnalysisList(file.path(outputFolder, "sccsAnalysisList.json"))
+
+
 multiThreadingSettings <- createDefaultSccsMultiThreadingSettings(parallel::detectCores() - 1)
+
+
+multiThreadingSettings$fitSccsModelThreads = 1
+multiThreadingSettings$cvThreads = 10
+
+# ParallelLogger::addDefaultFileLogger(file.path(outputFolder, "log.txt"))
+# ParallelLogger::addDefaultErrorReportLogger(file.path(outputFolder, "errorReport.txt"))
 
 runSccsAnalyses(
   connectionDetails = connectionDetails,
@@ -257,11 +267,13 @@ runSccsAnalyses(
   outcomeDatabaseSchema = cohortDatabaseSchema,
   outcomeTable = cohortTable,
   outputFolder = outputFolder,
-  combineDataFetchAcrossOutcomes = TRUE,
-  exposuresOutcomeList = exposuresOutcomeList,
-  sccsAnalysisList = sccsAnalysisList,
   sccsMultiThreadingSettings = multiThreadingSettings,
-  controlType = "exposure"
+  sccsAnalysesSpecifications = createSccsAnalysesSpecifications(
+    combineDataFetchAcrossOutcomes = TRUE,
+    exposuresOutcomeList = exposuresOutcomeList,
+    sccsAnalysisList = sccsAnalysisList,
+    controlType = "exposure"
+  )
 )
 
 referenceTable <- getFileReference(outputFolder)
@@ -330,7 +342,7 @@ DatabaseConnector::disconnect(connection)
 
 # Launch Shiny app -------------------------------------------------------------
 library(dplyr)
-outputFolder <- "e:/temp/sccsVignette2"
+outputFolder <- "e:/temp/vignetteSccs2"
 databaseFile <-  file.path(outputFolder, "export", "SccsResults.sqlite")
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "sqlite",
@@ -345,11 +357,11 @@ resultDatabaseDetails <- list(
   schema = "main",
   databaseTable = 'database_meta_data'
 )
-estimationModule <- ShinyAppBuilder::createDefaultEstimationConfig()
-aboutModule <- ShinyAppBuilder::createDefaultAboutConfig()
-shinyAppConfig <- ShinyAppBuilder::initializeModuleConfig() %>%
-  ShinyAppBuilder::addModuleConfig(aboutModule) %>%
-  ShinyAppBuilder::addModuleConfig(estimationModule)
+estimationModule <- OhdsiShinyAppBuilder::createDefaultEstimationConfig()
+aboutModule <- OhdsiShinyAppBuilder::createDefaultAboutConfig()
+shinyAppConfig <- OhdsiShinyAppBuilder::initializeModuleConfig() |>
+  OhdsiShinyAppBuilder::addModuleConfig(aboutModule) |>
+  OhdsiShinyAppBuilder::addModuleConfig(estimationModule)
 connectionHandler <- ResultModelManager::ConnectionHandler$new(connectionDetails)
-ShinyAppBuilder::viewShiny(shinyAppConfig, connectionHandler)
+OhdsiShinyAppBuilder::viewShiny(shinyAppConfig, connectionHandler)
 connectionHandler$closeConnection()

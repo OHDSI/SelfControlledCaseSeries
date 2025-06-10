@@ -16,6 +16,7 @@ createSccsSimulationSettings(
   eraIds = c(1, 2),
   patientUsages = c(0.2, 0.1),
   usageRate = c(0.01, 0.01),
+  usageRateSlope = c(0, 0),
   meanPrescriptionDurations = c(14, 30),
   sdPrescriptionDurations = c(7, 14),
   simulationRiskWindows = list(createSimulationRiskWindow(relativeRisks = 1),
@@ -26,6 +27,7 @@ createSccsSimulationSettings(
   seasonKnots = 5,
   includeCalendarTimeEffect = TRUE,
   calendarTimeKnots = 5,
+  calendarTimeMonotonic = FALSE,
   outcomeId = 10
 )
 }
@@ -52,6 +54,9 @@ createSccsSimulationSettings(
 
 \item{usageRate}{The rate of prescriptions per person that uses the drug.}
 
+\item{usageRateSlope}{The change in the usage rate from one day to the next.
+\code{usageRate} is the intercept at day 0}
+
 \item{meanPrescriptionDurations}{The mean duration of a prescription, per drug.}
 
 \item{sdPrescriptionDurations}{The standard deviation of the duration of a prescription, per
@@ -72,6 +77,8 @@ function.}
 \item{includeCalendarTimeEffect}{Include a calendar time effect for the outcome?}
 
 \item{calendarTimeKnots}{Number of knots in the calendar time spline.}
+
+\item{calendarTimeMonotonic}{Should the calender time effect be monotonic?}
 
 \item{outcomeId}{The ID to be used for the outcome.}
 }
