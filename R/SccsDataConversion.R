@@ -47,8 +47,9 @@ createSccsIntervalData <- function(studyPopulation,
       !is.null(createSccsIntervalDataArgs$seasonalityCovariateSettings) ||
       !is.null(createSccsIntervalDataArgs$calendarTimeCovariateSettings)) {
     if (nrow(studyPopulation$cases) > createSccsIntervalDataArgs$minCasesForTimeCovariates) {
-      set.seed(0)
-      timeCovariateCases <- sample(studyPopulation$cases$caseId, createSccsIntervalDataArgs$minCasesForTimeCovariates, replace = FALSE)
+      # Select uniformly. Don't want to use random sampleing because not reproducible:
+      idx <- uniformSelect(createSccsIntervalDataArgs$minCasesForTimeCovariates, nrow(studyPopulation$cases))
+      timeCovariateCases <- studyPopulation$cases$caseId[idx]
     }
   }
 
@@ -673,4 +674,12 @@ countOutcomesIntervalData <- function(data, sccsData, outcomeId) {
       observedDays = ifelse(is.na(.data$observedDays), 0, .data$observedDays)
     )
   return(counts)
+}
+
+uniformSelect <- function(size, totalSize) {
+  if (size == 1) {
+    return(floor((totalSize + 1) / 2))
+  } else {
+    return(floor(1 + (0:(size - 1)) * (totalSize - 1) / (size - 1)))
+  }
 }

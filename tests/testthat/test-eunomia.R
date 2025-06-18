@@ -1,7 +1,7 @@
 library(SelfControlledCaseSeries)
 library(testthat)
 
-if ("Eunomia" %in% rownames(installed.packages())) {
+if (!isFALSE(tryCatch(find.package("Eunomia"), error = function(e) FALSE))) {
 
   connectionDetails <- Eunomia::getEunomiaConnectionDetails()
   Eunomia::createCohorts(connectionDetails)

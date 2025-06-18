@@ -94,7 +94,7 @@ uploadResults <- function(connectionDetails,
                           tempFolder = tempdir(),
                           tablePrefix = "",
                           ...) {
-  if (!"zip" %in% rownames(installed.packages())) {
+  if (isFALSE(tryCatch(find.package("zip"), error = function(e) FALSE))) {
     warning("The 'zip' package must be installed to use this function")
     return()
   }
