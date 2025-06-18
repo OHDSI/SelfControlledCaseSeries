@@ -6,7 +6,7 @@
 \alias{SelfControlledCaseSeries-package}
 \title{SelfControlledCaseSeries: Self-Controlled Case Series}
 \description{
-SelfControlledCaseSeries implements the self- controlled case series (SCCS) analyses using observational data in the OMOP Common Data Model. It extracts all necessary data from the database and transforms it to the format required for SCCS. Age and season can be modeled using splines assuming constant hazard within calendar months. Event-dependent censoring of the observation period can be corrected for. Many exposures can be included at once (MSCCS), with regularization on all coefficients except for the exposure of interest. Includes diagnostics for all major assumptions of the SCCS.
+Execute the self-controlled case series (SCCS) design using observational data in the OMOP Common Data Model. Extracts all necessary data from the database and transforms it to the format required for SCCS. Age and season can be modeled using splines assuming constant hazard within calendar months. Event-dependent censoring of the observation period can be corrected for. Many exposures can be included at once (MSCCS), with regularization on all coefficients except for the exposure of interest. Includes diagnostics for all major assumptions of the SCCS.
 }
 \seealso{
 Useful links:
