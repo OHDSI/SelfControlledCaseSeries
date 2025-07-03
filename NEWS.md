@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 6.0.1
+==============================
+
+Bugfixes
+
+1. Fixed warning during `exportToCsv()` when there are no cases in the study time that appeared to be causing R to crash once in a while.
+
+
 SelfControlledCaseSeries 6.0.0
 ==============================
 
