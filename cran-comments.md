@@ -1,13 +1,10 @@
-Thank you for the reviews. I have made the following changes to address the issues raised:
+All issues that were noted with the previous release had resolved themselves over time (I think they all were related to issues with the testing servers, not this package). 
+I therefore hadn't sent a new release, because I didn't know what to fix. 
 
-1. There is currently no literature reference to include. We are working on a paper, and will include it in the DESCRIPTION when it is published.
-2. I removed the default `outputFolder` value from `runSccsAnalyses()`. The user must now explicitly state where results will be written.
-3. I have removed the use of `installed.packages()` in favor of a `tryCatch` around `find.package()`. (The only reason for these checks are so we still can pass R check even when suggested packages are not installed.)
-4. I removed `set.seed()` from `R/SccsDataConversion.R`. (Now using a uniform, non-random selection to achieve the reproducability we need)
+Here's a new version with minor fixes, as noted in NEWS.md. I hope the package can be unfrozen again. 
 
-Although this is a new submission to CRAN, but this package has been in use by the Observational Health Data Science and Informatics (OHDSI) community for a long time.
-It implements the self-controlled case series design and can extract all required data from the user's database in the OMOP Common Data Model. 
-This package has already been used in many influential studies that have been published and have impacted regulatory decisions.
+There is an occasional NOTE about the installed package size. 
+This appears to be because of large debugging symbols that appear in the C++ compiled code, and is beyond my control.
 
 ---
 
