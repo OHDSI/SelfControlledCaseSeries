@@ -1,7 +1,4 @@
-All issues that were noted with the previous release had resolved themselves over time (I think they all were related to issues with the testing servers, not this package). 
-I therefore hadn't sent a new release, because I didn't know what to fix. 
-
-Here's a new version with minor fixes, as noted in NEWS.md. I hope the package can be unfrozen again. 
+I'va made changes that should avoid the R check issues on the less standard platforms.
 
 There is an occasional NOTE about the installed package size. 
 This appears to be because of large debugging symbols that appear in the C++ compiled code, and is beyond my control.
