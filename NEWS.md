@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 6.1.0
+==============================
+
+Changes
+
+1. Setting default likelihood approximation to grid with gradients.
+
+
 SelfControlledCaseSeries 6.0.1
 ==============================
 

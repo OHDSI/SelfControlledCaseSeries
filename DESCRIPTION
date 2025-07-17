@@ -1,8 +1,8 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 6.0.1
-Date: 2025-07-14
+Version: 6.1.0
+Date: 2025-07-17
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
@@ -22,7 +22,7 @@ URL:  https://ohdsi.github.io/SelfControlledCaseSeries/, https://github.com/OHDS
 BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
 	R (>= 4.1.0),
-	Cyclops (>= 3.4.0),
+	Cyclops (>= 3.6.0),
 	DatabaseConnector (>= 6.0.0),
 	Andromeda (>= 1.0.0)
 Imports:
@@ -48,6 +48,8 @@ Suggests:
 	rmarkdown,
 	Eunomia,
 	withr
+Remotes:
+  ohdsi/Cyclops@develop
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes

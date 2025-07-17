@@ -8,8 +8,8 @@ createFitSccsModelArgs(
   prior = createPrior("laplace", useCrossValidation = TRUE),
   control = createControl(cvType = "auto", selectorType = "byPid", startingVariance =
     0.1, seed = 1, resetCoefficients = TRUE, noiseLevel = "quiet"),
-  profileGrid = NULL,
-  profileBounds = c(log(0.1), log(10))
+  profileGrid = seq(log(0.1), log(10), length.out = 8),
+  profileBounds = NULL
 )
 }
 \arguments{
@@ -29,4 +29,9 @@ Create a parameter object for the function fitSccsModel
 }
 \details{
 Create an object defining the parameter values.
+
+Likelihood profiling is only done for variables for which \code{profileLikelihood} is set to \code{TRUE} when
+calling \code{\link[=createEraCovariateSettings]{createEraCovariateSettings()}}. Either specify the \code{profileGrid} for a completely user-
+defined grid, or \code{profileBounds} for an adaptive grid. Both should be defined on the log IRR scale.
+When both \code{profileGrid} and \code{profileGrid} are \code{NULL} likelihood profiling is disabled.
 }
