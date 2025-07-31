@@ -340,7 +340,7 @@ hasAgeEffect <- function(sccsModel) {
   return(any(estimates$covariateId >= 100 & estimates$covariateId < 200))
 }
 
-#' Does the model contain an age effect?
+#' Does the model contain a seasonality effect?
 #'
 #' @template SccsModel
 #'
@@ -357,7 +357,7 @@ hasSeasonality <- function(sccsModel) {
   return(any(estimates$covariateId >= 200 & estimates$covariateId < 300))
 }
 
-#' Does the model contain an age effect?
+#' Does the model contain a calendar time effect?
 #'
 #' @template SccsModel
 #'
