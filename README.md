@@ -3,6 +3,8 @@ SelfControlledCaseSeries
 
 [![Build Status](https://github.com/OHDSI/SelfControlledCaseSeries/workflows/R-CMD-check/badge.svg)](https://github.com/OHDSI/SelfControlledCaseSeries/actions?query=workflow%3AR-CMD-check)
 [![codecov.io](https://codecov.io/github/OHDSI/SelfControlledCaseSeries/coverage.svg?branch=main)](https://app.codecov.io/github/OHDSI/SelfControlledCaseSeries?branch=main)
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/SelfControlledCaseSeries)](https://cran.r-project.org/package=SelfControlledCaseSeries)
+[![CRAN_Status_Badge](https://cranlogs.r-pkg.org/badges/SelfControlledCaseSeries)](https://cran.r-project.org/package=SelfControlledCaseSeries)
 
 SelfControlledCaseSeries is part of [HADES](https://ohdsi.github.io/Hades/).
 
@@ -99,8 +101,7 @@ Installation
 2. In R, use the following commands to download and install SelfControlledCaseSeries:
 
   ```r
-  install.packages("remotes")
-  remotes::install_github("ohdsi/SelfControlledCaseSeries")
+  install.packages("SelfControlledCaseSeries")
   ```
 
 User Documentation
