@@ -352,7 +352,6 @@ exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, data
   writeToCsv(sccsTimeTrend, fileName)
 }
 
-# group = groups[[1]]
 exportGroup <- function(group, outputFolder, databaseId) {
   group <- group |>
     arrange(.data$studyPopFile, .data$sccsModelFile)
@@ -371,6 +370,7 @@ exportGroup <- function(group, outputFolder, databaseId) {
   sccsDiagnosticsSummary <- list()
 
   sccsDataFile <- group$sccsDataFile[1]
+  ParallelLogger::logTrace("Processing ", sccsDataFile)
   sccsData <- loadSccsData(file.path(outputFolder, sccsDataFile))
   studyPopFile <- ""
   sccsAnalysesSpecificationsFile <- file.path(outputFolder, "sccsAnalysesSpecifications.rds")
@@ -417,11 +417,15 @@ exportGroup <- function(group, outputFolder, databaseId) {
           select(minDate = "minObservedDate",
                  maxDate = "maxObservedDate")
       } else {
-        timePeriod <- studyPop$cases |>
-          mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
-                 endDate = .data$observationPeriodStartDate + .data$endDay) |>
-          summarise(minDate = min(.data$startDate),
-                    maxDate = max(.data$endDate))
+        if (nrow(studyPop$cases) == 0) {
+          timePeriod <- tibble(minDate = as.Date(NA), maxDate = as.Date(NA))
+        } else {
+          timePeriod <- studyPop$cases |>
+            mutate(startDate = .data$observationPeriodStartDate + .data$startDay,
+                   endDate = .data$observationPeriodStartDate + .data$endDay) |>
+            summarise(minDate = min(.data$startDate),
+                      maxDate = max(.data$endDate))
+        }
       }
       refRows <- group |>
         filter(.data$studyPopFile == !!studyPopFile)

@@ -168,7 +168,7 @@ runSccsAnalyses <- function(connectionDetails,
                             customCovariateTable = "cohort",
                             nestingCohortDatabaseSchema = cdmDatabaseSchema,
                             nestingCohortTable = "cohort",
-                            outputFolder = "./SccsOutput",
+                            outputFolder,
                             sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
                             sccsAnalysesSpecifications) {
   errorMessages <- checkmate::makeAssertCollection()

@@ -735,12 +735,12 @@ test_that("Splines when no data in study period", {
     eraStartDay = c(1, 2, 3, 4, 5, 6, 25), # All outcomes before study period start
     eraEndDay = c(1, 2, 3, 4, 5, 6, 75)
   )
-  eraRef <- eras %>%
-    distinct(.data$eraId, .data$eraType) %>%
+  eraRef <- eras |>
+    distinct(.data$eraId, .data$eraType) |>
     mutate(eraName = "")
 
   data <- Andromeda::andromeda(
-    cases = cases %>%
+    cases = cases |>
       mutate(observationPeriodStartDate = observationPeriodStartDate),
     eras = eras,
     eraRef = eraRef

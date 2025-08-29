@@ -256,6 +256,10 @@ computePreExposureGainP <- function(sccsData, studyPopulation, exposureEraId = N
   cases <- studyPopulation$cases |>
     select("caseId", "startDay", "endDay")
 
+  if (nrow(cases) == 0) {
+    warning("No cases")
+    return(as.numeric(NA))
+  }
   exposures <- sccsData$eras |>
     filter(.data$eraId == exposureEraId & .data$eraType == "rx") |>
     inner_join(cases,

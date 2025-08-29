@@ -48,3 +48,9 @@ rmarkdown::render("vignettes/ResultsSchema.Rmd",
 pkgdown::build_site()
 OhdsiRTools::fixHadesLogo()
 
+# Release package --------------------------------------------------------------
+devtools::check_win_devel()
+
+rhub::rc_submit(platforms = "atlas")
+
+devtools::release()

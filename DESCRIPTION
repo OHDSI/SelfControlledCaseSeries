@@ -1,8 +1,8 @@
 Package: SelfControlledCaseSeries
 Type: Package
 Title: Self-Controlled Case Series
-Version: 6.0.0
-Date: 2025-02-18
+Version: 6.0.1
+Date: 2025-07-14
 Authors@R: c(
   person("Martijn", "Schuemie", , "schuemie@ohdsi.org", role = c("aut", "cre")),
 	person("Patrick", "Ryan", role = c("aut")),
@@ -10,9 +10,8 @@ Authors@R: c(
   person("Marc", "Suchard", role = c("aut"))   
   )
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
-Description: SelfControlledCaseSeries is an R package for performing self-
-	controlled case series (SCCS) analyses in an observational database in the OMOP
-	Common Data Model. It extracts all necessary data from the database and 
+Description: Execute the self-controlled case series (SCCS) design using observational 
+  data in the OMOP Common Data Model. Extracts all necessary data from the database and 
 	transforms it to the format required for SCCS. Age and season can be modeled
 	using splines assuming constant hazard within calendar months. Event-dependent 
 	censoring of the observation period can be corrected for. Many exposures can be
@@ -22,10 +21,10 @@ VignetteBuilder: knitr
 URL:  https://ohdsi.github.io/SelfControlledCaseSeries/, https://github.com/OHDSI/SelfControlledCaseSeries
 BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
-	R (>= 4.0.0),
+	R (>= 4.1.0),
 	Cyclops (>= 3.4.0),
 	DatabaseConnector (>= 6.0.0),
-	Andromeda
+	Andromeda (>= 1.0.0)
 Imports:
 	SqlRender (>= 1.16.0),
 	dplyr (>= 1.0.0),
@@ -36,16 +35,14 @@ Imports:
 	ggplot2 (>= 3.4.0),
 	methods,
 	utils,
-	cli,
-	pillar,
 	checkmate,
 	readr,
 	ResultModelManager,
-	zip,
 	jsonlite,
 	digest,
 	R6
 Suggests:
+	zip,
 	testthat,
 	knitr,
 	rmarkdown,
