@@ -266,7 +266,7 @@ exportExposuresOutcomes <- function(outputFolder, exportFolder) {
 }
 
 exportFromSccsDataStudyPopSccsModel <- function(outputFolder, exportFolder, databaseId, minCellCount, maxCores) {
-  message("- sccs_age_spanning, sccs_attrition, sccs_calender_time_spanning, sccs_censor_model, sccs_covariate, sccs_covariate_result, sccs_era, sccs_event_dep_observation, sccs_likelihood_profile, sccs_spline, sccs_time_to_event, and sccs_time_trend tables")
+  message("- sccs_age_spanning, sccs_attrition, sccs_calendar_time_spanning, sccs_censor_model, sccs_covariate, sccs_covariate_result, sccs_era, sccs_event_dep_observation, sccs_likelihood_profile, sccs_spline, sccs_time_to_event, and sccs_time_trend tables")
   groups <- getFileReference(outputFolder) |>
     group_by(.data$sccsDataFile) |>
     group_split()

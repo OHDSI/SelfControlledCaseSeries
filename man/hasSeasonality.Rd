@@ -2,7 +2,7 @@
 % Please edit documentation in R/ModelFitting.R
 \name{hasSeasonality}
 \alias{hasSeasonality}
-\title{Does the model contain an age effect?}
+\title{Does the model contain a seasonality effect?}
 \usage{
 hasSeasonality(sccsModel)
 }
@@ -14,5 +14,5 @@ hasSeasonality(sccsModel)
 TRUE if the model contains an age effect, otherwise FALSE.
 }
 \description{
-Does the model contain an age effect?
+Does the model contain a seasonality effect?
 }

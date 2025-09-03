@@ -38,7 +38,7 @@ This is especially relevant for the results model, since these covariates will b
 
 ## Exposures-outcome-sets, analysis IDs and models
 
-Using the `createExposuresOutcome()` function we can define an outcome with one or more exposures, since an SCCS model can have multiple exposures (e.g. we could have separte exposures for the first and second dose of a vaccine). 
+Using the `createExposuresOutcome()` function we can define an outcome with one or more exposures, since an SCCS model can have multiple exposures (e.g. we could have separate exposures for the first and second dose of a vaccine). 
 With the `createSccsAnalysis()` function we can create a set of settings for analysis describing which data to extract from the database, how to transform that data including which covariates to construct, and how to fit the SCCS model. 
 Each analysis setting has a unique analysis ID. 
 Each combination of an exposures-outcome-set and an analysis setting will correspond to one SCCS model. A model can have multiple covariates, and each covariates can be based on multiple eras.

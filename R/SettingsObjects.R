@@ -199,7 +199,7 @@ EraCovariateSettings <- R6Class(
   )
 )
 
-#' Create age covariate sesettings#' Create age covariate settings
+#' Create age covariate settings
 #'
 #' @details
 #' Create an object specifying whether and how age should be included in the model. Age can be
@@ -729,6 +729,9 @@ CreateScriIntervalDataArgs <- R6Class(
 #' calling [createEraCovariateSettings()]. Either specify the `profileGrid` for a completely user-
 #' defined grid, or `profileBounds` for an adaptive grid. Both should be defined on the log IRR scale.
 #' When both `profileGrid` and `profileGrid` are `NULL` likelihood profiling is disabled.
+#'
+#' To make use of the more efficient Hermite interpolation in evidence synthesis, set
+#' `profileGrid = seq(log(0.1), log(10), length.out = 8)` and `profileBounds = NULL`.
 #'
 #' @return
 #' An object of type `FitSccsModelArgs`.

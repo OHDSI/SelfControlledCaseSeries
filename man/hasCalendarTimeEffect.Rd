@@ -2,7 +2,7 @@
 % Please edit documentation in R/ModelFitting.R
 \name{hasCalendarTimeEffect}
 \alias{hasCalendarTimeEffect}
-\title{Does the model contain an age effect?}
+\title{Does the model contain a calendar time effect?}
 \usage{
 hasCalendarTimeEffect(sccsModel)
 }
@@ -14,5 +14,5 @@ hasCalendarTimeEffect(sccsModel)
 TRUE if the model contains an age effect, otherwise FALSE.
 }
 \description{
-Does the model contain an age effect?
+Does the model contain a calendar time effect?
 }
