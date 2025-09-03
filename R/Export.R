@@ -551,9 +551,8 @@ exportGroup <- function(group, outputFolder, databaseId) {
           select("analysisId", "exposuresOutcomeSetId") |>
           bind_cols(
             sccsModel$logLikelihoodProfiles[[j]] |>
-              rename(logRr = "point", logLikelihood = "value") |>
-              mutate(covariateId = as.numeric(names(sccsModel$logLikelihoodProfiles[j])),
-                     gradient = as.numeric(NA))
+              rename(logRr = "point", logLikelihood = "value", gradient = "derivative") |>
+              mutate(covariateId = as.numeric(names(sccsModel$logLikelihoodProfiles[j])))
           ) |>
           mutate(databaseId = !!databaseId)
       }

@@ -20,11 +20,6 @@
 #' Fits the SCCS model as a conditional Poisson regression. When allowed, coefficients for some or all
 #' covariates can be regularized.
 #'
-#' Likelihood profiling is only done for variables for which `profileLikelihood` is set to `TRUE` when
-#' calling [createEraCovariateSettings()]. Either specify the `profileGrid` for a completely user-
-#' defined grid, or `profileBounds` for an adaptive grid. Both should be defined on the log IRR scale.
-#' When both `profileGrid` and `profileGrid` are `NULL` likelihood profiling is disabled.
-#'
 #' @template SccsIntervalData
 #' @param fitSccsModelArgs An object of type `FitSccsModelArgs` as created by the `createFitSccsModelArgs()` function.
 #'
@@ -153,18 +148,11 @@ fitSccsModel <- function(sccsIntervalData,
     } else {
       if (!is.null(fitSccsModelArgs$profileGrid) || !is.null(fitSccsModelArgs$profileBounds)) {
         covariateIds <- intersect(needProfile, as.numeric(Cyclops::getCovariateIds(cyclopsData)))
-        getLikelihoodProfile <- function(covariateId) {
-          logLikelihoodProfile <- Cyclops::getCyclopsProfileLogLikelihood(
-            object = fit,
-            parm = covariateId,
-            x = fitSccsModelArgs$profileGrid,
-            bounds = fitSccsModelArgs$profileBounds,
-            tolerance = 0.1,
-            includePenalty = TRUE
-          )
-          return(logLikelihoodProfile)
-        }
-        logLikelihoodProfiles <- lapply(covariateIds, getLikelihoodProfile)
+        logLikelihoodProfiles <- lapply(covariateIds,
+                                        .getLikelihoodProfile,
+                                        fit = fit,
+                                        profileGrid = fitSccsModelArgs$profileGrid,
+                                        profileBounds = fitSccsModelArgs$profileBounds)
         names(logLikelihoodProfiles) <- covariateIds
       }
       if (fit$return_flag != "SUCCESS") {
@@ -236,6 +224,27 @@ fitSccsModel <- function(sccsIntervalData,
   return(result)
 }
 
+.getLikelihoodProfile <- function(covariateId, fit, profileGrid, profileBounds) {
+  if (!is.null(profileGrid)) {
+    if (fit$return_flag == "SUCCESS") {
+      mle <- coef(fit)[as.character(covariateId)]
+      if (mle > min(profileGrid) && mle < max(profileGrid) && mle != 0) {
+        # There appears to be a MLE, so save that too
+        profileGrid <- sort(c(mle, profileGrid))
+      }
+    }
+  }
+  logLikelihoodProfile <- Cyclops::getCyclopsProfileLogLikelihood(
+    object = fit,
+    parm = covariateId,
+    x = profileGrid,
+    bounds = profileBounds,
+    tolerance = 0.1,
+    includePenalty = TRUE,
+    returnDerivatives = TRUE
+  )
+  return(logLikelihoodProfile)
+}
 
 #' @export
 coef.SccsModel <- function(object, ...) {
