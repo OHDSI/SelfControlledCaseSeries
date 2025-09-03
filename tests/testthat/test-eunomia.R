@@ -97,7 +97,11 @@ if (!isFALSE(tryCatch(find.package("Eunomia"), error = function(e) FALSE))) {
       seasonalityCovariateSettings = seasonalitySettings
     )
 
-    fitSccsModelArgs <- createFitSccsModelArgs()
+    # Use grid with gradients likelihood approximation:
+    fitSccsModelArgs <- createFitSccsModelArgs(
+      profileGrid = seq(log(0.1), log(10), length.out = 8),
+      profileBounds = NULL
+    )
 
     sccsAnalysis1 <- createSccsAnalysis(
       analysisId = 1,

@@ -736,8 +736,8 @@ CreateScriIntervalDataArgs <- R6Class(
 #' @export
 createFitSccsModelArgs <- function(prior = createPrior("laplace", useCrossValidation = TRUE),
                                    control = createControl(cvType = "auto", selectorType = "byPid", startingVariance = 0.1, seed = 1, resetCoefficients = TRUE, noiseLevel = "quiet"),
-                                   profileGrid = seq(log(0.1), log(10), length.out = 8),
-                                   profileBounds = NULL) {
+                                   profileGrid = NULL,
+                                   profileBounds = c(log(0.1), log(10))) {
   args <- list()
   for (name in names(formals())) {
     args[[name]] <- get(name)

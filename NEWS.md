@@ -3,7 +3,16 @@ SelfControlledCaseSeries 6.1.0
 
 Changes
 
-1. Setting default likelihood approximation to grid with gradients.
+1. Supporting grid with gradients likelihood approximation. Use the following arguments in `createFitSccsModelArgs()` to use:
+
+```r
+profileGrid = seq(log(0.1), log(10), length.out = 8),
+profileBounds = NULL
+```                                  
+
+Bugfixes
+
+1. Added missing `tempEmulationSchema` passthrough.
 
 
 SelfControlledCaseSeries 6.0.1
