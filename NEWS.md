@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 6.1.1
+==============================
+
+Bugfixes
+
+1. Fixed non-finite finite-difference valuenon-finite finite-difference value error when computing the time trend diagnostic on very large data.
+
+
 SelfControlledCaseSeries 6.1.0
 ==============================
 

@@ -196,8 +196,15 @@ checkTimeStabilityAssumption <- function(studyPopulation, sccsModel = NULL, maxR
   logLikelihood <- function(x) {
     return(-sum(pmax(-999, log(dpois(o, e*x) + dpois(o, e/x)))))
   }
-  x <- seq(1, 10, by = 0.1)
+  x <- exp(seq(log(1), log(10), by = 0.01))
   ll <- sapply(x, logLikelihood)
+
+  if (sum(!is.na(ll)) < 2) {
+    result <- tibble(ratio = NA,
+                     p = 1,
+                     stable = TRUE)
+    return(result)
+  }
   maxX <- x[max(which(!is.na(ll) & !is.infinite(ll)))]
   minX <- x[min(which(!is.na(ll) & !is.infinite(ll)))]
   xHat <- optim(1.5, logLikelihood, lower = minX, upper = maxX, method = "L-BFGS-B")$par
