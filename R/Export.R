@@ -94,7 +94,7 @@ exportToCsv <- function(outputFolder,
 
   # Add all to zip file -------------------------------------------------------------------------------
   message("Adding results to zip file")
-  zipName <- file.path(exportFolder, sprintf("Results_%s.zip", databaseId))
+  zipName <- normalizePath(file.path(exportFolder, sprintf("Results_%s.zip", databaseId)))
   files <- list.files(exportFolder, pattern = ".*\\.csv$")
   oldWd <- setwd(exportFolder)
   on.exit(setwd(oldWd))

@@ -153,6 +153,28 @@ computeTimeStability <- function(studyPopulation, sccsModel = NULL, maxRatio = 1
     rename(stable = "pass")
 }
 
+.maxFloat <- .Machine$double.xmax
+.logLimit <- -.maxFloat / 100
+.nats <- 400
+
+.logSumSingle <- function(x, y) {
+  temp <- y - x
+
+  if (temp > .nats || x < .logLimit) {
+    return(y)
+  } else if (temp < -.nats || y < .logLimit) {
+    return(x)
+  } else if (temp < 0) {
+    return(x + log1p(exp(temp)))
+  } else {
+    return(y + log1p(exp(-temp)))
+  }
+}
+
+.logSum <- function(x, y) {
+  return(sapply(seq_along(x), function(i) .logSumSingle(x[i], y[i])))
+}
+
 #' Check stability of outcome rate over time
 #'
 #' @details
@@ -194,12 +216,13 @@ checkTimeStabilityAssumption <- function(studyPopulation, sccsModel = NULL, maxR
   e[e == 0] <- .Machine$double.eps
 
   logLikelihood <- function(x) {
-    return(-sum(pmax(-999, log(dpois(o, e*x) + dpois(o, e/x)))))
+    return(-sum(.logSum(dpois(o, e*x, log = TRUE), dpois(o, e/x, log = TRUE))))
   }
   x <- exp(seq(log(1), log(10), by = 0.01))
   ll <- sapply(x, logLikelihood)
 
-  if (sum(!is.na(ll)) < 2) {
+  if (sum(!is.na(ll) & !is.infinite(ll)) < 2) {
+
     result <- tibble(ratio = NA,
                      p = 1,
                      stable = TRUE)
