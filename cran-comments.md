@@ -1,4 +1,4 @@
-This release has 1 change and 1 bug fix (see NEWS.md)
+This release has 1 bug fix (see NEWS.md)
 
 There is an occasional NOTE about the installed package size. 
 This appears to be because of large debugging symbols that appear in the C++ compiled code, and is beyond my control.

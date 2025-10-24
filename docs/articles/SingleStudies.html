@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SelfControlledCaseSeries</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">6.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">6.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,7 @@
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie, Marc A. Suchard and Patrick Ryan</h4>
             
-            <h4 data-toc-skip class="date">2025-09-03</h4>
+            <h4 data-toc-skip class="date">2025-10-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/SelfControlledCaseSeries/blob/HEAD/vignettes/SingleStudies.Rmd" class="external-link"><code>vignettes/SingleStudies.Rmd</code></a></small>
       <div class="d-none name"><code>SingleStudies.Rmd</code></div>
@@ -278,7 +278,7 @@ necessary data for our analysis:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Inherits from Andromeda:</span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Physical location:  E:\andromedaTemp\filec3c3b84083.duckdb</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># Physical location:  E:\andromedaTemp\file4e2032ae7b68.duckdb</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)</span></span>
@@ -590,7 +590,380 @@ before and after adjustment:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotEventToCalendarTime.html">plotEventToCalendarTime</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>                        sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
-<p><img src="SingleStudies_files/figure-html/unnamed-chunk-31-1.png" width="700"></p>
+<pre><code><span><span class="co">## $data</span></span>
+<span><span class="co">## <span style="color: #949494;"># A tibble: 344 × 5</span></span></span>
+<span><span class="co">##    month monthStartDate monthEndDate value type                  </span></span>
+<span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>                 </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 1</span> <span style="text-decoration: underline;">24</span>120 2010-01-01     2010-01-31   1.15  Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 2</span> <span style="text-decoration: underline;">24</span>121 2010-02-01     2010-02-28   0.884 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 3</span> <span style="text-decoration: underline;">24</span>122 2010-03-01     2010-03-31   1.05  Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 4</span> <span style="text-decoration: underline;">24</span>123 2010-04-01     2010-04-30   0.923 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 5</span> <span style="text-decoration: underline;">24</span>124 2010-05-01     2010-05-31   0.740 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 6</span> <span style="text-decoration: underline;">24</span>125 2010-06-01     2010-06-30   0.710 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 7</span> <span style="text-decoration: underline;">24</span>126 2010-07-01     2010-07-31   0.660 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 8</span> <span style="text-decoration: underline;">24</span>127 2010-08-01     2010-08-31   0.688 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 9</span> <span style="text-decoration: underline;">24</span>128 2010-09-01     2010-09-30   0.716 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">10</span> <span style="text-decoration: underline;">24</span>129 2010-10-01     2010-10-31   0.818 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #949494;"># ℹ 334 more rows</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $layers</span></span>
+<span><span class="co">## $layers[[1]]</span></span>
+<span><span class="co">## mapping: ymax = ~.data$value </span></span>
+<span><span class="co">## geom_rect: linejoin = mitre, na.rm = FALSE</span></span>
+<span><span class="co">## stat_identity: na.rm = FALSE</span></span>
+<span><span class="co">## position_identity </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $scales</span></span>
+<span><span class="co">## &lt;ggproto object: Class ScalesList, gg&gt;</span></span>
+<span><span class="co">##     add: function</span></span>
+<span><span class="co">##     add_defaults: function</span></span>
+<span><span class="co">##     add_missing: function</span></span>
+<span><span class="co">##     backtransform_df: function</span></span>
+<span><span class="co">##     clone: function</span></span>
+<span><span class="co">##     find: function</span></span>
+<span><span class="co">##     get_scales: function</span></span>
+<span><span class="co">##     has_scale: function</span></span>
+<span><span class="co">##     input: function</span></span>
+<span><span class="co">##     map_df: function</span></span>
+<span><span class="co">##     n: function</span></span>
+<span><span class="co">##     non_position_scales: function</span></span>
+<span><span class="co">##     scales: list</span></span>
+<span><span class="co">##     set_palettes: function</span></span>
+<span><span class="co">##     train_df: function</span></span>
+<span><span class="co">##     transform_df: function</span></span>
+<span><span class="co">##     super:  &lt;ggproto object: Class ScalesList, gg&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $guides</span></span>
+<span><span class="co">## &lt;Guides[0] ggproto object&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## &lt;empty&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $mapping</span></span>
+<span><span class="co">## $xmin</span></span>
+<span><span class="co">## <span style="font-weight: bold;">&lt;quosure&gt;</span></span></span>
+<span><span class="co">## expr: <span style="color: #0000BB;">^.data$monthStartDate</span></span></span>
+<span><span class="co">## env:  <span style="color: #0000BB;">0x000001a558c952a8</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $xmax</span></span>
+<span><span class="co">## <span style="font-weight: bold;">&lt;quosure&gt;</span></span></span>
+<span><span class="co">## expr: <span style="color: #0000BB;">^.data$monthEndDate + 1</span></span></span>
+<span><span class="co">## env:  <span style="color: #0000BB;">0x000001a558c952a8</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "uneval"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme</span></span>
+<span><span class="co">## $theme$axis.text.x</span></span>
+<span><span class="co">## $family</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $face</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] "#000000"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $size</span></span>
+<span><span class="co">## [1] 12</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $hjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $vjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $angle</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineheight</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $margin</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $debug</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_text" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$axis.text.y</span></span>
+<span><span class="co">## $family</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $face</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] "#000000"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $size</span></span>
+<span><span class="co">## [1] 12</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $hjust</span></span>
+<span><span class="co">## [1] 1</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $vjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $angle</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineheight</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $margin</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $debug</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_text" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$axis.ticks</span></span>
+<span><span class="co">## list()</span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_blank" "element"      </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$legend.title</span></span>
+<span><span class="co">## list()</span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_blank" "element"      </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$legend.position</span></span>
+<span><span class="co">## [1] "top"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$panel.background</span></span>
+<span><span class="co">## $fill</span></span>
+<span><span class="co">## [1] "#FAFAFA"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] NA</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $linewidth</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $linetype</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_rect" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$panel.grid.major</span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] "#AAAAAA"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $linewidth</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $linetype</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineend</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $arrow</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_line" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$panel.grid.minor</span></span>
+<span><span class="co">## list()</span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_blank" "element"      </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$plot.title</span></span>
+<span><span class="co">## $family</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $face</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $size</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $hjust</span></span>
+<span><span class="co">## [1] 0.5</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $vjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $angle</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineheight</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $margin</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $debug</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_text" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$strip.background</span></span>
+<span><span class="co">## list()</span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_blank" "element"      </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$strip.text.y</span></span>
+<span><span class="co">## $family</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $face</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] "#000000"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $size</span></span>
+<span><span class="co">## [1] 12</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $hjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $vjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $angle</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineheight</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $margin</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $debug</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_text" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"complete")</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## attr(,"validate")</span></span>
+<span><span class="co">## [1] TRUE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $coordinates</span></span>
+<span><span class="co">## &lt;ggproto object: Class CoordCartesian, Coord, gg&gt;</span></span>
+<span><span class="co">##     aspect: function</span></span>
+<span><span class="co">##     backtransform_range: function</span></span>
+<span><span class="co">##     clip: on</span></span>
+<span><span class="co">##     default: TRUE</span></span>
+<span><span class="co">##     distance: function</span></span>
+<span><span class="co">##     draw_panel: function</span></span>
+<span><span class="co">##     expand: TRUE</span></span>
+<span><span class="co">##     is_free: function</span></span>
+<span><span class="co">##     is_linear: function</span></span>
+<span><span class="co">##     labels: function</span></span>
+<span><span class="co">##     limits: list</span></span>
+<span><span class="co">##     modify_scales: function</span></span>
+<span><span class="co">##     range: function</span></span>
+<span><span class="co">##     render_axis_h: function</span></span>
+<span><span class="co">##     render_axis_v: function</span></span>
+<span><span class="co">##     render_bg: function</span></span>
+<span><span class="co">##     render_fg: function</span></span>
+<span><span class="co">##     reverse: none</span></span>
+<span><span class="co">##     setup_data: function</span></span>
+<span><span class="co">##     setup_layout: function</span></span>
+<span><span class="co">##     setup_panel_guides: function</span></span>
+<span><span class="co">##     setup_panel_params: function</span></span>
+<span><span class="co">##     setup_params: function</span></span>
+<span><span class="co">##     train_panel_guides: function</span></span>
+<span><span class="co">##     transform: function</span></span>
+<span><span class="co">##     super:  &lt;ggproto object: Class CoordCartesian, Coord, gg&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $facet</span></span>
+<span><span class="co">## &lt;ggproto object: Class FacetGrid, Facet, gg&gt;</span></span>
+<span><span class="co">##     attach_axes: function</span></span>
+<span><span class="co">##     attach_strips: function</span></span>
+<span><span class="co">##     compute_layout: function</span></span>
+<span><span class="co">##     draw_back: function</span></span>
+<span><span class="co">##     draw_front: function</span></span>
+<span><span class="co">##     draw_labels: function</span></span>
+<span><span class="co">##     draw_panel_content: function</span></span>
+<span><span class="co">##     draw_panels: function</span></span>
+<span><span class="co">##     finish_data: function</span></span>
+<span><span class="co">##     format_strip_labels: function</span></span>
+<span><span class="co">##     init_gtable: function</span></span>
+<span><span class="co">##     init_scales: function</span></span>
+<span><span class="co">##     map_data: function</span></span>
+<span><span class="co">##     params: list</span></span>
+<span><span class="co">##     set_panel_size: function</span></span>
+<span><span class="co">##     setup_data: function</span></span>
+<span><span class="co">##     setup_panel_params: function</span></span>
+<span><span class="co">##     setup_params: function</span></span>
+<span><span class="co">##     shrink: TRUE</span></span>
+<span><span class="co">##     train_scales: function</span></span>
+<span><span class="co">##     vars: function</span></span>
+<span><span class="co">##     super:  &lt;ggproto object: Class FacetGrid, Facet, gg&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $plot_env</span></span>
+<span><span class="co">## &lt;environment: 0x000001a558c952a8&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $layout</span></span>
+<span><span class="co">## &lt;ggproto object: Class Layout, gg&gt;</span></span>
+<span><span class="co">##     coord: NULL</span></span>
+<span><span class="co">##     coord_params: list</span></span>
+<span><span class="co">##     facet: NULL</span></span>
+<span><span class="co">##     facet_params: list</span></span>
+<span><span class="co">##     finish_data: function</span></span>
+<span><span class="co">##     get_scales: function</span></span>
+<span><span class="co">##     layout: NULL</span></span>
+<span><span class="co">##     map_position: function</span></span>
+<span><span class="co">##     panel_params: NULL</span></span>
+<span><span class="co">##     panel_scales_x: NULL</span></span>
+<span><span class="co">##     panel_scales_y: NULL</span></span>
+<span><span class="co">##     render: function</span></span>
+<span><span class="co">##     render_labels: function</span></span>
+<span><span class="co">##     reset_scales: function</span></span>
+<span><span class="co">##     resolve_label: function</span></span>
+<span><span class="co">##     setup: function</span></span>
+<span><span class="co">##     setup_panel_guides: function</span></span>
+<span><span class="co">##     setup_panel_params: function</span></span>
+<span><span class="co">##     train_position: function</span></span>
+<span><span class="co">##     super:  &lt;ggproto object: Class Layout, gg&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $labels</span></span>
+<span><span class="co">## $labels$xmin</span></span>
+<span><span class="co">## [1] "monthStartDate"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $labels$xmax</span></span>
+<span><span class="co">## [1] "monthEndDate + 1"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $labels$ymax</span></span>
+<span><span class="co">## [1] "value"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "gg"     "ggplot"</span></span></code></pre>
 <p>Here we see that after adjustment, in general, the rate of outcome
 appears fairly stable across time, with the exception of some months in
 2020. This is what we refer to as the ‘COVID-blip’, because during the
@@ -603,7 +976,7 @@ time of the COVID-19 pandemic regular healthcare was put on hold.</p>
 pandemic could cause bias. For this reason it is probably best to remove
 this time from the analysis altogether. We can achieve this by defining
 two separate study periods:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span></span>
 <span>  connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,</span>
 <span>  cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
@@ -643,10 +1016,383 @@ two separate study periods:</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>If we plot the outcomes over time, we see the entire time of the
 COVID pandemic has been removed:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotEventToCalendarTime.html">plotEventToCalendarTime</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>                        sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
-<p><img src="SingleStudies_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
+<pre><code><span><span class="co">## $data</span></span>
+<span><span class="co">## <span style="color: #949494;"># A tibble: 344 × 5</span></span></span>
+<span><span class="co">##    month monthStartDate monthEndDate value type                  </span></span>
+<span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>                 </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 1</span> <span style="text-decoration: underline;">24</span>120 2010-01-01     2010-01-31   1.10  Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 2</span> <span style="text-decoration: underline;">24</span>121 2010-02-01     2010-02-28   0.907 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 3</span> <span style="text-decoration: underline;">24</span>122 2010-03-01     2010-03-31   1.07  Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 4</span> <span style="text-decoration: underline;">24</span>123 2010-04-01     2010-04-30   0.917 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 5</span> <span style="text-decoration: underline;">24</span>124 2010-05-01     2010-05-31   0.766 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 6</span> <span style="text-decoration: underline;">24</span>125 2010-06-01     2010-06-30   0.706 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 7</span> <span style="text-decoration: underline;">24</span>126 2010-07-01     2010-07-31   0.664 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 8</span> <span style="text-decoration: underline;">24</span>127 2010-08-01     2010-08-31   0.652 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 9</span> <span style="text-decoration: underline;">24</span>128 2010-09-01     2010-09-30   0.715 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">10</span> <span style="text-decoration: underline;">24</span>129 2010-10-01     2010-10-31   0.809 Assuming constant rate</span></span>
+<span><span class="co">## <span style="color: #949494;"># ℹ 334 more rows</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $layers</span></span>
+<span><span class="co">## $layers[[1]]</span></span>
+<span><span class="co">## mapping: ymax = ~.data$value </span></span>
+<span><span class="co">## geom_rect: linejoin = mitre, na.rm = FALSE</span></span>
+<span><span class="co">## stat_identity: na.rm = FALSE</span></span>
+<span><span class="co">## position_identity </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $scales</span></span>
+<span><span class="co">## &lt;ggproto object: Class ScalesList, gg&gt;</span></span>
+<span><span class="co">##     add: function</span></span>
+<span><span class="co">##     add_defaults: function</span></span>
+<span><span class="co">##     add_missing: function</span></span>
+<span><span class="co">##     backtransform_df: function</span></span>
+<span><span class="co">##     clone: function</span></span>
+<span><span class="co">##     find: function</span></span>
+<span><span class="co">##     get_scales: function</span></span>
+<span><span class="co">##     has_scale: function</span></span>
+<span><span class="co">##     input: function</span></span>
+<span><span class="co">##     map_df: function</span></span>
+<span><span class="co">##     n: function</span></span>
+<span><span class="co">##     non_position_scales: function</span></span>
+<span><span class="co">##     scales: list</span></span>
+<span><span class="co">##     set_palettes: function</span></span>
+<span><span class="co">##     train_df: function</span></span>
+<span><span class="co">##     transform_df: function</span></span>
+<span><span class="co">##     super:  &lt;ggproto object: Class ScalesList, gg&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $guides</span></span>
+<span><span class="co">## &lt;Guides[0] ggproto object&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## &lt;empty&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $mapping</span></span>
+<span><span class="co">## $xmin</span></span>
+<span><span class="co">## <span style="font-weight: bold;">&lt;quosure&gt;</span></span></span>
+<span><span class="co">## expr: <span style="color: #0000BB;">^.data$monthStartDate</span></span></span>
+<span><span class="co">## env:  <span style="color: #0000BB;">0x000001a55e254660</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $xmax</span></span>
+<span><span class="co">## <span style="font-weight: bold;">&lt;quosure&gt;</span></span></span>
+<span><span class="co">## expr: <span style="color: #0000BB;">^.data$monthEndDate + 1</span></span></span>
+<span><span class="co">## env:  <span style="color: #0000BB;">0x000001a55e254660</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "uneval"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme</span></span>
+<span><span class="co">## $theme$axis.text.x</span></span>
+<span><span class="co">## $family</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $face</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] "#000000"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $size</span></span>
+<span><span class="co">## [1] 12</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $hjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $vjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $angle</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineheight</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $margin</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $debug</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_text" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$axis.text.y</span></span>
+<span><span class="co">## $family</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $face</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] "#000000"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $size</span></span>
+<span><span class="co">## [1] 12</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $hjust</span></span>
+<span><span class="co">## [1] 1</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $vjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $angle</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineheight</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $margin</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $debug</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_text" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$axis.ticks</span></span>
+<span><span class="co">## list()</span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_blank" "element"      </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$legend.title</span></span>
+<span><span class="co">## list()</span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_blank" "element"      </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$legend.position</span></span>
+<span><span class="co">## [1] "top"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$panel.background</span></span>
+<span><span class="co">## $fill</span></span>
+<span><span class="co">## [1] "#FAFAFA"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] NA</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $linewidth</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $linetype</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_rect" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$panel.grid.major</span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] "#AAAAAA"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $linewidth</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $linetype</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineend</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $arrow</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_line" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$panel.grid.minor</span></span>
+<span><span class="co">## list()</span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_blank" "element"      </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$plot.title</span></span>
+<span><span class="co">## $family</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $face</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $size</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $hjust</span></span>
+<span><span class="co">## [1] 0.5</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $vjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $angle</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineheight</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $margin</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $debug</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_text" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$strip.background</span></span>
+<span><span class="co">## list()</span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_blank" "element"      </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $theme$strip.text.y</span></span>
+<span><span class="co">## $family</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $face</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $colour</span></span>
+<span><span class="co">## [1] "#000000"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $size</span></span>
+<span><span class="co">## [1] 12</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $hjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $vjust</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $angle</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $lineheight</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $margin</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $debug</span></span>
+<span><span class="co">## NULL</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $inherit.blank</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "element_text" "element"     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"complete")</span></span>
+<span><span class="co">## [1] FALSE</span></span>
+<span><span class="co">## attr(,"validate")</span></span>
+<span><span class="co">## [1] TRUE</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $coordinates</span></span>
+<span><span class="co">## &lt;ggproto object: Class CoordCartesian, Coord, gg&gt;</span></span>
+<span><span class="co">##     aspect: function</span></span>
+<span><span class="co">##     backtransform_range: function</span></span>
+<span><span class="co">##     clip: on</span></span>
+<span><span class="co">##     default: TRUE</span></span>
+<span><span class="co">##     distance: function</span></span>
+<span><span class="co">##     draw_panel: function</span></span>
+<span><span class="co">##     expand: TRUE</span></span>
+<span><span class="co">##     is_free: function</span></span>
+<span><span class="co">##     is_linear: function</span></span>
+<span><span class="co">##     labels: function</span></span>
+<span><span class="co">##     limits: list</span></span>
+<span><span class="co">##     modify_scales: function</span></span>
+<span><span class="co">##     range: function</span></span>
+<span><span class="co">##     render_axis_h: function</span></span>
+<span><span class="co">##     render_axis_v: function</span></span>
+<span><span class="co">##     render_bg: function</span></span>
+<span><span class="co">##     render_fg: function</span></span>
+<span><span class="co">##     reverse: none</span></span>
+<span><span class="co">##     setup_data: function</span></span>
+<span><span class="co">##     setup_layout: function</span></span>
+<span><span class="co">##     setup_panel_guides: function</span></span>
+<span><span class="co">##     setup_panel_params: function</span></span>
+<span><span class="co">##     setup_params: function</span></span>
+<span><span class="co">##     train_panel_guides: function</span></span>
+<span><span class="co">##     transform: function</span></span>
+<span><span class="co">##     super:  &lt;ggproto object: Class CoordCartesian, Coord, gg&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $facet</span></span>
+<span><span class="co">## &lt;ggproto object: Class FacetGrid, Facet, gg&gt;</span></span>
+<span><span class="co">##     attach_axes: function</span></span>
+<span><span class="co">##     attach_strips: function</span></span>
+<span><span class="co">##     compute_layout: function</span></span>
+<span><span class="co">##     draw_back: function</span></span>
+<span><span class="co">##     draw_front: function</span></span>
+<span><span class="co">##     draw_labels: function</span></span>
+<span><span class="co">##     draw_panel_content: function</span></span>
+<span><span class="co">##     draw_panels: function</span></span>
+<span><span class="co">##     finish_data: function</span></span>
+<span><span class="co">##     format_strip_labels: function</span></span>
+<span><span class="co">##     init_gtable: function</span></span>
+<span><span class="co">##     init_scales: function</span></span>
+<span><span class="co">##     map_data: function</span></span>
+<span><span class="co">##     params: list</span></span>
+<span><span class="co">##     set_panel_size: function</span></span>
+<span><span class="co">##     setup_data: function</span></span>
+<span><span class="co">##     setup_panel_params: function</span></span>
+<span><span class="co">##     setup_params: function</span></span>
+<span><span class="co">##     shrink: TRUE</span></span>
+<span><span class="co">##     train_scales: function</span></span>
+<span><span class="co">##     vars: function</span></span>
+<span><span class="co">##     super:  &lt;ggproto object: Class FacetGrid, Facet, gg&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $plot_env</span></span>
+<span><span class="co">## &lt;environment: 0x000001a55e254660&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $layout</span></span>
+<span><span class="co">## &lt;ggproto object: Class Layout, gg&gt;</span></span>
+<span><span class="co">##     coord: NULL</span></span>
+<span><span class="co">##     coord_params: list</span></span>
+<span><span class="co">##     facet: NULL</span></span>
+<span><span class="co">##     facet_params: list</span></span>
+<span><span class="co">##     finish_data: function</span></span>
+<span><span class="co">##     get_scales: function</span></span>
+<span><span class="co">##     layout: NULL</span></span>
+<span><span class="co">##     map_position: function</span></span>
+<span><span class="co">##     panel_params: NULL</span></span>
+<span><span class="co">##     panel_scales_x: NULL</span></span>
+<span><span class="co">##     panel_scales_y: NULL</span></span>
+<span><span class="co">##     render: function</span></span>
+<span><span class="co">##     render_labels: function</span></span>
+<span><span class="co">##     reset_scales: function</span></span>
+<span><span class="co">##     resolve_label: function</span></span>
+<span><span class="co">##     setup: function</span></span>
+<span><span class="co">##     setup_panel_guides: function</span></span>
+<span><span class="co">##     setup_panel_params: function</span></span>
+<span><span class="co">##     train_position: function</span></span>
+<span><span class="co">##     super:  &lt;ggproto object: Class Layout, gg&gt;</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $labels</span></span>
+<span><span class="co">## $labels$xmin</span></span>
+<span><span class="co">## [1] "monthStartDate"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $labels$xmax</span></span>
+<span><span class="co">## [1] "monthEndDate + 1"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $labels$ymax</span></span>
+<span><span class="co">## [1] "value"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attr(,"class")</span></span>
+<span><span class="co">## [1] "gg"     "ggplot"</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="considering-event-dependent-observation-time">Considering event-dependent observation time<a class="anchor" aria-label="anchor" href="#considering-event-dependent-observation-time"></a>
@@ -664,7 +1410,7 @@ in this package, and can be turned on using the
 <code>createSccsIntervalData</code> function. However, this method has
 proven to be somewhat unstable in combinations with other corrections,
 so for now it is best to keep the model simple:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sccsIntervalData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSccsIntervalData.html">createSccsIntervalData</a></span><span class="op">(</span></span>
 <span>  studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>  sccsData <span class="op">=</span> <span class="va">sccsData</span>,</span>
@@ -679,7 +1425,7 @@ so for now it is best to keep the model simple:</p>
 <span>  fitSccsModelArgs <span class="op">=</span> <span class="fu"><a href="../reference/createFitSccsModelArgs.html">createFitSccsModelArgs</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Again, we can inspect the model:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span></span></code></pre></div>
 <pre><code><span><span class="co">## SccsModel object</span></span>
 <span><span class="co">## </span></span>
@@ -713,7 +1459,7 @@ co-prescribed with SSRIs we don’t want the effect of SSRIs attributed to
 aspirin. We would like our estimate to represent just the effect of the
 aspirin, so we need to keep the effect of the SSRIs separate. First we
 have to retrieve the information on SSRI exposure from the database:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ssris</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">715939</span>, <span class="fl">722031</span>, <span class="fl">739138</span>, <span class="fl">751412</span>, <span class="fl">755695</span>, <span class="fl">797617</span>, <span class="fl">40799195</span><span class="op">)</span></span>
 <span><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span></span>
 <span>  connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,</span>
@@ -738,14 +1484,14 @@ have to retrieve the information on SSRI exposure from the database:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## Inherits from Andromeda:</span></span>
 <span><span class="co">## <span style="color: #949494;"># Andromeda object</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Physical location:  E:\andromedaTemp\filec3c1f8e2fe3.duckdb</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># Physical location:  E:\andromedaTemp\file4e2065c44dd2.duckdb</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Tables:</span></span>
 <span><span class="co">## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)</span></span>
 <span><span class="co">## $eraRef (eraType, eraId, eraName, minObservedDate, maxObservedDate)</span></span>
 <span><span class="co">## $eras (eraType, caseId, eraId, eraValue, eraStartDay, eraEndDay)</span></span></code></pre>
 <p>Once retrieved, we can use the data to build and fit our model:</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span></span>
 <span>  sccsData <span class="op">=</span> <span class="va">sccsData</span>,</span>
 <span>  outcomeId <span class="op">=</span> <span class="va">epistaxis</span>,</span>
@@ -783,7 +1529,7 @@ rate ratio for all SSRIs, so one estimate for the entire class of drugs.
 Note that duplicates will be removed: if a person is exposed to two
 SSRIs on the same day, this will be counted only once when fitting the
 model. Again, we can inspect the model:</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span></span></code></pre></div>
 <pre><code><span><span class="co">## SccsModel object</span></span>
 <span><span class="co">## </span></span>
@@ -817,7 +1563,7 @@ model. Again, we can inspect the model:</p>
 </h3>
 <p>Another approach could be to add all drugs into the model. Again, the
 first step is to get all the relevant data from the database:</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sccsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDbSccsData.html">getDbSccsData</a></span><span class="op">(</span></span>
 <span>  connectionDetails <span class="op">=</span> <span class="va">connectionDetails</span>,</span>
 <span>  cdmDatabaseSchema <span class="op">=</span> <span class="va">cdmDatabaseSchema</span>,</span>
@@ -836,7 +1582,7 @@ first step is to get all the relevant data from the database:</p>
 <p>Note that the <code>exposureIds</code> argument is left empty. This
 will cause data for all concepts in the exposure table to be retrieved.
 Next, we simply create a new set of covariates, and fit the model:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">studyPop</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createStudyPopulation.html">createStudyPopulation</a></span><span class="op">(</span></span>
 <span>  sccsData <span class="op">=</span> <span class="va">sccsData</span>,</span>
 <span>  outcomeId <span class="op">=</span> <span class="va">epistaxis</span>,</span>
@@ -885,7 +1631,7 @@ almost often prescribed together and their individual effects are
 difficult to untangle.</p>
 <p>Because there are now so many estimates, we will export all estimates
 to a data frame using <code><a href="../reference/getModel.html">getModel()</a></code>:</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getModel.html">getModel</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
 <span><span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op">==</span> <span class="va">aspirin</span>, <span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 2 × 10</span></span></span>
@@ -899,7 +1645,7 @@ the model, the effect estimates for aspirin have remained nearly the
 same.</p>
 <p>In case we’re interested, we can also look at the effect sizes for
 the SSRIs:</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimates</span><span class="op">[</span><span class="va">estimates</span><span class="op">$</span><span class="va">originalEraId</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ssris</span>, <span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 4 × 10</span></span></span>
 <span><span class="co">##   name                  id estimate lb95Ci ub95Ci    logRr seLogRr originalEraId</span></span>
@@ -939,7 +1685,7 @@ to test each of these assumptions:</p>
 should be less than 10%.</p>
 <p>To evaluate this assumption, we can call the
 <code><a href="../reference/checkRareOutcomeAssumption.html">checkRareOutcomeAssumption()</a></code> function:</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/checkRareOutcomeAssumption.html">checkRareOutcomeAssumption</a></span><span class="op">(</span><span class="va">studyPop</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 3</span></span></span>
 <span><span class="co">##   outcomeProportion firstOutcomeOnly pass </span></span>
@@ -956,7 +1702,7 @@ which we did in this vignette. Calling
 <code><a href="../reference/checkEventExposureIndependenceAssumption.html">checkEventExposureIndependenceAssumption()</a></code> will extract the
 estimate for the pre-exposure window, and compare it to the specified
 null hypothesis:</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/checkEventExposureIndependenceAssumption.html">checkEventExposureIndependenceAssumption</a></span><span class="op">(</span>sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 4</span></span></span>
 <span><span class="co">##   ratio    lb    ub pass </span></span>
@@ -973,7 +1719,7 @@ probe window at the end of the observation period. If this window shows
 an effect on the outcome, there is event-observation dependency. We can
 check this using
 <code><a href="../reference/checkEventObservationIndependenceAssumption.html">checkEventObservationIndependenceAssumption()</a></code>:</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/checkEventObservationIndependenceAssumption.html">checkEventObservationIndependenceAssumption</a></span><span class="op">(</span>sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 4</span></span></span>
 <span><span class="co">##   ratio    lb    ub pass </span></span>
@@ -994,7 +1740,7 @@ patterns in event occurrence. Before, we showed how
 to expected ratio per month, with or without the effect of the spline
 adjustments. We can also perform a statistical test against the
 pre-defined threshold to verify we meet the assumption:</p>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/checkTimeStabilityAssumption.html">checkTimeStabilityAssumption</a></span><span class="op">(</span>studyPopulation <span class="op">=</span> <span class="va">studyPop</span>,</span>
 <span>                             sccsModel <span class="op">=</span> <span class="va">model</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 3</span></span></span>
@@ -1019,7 +1765,7 @@ is fixed in retrospective studies (the data has already been collected),
 and the true effect size is unknown, the
 <code>SelfControlledCaseSeries</code> package provides a function to
 compute the minimum detectable relative risk (MDRR) instead:</p>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/computeMdrr.html">computeMdrr</a></span><span class="op">(</span><span class="va">sccsIntervalData</span>,</span>
 <span>            exposureCovariateId <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>            alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
@@ -1041,7 +1787,7 @@ of one.</p>
 </h3>
 <p>To gain a better understanding of when the event occurs relative to
 the start of exposure, we can plot their relationship:</p>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotExposureCentered.html">plotExposureCentered</a></span><span class="op">(</span><span class="va">studyPop</span>, <span class="va">sccsData</span>, exposureEraId <span class="op">=</span> <span class="va">aspirin</span><span class="op">)</span></span></code></pre></div>
 <p><img src="SingleStudies_files/figure-html/unnamed-chunk-61-1.png" width="624"></p>
 </div>
@@ -1050,7 +1796,7 @@ the start of exposure, we can plot their relationship:</p>
 </h3>
 <p>We can visualize which age ranges are covered by each subject’s
 observation time:</p>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotAgeSpans.html">plotAgeSpans</a></span><span class="op">(</span><span class="va">studyPop</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning in plotAgeSpans(studyPop): There are 88453 cases. Random sampling 10000</span></span>
 <span><span class="co">## cases.</span></span></code></pre>
@@ -1065,13 +1811,13 @@ be large.</p>
 </h2>
 <p>Considerable work has been dedicated to provide the
 <code>SelfControlledCaseSeries</code> package.</p>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"SelfControlledCaseSeries"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## To cite package 'SelfControlledCaseSeries' in publications use:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##   Schuemie M, Ryan P, Shaddox T, Suchard M (2025).</span></span>
 <span><span class="co">##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package</span></span>
-<span><span class="co">##   version 6.1.0, https://github.com/OHDSI/SelfControlledCaseSeries,</span></span>
+<span><span class="co">##   version 6.1.1, https://github.com/OHDSI/SelfControlledCaseSeries,</span></span>
 <span><span class="co">##   &lt;https://ohdsi.github.io/SelfControlledCaseSeries/&gt;.</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## A BibTeX entry for LaTeX users is</span></span>
@@ -1080,13 +1826,13 @@ be large.</p>
 <span><span class="co">##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},</span></span>
 <span><span class="co">##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},</span></span>
 <span><span class="co">##     year = {2025},</span></span>
-<span><span class="co">##     note = {R package version 6.1.0, </span></span>
+<span><span class="co">##     note = {R package version 6.1.1, </span></span>
 <span><span class="co">## https://github.com/OHDSI/SelfControlledCaseSeries},</span></span>
 <span><span class="co">##     url = {https://ohdsi.github.io/SelfControlledCaseSeries/},</span></span>
 <span><span class="co">##   }</span></span></code></pre>
 <p>Furthermore, <code>SelfControlledCaseSeries</code> makes extensive
 use of the <code>Cyclops</code> package.</p>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"Cyclops"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## To cite Cyclops in publications use:</span></span>
 <span><span class="co">## </span></span>
