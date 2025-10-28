@@ -18,7 +18,7 @@ Description: Execute the self-controlled case series (SCCS) design using observa
 	included at once (MSCCS), with regularization on all coefficients except for the
 	exposure of interest. Includes diagnostics for all major assumptions of the SCCS.
 VignetteBuilder: knitr
-URL:  https://ohdsi.github.io/SelfControlledCaseSeries/, https://github.com/OHDSI/SelfControlledCaseSeries
+URL: https://ohdsi.github.io/SelfControlledCaseSeries/, https://github.com/OHDSI/SelfControlledCaseSeries
 BugReports: https://github.com/OHDSI/SelfControlledCaseSeries/issues
 Depends:
 	R (>= 4.1.0),
@@ -51,6 +51,6 @@ Suggests:
 License: Apache License 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Roxygen: list(markdown = TRUE)
 Encoding: UTF-8
