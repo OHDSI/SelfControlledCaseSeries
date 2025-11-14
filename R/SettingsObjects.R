@@ -1096,6 +1096,14 @@ SccsAnalysesSpecifications <- R6Class(
           stop("AnalysesToExclude should have at least one of these columns: 'exposureId', 'outcomeId', 'analysisId', or 'nestingCohortId'")
         }
       }
+      uniqueExposuresOutcomeList <- unique(lapply(self$exposuresOutcomeList, function(x) x$toJson()))
+      if (length(uniqueExposuresOutcomeList) != length(self$exposuresOutcomeList)) {
+        stop("Duplicate exposure-outcomes pairs are not allowed")
+      }
+      uniqueAnalysisIds <- unlist(unique(ParallelLogger::selectFromList(self$sccsAnalysisList, "analysisId")))
+      if (length(uniqueAnalysisIds) != length(self$sccsAnalysisList)) {
+        stop("Duplicate analysis IDs are not allowed")
+      }
     },
     fromList = function(list, requireTyping) {
       super$fromList(list)

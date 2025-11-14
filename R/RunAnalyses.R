@@ -192,15 +192,6 @@ runSccsAnalyses <- function(connectionDetails,
   checkmate::assertR6(sccsAnalysesSpecifications, "SccsAnalysesSpecifications", add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
-  uniqueExposuresOutcomeList <- unique(lapply(sccsAnalysesSpecifications$exposuresOutcomeList, function(x) x$toJson()))
-  if (length(uniqueExposuresOutcomeList) != length(sccsAnalysesSpecifications$exposuresOutcomeList)) {
-    stop("Duplicate exposure-outcomes pairs are not allowed")
-  }
-  uniqueAnalysisIds <- unlist(unique(ParallelLogger::selectFromList(sccsAnalysesSpecifications$sccsAnalysisList, "analysisId")))
-  if (length(uniqueAnalysisIds) != length(sccsAnalysesSpecifications$sccsAnalysisList)) {
-    stop("Duplicate analysis IDs are not allowed")
-  }
-
   if (!file.exists(outputFolder)) {
     dir.create(outputFolder)
   }
