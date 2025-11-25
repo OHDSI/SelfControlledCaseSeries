@@ -571,22 +571,9 @@ createReferenceTable <- function(sccsAnalysisList,
   attr(referenceTable, "loadConceptsPerLoad") <- loadConceptsPerLoad
 
   # Add study population filenames --------------------------
-  analysisIds <- unlist(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId"))
-  uniqueStudyPopArgs <- unique(ParallelLogger::selectFromList(sccsAnalysisList, "createStudyPopulationArgs"))
-  uniqueStudyPopArgs <- lapply(uniqueStudyPopArgs, function(x) {
-    return(x[[1]])
-  })
-
-  studyPopId <- sapply(
-    sccsAnalysisList,
-    function(sccsAnalysis, uniqueStudyPopArgs) {
-      return(which.list(
-        uniqueStudyPopArgs,
-        sccsAnalysis$createStudyPopulationArgs
-      ))
-    },
-    uniqueStudyPopArgs
-  )
+  studyPopArgsJsons <- lapply(sccsAnalysisList,
+                              function(x) x$createStudyPopulationArgs$toJson())
+  uniqueStudyPopArgsJsons <- unique(studyPopArgsJsons)
   restrictTimeToEraId <- sapply(
     sccsAnalysisList,
     function(sccsAnalysis) {
@@ -598,7 +585,11 @@ createReferenceTable <- function(sccsAnalysisList,
       }
     }
   )
-  analysisIdToStudyPopId <- tibble(analysisId = analysisIds, studyPopId = studyPopId, restrictTimeToEraId = restrictTimeToEraId)
+  analysisIdToStudyPopId <- tibble(
+    analysisId = unlist(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId")),
+    studyPopId = match(studyPopArgsJsons, uniqueStudyPopArgsJsons),
+    restrictTimeToEraId = restrictTimeToEraId
+  )
   referenceTable <- inner_join(referenceTable, analysisIdToStudyPopId, by = join_by("analysisId"))
   referenceTable$restrictTimeToEraId <- sapply(seq_along(referenceTable$restrictTimeToEraId),
                                                function(i) {

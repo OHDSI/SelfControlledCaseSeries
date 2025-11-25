@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 6.1.2
+==============================
+
+Bugfixes
+
+1. Fixed bug that would cause unnecessary compute if multiple analyses used the same study population settings.
+
+
 SelfControlledCaseSeries 6.1.1
 ==============================
 
