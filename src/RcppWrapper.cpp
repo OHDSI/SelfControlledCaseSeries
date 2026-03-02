@@ -62,7 +62,7 @@ void convertToSccs(const DataFrame& cases,
   } catch (std::exception &e) {
     forward_exception_to_r(e);
   } catch (...) {
-    ::Rf_error("c++ exception (unknown reason)");
+    Rcpp::stop("c++ exception (unknown reason)");
   }
   // return R_NilValue;
 }
@@ -82,7 +82,7 @@ List simulateSccsOutcomes(const DataFrame& cases, const DataFrame& eras,  const 
   } catch (std::exception &e) {
     forward_exception_to_r(e);
   } catch (...) {
-    ::Rf_error("c++ exception (unknown reason)");
+    Rcpp::stop("c++ exception (unknown reason)");
   }
   return List::create();
 }

@@ -1,3 +1,12 @@
+SelfControlledCaseSeries 6.1.3
+==============================
+
+Bugfixes
+
+1. Replaced `Rf_error`with `Rcpp::stop`.
+2. Dropped `MakeVars` files.
+
+
 SelfControlledCaseSeries 6.1.2
 ==============================
 
