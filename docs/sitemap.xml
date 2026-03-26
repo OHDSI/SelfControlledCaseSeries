@@ -1,13 +1,16 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/404.html</loc></url>
-<url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/articles/index.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/articles/MultipleAnalyses.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/articles/ResultsSchema.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/articles/SingleStudies.html</loc></url>
+<url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/articles/index.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/authors.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/index.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/news/index.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/pull_request_template.html</loc></url>
+<url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/SccsData-class.html</loc></url>
+<url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/SccsIntervalData-class.html</loc></url>
+<url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/SelfControlledCaseSeries-package.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/checkEventExposureIndependenceAssumption.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/checkEventObservationIndependenceAssumption.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/checkRareOutcomeAssumption.html</loc></url>
@@ -88,9 +91,6 @@
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/saveSccsData.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/saveSccsEraData.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/saveSccsIntervalData.html</loc></url>
-<url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/SccsData-class.html</loc></url>
-<url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/SccsIntervalData-class.html</loc></url>
-<url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/SelfControlledCaseSeries-package.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/simulateSccsData.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/summarizeSccsAnalyses.html</loc></url>
 <url><loc>https://ohdsi.github.io/SelfControlledCaseSeries/reference/uploadResults.html</loc></url>
