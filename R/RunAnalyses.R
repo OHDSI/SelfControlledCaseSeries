@@ -259,7 +259,7 @@ runSccsAnalyses <- function(connectionDetails,
   for (studyPopFile in uniqueStudyPopFiles) {
     refRow <- referenceTable[referenceTable$studyPopFile == studyPopFile, ][1, ]
     analysisRow <- Filter(function(x) x$analysisId == refRow$analysisId, sccsAnalysesSpecifications$sccsAnalysisList)[[1]]
-    args <- list(createStudyPopulationArgs = analysisRow$createStudyPopulationArgs)
+    args <- list(createStudyPopulationArgs = analysisRow$createStudyPopulationArgs$clone())
     args$outcomeId <- refRow$outcomeId
     if (is.character(args$createStudyPopulationArgs$restrictTimeToEraId)) {
       args$createStudyPopulationArgs$restrictTimeToEraId <- pull(refRow[, args$createStudyPopulationArgs$restrictTimeToEraId])
@@ -369,7 +369,6 @@ runSccsAnalyses <- function(connectionDetails,
     ParallelLogger::stopCluster(cluster)
   }
 
-
   if (length(studyPopFilesToCreate) != 0) {
     message("*** Creating studyPopulation objects ***")
     cluster <- ParallelLogger::makeCluster(min(length(studyPopFilesToCreate), sccsMultiThreadingSettings$createStudyPopulationThreads))
@@ -474,7 +473,7 @@ createReferenceTable <- function(sccsAnalysisList,
           if (!exposureId %in% uniqueExposureIdRefs) {
             stop(paste0("The 'exposureIds' argument was set to '", exposureId, "' when calling createGetDbSccsDataArgs(), but this exposure label is not found in exposures-outcome sets"))
           }
-          exposureIds <- c(exposureIds, referenceTable$exposureId[i])
+          exposureIds <- c(exposureIds, referenceTable[[exposureId]][i])
         } else {
           exposureIds <- c(exposureIds, as.numeric(exposureId))
         }
@@ -486,7 +485,7 @@ createReferenceTable <- function(sccsAnalysisList,
         if (!customCovariateId %in% uniqueExposureIdRefs) {
           stop(paste0("The 'customCovariateIds' argument was set to '", customCovariateId, "' when calling createGetDbSccsDataArgs(), but this exposure label is not found in exposures-outcome sets"))
         }
-        customCovariateIds <- c(customCovariateIds, referenceTable[i, customCovariateId])
+        customCovariateIds <- c(customCovariateIds, referenceTable[[customCovariateId]][i])
       } else {
         customCovariateIds <- c(customCovariateIds, customCovariateId)
       }
@@ -594,7 +593,7 @@ createReferenceTable <- function(sccsAnalysisList,
   referenceTable$restrictTimeToEraId <- sapply(seq_along(referenceTable$restrictTimeToEraId),
                                                function(i) {
                                                  id <- referenceTable$restrictTimeToEraId[i]
-                                                 if (id =="") {
+                                                 if (id == "") {
                                                    return(NA)
                                                  } else {
                                                    return(pull(referenceTable[i, id]))

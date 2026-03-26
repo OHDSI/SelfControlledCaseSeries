@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 6.1.4
+==============================
+
+Bugfixes
+
+1. Fixed bug when restricting time to era ID, and there are multiple exposure-outcome pairs.
+
+
 SelfControlledCaseSeries 6.1.3
 ==============================
 
