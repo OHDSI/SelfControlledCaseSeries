@@ -1,3 +1,11 @@
+SelfControlledCaseSeries 6.1.5
+==============================
+
+Bugfixes
+
+1. Fixed confidence interval upper bound displayed for the event-observation dependence diagnostic.
+
+
 SelfControlledCaseSeries 6.1.4
 ==============================
 
