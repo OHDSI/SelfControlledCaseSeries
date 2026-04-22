@@ -189,7 +189,6 @@ if (!isFALSE(tryCatch(find.package("Eunomia"), error = function(e) FALSE))) {
     # Test export to CSV:
     exportToCsv(outputFolder)
 
-    # Workaround for issue https://github.com/tidyverse/vroom/issues/519:
     diagnosticsSummary <- readr::read_csv(file.path(outputFolder, "export", "sccs_diagnostics_summary.csv"), show_col_types = FALSE)
     expect_true(all(diagnosticsSummary$ease_diagnostic == "NOT EVALUATED"))
 
@@ -206,6 +205,15 @@ if (!isFALSE(tryCatch(find.package("Eunomia"), error = function(e) FALSE))) {
     # Verify likelihood profiles have gradients:
     likelihoodProfile <- readr::read_csv(file.path(outputFolder, "export", "sccs_likelihood_profile.csv"), show_col_types = FALSE)
     expect_true(any(!is.na(likelihoodProfile$gradient)))
+
+    # Verify we don't lose information when joining to sccs_covariate:
+    diagnosticsSummary <- readr::read_csv(file.path(outputFolder, "export", "sccs_diagnostics_summary.csv"), show_col_types = FALSE)
+    covariates <- readr::read_csv(file.path(outputFolder, "export", "sccs_covariate.csv"), show_col_types = FALSE)
+    joinedCount <- diagnosticsSummary |>
+      inner_join(covariates, by = join_by(exposures_outcome_set_id, analysis_id, covariate_id)) |>
+      count() |>
+      pull()
+    expect_equal(joinedCount, nrow(diagnosticsSummary))
 
     # Verify exported CSV files match model specifications:
     specs <- readr::read_csv(
