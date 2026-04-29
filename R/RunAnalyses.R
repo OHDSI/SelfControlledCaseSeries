@@ -151,6 +151,12 @@ createDefaultSccsMultiThreadingSettings <- function(maxCores) {
 #'                                         [createDefaultSccsMultiThreadingSettings()] functions.
 #' @param sccsAnalysesSpecifications       An object of type `SccsAnalysesSpecifications` as created using
 #'                                         the [`createSccsAnalysesSpecifications()`] function
+#' @param databaseId                       A unique identifier for the database being used. This is
+#'                                         baked into artifact hashes to prevent accidental reuse of
+#'                                         cached results from a different database. Required.
+#' @param artifactStore                    An object inheriting from [ArtifactStore] used to read and
+#'                                         write cached artifacts. Defaults to a [LocalArtifactStore]
+#'                                         based on `outputFolder`.
 #'
 #' @return
 #' A tibble describing for each exposure-outcome-analysisId combination where the intermediary and
@@ -170,7 +176,9 @@ runSccsAnalyses <- function(connectionDetails,
                             nestingCohortTable = "cohort",
                             outputFolder,
                             sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
-                            sccsAnalysesSpecifications) {
+                            sccsAnalysesSpecifications,
+                            databaseId,
+                            artifactStore = NULL) {
   errorMessages <- checkmate::makeAssertCollection()
   if (is(connectionDetails, "connectionDetails")) {
     checkmate::assertClass(connectionDetails, "connectionDetails", add = errorMessages)
@@ -190,10 +198,32 @@ runSccsAnalyses <- function(connectionDetails,
   checkmate::assertCharacter(outputFolder, len = 1, add = errorMessages)
   checkmate::assertClass(sccsMultiThreadingSettings, "SccsMultiThreadingSettings", add = errorMessages)
   checkmate::assertR6(sccsAnalysesSpecifications, "SccsAnalysesSpecifications", add = errorMessages)
+  checkmate::assertCharacter(databaseId, len = 1, min.chars = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
 
   if (!file.exists(outputFolder)) {
     dir.create(outputFolder)
+  }
+
+  if (is.null(artifactStore)) {
+    artifactStore <- LocalArtifactStore$new(outputFolder)
+  }
+
+  # Check for database ID mismatch against previously cached results
+  databaseIdFile <- "databaseId.rds"
+  if (artifactStore$exists(databaseIdFile)) {
+    previousDatabaseId <- artifactStore$readRDS(databaseIdFile)
+    if (!identical(previousDatabaseId, databaseId)) {
+      stop(sprintf(
+        paste("Database ID mismatch: output folder was previously used with databaseId '%s',",
+              "but now '%s' was provided. To reuse this folder with a different database,",
+              "delete the existing output folder first."),
+        previousDatabaseId,
+        databaseId
+      ))
+    }
+  } else {
+    artifactStore$saveRDS(databaseId, databaseIdFile)
   }
 
   referenceTable <- createReferenceTable(
@@ -201,7 +231,8 @@ runSccsAnalyses <- function(connectionDetails,
     sccsAnalysesSpecifications$exposuresOutcomeList,
     outputFolder,
     sccsAnalysesSpecifications$combineDataFetchAcrossOutcomes,
-    sccsAnalysesSpecifications$analysesToExclude
+    sccsAnalysesSpecifications$analysesToExclude,
+    databaseId = databaseId
   )
 
   loadConceptsPerLoad <- attr(referenceTable, "loadConceptsPerLoad")
@@ -355,7 +386,8 @@ runSccsAnalyses <- function(connectionDetails,
   }
 
   referenceTable$loadId <- NULL
-  referenceTable$studyPopId <- NULL
+  referenceTable$loadHash <- NULL
+  referenceTable$studyPopArgsJson <- NULL
   attr(referenceTable, "loadConcepts") <- NULL
   saveRDS(referenceTable, file.path(outputFolder, "outcomeModelReference.rds"))
   saveRDS(sccsAnalysesSpecifications, file.path(outputFolder, "sccsAnalysesSpecifications.rds"))
@@ -394,9 +426,16 @@ runSccsAnalyses <- function(connectionDetails,
   }
 
   mainFileName <- file.path(outputFolder, "resultsSummary.rds")
-  if (!file.exists(mainFileName)) {
+  newModelsCreated <- length(sccsModelObjectsToCreate) > 0
+  if (newModelsCreated || !file.exists(mainFileName)) {
+    if (newModelsCreated && file.exists(mainFileName)) {
+      unlink(mainFileName)
+    }
     message("*** Summarizing results ***")
     diagnosticsSummaryFileName <- file.path(outputFolder, "diagnosticsSummary.rds")
+    if (newModelsCreated && file.exists(diagnosticsSummaryFileName)) {
+      unlink(diagnosticsSummaryFileName)
+    }
     summarizeResults(
       referenceTable = referenceTable,
       exposuresOutcomeList = sccsAnalysesSpecifications$exposuresOutcomeList,
@@ -409,6 +448,10 @@ runSccsAnalyses <- function(connectionDetails,
     )
   }
 
+  # Write manifest for traceability
+  manifest <- .buildManifest(referenceTable, outputFolder, databaseId)
+  saveRDS(manifest, file.path(outputFolder, "manifest.rds"))
+
   invisible(referenceTable)
 }
 
@@ -416,7 +459,8 @@ createReferenceTable <- function(sccsAnalysisList,
                                  exposuresOutcomeList,
                                  outputFolder,
                                  combineDataFetchAcrossOutcomes,
-                                 analysesToExclude) {
+                                 analysesToExclude,
+                                 databaseId) {
   convertAnalysisToTable <- function(analysis) {
     tibble(
       analysisId = analysis$analysisId,
@@ -540,6 +584,7 @@ createReferenceTable <- function(sccsAnalysisList,
   uniqueLoadStrings <- unique(loadStrings)
   referenceTable$sccsDataFile <- ""
   referenceTable$loadId <- NA
+  referenceTable$loadHash <- ""
   loadConceptsPerLoad <- list()
   for (loadId in seq_along(uniqueLoadStrings)) {
     uniqueLoadString <- uniqueLoadStrings[[loadId]]
@@ -553,7 +598,7 @@ createReferenceTable <- function(sccsAnalysisList,
       exposureIds <- unique(do.call(c, exposureIds))
     }
     customCovariateIds <- unique(do.call(c, lapply(groupables, function(x) x$customCovariateIds)))
-    loadConceptsPerLoad[[loadId]] <- list(
+    loadConcepts <- list(
       exposureIds = unique(exposureIds),
       outcomeIds = unique(outcomeIds),
       customCovariateIds = unique(customCovariateIds),
@@ -563,8 +608,12 @@ createReferenceTable <- function(sccsAnalysisList,
       studyEndDates = groupables[[1]]$studyEndDates,
       maxCasesPerOutcome = groupables[[1]]$maxCasesPerOutcome
     )
-    sccsDataFileName <- .createSccsDataFileName(loadId)
+    loadConceptsPerLoad[[loadId]] <- loadConcepts
+    # Content-addressable hash includes databaseId to prevent cross-database cache reuse
+    loadHash <- .contentHash(databaseId, loadConcepts)
+    sccsDataFileName <- .createSccsDataFileName(loadHash)
     referenceTable$loadId[rowIds] <- loadId
+    referenceTable$loadHash[rowIds] <- loadHash
     referenceTable$sccsDataFile[rowIds] <- sccsDataFileName
   }
   attr(referenceTable, "loadConceptsPerLoad") <- loadConceptsPerLoad
@@ -572,7 +621,6 @@ createReferenceTable <- function(sccsAnalysisList,
   # Add study population filenames --------------------------
   studyPopArgsJsons <- lapply(sccsAnalysisList,
                               function(x) x$createStudyPopulationArgs$toJson())
-  uniqueStudyPopArgsJsons <- unique(studyPopArgsJsons)
   restrictTimeToEraId <- sapply(
     sccsAnalysisList,
     function(sccsAnalysis) {
@@ -584,12 +632,12 @@ createReferenceTable <- function(sccsAnalysisList,
       }
     }
   )
-  analysisIdToStudyPopId <- tibble(
+  analysisIdToStudyPopJson <- tibble(
     analysisId = unlist(ParallelLogger::selectFromList(sccsAnalysisList, "analysisId")),
-    studyPopId = match(studyPopArgsJsons, uniqueStudyPopArgsJsons),
+    studyPopArgsJson = vapply(studyPopArgsJsons, as.character, character(1)),
     restrictTimeToEraId = restrictTimeToEraId
   )
-  referenceTable <- inner_join(referenceTable, analysisIdToStudyPopId, by = join_by("analysisId"))
+  referenceTable <- inner_join(referenceTable, analysisIdToStudyPopJson, by = join_by("analysisId"))
   referenceTable$restrictTimeToEraId <- sapply(seq_along(referenceTable$restrictTimeToEraId),
                                                function(i) {
                                                  id <- referenceTable$restrictTimeToEraId[i]
@@ -599,12 +647,17 @@ createReferenceTable <- function(sccsAnalysisList,
                                                    return(pull(referenceTable[i, id]))
                                                  }
                                                })
-  referenceTable$studyPopFile <- .createStudyPopulationFileName(
-    loadId = referenceTable$loadId,
-    studyPopId = referenceTable$studyPopId,
-    outcomeId = referenceTable$outcomeId,
-    exposureId = referenceTable$restrictTimeToEraId
-  )
+  # Content-addressable hash for study population files
+  referenceTable$studyPopFile <- vapply(seq_len(nrow(referenceTable)), function(i) {
+    hash <- .contentHash(
+      databaseId,
+      referenceTable$loadHash[i],
+      referenceTable$studyPopArgsJson[i],
+      referenceTable$outcomeId[i],
+      referenceTable$restrictTimeToEraId[i]
+    )
+    .createStudyPopulationFileName(hash)
+  }, character(1))
 
   # Add interval data and model filenames -----------------------------------------------------
   generateFileName <- function(i) {
@@ -709,8 +762,30 @@ createSccsModelObject <- function(params) {
   return(NULL)
 }
 
-.createSccsDataFileName <- function(loadId) {
-  name <- sprintf("SccsData_l%s.zip", loadId)
+# Compute a deterministic content hash from arbitrary inputs.
+# Used to generate stable file names that depend on settings, not position.
+# @param ... Inputs to hash. R6 settings objects are serialized via toList()
+#   with sorted keys for deterministic ordering.
+# @param length Number of hex characters to keep (default 12).
+# @return A character string of `length` hex characters.
+.contentHash <- function(..., length = 12) {
+  parts <- list(...)
+  canonical <- paste(vapply(parts, function(x) {
+    if (is.null(x) || (is.atomic(x) && length(x) == 1 && is.na(x))) {
+      "NULL"
+    } else if (inherits(x, "AbstractSerializableSettings")) {
+      lst <- x$toList()
+      as.character(jsonlite::toJSON(lst[order(names(lst))],
+                                    auto_unbox = TRUE, digits = NA, null = "null"))
+    } else {
+      as.character(jsonlite::toJSON(x, auto_unbox = TRUE, digits = NA, null = "null"))
+    }
+  }, character(1)), collapse = "|")
+  substr(digest::digest(canonical, algo = "sha256", serialize = FALSE), 1, length)
+}
+
+.createSccsDataFileName <- function(hash) {
+  name <- sprintf("SccsData_%s.zip", hash)
   return(name)
 }
 
@@ -718,14 +793,30 @@ createSccsModelObject <- function(params) {
   return(format(x, scientific = FALSE, trim = TRUE))
 }
 
-.createStudyPopulationFileName <- function(loadId,
-                                           studyPopId,
-                                           outcomeId,
-                                           exposureId) {
-  name <- ifelse(is.na(exposureId),
-                 sprintf("StudyPop_l%s_s%s_o%s.rds", loadId, studyPopId, .f(outcomeId)),
-                 sprintf("StudyPop_l%s_s%s_o%s_e%s.rds", loadId, studyPopId, .f(outcomeId), .f(exposureId)))
+.createStudyPopulationFileName <- function(hash) {
+  name <- sprintf("StudyPop_%s.rds", hash)
   return(name)
+}
+
+.buildManifest <- function(referenceTable, outputFolder, databaseId) {
+  artifactCols <- c("sccsDataFile", "studyPopFile", "sccsIntervalDataFile", "sccsModelFile")
+  entries <- list()
+  for (col in artifactCols) {
+    for (fname in unique(referenceTable[[col]])) {
+      fullPath <- file.path(outputFolder, fname)
+      mtime <- if (file.exists(fullPath)) as.character(file.info(fullPath)$mtime) else NA_character_
+      refRows <- referenceTable[referenceTable[[col]] == fname, ]
+      entries[[length(entries) + 1]] <- tibble(
+        file = fname,
+        artifactType = col,
+        databaseId = databaseId,
+        analysisIds = paste(unique(refRows$analysisId), collapse = ","),
+        outcomeIds = paste(unique(refRows$outcomeId), collapse = ","),
+        createdAt = mtime
+      )
+    }
+  }
+  bind_rows(entries)
 }
 
 .createSccsIntervalDataFileName <- function(analysisFolder, exposureId, outcomeId, nestingCohortId) {

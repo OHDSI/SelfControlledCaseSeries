@@ -155,7 +155,8 @@ if (!isFALSE(tryCatch(find.package("Eunomia"), error = function(e) FALSE))) {
           outcomeDatabaseSchema = "main",
           outcomeTable = "cohort",
           outputFolder = outputFolder,
-          sccsAnalysesSpecifications = sccsAnalysesSpecifications
+          sccsAnalysesSpecifications = sccsAnalysesSpecifications,
+          databaseId = "eunomia_test"
         )
       },
       "No cases left in study population"
@@ -224,6 +225,172 @@ if (!isFALSE(tryCatch(find.package("Eunomia"), error = function(e) FALSE))) {
     }
 
     # unlink(outputFolder, recursive = TRUE)
+  })
+
+  test_that("Adding a new outcome reuses existing cached artifacts", {
+    outputFolder <- tempfile(pattern = "sccsIncremental")
+    on.exit(unlink(outputFolder, recursive = TRUE))
+
+    getDbSccsDataArgs <- createGetDbSccsDataArgs(
+      deleteCovariatesSmallCount = 1,
+      studyStartDates = "20000101",
+      studyEndDates = "20500101"
+    )
+    createStudyPopulationArgs <- createCreateStudyPopulationArgs(
+      naivePeriod = 180,
+      firstOutcomeOnly = FALSE
+    )
+    covarExposureOfInt <- createEraCovariateSettings(
+      label = "Exposure of interest",
+      includeEraIds = "exposureId",
+      start = 0,
+      end = 7,
+      endAnchor = "era start",
+      exposureOfInterest = TRUE
+    )
+    createSccsIntervalDataArgs <- createCreateSccsIntervalDataArgs(
+      eraCovariateSettings = covarExposureOfInt
+    )
+    fitSccsModelArgs <- createFitSccsModelArgs()
+    sccsAnalysis <- createSccsAnalysis(
+      analysisId = 1,
+      description = "SCCS incremental test",
+      getDbSccsDataArgs = getDbSccsDataArgs,
+      createStudyPopulationArgs = createStudyPopulationArgs,
+      createIntervalDataArgs = createSccsIntervalDataArgs,
+      fitSccsModelArgs = fitSccsModelArgs
+    )
+
+    # Run 1: single outcome
+    exposuresOutcomeList1 <- list(
+      createExposuresOutcome(
+        exposures = list(createExposure(exposureId = 1)),
+        outcomeId = 3
+      )
+    )
+    specs1 <- createSccsAnalysesSpecifications(
+      exposuresOutcomeList = exposuresOutcomeList1,
+      sccsAnalysisList = list(sccsAnalysis)
+    )
+    result1 <- runSccsAnalyses(
+      connectionDetails = connectionDetails,
+      cdmDatabaseSchema = "main",
+      exposureDatabaseSchema = "main",
+      exposureTable = "cohort",
+      outcomeDatabaseSchema = "main",
+      outcomeTable = "cohort",
+      outputFolder = outputFolder,
+      sccsAnalysesSpecifications = specs1,
+      databaseId = "eunomia_incremental"
+    )
+
+    # Record file modification times for run 1 artifacts
+    run1Files <- list.files(outputFolder, pattern = "^SccsData_|^StudyPop_", recursive = FALSE)
+    run1Mtimes <- file.info(file.path(outputFolder, run1Files))$mtime
+
+    # Small delay to ensure mtime would differ if files were rewritten
+    Sys.sleep(1)
+
+    # Run 2: add a second outcome
+    exposuresOutcomeList2 <- list(
+      createExposuresOutcome(
+        exposures = list(createExposure(exposureId = 1)),
+        outcomeId = 3
+      ),
+      createExposuresOutcome(
+        exposures = list(createExposure(exposureId = 1)),
+        outcomeId = 4
+      )
+    )
+    specs2 <- createSccsAnalysesSpecifications(
+      exposuresOutcomeList = exposuresOutcomeList2,
+      sccsAnalysisList = list(sccsAnalysis)
+    )
+    expect_warning(
+      {
+        result2 <- runSccsAnalyses(
+          connectionDetails = connectionDetails,
+          cdmDatabaseSchema = "main",
+          exposureDatabaseSchema = "main",
+          exposureTable = "cohort",
+          outcomeDatabaseSchema = "main",
+          outcomeTable = "cohort",
+          outputFolder = outputFolder,
+          sccsAnalysesSpecifications = specs2,
+          databaseId = "eunomia_incremental"
+        )
+      },
+      "No cases left in study population|0 outcome.*period"
+    )
+
+    # Original files should not have been rewritten
+    run1MtimesAfter <- file.info(file.path(outputFolder, run1Files))$mtime
+    expect_equal(run1Mtimes, run1MtimesAfter)
+
+    # New outcome should have its own files
+    ref2 <- getFileReference(outputFolder)
+    expect_equal(nrow(ref2), 2)
+
+    # Manifest should exist and cover all artifacts
+    manifest <- readRDS(file.path(outputFolder, "manifest.rds"))
+    expect_true(nrow(manifest) > 0)
+    expect_true("databaseId" %in% colnames(manifest))
+    expect_true(all(manifest$databaseId == "eunomia_incremental"))
+  })
+
+  test_that("Database ID mismatch raises error", {
+    outputFolder <- tempfile(pattern = "sccsDbIdMismatch")
+    on.exit(unlink(outputFolder, recursive = TRUE))
+    dir.create(outputFolder)
+
+    # Simulate a previous run with a different databaseId
+    saveRDS("database_A", file.path(outputFolder, "databaseId.rds"))
+
+    getDbSccsDataArgs <- createGetDbSccsDataArgs()
+    createStudyPopulationArgs <- createCreateStudyPopulationArgs(naivePeriod = 180)
+    covarExposureOfInt <- createEraCovariateSettings(
+      label = "Exposure of interest",
+      includeEraIds = "exposureId",
+      start = 0,
+      end = 7,
+      endAnchor = "era start",
+      exposureOfInterest = TRUE
+    )
+    createSccsIntervalDataArgs <- createCreateSccsIntervalDataArgs(
+      eraCovariateSettings = covarExposureOfInt
+    )
+    sccsAnalysis <- createSccsAnalysis(
+      analysisId = 1,
+      description = "test",
+      getDbSccsDataArgs = getDbSccsDataArgs,
+      createStudyPopulationArgs = createStudyPopulationArgs,
+      createIntervalDataArgs = createSccsIntervalDataArgs,
+      fitSccsModelArgs = createFitSccsModelArgs()
+    )
+    specs <- createSccsAnalysesSpecifications(
+      exposuresOutcomeList = list(
+        createExposuresOutcome(
+          exposures = list(createExposure(exposureId = 1)),
+          outcomeId = 3
+        )
+      ),
+      sccsAnalysisList = list(sccsAnalysis)
+    )
+
+    expect_error(
+      runSccsAnalyses(
+        connectionDetails = connectionDetails,
+        cdmDatabaseSchema = "main",
+        exposureDatabaseSchema = "main",
+        exposureTable = "cohort",
+        outcomeDatabaseSchema = "main",
+        outcomeTable = "cohort",
+        outputFolder = outputFolder,
+        sccsAnalysesSpecifications = specs,
+        databaseId = "database_B"
+      ),
+      "Database ID mismatch"
+    )
   })
 
   test_that("Fetching data from drug_era and condition_era tables from Eunomia", {
