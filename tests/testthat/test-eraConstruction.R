@@ -523,6 +523,7 @@ test_that("Removal of risk windows where end before start", {
 })
 
 test_that("Aggregates on large set", {
+  set.seed(42)
   settings <- createSccsSimulationSettings(includeAgeEffect = FALSE, includeSeasonality = FALSE)
   sccsData <- simulateSccsData(1000, settings)
   studyPop <- createStudyPopulation(
