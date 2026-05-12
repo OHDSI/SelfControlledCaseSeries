@@ -335,7 +335,8 @@ referenceTable <- runSccsAnalyses(
   outcomeTable = cohortTable,
   outputFolder = outputFolder,
   sccsMultiThreadingSettings = multiThreadingSettings,
-  sccsAnalysesSpecifications = sccsAnalysesSpecifications
+  sccsAnalysesSpecifications = sccsAnalysesSpecifications,
+  databaseId = "my_cdm_database"
 )
 ```
 
