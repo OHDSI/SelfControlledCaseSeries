@@ -712,13 +712,24 @@ which.list <- function(list, object) {
 }
 
 getSccsData <- function(sccsDataFile) {
-  if (mget("cachedSccsDataFile", envir = cache, ifnotfound = "") == sccsDataFile) {
+  # Check if we're in a worker process by seeing if the cached connection is still valid
+  cachedFile <- mget("cachedSccsDataFile", envir = cache, ifnotfound = "")
+  if (cachedFile == sccsDataFile) {
     sccsData <- get("cachedSccsData", envir = cache)
     if (!Andromeda::isValidAndromeda(sccsData)) {
+      # Connection is invalid (possibly from parent process), reload from file
       sccsData <- loadSccsData(sccsDataFile)
       assign("cachedSccsData", sccsData, envir = cache)
     }
   } else {
+    # Clear any existing invalid cached data before loading new file
+    if (exists("cachedSccsData", envir = cache)) {
+      cachedData <- get("cachedSccsData", envir = cache)
+      if (Andromeda::isValidAndromeda(cachedData)) {
+        # Close the existing Andromeda to prevent connection leaks
+        tryCatch(Andromeda::close(cachedData), error = function(e) NULL)
+      }
+    }
     sccsData <- loadSccsData(sccsDataFile)
     assign("cachedSccsData", sccsData, envir = cache)
     assign("cachedSccsDataFile", sccsDataFile, envir = cache)
