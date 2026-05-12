@@ -272,16 +272,21 @@ if (!isFALSE(tryCatch(find.package("Eunomia"), error = function(e) FALSE))) {
       exposuresOutcomeList = exposuresOutcomeList1,
       sccsAnalysisList = list(sccsAnalysis)
     )
-    result1 <- runSccsAnalyses(
-      connectionDetails = connectionDetails,
-      cdmDatabaseSchema = "main",
-      exposureDatabaseSchema = "main",
-      exposureTable = "cohort",
-      outcomeDatabaseSchema = "main",
-      outcomeTable = "cohort",
-      outputFolder = outputFolder,
-      sccsAnalysesSpecifications = specs1,
-      databaseId = "eunomia_incremental"
+    expect_warning(
+      {
+        result1 <- runSccsAnalyses(
+          connectionDetails = connectionDetails,
+          cdmDatabaseSchema = "main",
+          exposureDatabaseSchema = "main",
+          exposureTable = "cohort",
+          outcomeDatabaseSchema = "main",
+          outcomeTable = "cohort",
+          outputFolder = outputFolder,
+          sccsAnalysesSpecifications = specs1,
+          databaseId = "eunomia_incremental"
+        )
+      },
+      regexp = "No estimate found for the pre-exposure period"
     )
 
     # Record file modification times for run 1 artifacts
@@ -320,7 +325,7 @@ if (!isFALSE(tryCatch(find.package("Eunomia"), error = function(e) FALSE))) {
           databaseId = "eunomia_incremental"
         )
       },
-      "No cases left in study population|0 outcome.*period"
+      "No cases left in study population|0 outcome.*period|No estimate found for the pre-exposure period"
     )
 
     # Original files should not have been rewritten
