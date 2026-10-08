@@ -75,7 +75,7 @@ createSccsIntervalData <- function(studyPopulation,
   metaData$design <- "SCCS"
 
   if (nrow(studyPopulation$outcomes) == 0) {
-    sccsIntervalData <- createEmptySccsIntervalData()
+    sccsIntervalData <- createEmptySccsIntervalData(settings$covariateRef)
     metaData$error <- "Error: No cases left"
     attr(sccsIntervalData, "metaData") <- metaData
     class(sccsIntervalData) <- "SccsIntervalData"
@@ -114,10 +114,7 @@ createSccsIntervalData <- function(studyPopulation,
 
   if (is.null(data$outcomes) || is.null(data$covariates)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
-    data <- createEmptySccsIntervalData()
-    if (nrow(settings$covariateRef) > 0) {
-      data$covariateRef <- settings$covariateRef
-    }
+    data <- createEmptySccsIntervalData(settings$covariateRef)
   } else {
     metaData$covariateStatistics <- collect(data$covariateStatistics)
     data$covariateStatistics <- NULL
@@ -136,7 +133,7 @@ createSccsIntervalData <- function(studyPopulation,
   return(data)
 }
 
-createEmptySccsIntervalData <- function() {
+createEmptySccsIntervalData <- function(covariateRef) {
   sccsIntervalData <- Andromeda::andromeda(
     outcomes = tibble(
       rowId = 1,
@@ -150,14 +147,7 @@ createEmptySccsIntervalData <- function() {
       covariateId = 1,
       covariateValue = 1
     )[-1, ],
-    covariateRef = tibble(
-      covariateId = 1,
-      covariateName = "",
-      originalEraId = 1,
-      originalEraName = "",
-      originalEraType = "",
-      covariateAnalysisId = 1
-    )[-1, ]
+    covariateRef = covariateRef
   )
   return(sccsIntervalData)
 }

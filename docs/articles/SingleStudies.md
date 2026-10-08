@@ -187,6 +187,20 @@ sccsData <- getDbSccsData(
 sccsData
 ```
 
+    ## # SccsData object
+    ## 
+    ## Exposure cohort ID(s): 1112807
+    ## Outcome cohort ID(s): 356
+    ## 
+    ## Inherits from Andromeda:
+    ## # Andromeda object
+    ## # Physical location:  E:\andromedaTemp\file4474a7661da.duckdb
+    ## 
+    ## Tables:
+    ## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)
+    ## $eraRef (eraType, eraId, eraName, minObservedDate, maxObservedDate)
+    ## $eras (eraType, caseId, eraId, eraValue, eraStartDay, eraEndDay)
+
 There are many parameters, but they are all documented in the
 `SelfControlledCaseSeries` manual. In short, we are pointing the
 function to the table created earlier and indicating which cohort ID in
@@ -210,6 +224,19 @@ more information of the data we extracted:
 ``` r
 summary(sccsData)
 ```
+
+    ## SccsData object summary
+    ## 
+    ## Exposure cohort ID(s): 1112807
+    ## Outcome cohort ID(s): 356
+    ## 
+    ## Outcome counts:
+    ##     Outcome Subjects Outcome Events Outcome Observation Periods
+    ## 356            99202         160949                       1e+05
+    ## 
+    ## Eras:
+    ## Number of era types: 2
+    ## Number of eras: 169627
 
 #### Saving the data to file
 
@@ -262,6 +289,17 @@ restrictions we imposed:
 getAttritionTable(studyPop)
 ```
 
+    ##   outcomeId outcomeSubjects outcomeEvents outcomeObsPeriods observedDays
+    ## 1       356          325890        507256            331800   1211954076
+    ## 2       356          207698        323114            211321    573067241
+    ## 3       356           99202        160949            100000    285343718
+    ## 4       356           87836        135825             88453    240007225
+    ##                       description
+    ## 1         All outcome occurrences
+    ## 2     Outcomes in study period(s)
+    ## 3                   Random sample
+    ## 4 Requiring 180 days naive period
+
 ### Defining a simple model
 
 Next, we can use the data to define a simple model to fit:
@@ -285,6 +323,16 @@ sccsIntervalData <- createSccsIntervalData(
 
 summary(sccsIntervalData)
 ```
+
+    ## SccsIntervalData object summary
+    ## 
+    ## Outcome cohort ID: 356
+    ## 
+    ## Number of cases (observation periods): 88451
+    ## Number of eras (spans of time): 180752
+    ## Number of outcomes: 135823
+    ## Number of covariates: 2
+    ## Number of non-zero covariate values: 93011
 
 In this example, we use the
 [`createEraCovariateSettings()`](https://ohdsi.github.io/SelfControlledCaseSeries/reference/createEraCovariateSettings.md)
@@ -315,6 +363,21 @@ We can inspect the resulting model:
 ``` r
 model
 ```
+
+    ## SccsModel object
+    ## 
+    ## Outcome ID: 356
+    ## 
+    ## Outcome count:
+    ##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays
+    ## 356           87834        135823             88451    148669525
+    ## 
+    ## Estimates:
+    ## # A tibble: 2 × 7
+    ##   Name                         ID Estimate LB95CI UB95CI  LogRr SeLogRr
+    ##   <chr>                     <dbl>    <dbl>  <dbl>  <dbl>  <dbl>   <dbl>
+    ## 1 End of observation period    99     1.05   1.01   1.08 0.0441  0.0166
+    ## 2 Exposure of interest       1000     1.38   1.27   1.51 0.324   0.0439
 
 This tells us what the estimated relative risk (the incidence rate
 ratio) is during exposure to aspirin compared to non-exposed time.
@@ -367,6 +430,22 @@ results:
 ``` r
 model
 ```
+
+    ## SccsModel object
+    ## 
+    ## Outcome ID: 356
+    ## 
+    ## Outcome count:
+    ##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays
+    ## 356           87834        135823             88451    148669525
+    ## 
+    ## Estimates:
+    ## # A tibble: 3 × 7
+    ##   Name                         ID Estimate LB95CI UB95CI  LogRr SeLogRr
+    ##   <chr>                     <dbl>    <dbl>  <dbl>  <dbl>  <dbl>   <dbl>
+    ## 1 End of observation period    99     1.05   1.01   1.08 0.0448  0.0165
+    ## 2 Exposure of interest       1000     1.44   1.32   1.57 0.363   0.0441
+    ## 3 Pre-exposure               1001     1.37   1.23   1.52 0.312   0.0547
 
 ### Including seasonality, and calendar time
 
@@ -425,6 +504,31 @@ Again, we can inspect the model:
 model
 ```
 
+    ## SccsModel object
+    ## 
+    ## Outcome ID: 356
+    ## 
+    ## Outcome count:
+    ##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays
+    ## 356           13265         20611             13284     23509810
+    ## 
+    ## Estimates:
+    ## # A tibble: 12 × 7
+    ##    Name                                ID Estimate LB95CI UB95CI   LogRr SeLogRr
+    ##    <chr>                            <dbl>    <dbl>  <dbl>  <dbl>   <dbl>   <dbl>
+    ##  1 End of observation period           99    0.837  0.767  0.912 -0.178   0.0441
+    ##  2 Seasonality spline component 1     200    1.37  NA     NA      0.314  NA     
+    ##  3 Seasonality spline component 2     201    1.59  NA     NA      0.466  NA     
+    ##  4 Seasonality spline component 3     202    1.24  NA     NA      0.218  NA     
+    ##  5 Seasonality spline component 4     203    0.801 NA     NA     -0.222  NA     
+    ##  6 Calendar time spline component 1   300    1.07  NA     NA      0.0656 NA     
+    ##  7 Calendar time spline component 2   301    1.51  NA     NA      0.415  NA     
+    ##  8 Calendar time spline component 3   302    2.14  NA     NA      0.760  NA     
+    ##  9 Calendar time spline component 4   303    2.85  NA     NA      1.05   NA     
+    ## 10 Calendar time spline component 5   304    3.20  NA     NA      1.16   NA     
+    ## 11 Exposure of interest              1000    1.39   1.27   1.51   0.326   0.0442
+    ## 12 Pre-exposure                      1001    1.33   1.19   1.47   0.282   0.0546
+
 We see that our estimates for exposed and pre-exposure time have not
 changes much. We can plot the spline curves for season, and calendar
 time to learn more:
@@ -433,9 +537,13 @@ time to learn more:
 plotSeasonality(model)
 ```
 
+![](SingleStudies_files/figure-html/unnamed-chunk-27-1.png)
+
 ``` r
 plotCalendarTimeEffect(model)
 ```
+
+![](SingleStudies_files/figure-html/unnamed-chunk-29-1.png)
 
 We see some effect for season: epistaxis tends to be more prevalent
 during winter. We should verify if our model accounts for time trends,
@@ -446,6 +554,381 @@ before and after adjustment:
 plotEventToCalendarTime(studyPopulation = studyPop,
                         sccsModel = model)
 ```
+
+    ## $data
+    ## # A tibble: 344 × 5
+    ##    month monthStartDate monthEndDate value type                  
+    ##    <dbl> <date>         <date>       <dbl> <fct>                 
+    ##  1 24120 2010-01-01     2010-01-31   1.15  Assuming constant rate
+    ##  2 24121 2010-02-01     2010-02-28   0.884 Assuming constant rate
+    ##  3 24122 2010-03-01     2010-03-31   1.05  Assuming constant rate
+    ##  4 24123 2010-04-01     2010-04-30   0.923 Assuming constant rate
+    ##  5 24124 2010-05-01     2010-05-31   0.740 Assuming constant rate
+    ##  6 24125 2010-06-01     2010-06-30   0.710 Assuming constant rate
+    ##  7 24126 2010-07-01     2010-07-31   0.660 Assuming constant rate
+    ##  8 24127 2010-08-01     2010-08-31   0.688 Assuming constant rate
+    ##  9 24128 2010-09-01     2010-09-30   0.716 Assuming constant rate
+    ## 10 24129 2010-10-01     2010-10-31   0.818 Assuming constant rate
+    ## # ℹ 334 more rows
+    ## 
+    ## $layers
+    ## $layers[[1]]
+    ## mapping: ymax = ~.data$value 
+    ## geom_rect: linejoin = mitre, na.rm = FALSE
+    ## stat_identity: na.rm = FALSE
+    ## position_identity 
+    ## 
+    ## 
+    ## $scales
+    ## <ggproto object: Class ScalesList, gg>
+    ##     add: function
+    ##     add_defaults: function
+    ##     add_missing: function
+    ##     backtransform_df: function
+    ##     clone: function
+    ##     find: function
+    ##     get_scales: function
+    ##     has_scale: function
+    ##     input: function
+    ##     map_df: function
+    ##     n: function
+    ##     non_position_scales: function
+    ##     scales: list
+    ##     set_palettes: function
+    ##     train_df: function
+    ##     transform_df: function
+    ##     super:  <ggproto object: Class ScalesList, gg>
+    ## 
+    ## $guides
+    ## <Guides[0] ggproto object>
+    ## 
+    ## <empty>
+    ## 
+    ## $mapping
+    ## $xmin
+    ## <quosure>
+    ## expr: ^.data$monthStartDate
+    ## env:  0x000001fe04810b00
+    ## 
+    ## $xmax
+    ## <quosure>
+    ## expr: ^.data$monthEndDate + 1
+    ## env:  0x000001fe04810b00
+    ## 
+    ## attr(,"class")
+    ## [1] "uneval"
+    ## 
+    ## $theme
+    ## $theme$axis.text.x
+    ## $family
+    ## NULL
+    ## 
+    ## $face
+    ## NULL
+    ## 
+    ## $colour
+    ## [1] "#000000"
+    ## 
+    ## $size
+    ## [1] 12
+    ## 
+    ## $hjust
+    ## NULL
+    ## 
+    ## $vjust
+    ## NULL
+    ## 
+    ## $angle
+    ## NULL
+    ## 
+    ## $lineheight
+    ## NULL
+    ## 
+    ## $margin
+    ## NULL
+    ## 
+    ## $debug
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_text" "element"     
+    ## 
+    ## $theme$axis.text.y
+    ## $family
+    ## NULL
+    ## 
+    ## $face
+    ## NULL
+    ## 
+    ## $colour
+    ## [1] "#000000"
+    ## 
+    ## $size
+    ## [1] 12
+    ## 
+    ## $hjust
+    ## [1] 1
+    ## 
+    ## $vjust
+    ## NULL
+    ## 
+    ## $angle
+    ## NULL
+    ## 
+    ## $lineheight
+    ## NULL
+    ## 
+    ## $margin
+    ## NULL
+    ## 
+    ## $debug
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_text" "element"     
+    ## 
+    ## $theme$axis.ticks
+    ## list()
+    ## attr(,"class")
+    ## [1] "element_blank" "element"      
+    ## 
+    ## $theme$legend.title
+    ## list()
+    ## attr(,"class")
+    ## [1] "element_blank" "element"      
+    ## 
+    ## $theme$legend.position
+    ## [1] "top"
+    ## 
+    ## $theme$panel.background
+    ## $fill
+    ## [1] "#FAFAFA"
+    ## 
+    ## $colour
+    ## [1] NA
+    ## 
+    ## $linewidth
+    ## NULL
+    ## 
+    ## $linetype
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_rect" "element"     
+    ## 
+    ## $theme$panel.grid.major
+    ## $colour
+    ## [1] "#AAAAAA"
+    ## 
+    ## $linewidth
+    ## NULL
+    ## 
+    ## $linetype
+    ## NULL
+    ## 
+    ## $lineend
+    ## NULL
+    ## 
+    ## $arrow
+    ## [1] FALSE
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_line" "element"     
+    ## 
+    ## $theme$panel.grid.minor
+    ## list()
+    ## attr(,"class")
+    ## [1] "element_blank" "element"      
+    ## 
+    ## $theme$plot.title
+    ## $family
+    ## NULL
+    ## 
+    ## $face
+    ## NULL
+    ## 
+    ## $colour
+    ## NULL
+    ## 
+    ## $size
+    ## NULL
+    ## 
+    ## $hjust
+    ## [1] 0.5
+    ## 
+    ## $vjust
+    ## NULL
+    ## 
+    ## $angle
+    ## NULL
+    ## 
+    ## $lineheight
+    ## NULL
+    ## 
+    ## $margin
+    ## NULL
+    ## 
+    ## $debug
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_text" "element"     
+    ## 
+    ## $theme$strip.background
+    ## list()
+    ## attr(,"class")
+    ## [1] "element_blank" "element"      
+    ## 
+    ## $theme$strip.text.y
+    ## $family
+    ## NULL
+    ## 
+    ## $face
+    ## NULL
+    ## 
+    ## $colour
+    ## [1] "#000000"
+    ## 
+    ## $size
+    ## [1] 12
+    ## 
+    ## $hjust
+    ## NULL
+    ## 
+    ## $vjust
+    ## NULL
+    ## 
+    ## $angle
+    ## NULL
+    ## 
+    ## $lineheight
+    ## NULL
+    ## 
+    ## $margin
+    ## NULL
+    ## 
+    ## $debug
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_text" "element"     
+    ## 
+    ## attr(,"complete")
+    ## [1] FALSE
+    ## attr(,"validate")
+    ## [1] TRUE
+    ## 
+    ## $coordinates
+    ## <ggproto object: Class CoordCartesian, Coord, gg>
+    ##     aspect: function
+    ##     backtransform_range: function
+    ##     clip: on
+    ##     default: TRUE
+    ##     distance: function
+    ##     draw_panel: function
+    ##     expand: TRUE
+    ##     is_free: function
+    ##     is_linear: function
+    ##     labels: function
+    ##     limits: list
+    ##     modify_scales: function
+    ##     range: function
+    ##     render_axis_h: function
+    ##     render_axis_v: function
+    ##     render_bg: function
+    ##     render_fg: function
+    ##     reverse: none
+    ##     setup_data: function
+    ##     setup_layout: function
+    ##     setup_panel_guides: function
+    ##     setup_panel_params: function
+    ##     setup_params: function
+    ##     train_panel_guides: function
+    ##     transform: function
+    ##     super:  <ggproto object: Class CoordCartesian, Coord, gg>
+    ## 
+    ## $facet
+    ## <ggproto object: Class FacetGrid, Facet, gg>
+    ##     attach_axes: function
+    ##     attach_strips: function
+    ##     compute_layout: function
+    ##     draw_back: function
+    ##     draw_front: function
+    ##     draw_labels: function
+    ##     draw_panel_content: function
+    ##     draw_panels: function
+    ##     finish_data: function
+    ##     format_strip_labels: function
+    ##     init_gtable: function
+    ##     init_scales: function
+    ##     map_data: function
+    ##     params: list
+    ##     set_panel_size: function
+    ##     setup_data: function
+    ##     setup_panel_params: function
+    ##     setup_params: function
+    ##     shrink: TRUE
+    ##     train_scales: function
+    ##     vars: function
+    ##     super:  <ggproto object: Class FacetGrid, Facet, gg>
+    ## 
+    ## $plot_env
+    ## <environment: 0x000001fe04810b00>
+    ## 
+    ## $layout
+    ## <ggproto object: Class Layout, gg>
+    ##     coord: NULL
+    ##     coord_params: list
+    ##     facet: NULL
+    ##     facet_params: list
+    ##     finish_data: function
+    ##     get_scales: function
+    ##     layout: NULL
+    ##     map_position: function
+    ##     panel_params: NULL
+    ##     panel_scales_x: NULL
+    ##     panel_scales_y: NULL
+    ##     render: function
+    ##     render_labels: function
+    ##     reset_scales: function
+    ##     resolve_label: function
+    ##     setup: function
+    ##     setup_panel_guides: function
+    ##     setup_panel_params: function
+    ##     train_position: function
+    ##     super:  <ggproto object: Class Layout, gg>
+    ## 
+    ## $labels
+    ## $labels$xmin
+    ## [1] "monthStartDate"
+    ## 
+    ## $labels$xmax
+    ## [1] "monthEndDate + 1"
+    ## 
+    ## $labels$ymax
+    ## [1] "value"
+    ## 
+    ## 
+    ## attr(,"class")
+    ## [1] "gg"     "ggplot"
 
 Here we see that after adjustment, in general, the rate of outcome
 appears fairly stable across time, with the exception of some months in
@@ -507,6 +990,381 @@ plotEventToCalendarTime(studyPopulation = studyPop,
                         sccsModel = model)
 ```
 
+    ## $data
+    ## # A tibble: 344 × 5
+    ##    month monthStartDate monthEndDate value type                  
+    ##    <dbl> <date>         <date>       <dbl> <fct>                 
+    ##  1 24120 2010-01-01     2010-01-31   1.10  Assuming constant rate
+    ##  2 24121 2010-02-01     2010-02-28   0.907 Assuming constant rate
+    ##  3 24122 2010-03-01     2010-03-31   1.07  Assuming constant rate
+    ##  4 24123 2010-04-01     2010-04-30   0.917 Assuming constant rate
+    ##  5 24124 2010-05-01     2010-05-31   0.766 Assuming constant rate
+    ##  6 24125 2010-06-01     2010-06-30   0.706 Assuming constant rate
+    ##  7 24126 2010-07-01     2010-07-31   0.664 Assuming constant rate
+    ##  8 24127 2010-08-01     2010-08-31   0.652 Assuming constant rate
+    ##  9 24128 2010-09-01     2010-09-30   0.715 Assuming constant rate
+    ## 10 24129 2010-10-01     2010-10-31   0.809 Assuming constant rate
+    ## # ℹ 334 more rows
+    ## 
+    ## $layers
+    ## $layers[[1]]
+    ## mapping: ymax = ~.data$value 
+    ## geom_rect: linejoin = mitre, na.rm = FALSE
+    ## stat_identity: na.rm = FALSE
+    ## position_identity 
+    ## 
+    ## 
+    ## $scales
+    ## <ggproto object: Class ScalesList, gg>
+    ##     add: function
+    ##     add_defaults: function
+    ##     add_missing: function
+    ##     backtransform_df: function
+    ##     clone: function
+    ##     find: function
+    ##     get_scales: function
+    ##     has_scale: function
+    ##     input: function
+    ##     map_df: function
+    ##     n: function
+    ##     non_position_scales: function
+    ##     scales: list
+    ##     set_palettes: function
+    ##     train_df: function
+    ##     transform_df: function
+    ##     super:  <ggproto object: Class ScalesList, gg>
+    ## 
+    ## $guides
+    ## <Guides[0] ggproto object>
+    ## 
+    ## <empty>
+    ## 
+    ## $mapping
+    ## $xmin
+    ## <quosure>
+    ## expr: ^.data$monthStartDate
+    ## env:  0x000001fe09cb7f20
+    ## 
+    ## $xmax
+    ## <quosure>
+    ## expr: ^.data$monthEndDate + 1
+    ## env:  0x000001fe09cb7f20
+    ## 
+    ## attr(,"class")
+    ## [1] "uneval"
+    ## 
+    ## $theme
+    ## $theme$axis.text.x
+    ## $family
+    ## NULL
+    ## 
+    ## $face
+    ## NULL
+    ## 
+    ## $colour
+    ## [1] "#000000"
+    ## 
+    ## $size
+    ## [1] 12
+    ## 
+    ## $hjust
+    ## NULL
+    ## 
+    ## $vjust
+    ## NULL
+    ## 
+    ## $angle
+    ## NULL
+    ## 
+    ## $lineheight
+    ## NULL
+    ## 
+    ## $margin
+    ## NULL
+    ## 
+    ## $debug
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_text" "element"     
+    ## 
+    ## $theme$axis.text.y
+    ## $family
+    ## NULL
+    ## 
+    ## $face
+    ## NULL
+    ## 
+    ## $colour
+    ## [1] "#000000"
+    ## 
+    ## $size
+    ## [1] 12
+    ## 
+    ## $hjust
+    ## [1] 1
+    ## 
+    ## $vjust
+    ## NULL
+    ## 
+    ## $angle
+    ## NULL
+    ## 
+    ## $lineheight
+    ## NULL
+    ## 
+    ## $margin
+    ## NULL
+    ## 
+    ## $debug
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_text" "element"     
+    ## 
+    ## $theme$axis.ticks
+    ## list()
+    ## attr(,"class")
+    ## [1] "element_blank" "element"      
+    ## 
+    ## $theme$legend.title
+    ## list()
+    ## attr(,"class")
+    ## [1] "element_blank" "element"      
+    ## 
+    ## $theme$legend.position
+    ## [1] "top"
+    ## 
+    ## $theme$panel.background
+    ## $fill
+    ## [1] "#FAFAFA"
+    ## 
+    ## $colour
+    ## [1] NA
+    ## 
+    ## $linewidth
+    ## NULL
+    ## 
+    ## $linetype
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_rect" "element"     
+    ## 
+    ## $theme$panel.grid.major
+    ## $colour
+    ## [1] "#AAAAAA"
+    ## 
+    ## $linewidth
+    ## NULL
+    ## 
+    ## $linetype
+    ## NULL
+    ## 
+    ## $lineend
+    ## NULL
+    ## 
+    ## $arrow
+    ## [1] FALSE
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_line" "element"     
+    ## 
+    ## $theme$panel.grid.minor
+    ## list()
+    ## attr(,"class")
+    ## [1] "element_blank" "element"      
+    ## 
+    ## $theme$plot.title
+    ## $family
+    ## NULL
+    ## 
+    ## $face
+    ## NULL
+    ## 
+    ## $colour
+    ## NULL
+    ## 
+    ## $size
+    ## NULL
+    ## 
+    ## $hjust
+    ## [1] 0.5
+    ## 
+    ## $vjust
+    ## NULL
+    ## 
+    ## $angle
+    ## NULL
+    ## 
+    ## $lineheight
+    ## NULL
+    ## 
+    ## $margin
+    ## NULL
+    ## 
+    ## $debug
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_text" "element"     
+    ## 
+    ## $theme$strip.background
+    ## list()
+    ## attr(,"class")
+    ## [1] "element_blank" "element"      
+    ## 
+    ## $theme$strip.text.y
+    ## $family
+    ## NULL
+    ## 
+    ## $face
+    ## NULL
+    ## 
+    ## $colour
+    ## [1] "#000000"
+    ## 
+    ## $size
+    ## [1] 12
+    ## 
+    ## $hjust
+    ## NULL
+    ## 
+    ## $vjust
+    ## NULL
+    ## 
+    ## $angle
+    ## NULL
+    ## 
+    ## $lineheight
+    ## NULL
+    ## 
+    ## $margin
+    ## NULL
+    ## 
+    ## $debug
+    ## NULL
+    ## 
+    ## $inherit.blank
+    ## [1] FALSE
+    ## 
+    ## attr(,"class")
+    ## [1] "element_text" "element"     
+    ## 
+    ## attr(,"complete")
+    ## [1] FALSE
+    ## attr(,"validate")
+    ## [1] TRUE
+    ## 
+    ## $coordinates
+    ## <ggproto object: Class CoordCartesian, Coord, gg>
+    ##     aspect: function
+    ##     backtransform_range: function
+    ##     clip: on
+    ##     default: TRUE
+    ##     distance: function
+    ##     draw_panel: function
+    ##     expand: TRUE
+    ##     is_free: function
+    ##     is_linear: function
+    ##     labels: function
+    ##     limits: list
+    ##     modify_scales: function
+    ##     range: function
+    ##     render_axis_h: function
+    ##     render_axis_v: function
+    ##     render_bg: function
+    ##     render_fg: function
+    ##     reverse: none
+    ##     setup_data: function
+    ##     setup_layout: function
+    ##     setup_panel_guides: function
+    ##     setup_panel_params: function
+    ##     setup_params: function
+    ##     train_panel_guides: function
+    ##     transform: function
+    ##     super:  <ggproto object: Class CoordCartesian, Coord, gg>
+    ## 
+    ## $facet
+    ## <ggproto object: Class FacetGrid, Facet, gg>
+    ##     attach_axes: function
+    ##     attach_strips: function
+    ##     compute_layout: function
+    ##     draw_back: function
+    ##     draw_front: function
+    ##     draw_labels: function
+    ##     draw_panel_content: function
+    ##     draw_panels: function
+    ##     finish_data: function
+    ##     format_strip_labels: function
+    ##     init_gtable: function
+    ##     init_scales: function
+    ##     map_data: function
+    ##     params: list
+    ##     set_panel_size: function
+    ##     setup_data: function
+    ##     setup_panel_params: function
+    ##     setup_params: function
+    ##     shrink: TRUE
+    ##     train_scales: function
+    ##     vars: function
+    ##     super:  <ggproto object: Class FacetGrid, Facet, gg>
+    ## 
+    ## $plot_env
+    ## <environment: 0x000001fe09cb7f20>
+    ## 
+    ## $layout
+    ## <ggproto object: Class Layout, gg>
+    ##     coord: NULL
+    ##     coord_params: list
+    ##     facet: NULL
+    ##     facet_params: list
+    ##     finish_data: function
+    ##     get_scales: function
+    ##     layout: NULL
+    ##     map_position: function
+    ##     panel_params: NULL
+    ##     panel_scales_x: NULL
+    ##     panel_scales_y: NULL
+    ##     render: function
+    ##     render_labels: function
+    ##     reset_scales: function
+    ##     resolve_label: function
+    ##     setup: function
+    ##     setup_panel_guides: function
+    ##     setup_panel_params: function
+    ##     train_position: function
+    ##     super:  <ggproto object: Class Layout, gg>
+    ## 
+    ## $labels
+    ## $labels$xmin
+    ## [1] "monthStartDate"
+    ## 
+    ## $labels$xmax
+    ## [1] "monthEndDate + 1"
+    ## 
+    ## $labels$ymax
+    ## [1] "value"
+    ## 
+    ## 
+    ## attr(,"class")
+    ## [1] "gg"     "ggplot"
+
 ### Considering event-dependent observation time
 
 The SCCS method requires that observation periods are independent of
@@ -545,6 +1403,22 @@ Again, we can inspect the model:
 model
 ```
 
+    ## SccsModel object
+    ## 
+    ## Outcome ID: 356
+    ## 
+    ## Outcome count:
+    ##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays
+    ## 356           34266         53069             34387     10666039
+    ## 
+    ## Estimates:
+    ## # A tibble: 3 × 7
+    ##   Name                         ID Estimate LB95CI UB95CI  LogRr SeLogRr
+    ##   <chr>                     <dbl>    <dbl>  <dbl>  <dbl>  <dbl>   <dbl>
+    ## 1 End of observation period    99    0.580  0.562  0.599 -0.544  0.0163
+    ## 2 Exposure of interest       1000    1.40   1.17   1.68   0.340  0.0910
+    ## 3 Pre-exposure               1001    1.24   0.983  1.55   0.217  0.117
+
 ## Studies with more than one drug
 
 Although we are usually interested in the effect of a single drug or
@@ -579,6 +1453,20 @@ sccsData <- getDbSccsData(
 )
 sccsData
 ```
+
+    ## # SccsData object
+    ## 
+    ## Exposure cohort ID(s): 1112807,715939,722031,739138,751412,755695,797617,40799195
+    ## Outcome cohort ID(s): 356
+    ## 
+    ## Inherits from Andromeda:
+    ## # Andromeda object
+    ## # Physical location:  E:\andromedaTemp\file44745798142f.duckdb
+    ## 
+    ## Tables:
+    ## $cases (observationPeriodId, caseId, personId, noninformativeEndCensor, observationPeriodStartDate, startDay, endDay, ageAtObsStart, genderConceptId)
+    ## $eraRef (eraType, eraId, eraName, minObservedDate, maxObservedDate)
+    ## $eras (eraType, caseId, eraId, eraValue, eraStartDay, eraEndDay)
 
 Once retrieved, we can use the data to build and fit our model:
 
@@ -626,6 +1514,33 @@ model:
 ``` r
 model
 ```
+
+    ## SccsModel object
+    ## 
+    ## Outcome ID: 356
+    ## 
+    ## Outcome count:
+    ##     outcomeSubjects outcomeEvents outcomeObsPeriods observedDays
+    ## 356           30912         47101             31005     52326829
+    ## 
+    ## Estimates:
+    ## # A tibble: 14 × 7
+    ##    Name                                ID Estimate LB95CI UB95CI   LogRr SeLogRr
+    ##    <chr>                            <dbl>    <dbl>  <dbl>  <dbl>   <dbl>   <dbl>
+    ##  1 End of observation period           99    0.824  0.778  0.873 -0.193   0.0292
+    ##  2 Seasonality spline component 1     200    1.36  NA     NA      0.306  NA     
+    ##  3 Seasonality spline component 2     201    1.62  NA     NA      0.484  NA     
+    ##  4 Seasonality spline component 3     202    1.19  NA     NA      0.170  NA     
+    ##  5 Seasonality spline component 4     203    0.830 NA     NA     -0.186  NA     
+    ##  6 Calendar time spline component 1   300    1.04  NA     NA      0.0357 NA     
+    ##  7 Calendar time spline component 2   301    1.32  NA     NA      0.278  NA     
+    ##  8 Calendar time spline component 3   302    1.74  NA     NA      0.555  NA     
+    ##  9 Calendar time spline component 4   303    2.04  NA     NA      0.714  NA     
+    ## 10 Calendar time spline component 5   304    2.58  NA     NA      0.946  NA     
+    ## 11 Calendar time spline component 6   305    1.04  NA     NA      0.0422 NA     
+    ## 12 Exposure of interest              1000    1.34   1.23   1.46   0.292   0.0435
+    ## 13 Pre-exposure                      1001    1.28   1.16   1.42   0.251   0.0534
+    ## 14 SSRIs                             1002    1.03   0.994  1.06   0.0259  0.0163
 
 ### Adding all drugs
 
@@ -713,6 +1628,13 @@ estimates <- getModel(model)
 estimates[estimates$originalEraId == aspirin, ]
 ```
 
+    ## # A tibble: 2 × 10
+    ##   name     id estimate lb95Ci ub95Ci logRr seLogRr originalEraId originalEraType
+    ##   <chr> <dbl>    <dbl>  <dbl>  <dbl> <dbl>   <dbl>         <dbl> <chr>          
+    ## 1 Expo…  1000     1.31   1.17   1.47 0.270  0.0577       1112807 ""             
+    ## 2 Pre-…  1001     1.31   1.17   1.47 0.271  0.0583       1112807 ""             
+    ## # ℹ 1 more variable: originalEraName <chr>
+
 Here we see that despite the extensive adjustments that are made in the
 model, the effect estimates for aspirin have remained nearly the same.
 
@@ -722,6 +1644,15 @@ SSRIs:
 ``` r
 estimates[estimates$originalEraId %in% ssris, ]
 ```
+
+    ## # A tibble: 4 × 10
+    ##   name                  id estimate lb95Ci ub95Ci    logRr seLogRr originalEraId
+    ##   <chr>              <dbl>    <dbl>  <dbl>  <dbl>    <dbl>   <dbl>         <dbl>
+    ## 1 Other exposures: …  1119    1.02      NA     NA  0.0208       NA        739138
+    ## 2 Other exposures: …  1868    1.02      NA     NA  0.0192       NA        755695
+    ## 3 Other exposures: …  2404    0.993     NA     NA -0.00738      NA        797617
+    ## 4 Other exposures: …  2697    0.972     NA     NA -0.0289       NA        715939
+    ## # ℹ 2 more variables: originalEraType <chr>, originalEraName <chr>
 
 Note that because we used regularization, we are not able to compute the
 confidence intervals for these estimates.
@@ -758,6 +1689,11 @@ function:
 checkRareOutcomeAssumption(studyPop)
 ```
 
+    ## # A tibble: 1 × 3
+    ##   outcomeProportion firstOutcomeOnly pass 
+    ##               <dbl> <lgl>            <lgl>
+    ## 1            0.0221 FALSE            TRUE
+
 ### Event-exposure independence assumption diagnostic
 
 Diagnostic: The estimated IRR for the pre-exposure window should not be
@@ -772,6 +1708,11 @@ the specified null hypothesis:
 ``` r
 checkEventExposureIndependenceAssumption(sccsModel = model)
 ```
+
+    ## # A tibble: 1 × 4
+    ##   ratio    lb    ub pass 
+    ##   <dbl> <dbl> <dbl> <lgl>
+    ## 1  1.31  1.17  1.47 TRUE
 
 ### Event-observation independence assumption diagnostic
 
@@ -788,6 +1729,11 @@ dependency. We can check this using
 ``` r
 checkEventObservationIndependenceAssumption(sccsModel = model)
 ```
+
+    ## # A tibble: 1 × 4
+    ##   ratio    lb    ub pass 
+    ##   <dbl> <dbl> <dbl> <lgl>
+    ## 1 0.903 0.873 0.935 TRUE
 
 ### Modeling assumptions diagnostic
 
@@ -809,6 +1755,11 @@ assumption:
 checkTimeStabilityAssumption(studyPopulation = studyPop,
                              sccsModel = model)
 ```
+
+    ## # A tibble: 1 × 3
+    ##   ratio     p stable
+    ##   <dbl> <dbl> <lgl> 
+    ## 1  1.06     1 TRUE
 
 ## Additional diagnostics
 
@@ -834,6 +1785,11 @@ computeMdrr(sccsIntervalData,
             method = "binomial")
 ```
 
+    ## # A tibble: 1 × 5
+    ##   timeExposed timeTotal propTimeExposed events  mdrr
+    ##         <dbl>     <int>           <dbl>  <int> <dbl>
+    ## 1     1054001  10245499           0.103   5961  1.12
+
 Note that we have to provide the covariate ID of the exposure of
 interest, which we learned by calling `summary` on `sccsIntervalData`
 earlier. This is because we may have many covariates in our model, but
@@ -848,6 +1804,8 @@ start of exposure, we can plot their relationship:
 plotExposureCentered(studyPop, sccsData, exposureEraId = aspirin)
 ```
 
+![](SingleStudies_files/figure-html/unnamed-chunk-61-1.png)
+
 ### Ages covered per subject
 
 We can visualize which age ranges are covered by each subject’s
@@ -856,6 +1814,11 @@ observation time:
 ``` r
 plotAgeSpans(studyPop)
 ```
+
+    ## Warning in plotAgeSpans(studyPop): There are 88453 cases. Random sampling 10000
+    ## cases.
+
+![](SingleStudies_files/figure-html/unnamed-chunk-63-1.png)
 
 Here we see that most observation periods span only a small age range,
 making it unlikely that any within-person age-related effect will be
@@ -874,7 +1837,7 @@ citation("SelfControlledCaseSeries")
     ## 
     ##   Schuemie M, Ryan P, Shaddox T, Suchard M (2026).
     ##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package
-    ##   version 6.1.4, https://github.com/OHDSI/SelfControlledCaseSeries,
+    ##   version 6.1.5, https://github.com/OHDSI/SelfControlledCaseSeries,
     ##   <https://ohdsi.github.io/SelfControlledCaseSeries/>.
     ## 
     ## A BibTeX entry for LaTeX users is
@@ -883,7 +1846,8 @@ citation("SelfControlledCaseSeries")
     ##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},
     ##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},
     ##     year = {2026},
-    ##     note = {R package version 6.1.4, https://github.com/OHDSI/SelfControlledCaseSeries},
+    ##     note = {R package version 6.1.5, 
+    ## https://github.com/OHDSI/SelfControlledCaseSeries},
     ##     url = {https://ohdsi.github.io/SelfControlledCaseSeries/},
     ##   }
 

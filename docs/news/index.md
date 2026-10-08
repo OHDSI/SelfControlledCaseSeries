@@ -1,6 +1,18 @@
 # Changelog
 
+## SelfControlledCaseSeries 6.1.5
+
+Bugfixes
+
+1.  Fixed confidence interval upper bound displayed for the
+    event-observation dependence diagnostic.
+
+2.  Fixed missing entries in the `sccs_covariate` table when there is no
+    data.
+
 ## SelfControlledCaseSeries 6.1.4
+
+CRAN release: 2026-03-26
 
 Bugfixes
 

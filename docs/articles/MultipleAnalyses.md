@@ -449,6 +449,21 @@ sccsModel <- readRDS(file.path(outputFolder, sccsModelFile))
 sccsModel
 ```
 
+    ## SccsModel object
+    ## 
+    ## Outcome ID: 77
+    ## 
+    ## Outcome count:
+    ##    outcomeSubjects outcomeEvents outcomeObsPeriods observedDays
+    ## 77           88644        162059             88874    187523199
+    ## 
+    ## Estimates:
+    ## # A tibble: 2 × 7
+    ##   Name                         ID Estimate LB95CI UB95CI LogRr SeLogRr
+    ##   <chr>                     <dbl>    <dbl>  <dbl>  <dbl> <dbl>   <dbl>
+    ## 1 End of observation period    99     2.14   2.09   2.19 0.760  0.0112
+    ## 2 Exposure of interest       1000     1.22   1.15   1.30 0.200  0.0317
+
 Note that some of the file names will appear several times in the table.
 In our example all analysis share the same `sccsData` object.
 
@@ -467,6 +482,23 @@ We can get a summary of the results using
 resultsSum <- getResultsSummary(outputFolder)
 head(resultsSum)
 ```
+
+    ## # A tibble: 6 × 32
+    ##   exposuresOutcomeSetId nestingCohortId outcomeId analysisId covariateAnalysisId
+    ##                   <dbl>           <dbl>     <dbl>      <int>               <dbl>
+    ## 1            1480556481              NA        77          1                   1
+    ## 2            1039014262              NA        77          1                   1
+    ## 3           -1616427546              NA        77          1                   1
+    ## 4           -1774200863              NA        77          1                   1
+    ## 5            -612981155              NA        77          1                   1
+    ## 6           -1166912124              NA        77          1                   1
+    ## # ℹ 27 more variables: covariateId <dbl>, covariateName <chr>, eraId <dbl>,
+    ## #   trueEffectSize <int>, outcomeSubjects <dbl>, outcomeEvents <dbl>,
+    ## #   outcomeObservationPeriods <dbl>, observedDays <dbl>,
+    ## #   covariateSubjects <dbl>, covariateDays <dbl>, covariateEras <dbl>,
+    ## #   covariateOutcomes <dbl>, rr <dbl>, ci95Lb <dbl>, ci95Ub <dbl>, p <dbl>,
+    ## #   oneSidedP <dbl>, logRr <dbl>, seLogRr <dbl>, llr <dbl>, calibratedRr <dbl>,
+    ## #   calibratedCi95Lb <dbl>, calibratedCi95Ub <dbl>, calibratedP <dbl>, …
 
 This tells us, per exposure-outcome-analysis combination (so possible
 multiple rows per SCCS model) the estimated relative risk and 95%
@@ -488,6 +520,23 @@ the SCCS design. You can view a summary of the diagnostics results:
 diagnosticsSum <- getDiagnosticsSummary(outputFolder)
 head(diagnosticsSum)
 ```
+
+    ## # A tibble: 6 × 24
+    ##   exposuresOutcomeSetId nestingCohortId outcomeId analysisId covariateAnalysisId
+    ##                   <dbl>           <dbl>     <dbl>      <int>               <dbl>
+    ## 1            1480556481              NA        77          1                   1
+    ## 2            1039014262              NA        77          1                   1
+    ## 3           -1616427546              NA        77          1                   1
+    ## 4           -1774200863              NA        77          1                   1
+    ## 5            -612981155              NA        77          1                   1
+    ## 6           -1166912124              NA        77          1                   1
+    ## # ℹ 19 more variables: covariateId <dbl>, covariateName <chr>, eraId <dbl>,
+    ## #   timeStabilityP <dbl>, timeStabilityDiagnostic <chr>, eventExposureLb <dbl>,
+    ## #   eventExposureUb <dbl>, eventExposureDiagnostic <chr>,
+    ## #   eventObservationLb <dbl>, eventObservationUb <dbl>,
+    ## #   eventObservationDiagnostic <chr>, rareOutcomePrevalence <dbl>,
+    ## #   rareOutcomeDiagnostic <chr>, mdrr <dbl>, mdrrDiagnostic <chr>, ease <dbl>,
+    ## #   easeDiagnostic <chr>, unblind <lgl>, unblindForEvidenceSynthesis <lgl>
 
 For each of the diagnostics, this summary reports whether an analysis
 failed or passed the diagnostic. The thresholds used can be specified in
@@ -523,6 +572,8 @@ analysis1Estimates <-  resultsSum |>
 nrow(analysis1Estimates)
 ```
 
+    ## [1] 0
+
 The same is true for analysis 2:
 
 ``` r
@@ -534,6 +585,8 @@ The same is true for analysis 2:
   nrow(analysis2Estimates)
 )
 ```
+
+    ## [1] 0
 
 Only when we start to include corrections for season and calendar time
 do we pass diagnostics:
@@ -556,6 +609,8 @@ do we pass diagnostics:
   )
 ```
 
+![](MultipleAnalyses_files/figure-html/unnamed-chunk-24-1.png)
+
 ``` r
 # Analysis 4: Including all other drugs
 negCons <- resultsSum[resultsSum$analysisId == 4 & resultsSum$eraId != diclofenac, ]
@@ -573,6 +628,8 @@ plotCalibrationEffect(
 )
 ```
 
+![](MultipleAnalyses_files/figure-html/unnamed-chunk-26-1.png)
+
 When using the adjustment for event-dependent observation end we do not
 pass diagnostics for any exposure-outcome pair:
 
@@ -580,6 +637,8 @@ pass diagnostics for any exposure-outcome pair:
 # Analysis 5: Adjusting for event-dependent obs. end
 nrow(analysis5Estimates)
 ```
+
+    ## [1] 0
 
 ## Acknowledgments
 
@@ -594,7 +653,7 @@ citation("SelfControlledCaseSeries")
     ## 
     ##   Schuemie M, Ryan P, Shaddox T, Suchard M (2026).
     ##   _SelfControlledCaseSeries: Self-Controlled Case Series_. R package
-    ##   version 6.1.4, https://github.com/OHDSI/SelfControlledCaseSeries,
+    ##   version 6.1.5, https://github.com/OHDSI/SelfControlledCaseSeries,
     ##   <https://ohdsi.github.io/SelfControlledCaseSeries/>.
     ## 
     ## A BibTeX entry for LaTeX users is
@@ -603,7 +662,8 @@ citation("SelfControlledCaseSeries")
     ##     title = {SelfControlledCaseSeries: Self-Controlled Case Series},
     ##     author = {Martijn Schuemie and Patrick Ryan and Trevor Shaddox and Marc Suchard},
     ##     year = {2026},
-    ##     note = {R package version 6.1.4, https://github.com/OHDSI/SelfControlledCaseSeries},
+    ##     note = {R package version 6.1.5, 
+    ## https://github.com/OHDSI/SelfControlledCaseSeries},
     ##     url = {https://ohdsi.github.io/SelfControlledCaseSeries/},
     ##   }
 

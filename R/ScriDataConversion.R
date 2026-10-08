@@ -66,7 +66,7 @@ createScriIntervalData <- function(studyPopulation,
   metaData$design <- "SCRI"
 
   if (nrow(studyPopulation$outcomes) == 0) {
-    sccsIntervalData <- createEmptySccsIntervalData()
+    sccsIntervalData <- createEmptySccsIntervalData(settings$covariateRef)
     metaData$error <- "Error: No cases left"
     attr(sccsIntervalData, "metaData") <- metaData
     class(sccsIntervalData) <- "SccsIntervalData"
@@ -105,10 +105,7 @@ createScriIntervalData <- function(studyPopulation,
 
   if (is.null(data$outcomes) || is.null(data$covariates)) {
     warning("Conversion resulted in empty data set. Perhaps no one with the outcome had any exposure of interest?")
-    data <- createEmptySccsIntervalData()
-    if (nrow(settings$covariateRef) > 0) {
-      data$covariateRef <- settings$covariateRef
-    }
+    data <- createEmptySccsIntervalData(settings$covariateRef)
   } else {
     metaData$covariateStatistics <- collect(data$covariateStatistics)
     data$covariateStatistics <- NULL
