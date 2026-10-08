@@ -18,7 +18,9 @@ runSccsAnalyses(
   nestingCohortTable = "cohort",
   outputFolder,
   sccsMultiThreadingSettings = createSccsMultiThreadingSettings(),
-  sccsAnalysesSpecifications
+  sccsAnalysesSpecifications,
+  databaseId,
+  artifactStore = NULL
 )
 }
 \arguments{
@@ -71,6 +73,14 @@ the \code{\link[=createSccsMultiThreadingSettings]{createSccsMultiThreadingSetti
 
 \item{sccsAnalysesSpecifications}{An object of type \code{SccsAnalysesSpecifications} as created using
 the \code{\link[=createSccsAnalysesSpecifications]{createSccsAnalysesSpecifications()}} function}
+
+\item{databaseId}{A unique identifier for the database being used. This is
+baked into artifact hashes to prevent accidental reuse of
+cached results from a different database. Required.}
+
+\item{artifactStore}{An object inheriting from \link{ArtifactStore} used to read and
+write cached artifacts. Defaults to a \link{LocalArtifactStore}
+based on \code{outputFolder}.}
 }
 \value{
 A tibble describing for each exposure-outcome-analysisId combination where the intermediary and

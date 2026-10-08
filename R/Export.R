@@ -94,7 +94,7 @@ exportToCsv <- function(outputFolder,
 
   # Add all to zip file -------------------------------------------------------------------------------
   message("Adding results to zip file")
-  zipName <- normalizePath(file.path(exportFolder, sprintf("Results_%s.zip", databaseId)))
+  zipName <- normalizePath(file.path(exportFolder, sprintf("Results_%s.zip", databaseId)), mustWork = FALSE)
   files <- list.files(exportFolder, pattern = ".*\\.csv$")
   oldWd <- setwd(exportFolder)
   on.exit(setwd(oldWd))
@@ -444,11 +444,11 @@ exportGroup <- function(group, outputFolder, databaseId) {
 
     # sccsTimeToEvent table
     for (exposure in esoList[[refRow$exposuresOutcomeSetSeqId]]$exposures) {
-      data <- computeTimeToEvent(
+      data <- suppressWarnings(computeTimeToEvent(
         studyPopulation = studyPop,
         sccsData = sccsData,
         exposureEraId = exposure$exposureId
-      ) |>
+      )) |>
         mutate(
           databaseId = !!databaseId,
           eraId = exposure$exposureId,

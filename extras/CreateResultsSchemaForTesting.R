@@ -128,7 +128,8 @@ result <- runSccsAnalyses(
     exposuresOutcomeList = exposuresOutcomeList,
     sccsAnalysisList = sccsAnalysisList,
     analysesToExclude = analysesToExclude
-  )
+  ),
+  databaseId = "eunomia_test"
 )
 
 

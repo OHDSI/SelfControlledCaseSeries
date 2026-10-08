@@ -273,7 +273,8 @@ runSccsAnalyses(
     exposuresOutcomeList = exposuresOutcomeList,
     sccsAnalysisList = sccsAnalysisList,
     controlType = "exposure"
-  )
+  ),
+  databaseId = "eunomia"
 )
 
 referenceTable <- getFileReference(outputFolder)
